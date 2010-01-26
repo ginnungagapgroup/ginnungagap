@@ -153,7 +153,7 @@ cmdline_del(cmdline_t *cmdline)
 	xfree((*cmdline)->argType);
 	xfree((*cmdline)->argValue);
 	xfree((*cmdline)->argParsed);
-	for (int i = 0; i < (*cmdline)->numOptsUsed; i++) {
+	for (i = 0; i < (*cmdline)->numOptsUsed; i++) {
 		xfree((*cmdline)->optName[i]);
 		xfree((*cmdline)->optDescription[i]);
 		if (((*cmdline)->optType[i] == CMDLINE_TYPE_STRING)
