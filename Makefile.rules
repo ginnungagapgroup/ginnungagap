@@ -1,0 +1,11 @@
+# Copyright (C) 2010, Steffen Knollmann
+# Released under the terms of the GNU General Public License version 3.
+# This file is part of `ginnungagap'.
+
+# Pattern rule to generate dependencies, requires DEPCC to be set
+# see http://www.gnu.org/software/automake/manual/make/Automatic-Prerequisites.html#Automatic-Prerequisites
+%.d: %.c
+	@set -e; rm -f $@; \
+		$(DEPCC) -MM $(CPPFLAGS) $< > $@.$$$$; \
+		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+		rm -f $@.$$$$
