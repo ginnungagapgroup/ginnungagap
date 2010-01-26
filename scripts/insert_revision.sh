@@ -18,7 +18,7 @@ then
 	REVISION="r`$SVNVERSION -h`"
 elif [ -d .git ] && [ x$GIT != x ] && [ -x $GIT ]
 then
-	REVISION="\\\\ncommit `$GIT show-ref | awk '{print $1}'`"
+	REVISION="\\\\ncommit `$GIT show-ref refs/heads/master | awk '{print $1}'`"
 else
 	REVISION=""
 fi
