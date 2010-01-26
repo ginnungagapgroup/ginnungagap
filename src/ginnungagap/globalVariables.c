@@ -5,4 +5,4 @@
 #include "globalVariables.h"
 
 
-char *globalIniFname;
+char *globalIniFname = NULL;

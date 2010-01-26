@@ -1,3 +1,6 @@
 *.[aod]
 version.h
 src/ginnungagap/ginnungagap
+.cproject
+.project
+.settings/

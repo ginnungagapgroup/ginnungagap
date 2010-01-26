@@ -2,15 +2,12 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GLOBALVARIABLES_H
-#define GLOBALVARIABLES_H
+#ifndef SHUTDOWN_H
+#define SHUTDOWN_H
 
 
-#include "../../config.h"
-#include <stdlib.h>
-
-
-extern char *globalIniFname;
+extern void
+shutdown(void);
 
 
 #endif

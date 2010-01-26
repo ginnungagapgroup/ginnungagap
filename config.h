@@ -10,5 +10,6 @@
 #  define WITH_OPENMP_TIMING
 #endif
 
+#define XMEM_TRACK_MEM
 
 #endif

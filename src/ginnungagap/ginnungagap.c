@@ -7,12 +7,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parseCmdline.h"
+#include "startup.h"
+#include "shutdown.h"
 
 
 int
 main(int argc, char **argv)
 {
 	parseCmdline(argc, argv);
+
+	startup();
+
+	shutdown();
 
 	return EXIT_SUCCESS;
 }

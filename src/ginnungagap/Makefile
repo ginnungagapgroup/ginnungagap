@@ -10,7 +10,9 @@ progName = ginnungagap
 
 sources = $(progName).c \
           globalVariables.c \
-          parseCmdline.c
+          parseCmdline.c \
+          startup.c \
+          shutdown.c
 
 include ../../Makefile.rules
 
