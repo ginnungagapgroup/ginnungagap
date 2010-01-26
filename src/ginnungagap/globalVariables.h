@@ -2,17 +2,14 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#include "../../version.h"
+#ifndef GLOBALVARIABLES_H
+#define GLOBALVARIABLES_H
+
+
 #include "../../config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include "parseCmdline.h"
 
 
-int
-main(int argc, char **argv)
-{
-	parseCmdline(argc, argv);
+extern char *globalIniFname;
 
-	return EXIT_SUCCESS;
-}
+
+#endif
