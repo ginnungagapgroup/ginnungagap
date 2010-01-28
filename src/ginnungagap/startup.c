@@ -30,5 +30,5 @@ finalReport(void)
 	xmem_info(stdout);
 	printf("\n");
 #endif
-	printf("Vertu sæll...\n");
+	printf("Vertu sæl/sæll...\n");
 }
