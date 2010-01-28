@@ -8,11 +8,8 @@ include ../../Makefile.config
 
 progName = ginnungagap
 
-sources = $(progName).c \
-          globalVariables.c \
-          parseCmdline.c \
-          startup.c \
-          shutdown.c
+sources = main.c \
+          $(progName).c
 
 include ../../Makefile.rules
 
