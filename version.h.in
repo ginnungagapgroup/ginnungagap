@@ -14,7 +14,7 @@
 #define PACKAGE_VERSION_REVISION "__REVISION__"
 
 #define PRINT_VERSION_INFO(f)                                         \
-    fprintf((f), "This is %s %i.%i.%i   %s\n"                         \
+    fprintf((f), "\nThis is %s %i.%i.%i   %s\n\n"                     \
                  "Copyright (C) 2010, %s\n"                           \
                  "This is free software; see the source for copying " \
                  "conditions.  There is NO \n"                        \
