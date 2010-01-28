@@ -4,3 +4,4 @@ src/ginnungagap/ginnungagap
 .cproject
 .project
 .settings/
+.*.swp
