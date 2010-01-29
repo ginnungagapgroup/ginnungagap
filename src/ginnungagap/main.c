@@ -9,6 +9,8 @@
 #include "ginnungagap.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
@@ -26,7 +28,10 @@ static void
 local_initEnvironment(int *argc, char ***argv);
 
 static void
-local_cleanEnvironment();
+local_cleanEnvironment(void);
+
+static ginnungagap_t
+local_getGinnungagap(void);
 
 static cmdline_t
 local_cmdlineSetup(void);
@@ -37,24 +42,19 @@ local_checkForPrematureTermination(cmdline_t cmdline);
 static void
 local_finalMessage(void);
 
+static void
+local_verifyCloseOfStdout(void);
+
 
 /*--- M A I N -----------------------------------------------------------*/
 int
 main(int argc, char **argv)
 {
 	ginnungagap_t ginnungagap;
-	parse_ini_t   ini;
 
 	local_initEnvironment(&argc, &argv);
 
-	ini = parse_ini_open(localIniFname);
-	if (ini == NULL) {
-		fprintf(stderr, "FATAL:  Could not open %s for reading.\n",
-		        localIniFname);
-		exit(EXIT_FAILURE);
-	}
-	ginnungagap = ginnungagap_new(ini, 0);
-	parse_ini_close(&ini);
+	ginnungagap = local_getGinnungagap();
 	ginnungagap_run(ginnungagap);
 	ginnungagap_del(&ginnungagap);
 
@@ -79,6 +79,7 @@ local_initEnvironment(int *argc, char ***argv)
 	cmdline_getArgValueByNum(cmdline, 0, &localIniFname);
 	cmdline_del(&cmdline);
 
+	atexit(&local_verifyCloseOfStdout);
 	atexit(&local_finalMessage);
 }
 
@@ -95,6 +96,7 @@ static cmdline_t
 local_cmdlineSetup(void)
 {
 	cmdline_t cmdline;
+
 	cmdline = cmdline_new(1, 2, PACKAGE_NAME);
 	(void)cmdline_addOpt(cmdline, "version",
 	                     "This will output a version information.",
@@ -105,6 +107,7 @@ local_cmdlineSetup(void)
 	(void)cmdline_addArg(cmdline,
 	                     "An ini file containing the configuration.",
 	                     CMDLINE_TYPE_STRING);
+
 	return cmdline;
 }
 
@@ -128,7 +131,7 @@ local_checkForPrematureTermination(cmdline_t cmdline)
 		cmdline_del(&cmdline);
 		exit(EXIT_FAILURE);
 	}
-} /* local_checkForPrematureTermination */
+}
 
 static void
 local_finalMessage(void)
@@ -139,4 +142,34 @@ local_finalMessage(void)
 	printf("\n");
 #endif
 	printf("Vertu sæl/sæll...\n");
+}
+
+static ginnungagap_t
+local_getGinnungagap(void)
+{
+	ginnungagap_t ginnungagap;
+	parse_ini_t   ini;
+
+	ini = parse_ini_open(localIniFname);
+	if (ini == NULL) {
+		fprintf(stderr, "FATAL:  Could not open %s for reading.\n",
+		        localIniFname);
+		exit(EXIT_FAILURE);
+	}
+
+	ginnungagap = ginnungagap_new(ini, 0);
+
+	parse_ini_close(&ini);
+
+	return ginnungagap;
+}
+
+static void
+local_verifyCloseOfStdout(void)
+{
+	if (fclose(stdout) != 0) {
+		int errnum = errno;
+		fprintf(stderr, "%s", strerror(errnum));
+		_Exit(EXIT_FAILURE);
+	}
 }
