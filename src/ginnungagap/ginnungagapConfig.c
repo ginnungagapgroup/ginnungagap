@@ -16,20 +16,11 @@
 /*--- Defines for the Ini structure -------------------------------------*/
 #define SECTION_NAME_MAIN "General"
 #define KEY_NAME_DIM      "dim"
-#define KEY_NAME_SEED     "seed"
-#define getFromIni(trgt, func, ini, keyName, sectionName)      \
-    if (!func(ini, keyName, sectionName, trgt)) {              \
-		fprintf(stderr,                                        \
-		        "FATAL:  Could not get %s from section %s.\n", \
-		        keyName, sectionName);                         \
-		exit(EXIT_FAILURE);                                    \
-	}
 
 
 /*--- Implemention of main structure ------------------------------------*/
 struct ginnungagapConfig_struct {
 	uint32_t dim1D;
-	int      randomSeed;
 };
 
 
@@ -51,9 +42,6 @@ ginnungagapConfig_new(parse_ini_t ini)
 	getFromIni(&(tmp.u32), parse_ini_get_uint32,
 	           ini, KEY_NAME_DIM, SECTION_NAME_MAIN);
 	config->dim1D = tmp.u32;
-	getFromIni(&(tmp.i32), parse_ini_get_int32,
-	           ini, KEY_NAME_SEED, SECTION_NAME_MAIN);
-	config->randomSeed = (int)(tmp.i32);
 
 	return config;
 }

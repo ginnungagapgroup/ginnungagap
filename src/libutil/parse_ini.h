@@ -6,15 +6,29 @@
 #define PARSE_INI_H
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
 
 
+/*--- Exported defines --------------------------------------------------*/
+#define getFromIni(trgt, func, ini, keyName, sectionName)      \
+    if (!func(ini, keyName, sectionName, trgt)) {              \
+		fprintf(stderr,                                        \
+		        "FATAL:  Could not get %s from section %s.\n", \
+		        keyName, sectionName);                         \
+		exit(EXIT_FAILURE);                                    \
+	}
+
+
+/*--- ADT handle --------------------------------------------------------*/
 typedef struct parse_ini_struct parse_ini_struct_t;
 typedef parse_ini_struct_t      *parse_ini_t;
 
+
+/*--- Prototypes of exported functions ----------------------------------*/
 
 /**
  * \brief  Opens an ini file and creates an according object to work

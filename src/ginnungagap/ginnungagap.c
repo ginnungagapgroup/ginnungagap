@@ -7,6 +7,7 @@
 #include "../../config.h"
 #include "ginnungagap.h"
 #include "ginnungagapConfig.h"
+#include "rng.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -17,6 +18,7 @@
 /*--- Implemention of main structure ------------------------------------*/
 struct ginnungagap_struct {
 	ginnungagapConfig_t config;
+	rng_t               rng;
 };
 
 
@@ -33,6 +35,7 @@ ginnungagap_new(parse_ini_t ini, int flags)
 
 	ginnungagap         = xmalloc(sizeof(struct ginnungagap_struct));
 	ginnungagap->config = ginnungagapConfig_new(ini);
+	ginnungagap->rng    = rng_new(ini);
 
 	return ginnungagap;
 }
@@ -49,6 +52,7 @@ ginnungagap_del(ginnungagap_t *ginnungagap)
 	assert(ginnungagap != NULL);
 	assert(*ginnungagap != NULL);
 
+	rng_del(&((*ginnungagap)->rng));
 	ginnungagapConfig_del(&((*ginnungagap)->config));
 	xfree(*ginnungagap);
 	*ginnungagap = NULL;

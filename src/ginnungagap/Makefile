@@ -10,7 +10,8 @@ progName = ginnungagap
 
 sources = main.c \
           $(progName).c \
-          ginnungagapConfig.c
+          ginnungagapConfig.c \
+          rng.c
 
 include ../../Makefile.rules
 
@@ -25,8 +26,10 @@ dist-clean:
 	rm -f $(sources:.c=.d)
 
 $(progName): $(sources:.c=.o)
-	$(CC) $(CFLAGS) -o $(progName) $(sources:.c=.o) \
-	                               ../libutil/libutil.a
+	$(CC) $(LDFLAGS) $(CFLAGS) \
+	  -o $(progName) $(sources:.c=.o) \
+	                 ../libutil/libutil.a \
+	                 $(LIBS)
 
 -include $(sources:.c=.d)
 
