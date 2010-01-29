@@ -1,0 +1,127 @@
+# Copyright (C) 2009, Steffen Knollmann
+#
+# This file is part of `voelva'.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+
+# Select the used toolchain to generate the objects, executables, etc.
+# You can select a variety of predefined toolchains (see the end of the
+# comment for a list), but you can also define your own name, provided
+# that you implement it accordingly at the end of this file.  The
+# toolchain will set the following variables:
+#   CC    :  This is the C compiler to use.
+#   CFLAGS:  Special flags for the C compiler can be set here.
+#   DEPCC:   This is a C Preprocessor that will be used to
+#            auto-generate dependencies, it is a safe bet to use gcc
+#            for that.  No code will be generated with that compiler!
+#   LD   :   The linker.
+#   AR   :   The archiver.
+#   MAKE :   The make command that will be used.
+# Note that by defining any of those variables during the run of the
+# configure script, the toolchain variables will be overwritten with the
+# command line variables.  The exception to this is CFLAGS: the user
+# can specify specific flags and the ones required by the toolchain will
+# be appended to those at the end.
+TOOLCHAIN = "__TOOLCHAIN__"
+
+# Features that influence the choices need to be made in the toolchains
+WITH_OPENMP = "__WITH_OPENMP__"
+WITH_MPI = "__WITH_MPI__"
+MPICC = __MPICC__
+ENABLE_DEBUG = "__ENABLE_DEBUG__"
+
+# Set the important variables to what the user wishes.  If any of these
+# is set, the toolchain segment will not touch its value.  The exception
+# is CFLAGS, here the toolchain will append the toolchain-specifc values
+# to the ones the user specified.
+CC = __CC__
+CFLAGS = __CFLAGS__
+CPPFLAGS = __CPPFLAGS__
+DEPCC = __DEPCC__
+LD = __LD__
+LDFLAGS = __LDFLAGS__
+AR = __AR__
+MAKE = __MAKE__
+
+# Those are additional required libraries, better not touch them.
+LIBS = -lsprng
+
+# The actual definitions depending on the chosen toolchain
+ifeq ($(TOOLCHAIN), "gnu")
+	ifndef CC
+		ifeq ($(WITH_MPI), "true")
+			CC = $(MPICC)
+		else
+			CC = gcc
+		endif
+	endif
+	ifeq ($(WITH_OPENMP), "true")
+		CC+= -fopenmp
+	endif
+	CFLAGS += -Wall -std=c99
+	ifeq ($(ENABLE_DEBUG), "true")
+		CFLAGS += -O0 -g
+	endif
+	ifndef DEPCC
+		ifeq ($(WITH_MPI), "true")
+			DEPCC = $(MPICC)
+		else
+			DEPCC = gcc
+		endif
+	endif
+	ifndef LD
+		LD = ld
+	endif
+	ifndef AR
+		AR = ar
+	endif
+	ifndef MAKE
+		MAKE = make
+	endif
+endif
+
+ifeq ($(TOOLCHAIN), "intel")
+	ifndef CC
+		ifeq ($(WITH_MPI), "true")
+			CC = $(MPICC)
+		else
+			CC = icc
+		endif
+	endif
+	ifeq ($(WITH_OPENMP), "true")
+		CC+= -openmp
+	endif
+	CFLAGS += -Wall -std=c99 -Wcheck -wd981 -wd161
+	ifeq ($(ENABLE_DEBUG), "true")
+		CFLAGS += -O0 -g
+	endif
+	ifndef DEPCC
+		ifeq ($(WITH_MPI), "true")
+			DEPCC = $(MPICC)
+		else
+			DEPCC = icc
+		endif
+	endif
+	ifndef LD
+		LD = xild
+	endif
+	ifndef AR
+		AR = xiar
+	endif
+	ifndef MAKE
+		MAKE = make
+	endif
+endif

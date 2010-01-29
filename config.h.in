@@ -1,0 +1,52 @@
+// Copyright (C) 2010, Steffen Knollmann
+// Released under the terms of the GNU General Public License version 3.
+// This file is part of `ginnungagap'.
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+
+/*--- Code Features (to be adjusted by the configure script) ------------*/
+#undef WITH_MPI
+#undef WITH_OPENMP
+#define WITH_FFTW __FFTW_VERSION__
+#undef ENABLE_DOUBLE
+#undef ENABLE_DEBUG
+
+
+/*--- Consequences of the Code Features (do NOT change) -----------------*/
+#ifdef ENABLE_DEBUG
+#  undef NDEBUG
+#  define DEBUG
+#  define XMEM_TRACK_MEM
+#else
+#  define NDEBUG
+#  undef DEBUG
+#  undef XMEM_TRACK_MEM
+#endif
+
+#ifdef WITH_OPENMP
+#  ifndef _OPENMP
+#    undef WITH_OPENMP
+#  endif
+#endif
+
+#if (WITH_FFTW < 2 || WITH_FFTW > 3)
+#  undef WITH_FFTW
+#  define WITH_FFTW 2
+#endif
+
+#ifdef ENABLE_DOUBLE
+typedef double fpv_t;
+#  define FPV_C(a) a
+#  define SCNfpv "lf"
+#  define PRIfpv "g"
+#else
+typedef float fpv_t;
+#  define FPV_C(a) a ## f
+#  define SCNfpv "f"
+#  define PRIfpv "g"
+#endif
+
+
+#endif

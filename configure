@@ -1,0 +1,363 @@
+#!/bin/sh
+
+# Copyright (C) 2010, Steffen Knollmann
+# 
+# This file is part of `ginnungagap'.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. 
+
+
+# Get a bunch of informative things
+if test -e version.h
+then
+	PROPER_VERSION_INFO="yes"
+	VERSIONFILE=version.h
+else
+	PROPER_VERSION_INFO="no"
+	VERSIONFILE=version.h.in
+fi
+PACKAGE_NAME=`  grep 'define PACKAGE_NAME' $VERSIONFILE \
+              | awk '{print $3}' | sed s/\"//g`
+PACKAGE_OWNER=`  grep 'define PACKAGE_OWNER' $VERSIONFILE \
+              | awk -F\" '{print $2}'`
+PACKAGE_BUG_EMAIL=`  grep 'define PACKAGE_BUG_EMAIL' $VERSIONFILE \
+                   | awk '{print $3}' | sed s/\"//g`
+PACKAGE_VERSION_MAJOR=`  grep 'define PACKAGE_VERSION_MAJOR' $VERSIONFILE \
+                       | awk '{print $3}' | sed s/\"//g`
+PACKAGE_VERSION_MINOR=`  grep 'define PACKAGE_VERSION_MINOR' $VERSIONFILE \
+                       | awk '{print $3}' | sed s/\"//g`
+PACKAGE_VERSION_MICRO=`  grep 'define PACKAGE_VERSION_MICRO' $VERSIONFILE \
+                       | awk '{print $3}' | sed s/\"//g`
+
+# Initialise the options
+TOOLCHAIN=gnu
+WITH_OPENMP=false
+WITH_MPI=false
+WITH_FFTW=true
+FFTW_VERSION=2
+ENABLE_DOUBLE=true
+ENABLE_DEBUG=false
+SHOW_HELP=false
+SHOW_VERSION=false
+
+# Parse the options
+for ac_option
+do
+	case $ac_option in
+		*=*)  ac_optarg=`expr "X$ac_option" : '[^=]*=\(.*\)'` ;;
+		*)    ac_optarg=yes ;;
+	esac
+
+	case $ac_option in
+		--toolchain)
+			echo -n "Error: --toolchain requires an argument; "
+			echo "use, e.g., --toolchain=gnu"
+			exit 1
+			;;
+		--toolchain=*)
+			TOOLCHAIN=$ac_optarg
+			;;
+		--with-openmp | --with-openmp=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				WITH_OPENMP=true
+			else
+				WITH_OPENMP=false
+			fi
+			;;
+		--with-mpi | --with-mpi=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				WITH_MPI=true
+				WITH_MPICC=mpicc
+			elif test "x$ac_optarg" = "xno"
+			then
+				WITH_MPI=false
+				WITH_MPICC=""
+			else
+				WITH_MPI=true
+				WITH_MPICC=$ac_optarg
+			fi
+			;;
+		--without-mpi | --without-mpi=*)
+			WITH_MPI=false
+			;;
+		--with-fftw)
+			echo -n "Error:  --with-fftw requires an argumet; "
+			echo "use either --with-fftw=2 or --with-fftw=3"
+			exit 1
+			;;
+		--with-fftw=*)
+			if test "x$ac_optarg" = "x3"
+			then
+				WITH_FFTW=true
+				FFTW_VERSION=3
+			elif test "x$ac_optarg" = "x2"
+			then
+				WITH_FFTW=true
+				FFTW_VERSION=2
+			else
+				echo -n "Error:  --with-fftw accepts only 2 and 3 "
+				echo "as arguments"
+				exit 1
+			fi
+			;;
+		--without-fftw | --without-fftw=*)
+			echo "Error:  FFTW is required and cannot be deactivated."
+			exit 1
+			;;
+		--enable-double | --enable-double=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				ENABLE_DOUBLE=true
+			else
+				ENABLE_DOUBLE=false
+			fi
+			;;
+		--disable-double | --disable-double=*)
+			ENABLE_DOUBLE=false
+			;;
+		--enable-debug | --enable-debug=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				ENABLE_DEBUG=true
+			else
+				ENABLE_DEBUG=false
+			fi
+			;;
+		--disable-debug | --disable-debug=*)
+			ENABLE_DEBUG=false
+			;;
+		-h | --help*)
+			SHOW_HELP=true
+			;;
+		-V | --version*)
+			SHOW_VERSION=true
+			;;
+		-* | --*)
+			echo "Unknown option $ac_option, try \`$0 --help' to get a "
+			echo "list of allowed options."
+			exit 1
+			;;
+		*)
+			echo "Unknown parameter $ac_option, try \`$0 --help' to get a "
+			echo "list of allowed options."
+			exit 1
+			;;
+	esac
+done
+
+# Print the help screen and exit, if requested
+if test "x$SHOW_HELP" = "xtrue"
+then
+	cat <<_HELP_EOF
+\`configure' offers an easy way to configure the features and the build
+system of $PACKAGE_NAME $PACKAGE_VERSION_MAJOR.$PACKAGE_VERSION_MINOR.$PACKAGE_VERSION_MICRO-r$PACKAGE_VERSION_REVISION.
+
+This script will use the distributed Makefile.config.in and config.h.in
+to generate the actual Makefile.config and config.h, respectively.
+
+Usage: $0 [OPTION]... [VAR=VALUE]
+
+To assign environment variables (e.g., CC, CFLAGS...), specify them as
+VAR=VALUE.  See below for descriptions of some of the useful variables.
+
+Defaults for the options are specified in brackets.
+
+Configuration:
+  -h, --help      Print this help screen.
+  -V, --version   Print a version info and exit.
+
+Build options:
+  --toolchain[=TOOLCHAIN]  Sets the toolchain used to build $PACKAGE_NAME.
+                           This defaults to \`gnu', using gcc, ld and ar.
+                           Another option is to specify \`intel', then
+                           icc, xild and xiar are used in the toolchain.
+                           You can define further toolchains by
+                           modifying Makefile.config.in accordingly.
+                           Please note the comment at the end of this
+                           help screen concerning environment variables.
+
+Optional features:
+  --with-FEATURE[=ARG]     Use FEATURE. [ARG=yes]
+  --without-FEATURE        Do not use FEATURE.  This is the same as
+                           --with-FEATURE=no.
+  --with-mpi[=COMPILER]    Use MPI [COMPILER=mpicc].  Note that if you
+                           use MPI, it is your duty to make sure that
+                           mpicc uses a C compiler that fits to your
+                           selected toolchain.  Default: no.
+  --with-openmp            Uses the OpenMP directives.  Default: no.
+  --with-fftw[=VERSION]    This chooses between version 2 and version 3
+                           of the FFTW library.  Default: 2.
+
+Code properties:
+  --enable-FEATURE[=ARG]   Switch on a feature. [ARG=YES]
+  --disable-FEATURE        Do not use FEATURE.  This is the same as
+                           --enable-FEATURE=no.
+  --enable-double          This switches on the usage of double
+                           precision floating point variables instead of
+                           single precision for fields and particle
+                           properties.  Default: yes.
+
+Debugging features:
+  --enable-debug           Activates the debugging flags and forces the
+                           compiler flags to build debugging symbols.
+                           Default: no.
+
+Some influential environment variables:
+  CC          The C compiler to use.
+  CFLAGS      C compiler flags.
+  CPPFLAGS    Additional directives for the preprocessor, e.g.
+              \`-L/opt/include'
+  DEPCC       This is the C preprocessor that will be used to
+              auto-generate dependencies.  No code will be generated
+              with that compiler!
+  LD          The linker.
+  LDFLAGS     Flags required to find libraries, e.g. \`-L/opt/lib'
+  AR          The archiver.
+  MAKE        The make command that will be used.
+
+Note that theses variables are set by selecting a specific toolchain.
+You can use these variables to override the choices made by \`configure'
+or to help it to find libraries and programs with nonstandard
+names/locations.
+
+Please report bugs to $PACKAGE_BUG_EMAIL.
+
+_HELP_EOF
+	exit 0
+fi
+
+# Print the version screen and exit, if requested
+if test "x$SHOW_VERSION" = "xtrue"
+then
+	cat <<_VERSION_EOF
+This is $PACKAGE_NAME $PACKAGE_VERSION_MAJOR.$PACKAGE_VERSION_MINOR.$PACKAGE_VERSION_MICRO
+Copyright (C) 2010, $PACKAGE_OWNER
+
+This is free software; see the attached COPYING document for copying
+conditions.  There is NO warranty; not even for MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PUSPOSE.
+
+Please send bugreports to $PACKAGE_BUG_EMAIL
+
+_VERSION_EOF
+	exit 0
+fi
+
+# Now lets actually do something.
+
+# Say hello
+echo "Configuring $PACKAGE_NAME $PACKAGE_VERSION_MAJOR.$PACKAGE_VERSION_MINOR.$PACKAGE_VERSION_MICRO" | tee config.log
+
+# Generate Makefile.config
+echo -n "\to generating \`Makefile.config'... " | tee -a config.log
+echo "# Makefile.config generated from Makefile.config.in by configure" > Makefile.config
+echo "" >> Makefile.config
+cat Makefile.config.in >> Makefile.config
+sed -i s/__TOOLCHAIN__/$TOOLCHAIN/ Makefile.config
+if test "x$WITH_OPENMP" = "xtrue"
+then
+	sed -i s/__WITH_OPENMP__/true/ Makefile.config
+else
+	sed -i s/__WITH_OPENMP__/false/ Makefile.config
+fi
+if test "x$WITH_MPI" = "xtrue"
+then
+	sed -i s/__WITH_MPI__/true/ Makefile.config
+	sed -i s/__MPICC__/$WITH_MPICC/ Makefile.config
+else
+	sed -i s/__WITH_MPI__/false/ Makefile.config
+	sed -i s/__MPICC__// Makefile.config
+fi
+if test "x$ENABLE_DEBUG" = "xtrue"
+then
+	sed -i s/__ENABLE_DEBUG__/true/ Makefile.config
+else
+	sed -i s/__ENABLE_DEBUG__/false/ Makefile.config
+fi
+sed -i -e "s@__CC__@$CC@" Makefile.config
+sed -i -e "s@__CFLAGS__@$CFLAGS@" Makefile.config
+sed -i -e "s@__CPPFLAGS__@$CPPFLAGS@" Makefile.config
+sed -i -e "s@__DEPCC__@$DEPCC@" Makefile.config
+sed -i -e "s@__LD__@$LD@" Makefile.config
+sed -i -e "s@__LDFLAGS__@$LDFLAGS@" Makefile.config
+sed -i -e "s@__AR__@$AR@" Makefile.config
+sed -i -e "s@__MAKE__@$MAKE@" Makefile.config
+echo "done" | tee -a config.log
+
+
+# Generate config.h
+echo -n "\to generating \`config.h'... " | tee -a config.log
+echo "/* config.h generated from config.h.in by configure */" > config.h
+echo "" >> config.h
+cat config.h.in >> config.h
+if test "x$WITH_OPENMP" = "xtrue"
+then
+	sed -i -e 's/undef WITH_OPENMP/define WITH_OPENMP 1/' config.h
+fi
+if test "x$WITH_MPI" = "xtrue"
+then
+	sed -i -e 's/undef WITH_MPI/define WITH_MPI 1/' config.h
+fi
+if test "x$ENABLE_DEBUG" = "xtrue"
+then
+	sed -i -e 's/undef ENABLE_DEBUG/define ENABLE_DEBUG 1/' config.h
+fi
+if test "x$ENABLE_DOUBLE" = "xtrue"
+then
+	sed -i -e 's/undef ENABLE_DOUBLE/define ENABLE_DOUBLE 1/' config.h
+fi
+sed -i -e "s@__FFTW_VERSION__@$FFTW_VERSION@" config.h
+echo "done" | tee -a config.log
+
+
+# Summarize the configuration
+echo "" | tee -a config.log
+echo "Summary" | tee -a config.log
+echo "\to features in use/code properties:" | tee -a config.log
+grep '#define' config.h \
+	| grep -v CONFIG_H \
+	| awk '{print "\t\t"$2"\t"$3}' \
+	| tee -a config.log
+
+echo "\to features NOT in use:" | tee -a config.log
+grep '#undef' config.h | awk '{print "\t\t"$2}' | tee -a config.log
+
+echo "\to programs and program options:" | tee -a config.log
+cat <<_BLA_EOF >> bla.$$
+include Makefile.config
+
+.PHONY: check
+
+check:
+	@echo "\t\tCC       = \$(CC)"
+	@echo "\t\tCFLAGS   = \$(CFLAGS)"
+	@echo "\t\tCPPFLAGS = \$(CPPFLAGS)"
+	@echo "\t\tDEPCC    = \$(DEPCC)"
+	@echo "\t\tLD       = \$(LD)"
+	@echo "\t\tLDFLAGS  = \$(LDFLAGS)"
+	@echo "\t\tAR       = \$(AR)"
+	@echo "\t\tMAKE     = \$(MAKE)"
+_BLA_EOF
+make -f bla.$$ check | tee -a config.log
+rm -f bla.$$
+echo ""
+cat <<_END_EOF
+To build $PACKAGE_NAME, run \`make all'.
+To generate the code documention execute \`make doc'.
+
+Have a lot of fun!
+_END_EOF

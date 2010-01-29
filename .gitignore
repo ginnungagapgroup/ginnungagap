@@ -5,3 +5,6 @@ src/ginnungagap/ginnungagap
 .project
 .settings/
 .*.swp
+Makefile.config
+config.log
+config.h
