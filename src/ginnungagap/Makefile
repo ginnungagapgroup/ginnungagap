@@ -9,7 +9,8 @@ include ../../Makefile.config
 progName = ginnungagap
 
 sources = main.c \
-          $(progName).c
+          $(progName).c \
+          ginnungagapConfig.c
 
 include ../../Makefile.rules
 
