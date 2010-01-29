@@ -14,6 +14,7 @@
 #endif
 #include "../libutil/xmem.h"
 #include "../libutil/cmdline.h"
+#include "../libutil/parse_ini.h"
 
 
 /*--- Local variables ---------------------------------------------------*/
@@ -42,10 +43,18 @@ int
 main(int argc, char **argv)
 {
 	ginnungagap_t ginnungagap;
+	parse_ini_t   ini;
 
 	local_initEnvironment(&argc, &argv);
 
-	ginnungagap = ginnungagap_new(localIniFname, 0);
+	ini = parse_ini_open(localIniFname);
+	if (ini == NULL) {
+		fprintf(stderr, "FATAL:  Could not open %s for reading.\n",
+		        localIniFname);
+		exit(EXIT_FAILURE);
+	}
+	ginnungagap = ginnungagap_new(ini, 0);
+	parse_ini_close(&ini);
 	ginnungagap_run(ginnungagap);
 	ginnungagap_del(&ginnungagap);
 
@@ -86,7 +95,7 @@ static cmdline_t
 local_cmdlineSetup(void)
 {
 	cmdline_t cmdline;
-	cmdline       = cmdline_new(1, 2, PACKAGE_NAME);
+	cmdline = cmdline_new(1, 2, PACKAGE_NAME);
 	(void)cmdline_addOpt(cmdline, "version",
 	                     "This will output a version information.",
 	                     false, CMDLINE_TYPE_NONE);
@@ -117,9 +126,9 @@ local_checkForPrematureTermination(cmdline_t cmdline)
 	if (!cmdline_verify(cmdline)) {
 		cmdline_printHelp(cmdline, stderr);
 		cmdline_del(&cmdline);
-		exit(EXIT_FAILURE);	
+		exit(EXIT_FAILURE);
 	}
-}
+} /* local_checkForPrematureTermination */
 
 static void
 local_finalMessage(void)

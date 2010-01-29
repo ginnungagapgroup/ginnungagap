@@ -6,10 +6,17 @@
 #define GINNUNGAGAP_H
 
 
+/*--- Includes ----------------------------------------------------------*/
+#include "../libutil/parse_ini.h"
+
+
+/*--- ADT handle --------------------------------------------------------*/
 typedef struct ginnungagap_struct *ginnungagap_t;
 
+
+/*--- Prototypes of exported functions ----------------------------------*/
 extern ginnungagap_t
-ginnungagap_new(const char *iniFname, int flags);
+ginnungagap_new(parse_ini_t ini, int flags);
 
 extern void
 ginnungagap_run(ginnungagap_t ginnungagap);
