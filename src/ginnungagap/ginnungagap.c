@@ -30,7 +30,6 @@ extern ginnungagap_t
 ginnungagap_new(parse_ini_t ini, int flags)
 {
 	ginnungagap_t ginnungagap;
-
 	assert(ini != NULL);
 	assert(flags == 0);
 
@@ -63,7 +62,7 @@ ginnungagap_del(ginnungagap_t *ginnungagap)
 #define SECTION_NAME_MAIN "General"
 #define KEY_NAME_DIM      "dim"
 #define KEY_NAME_SEED     "seed"
-#define getFromIni(func, ini, keyName, sectionName, trgt)      \
+#define getFromIni(trgt, func, ini, keyName, sectionName)      \
     if (!func(ini, keyName, sectionName, trgt)) {              \
 		fprintf(stderr,                                        \
 		        "FATAL:  Could not get %s from section %s.\n", \
@@ -76,12 +75,14 @@ ginnungagap_del(ginnungagap_t *ginnungagap)
 static void
 local_parseIni(ginnungagap_t ginnungagap, parse_ini_t ini)
 {
-	uint32_t tmp;
-	getFromIni(parse_ini_get_uint32, ini,
-	           KEY_NAME_DIM, SECTION_NAME_MAIN,
-	           &(ginnungagap->dim));
-	getFromIni(parse_ini_get_uint32, ini,
-	           KEY_NAME_SEED, SECTION_NAME_MAIN,
-	           &tmp);
-	ginnungagap->seed = (int)tmp;
+	union {
+		uint32_t u32;
+		int32_t  i32;
+	} tmp;
+	getFromIni(&(tmp.u32), parse_ini_get_uint32,
+	           ini, KEY_NAME_DIM, SECTION_NAME_MAIN);
+	ginnungagap->dim = tmp.u32;
+	getFromIni(&(tmp.i32), parse_ini_get_int32,
+	           ini, KEY_NAME_SEED, SECTION_NAME_MAIN);
+	ginnungagap->seed = (int)(tmp.i32);
 }
