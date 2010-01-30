@@ -288,12 +288,19 @@ then
 else
 	sed -i s/__ENABLE_DEBUG__/false/ Makefile.config
 fi
+if test "x$ENABLE_DOUBLE" = "xtrue"
+then
+	sed -i s/__ENABLE_DOUBLE__/true/ Makefile.config
+else
+	sed -i s/__ENABLE_DOUBLE__/false/ Makefile.config
+fi
 if test "x$ENABLE_PROFILE" = "xtrue"
 then
 	sed -i s/__ENABLE_PROFILE__/true/ Makefile.config
 else
 	sed -i s/__ENABLE_PROFILE__/false/ Makefile.config
 fi
+sed -i -e "s@__FFTW_VERSION__@$FFTW_VERSION@" Makefile.config
 sed -i -e "s@__CC__@$CC@" Makefile.config
 sed -i -e "s@__CFLAGS__@$CFLAGS@" Makefile.config
 sed -i -e "s@__CPPFLAGS__@$CPPFLAGS@" Makefile.config
@@ -355,6 +362,7 @@ check:
 	@echo "\t\tDEPCC    = \$(DEPCC)"
 	@echo "\t\tLD       = \$(LD)"
 	@echo "\t\tLDFLAGS  = \$(LDFLAGS)"
+	@echo "\t\tLIBS     = \$(LIBS)"
 	@echo "\t\tAR       = \$(AR)"
 	@echo "\t\tMAKE     = \$(MAKE)"
 _BLA_EOF

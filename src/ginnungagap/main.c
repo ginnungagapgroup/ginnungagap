@@ -30,9 +30,6 @@ local_initEnvironment(int *argc, char ***argv);
 static void
 local_registerCleanUpFunctions(void);
 
-static void
-local_cleanEnvironment(void);
-
 static ginnungagap_t
 local_getGinnungagap(void);
 
@@ -90,11 +87,6 @@ local_registerCleanUpFunctions(void)
 		        "local_verifyCloseOfStdout");
 		exit(EXIT_FAILURE);
 	}
-	if (atexit(&local_cleanEnvironment) != 0 ) {
-		fprintf(stderr, "cannot register `%s' as exit function\n",
-		        "local_cleanEnvironment");
-		exit(EXIT_FAILURE);
-	}
 	if (atexit(&local_finalMessage) != 0) {
 		fprintf(stderr, "cannot register `%s' as exit function\n",
 		        "local_finalMessage");
@@ -103,12 +95,32 @@ local_registerCleanUpFunctions(void)
 }
 
 static void
-local_cleanEnvironment()
+local_finalMessage(void)
 {
-	xfree(localIniFname);
+	int rank = 0;
 #ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Finalize();
 #endif
+	xfree(localIniFname);
+	if (rank == 0) {
+#ifdef XMEM_TRACK_MEM
+		printf("\n");
+		xmem_info(stdout);
+		printf("\n");
+#endif
+		printf("Vertu sæl/sæll...\n");
+	}
+}
+
+static void
+local_verifyCloseOfStdout(void)
+{
+	if (fclose(stdout) != 0) {
+		int errnum = errno;
+		fprintf(stderr, "%s", strerror(errnum));
+		_Exit(EXIT_FAILURE);
+	}
 }
 
 static cmdline_t
@@ -158,23 +170,6 @@ local_checkForPrematureTermination(cmdline_t cmdline)
 	}
 }
 
-static void
-local_finalMessage(void)
-{
-	int rank = 0;
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-	if (rank == 0) {
-#ifdef XMEM_TRACK_MEM
-		printf("\n");
-		xmem_info(stdout);
-		printf("\n");
-#endif
-		printf("Vertu sæl/sæll...\n");
-	}
-}
-
 static ginnungagap_t
 local_getGinnungagap(void)
 {
@@ -193,14 +188,4 @@ local_getGinnungagap(void)
 	parse_ini_close(&ini);
 
 	return ginnungagap;
-}
-
-static void
-local_verifyCloseOfStdout(void)
-{
-	if (fclose(stdout) != 0) {
-		int errnum = errno;
-		fprintf(stderr, "%s", strerror(errnum));
-		_Exit(EXIT_FAILURE);
-	}
 }

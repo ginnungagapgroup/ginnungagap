@@ -8,10 +8,20 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "../libutil/parse_ini.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 
 /*--- ADT handle --------------------------------------------------------*/
 typedef struct ginnungagapConfig_struct *ginnungagapConfig_t;
+
+
+/*--- Implemention of main structure ------------------------------------*/
+struct ginnungagapConfig_struct {
+	uint32_t highDim1D;
+	bool     replaceLowFreqModes;
+	uint32_t lowDim1D;
+};
 
 
 /*--- Prototypes of exported functions ----------------------------------*/

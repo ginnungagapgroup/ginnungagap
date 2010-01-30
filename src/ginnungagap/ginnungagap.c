@@ -8,6 +8,7 @@
 #include "ginnungagap.h"
 #include "ginnungagapConfig.h"
 #include "rng.h"
+#include "fft.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -19,6 +20,8 @@
 struct ginnungagap_struct {
 	ginnungagapConfig_t config;
 	rng_t               rng;
+	fft_t               fftHigh;
+	fft_t               fftLow;
 };
 
 
@@ -35,6 +38,11 @@ ginnungagap_new(parse_ini_t ini)
 	ginnungagap         = xmalloc(sizeof(struct ginnungagap_struct));
 	ginnungagap->config = ginnungagapConfig_new(ini);
 	ginnungagap->rng    = rng_new(ini);
+	ginnungagap->fftHigh = fft_new(ginnungagap->config->highDim1D);
+	if (ginnungagap->config->replaceLowFreqModes)
+		ginnungagap->fftLow = fft_new(ginnungagap->config->lowDim1D);
+	else
+		ginnungagap->fftLow = NULL;
 
 	return ginnungagap;
 }
@@ -51,6 +59,9 @@ ginnungagap_del(ginnungagap_t *ginnungagap)
 	assert(ginnungagap != NULL);
 	assert(*ginnungagap != NULL);
 
+	if ((*ginnungagap)->fftLow != NULL)
+		fft_del(&((*ginnungagap)->fftLow));
+	fft_del(&((*ginnungagap)->fftHigh));
 	rng_del(&((*ginnungagap)->rng));
 	ginnungagapConfig_del(&((*ginnungagap)->config));
 	xfree(*ginnungagap);

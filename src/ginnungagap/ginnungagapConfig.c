@@ -10,18 +10,15 @@
 #include <stdio.h>
 #include <assert.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include "../libutil/xmem.h"
 
 
 /*--- Defines for the Ini structure -------------------------------------*/
-#define SECTION_NAME_MAIN "General"
-#define KEY_NAME_DIM      "dim"
-
-
-/*--- Implemention of main structure ------------------------------------*/
-struct ginnungagapConfig_struct {
-	uint32_t dim1D;
-};
+#define CONFIG_SECTION_NAME   "General"
+#define CONFIG_HIGHDIM1D_NAME "highDim1D"
+#define CONFIG_REPLACEMODES_NAME "replaceLowFreqModes"
+#define CONFIG_LOWDIM1D_NAME  "lowDim1D"
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -35,13 +32,24 @@ ginnungagapConfig_new(parse_ini_t ini)
 	union {
 		uint32_t u32;
 		int32_t  i32;
+		bool     bl;
 	} tmp;
 	assert(ini != NULL);
 
 	config = xmalloc(sizeof(struct ginnungagapConfig_struct));
 	getFromIni(&(tmp.u32), parse_ini_get_uint32,
-	           ini, KEY_NAME_DIM, SECTION_NAME_MAIN);
-	config->dim1D = tmp.u32;
+	           ini, CONFIG_HIGHDIM1D_NAME, CONFIG_SECTION_NAME);
+	config->highDim1D = tmp.u32;
+	getFromIni(&(tmp.bl), parse_ini_get_bool,
+	           ini, CONFIG_REPLACEMODES_NAME, CONFIG_SECTION_NAME);
+	config->replaceLowFreqModes = tmp.bl;
+	if (config->replaceLowFreqModes) {
+		getFromIni(&(tmp.u32), parse_ini_get_uint32,
+		           ini, CONFIG_LOWDIM1D_NAME, CONFIG_SECTION_NAME);
+		config->lowDim1D = tmp.u32;
+	} else {
+		config->lowDim1D = UINT32_C(0);
+	}
 
 	return config;
 }

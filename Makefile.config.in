@@ -40,8 +40,10 @@ TOOLCHAIN = "__TOOLCHAIN__"
 # Features that influence the choices need to be made in the toolchains
 WITH_OPENMP = "__WITH_OPENMP__"
 WITH_MPI = "__WITH_MPI__"
+WITH_FFTW = "__FFTW_VERSION__"
 MPICC = __MPICC__
 ENABLE_DEBUG = "__ENABLE_DEBUG__"
+ENABLE_DOUBLE = "__ENABLE_DOUBLE__"
 ENABLE_PROFILE = "__ENABLE_PROFILE__"
 
 # Set the important variables to what the user wishes.  If any of these
@@ -59,6 +61,22 @@ MAKE = __MAKE__
 
 # Those are additional required libraries, better not touch them.
 LIBS = -lsprng
+ifeq ($(WITH_FFTW), "2")
+  ifeq ($(WITH_MPI), "true")
+    ifeq ($(ENABLE_DOUBLE), "true")
+      LIBS += -ldrfftw_mpi -ldfftw_mpi -ldrfftw -ldfftw -lm
+    else
+      LIBS += -lsrfftw_mpi -lsfftw_mpi -lsrfftw -lsfftw -lm
+    endif
+  else
+    ifeq ($(ENABLE_DOUBLE), "true")
+      LIBS += -ldrfftw -ldfftw -lm
+    else
+      LIBS += -lsrfftw -lsfftw -lm
+    endif
+  endif
+else
+endif
 
 # The actual definitions depending on the chosen toolchain
 ifeq ($(TOOLCHAIN), "gnu")
