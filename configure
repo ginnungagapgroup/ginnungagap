@@ -34,6 +34,7 @@ WITH_FFTW=true
 FFTW_VERSION=2
 ENABLE_DOUBLE=true
 ENABLE_DEBUG=false
+ENABLE_PROFILE=false
 SHOW_HELP=false
 SHOW_VERSION=false
 
@@ -125,6 +126,17 @@ do
 		--disable-debug | --disable-debug=*)
 			ENABLE_DEBUG=false
 			;;
+		--enable-profile | --enable-profile=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				ENABLE_PROFILE=true
+			else
+				ENABLE_PROFILE=false
+			fi
+			;;
+		--disable-profile | --disable-debug=*)
+			ENABLE_PROFILE=false
+			;;
 		-h | --help*)
 			SHOW_HELP=true
 			;;
@@ -196,9 +208,12 @@ Code properties:
                            single precision for fields and particle
                            properties.  Default: yes.
 
-Debugging features:
+Extra features:
   --enable-debug           Activates the debugging flags and forces the
                            compiler flags to build debugging symbols.
+                           Default: no.
+  --enable-profile         Will built the code with profiling output for
+                           usage with performance analysis tools.
                            Default: no.
 
 Some influential environment variables:
@@ -272,6 +287,12 @@ then
 	sed -i s/__ENABLE_DEBUG__/true/ Makefile.config
 else
 	sed -i s/__ENABLE_DEBUG__/false/ Makefile.config
+fi
+if test "x$ENABLE_PROFILE" = "xtrue"
+then
+	sed -i s/__ENABLE_PROFILE__/true/ Makefile.config
+else
+	sed -i s/__ENABLE_PROFILE__/false/ Makefile.config
 fi
 sed -i -e "s@__CC__@$CC@" Makefile.config
 sed -i -e "s@__CFLAGS__@$CFLAGS@" Makefile.config

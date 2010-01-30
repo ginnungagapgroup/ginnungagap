@@ -25,7 +25,7 @@ clean:
 dist-clean:
 	$(MAKE) -C src dist-clean
 	find . -name *.d.[0-9]* -exec rm {} \;
-	@rm -f version.h
+	@rm -f version.h Makefile.config config.h config.log
 
 tarball:
 	@scripts/insert_revision.sh

@@ -42,6 +42,7 @@ WITH_OPENMP = "__WITH_OPENMP__"
 WITH_MPI = "__WITH_MPI__"
 MPICC = __MPICC__
 ENABLE_DEBUG = "__ENABLE_DEBUG__"
+ENABLE_PROFILE = "__ENABLE_PROFILE__"
 
 # Set the important variables to what the user wishes.  If any of these
 # is set, the toolchain segment will not touch its value.  The exception
@@ -75,6 +76,9 @@ ifeq ($(TOOLCHAIN), "gnu")
 	ifeq ($(ENABLE_DEBUG), "true")
 		CFLAGS += -O0 -g
 	endif
+	ifeq ($(ENABLE_PROFILE), "true")
+		CFLAGS += -pg
+	endif
 	ifndef DEPCC
 		ifeq ($(WITH_MPI), "true")
 			DEPCC = $(MPICC)
@@ -107,6 +111,9 @@ ifeq ($(TOOLCHAIN), "intel")
 	CFLAGS += -Wall -std=c99 -Wcheck -wd981 -wd161
 	ifeq ($(ENABLE_DEBUG), "true")
 		CFLAGS += -O0 -g
+	endif
+	ifeq ($(ENABLE_PROFILE), "true")
+		CFLAGS += -p
 	endif
 	ifndef DEPCC
 		ifeq ($(WITH_MPI), "true")
