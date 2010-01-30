@@ -27,11 +27,10 @@ struct ginnungagap_struct {
 
 /*--- Implementations of exported functios ------------------------------*/
 extern ginnungagap_t
-ginnungagap_new(parse_ini_t ini, int flags)
+ginnungagap_new(parse_ini_t ini)
 {
 	ginnungagap_t ginnungagap;
 	assert(ini != NULL);
-	assert(flags == 0);
 
 	ginnungagap         = xmalloc(sizeof(struct ginnungagap_struct));
 	ginnungagap->config = ginnungagapConfig_new(ini);

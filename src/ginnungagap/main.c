@@ -157,7 +157,7 @@ local_getGinnungagap(void)
 		exit(EXIT_FAILURE);
 	}
 
-	ginnungagap = ginnungagap_new(ini, 0);
+	ginnungagap = ginnungagap_new(ini);
 
 	parse_ini_close(&ini);
 
