@@ -10,9 +10,16 @@
 ##          'config.h'.                                                  ##
 ###########################################################################
 
-include Makefile.config
+ifeq ($(shell if test -e Makefile.config ; then echo "true" ; fi),true)
+CONFIG_AVAILABLE=true
+else
+CONFIG_AVAILABLE=false
+endif
 
 .PHONY: all clean dist-clean doc tarball
+
+ifeq ($(CONFIG_AVAILABLE),true)
+include Makefile.config
 
 all:
 	scripts/insert_revision.sh
@@ -26,7 +33,10 @@ dist-clean:
 	$(MAKE) -C src dist-clean
 	find . -name *.d.[0-9]* -exec rm {} \;
 	@rm -f version.h Makefile.config config.h config.log
+endif
 
 tarball:
 	@scripts/insert_revision.sh
 	@scripts/make_tar.sh
+	@rm -f ChangeLog version.h
+
