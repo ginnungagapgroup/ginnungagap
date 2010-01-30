@@ -1,0 +1,15 @@
+This is the README file for the `ginnungagap' distribution.
+Ginnungagap is a tool to generate initial conditions.
+
+  Copyright (C) 2010, Steffen Knollmann
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
+See the file ./BUILD for building instructions.
+
+Home page:  -
+Contact:    steffen.knollmann@uam.es
+
+Ginnungagap is free software.  See the file COPYING for copying conditions.
