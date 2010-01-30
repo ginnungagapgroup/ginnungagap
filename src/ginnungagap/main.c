@@ -28,6 +28,9 @@ static void
 local_initEnvironment(int *argc, char ***argv);
 
 static void
+local_registerCleanUpFunctions(void);
+
+static void
 local_cleanEnvironment(void);
 
 static ginnungagap_t
@@ -53,12 +56,11 @@ main(int argc, char **argv)
 	ginnungagap_t ginnungagap;
 
 	local_initEnvironment(&argc, &argv);
+	local_registerCleanUpFunctions();
 
 	ginnungagap = local_getGinnungagap();
 	ginnungagap_run(ginnungagap);
 	ginnungagap_del(&ginnungagap);
-
-	local_cleanEnvironment();
 
 	return EXIT_SUCCESS;
 }
@@ -78,9 +80,26 @@ local_initEnvironment(int *argc, char ***argv)
 	local_checkForPrematureTermination(cmdline);
 	cmdline_getArgValueByNum(cmdline, 0, &localIniFname);
 	cmdline_del(&cmdline);
+}
 
-	atexit(&local_verifyCloseOfStdout);
-	atexit(&local_finalMessage);
+static void
+local_registerCleanUpFunctions(void)
+{
+	if (atexit(&local_verifyCloseOfStdout) != 0) {
+		fprintf(stderr, "cannot register `%s' as exit function\n",
+		        "local_verifyCloseOfStdout");
+		exit(EXIT_FAILURE);
+	}
+	if (atexit(&local_cleanEnvironment) != 0 ) {
+		fprintf(stderr, "cannot register `%s' as exit function\n",
+		        "local_cleanEnvironment");
+		exit(EXIT_FAILURE);
+	}
+	if (atexit(&local_finalMessage) != 0) {
+		fprintf(stderr, "cannot register `%s' as exit function\n",
+		        "local_finalMessage");
+		exit(EXIT_FAILURE);
+	}
 }
 
 static void
@@ -114,15 +133,21 @@ local_cmdlineSetup(void)
 static void
 local_checkForPrematureTermination(cmdline_t cmdline)
 {
+	int rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
 	// This relies on the knowledge of which number is which option!
 	// Not nice style, but the respective calls are directly above.
 	if (cmdline_checkOptSetByNum(cmdline, 0)) {
-		PRINT_VERSION_INFO(stdout);
+		if (rank == 0)
+			PRINT_VERSION_INFO(stdout);
 		cmdline_del(&cmdline);
 		exit(EXIT_SUCCESS);
 	}
 	if (cmdline_checkOptSetByNum(cmdline, 1)) {
-		cmdline_printHelp(cmdline, stdout);
+		if (rank == 0)
+			cmdline_printHelp(cmdline, stdout);
 		cmdline_del(&cmdline);
 		exit(EXIT_SUCCESS);
 	}
@@ -136,12 +161,18 @@ local_checkForPrematureTermination(cmdline_t cmdline)
 static void
 local_finalMessage(void)
 {
-#ifdef XMEM_TRACK_MEM
-	printf("\n");
-	xmem_info(stdout);
-	printf("\n");
+	int rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
-	printf("Vertu sæl/sæll...\n");
+	if (rank == 0) {
+#ifdef XMEM_TRACK_MEM
+		printf("\n");
+		xmem_info(stdout);
+		printf("\n");
+#endif
+		printf("Vertu sæl/sæll...\n");
+	}
 }
 
 static ginnungagap_t
