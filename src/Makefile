@@ -8,12 +8,15 @@ include ../Makefile.config
 
 all:
 	$(MAKE) -C libutil all
+	$(MAKE) -C libgrid all
 	$(MAKE) -C ginnungagap all
 
 clean:
 	$(MAKE) -C ginnungagap clean
+	$(MAKE) -C libgrid clean
 	$(MAKE) -C libutil clean
 
 dist-clean:
 	$(MAKE) -C ginnungagap dist-clean
+	$(MAKE) -C libgrid dist-clean
 	$(MAKE) -C libutil dist-clean

@@ -66,6 +66,9 @@ local_createPlans(fft_t fft);
 static void
 local_calculateOffsets(fft_t fft);
 
+static void
+local_destroyPlans(fft_t fft);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern fft_t
@@ -82,8 +85,8 @@ fft_new(uint32_t dim)
 	local_createPlans(fft);
 	local_calculateOffsets(fft);
 
-	fft->data  = NULL;
-	fft->work  = NULL;
+	fft->data  = xmalloc(sizeof(fftw_real) * fft->local_totalLocalSize);
+	fft->work  = xmalloc(sizeof(fftw_real) * fft->local_totalLocalSize);
 	fft->cdata = NULL;
 
 	return fft;
@@ -95,17 +98,11 @@ fft_del(fft_t *fft)
 	assert(fft != NULL);
 	assert(*fft != NULL);
 
-#if (WITH_FFTW==2)
-#ifdef WITH_MPI
-	rfftwnd_mpi_destroy_plan((*fft)->plan);
-	rfftwnd_mpi_destroy_plan((*fft)->iplan);
-#else
-	rfftwnd_destroy_plan((*fft)->plan);
-	rfftwnd_destroy_plan((*fft)->iplan);
-#endif
-#else
-	// TODO Implement usage of FFTW3.
-#endif
+	if ((*fft)->data != NULL)
+		xfree((*fft)->data);
+	if ((*fft)->work != NULL)
+		xfree((*fft)->work);
+	local_destroyPlans(*fft);
 
 	xfree(*fft);
 	*fft = NULL;
@@ -154,6 +151,22 @@ local_calculateOffsets(fft_t fft)
 	fft->local_totalLocalSize       = fft->nx * fft->ny * 2
 	                                  * (fft->nz / 2 + 1);
 #  endif
+#else
+	// TODO Implement usage of FFTW3.
+#endif
+}
+
+static void
+local_destroyPlans(fft_t fft)
+{
+#if (WITH_FFTW==2)
+#ifdef WITH_MPI
+	rfftwnd_mpi_destroy_plan(fft->plan);
+	rfftwnd_mpi_destroy_plan(fft->iplan);
+#else
+	rfftwnd_destroy_plan(fft->plan);
+	rfftwnd_destroy_plan(fft->iplan);
+#endif
 #else
 	// TODO Implement usage of FFTW3.
 #endif

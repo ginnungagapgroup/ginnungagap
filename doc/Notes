@@ -1,0 +1,15 @@
+External Dependencies:
+
+SPRNG:  - sprng-2.0b
+        - Built serial version, ginnungagap uses an explicit method of
+          setting the streams and the seeds, no MPI collective calls are
+          needed from sprng itself
+
+fftw2:  - fftw2-2.1.5
+        - Built with type prefix switched on (--enable-type-prefix)
+        - Built double and float interface, if you want to be able to
+          choose between double and float precision, otherwise only
+          build the one you need.
+
+mpi:    - openmpi-1.2(?)
+        - nothing special

@@ -14,12 +14,14 @@
 #include <assert.h>
 #include <inttypes.h>
 #include "../libutil/xmem.h"
+//#include "../libgrid/xmem.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
 struct ginnungagap_struct {
 	ginnungagapConfig_t config;
 	rng_t               rng;
+//	grid_t              gridHigh;
 	fft_t               fftHigh;
 	fft_t               fftLow;
 };
