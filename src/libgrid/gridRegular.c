@@ -13,6 +13,9 @@
 #endif
 #include <inttypes.h>
 #include <assert.h>
+#ifdef WITH_SILO
+#  include <silo.h>
+#endif
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -52,38 +55,33 @@ gridRegular_newWithoutData(uint32_t       ndims,
 extern void
 gridRegular_writeSilo(gridRegular_t grid, const char *siloBaseName)
 {
-	int    rank          = 0;
-	int    size          = 1;
-	DBfile *f            = NULL;
-	char   *siloFileName = NULL;
-	char   *meshName     = NULL;
-	char   *varName      = NULL;
+	int    rank               = 0;
+	int    size               = 1;
+	DBfile *f                 = NULL;
+	char   *siloFileName      = NULL;
+	size_t lengthSiloFileName = 0;
 
-	assert(grid != NULL);
-	assert(siloBaseName != NULL);
+	assert(grid != NULL && siloBaseName != NULL);
 
 #  ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_rank(MPI_COMM_WORLD, &size);
 #  endif
-	f        = local_openSiloFile(siloBaseName, rank);
-
-	meshName = xmalloc(sizeof(char) * (strlen(siloBaseName) + 40));
-	varName  = xmalloc(sizeof(char) * (strlen(siloBaseName) + 40));
+	siloFileName = gridSiloTools_getSileFileName(siloFileName,
+	                                             &lengthSiloFileName,
+	                                             siloBaseName,
+	                                             rank);
+	f = local_openSiloFile(siloFileName, rank);
 	for (uint32_t i = 0; i < grid->numSlabs; i++) {
-		sprintf(meshName, "%s.%05i", grid->gridName, rank);
-		sprintf(varName, "VAR.%05i", rank);
-		gridSlab_writeSilo(grid->slabs[i], f, meshName, varName,
+		gridSlab_writeSilo(grid->slabs[i], 
 		                   grid->ndims, grid->dims);
 	}
 	DBClose(f);
-	xfree(varName);
-	xfree(meshName);
 	if (rank == 0) {
 		local_writeMasterSilo(siloBaseName, grid, size);
 	}
 	xfree(siloFileName);
-} /* gridRegular_writeSilo */
+}
 
 #endif
 

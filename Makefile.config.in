@@ -40,6 +40,7 @@ TOOLCHAIN = "__TOOLCHAIN__"
 # Features that influence the choices need to be made in the toolchains
 WITH_OPENMP = "__WITH_OPENMP__"
 WITH_MPI = "__WITH_MPI__"
+WITH_SILO = "__WITH_SILO__"
 WITH_FFTW = "__FFTW_VERSION__"
 MPICC = __MPICC__
 ENABLE_DEBUG = "__ENABLE_DEBUG__"
@@ -77,76 +78,79 @@ ifeq ($(WITH_FFTW), "2")
   endif
 else
 endif
+ifeq ($(WITH_SILO), "true")
+  LIBS += -lsilo
+endif
 
 # The actual definitions depending on the chosen toolchain
 ifeq ($(TOOLCHAIN), "gnu")
-	ifndef CC
-		ifeq ($(WITH_MPI), "true")
-			CC = $(MPICC)
-		else
-			CC = gcc
-		endif
-	endif
-	ifeq ($(WITH_OPENMP), "true")
-		CC+= -fopenmp
-	endif
-	CFLAGS += -Wall -std=c99
-	ifeq ($(ENABLE_DEBUG), "true")
-		CFLAGS += -O0 -g
-	endif
-	ifeq ($(ENABLE_PROFILE), "true")
-		CFLAGS += -pg
-	endif
-	ifndef DEPCC
-		ifeq ($(WITH_MPI), "true")
-			DEPCC = $(MPICC)
-		else
-			DEPCC = gcc
-		endif
-	endif
-	ifndef LD
-		LD = ld
-	endif
-	ifndef AR
-		AR = ar
-	endif
-	ifndef MAKE
-		MAKE = make
-	endif
+  ifndef CC
+    ifeq ($(WITH_MPI), "true")
+      CC = $(MPICC)
+    else
+      CC = gcc
+    endif
+  endif
+  ifeq ($(WITH_OPENMP), "true")
+    CC+= -fopenmp
+  endif
+  CFLAGS += -Wall -std=c99
+  ifeq ($(ENABLE_DEBUG), "true")
+    CFLAGS += -O0 -g
+  endif
+  ifeq ($(ENABLE_PROFILE), "true")
+    CFLAGS += -pg
+  endif
+  ifndef DEPCC
+    ifeq ($(WITH_MPI), "true")
+      DEPCC = $(MPICC)
+    else
+      DEPCC = gcc
+    endif
+  endif
+  ifndef LD
+    LD = ld
+  endif
+  ifndef AR
+    AR = ar
+  endif
+  ifndef MAKE
+    MAKE = make
+  endif
 endif
 
 ifeq ($(TOOLCHAIN), "intel")
-	ifndef CC
-		ifeq ($(WITH_MPI), "true")
-			CC = $(MPICC)
-		else
-			CC = icc
-		endif
-	endif
-	ifeq ($(WITH_OPENMP), "true")
-		CC+= -openmp
-	endif
-	CFLAGS += -Wall -std=c99 -Wcheck -wd981 -wd161
-	ifeq ($(ENABLE_DEBUG), "true")
-		CFLAGS += -O0 -g
-	endif
-	ifeq ($(ENABLE_PROFILE), "true")
-		CFLAGS += -p
-	endif
-	ifndef DEPCC
-		ifeq ($(WITH_MPI), "true")
-			DEPCC = $(MPICC)
-		else
-			DEPCC = icc
-		endif
-	endif
-	ifndef LD
-		LD = xild
-	endif
-	ifndef AR
-		AR = xiar
-	endif
-	ifndef MAKE
-		MAKE = make
-	endif
+  ifndef CC
+    ifeq ($(WITH_MPI), "true")
+      CC = $(MPICC)
+    else
+      CC = icc
+    endif
+  endif
+  ifeq ($(WITH_OPENMP), "true")
+    CC+= -openmp
+  endif
+  CFLAGS += -Wall -std=c99 -Wcheck -wd981 -wd161
+  ifeq ($(ENABLE_DEBUG), "true")
+    CFLAGS += -O0 -g
+  endif
+  ifeq ($(ENABLE_PROFILE), "true")
+    CFLAGS += -p
+  endif
+  ifndef DEPCC
+    ifeq ($(WITH_MPI), "true")
+      DEPCC = $(MPICC)
+    else
+      DEPCC = icc
+    endif
+  endif
+  ifndef LD
+    LD = xild
+  endif
+  ifndef AR
+    AR = xiar
+  endif
+  ifndef MAKE
+    MAKE = make
+  endif
 endif

@@ -9,7 +9,8 @@ include ../../Makefile.config
 .PHONY: all clean dist-clean
 
 sources = gridRegular.c \
-          gridSlab.c
+          gridSlab.c \
+          gridSiloTools.c
 
 include ../../Makefile.rules
 

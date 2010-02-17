@@ -10,6 +10,7 @@
 #undef WITH_MPI
 #undef WITH_OPENMP
 #define WITH_FFTW __FFTW_VERSION__
+#undef WITH_SILO
 #undef ENABLE_DOUBLE
 #undef ENABLE_DEBUG
 

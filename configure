@@ -31,6 +31,7 @@ TOOLCHAIN=gnu
 WITH_OPENMP=false
 WITH_MPI=false
 WITH_FFTW=true
+WITH_SILO=false
 FFTW_VERSION=2
 ENABLE_DOUBLE=true
 ENABLE_DEBUG=false
@@ -103,6 +104,20 @@ do
 		--without-fftw | --without-fftw=*)
 			echo "Error:  FFTW is required and cannot be deactivated."
 			exit 1
+			;;
+		--with-silo | --with-silo=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				WITH_SILO=true
+			elif test "x$ac_optarg" = "xno"
+			then
+				WITH_SILO=false
+			else
+				WITH_SILO=true
+			fi
+			;;
+		--without-mpi | --without-mpi=*)
+			WITH_SILO=false
 			;;
 		--enable-double | --enable-double=*)
 			if test "x$ac_optarg" = "xyes"
@@ -198,6 +213,8 @@ Optional features:
   --with-openmp            Uses the OpenMP directives.  Default: no.
   --with-fftw[=VERSION]    This chooses between version 2 and version 3
                            of the FFTW library.  Default: 2.
+  --with-silo              Use the SILO library to write visualisation
+                           outputs.
 
 Code properties:
   --enable-FEATURE[=ARG]   Switch on a feature. [ARG=YES]
@@ -282,6 +299,12 @@ else
 	sed -i s/__WITH_MPI__/false/ Makefile.config
 	sed -i s/__MPICC__// Makefile.config
 fi
+if test "x$WITH_SILO" = "xtrue"
+then
+	sed -i s/__WITH_SILO__/true/ Makefile.config
+else
+	sed -i s/__WITH_SILO__/false/ Makefile.config
+fi
 if test "x$ENABLE_DEBUG" = "xtrue"
 then
 	sed -i s/__ENABLE_DEBUG__/true/ Makefile.config
@@ -324,6 +347,10 @@ fi
 if test "x$WITH_MPI" = "xtrue"
 then
 	sed -i -e 's/undef WITH_MPI/define WITH_MPI 1/' config.h
+fi
+if test "x$WITH_SILO" = "xtrue"
+then
+	sed -i -e 's/undef WITH_SILO/define WITH_SILO 1/' config.h
 fi
 if test "x$ENABLE_DEBUG" = "xtrue"
 then
