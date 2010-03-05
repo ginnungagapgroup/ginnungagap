@@ -13,7 +13,8 @@ sources = xmem.c \
           xfile.c \
           parse_ini.c \
           byteswap.c \
-          cmdline.c
+          cmdline.c \
+          siloTools.c
 
 include ../../Makefile.rules
 
