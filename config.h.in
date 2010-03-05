@@ -11,8 +11,10 @@
 #undef WITH_OPENMP
 #define WITH_FFTW __FFTW_VERSION__
 #undef WITH_SILO
+#undef WITH_PROC_DIR
 #undef ENABLE_DOUBLE
 #undef ENABLE_DEBUG
+#define NDIM __NDIM_VALUE__
 
 
 /*--- Consequences of the Code Features (do NOT change) -----------------*/

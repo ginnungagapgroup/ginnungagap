@@ -31,13 +31,15 @@ TOOLCHAIN=gnu
 WITH_OPENMP=false
 WITH_MPI=false
 WITH_FFTW=true
-WITH_SILO=false
 FFTW_VERSION=2
+WITH_SILO=false
+WITH_PROC_DIR=false
 ENABLE_DOUBLE=true
 ENABLE_DEBUG=false
 ENABLE_PROFILE=false
 SHOW_HELP=false
 SHOW_VERSION=false
+NDIM_VALUE=3
 
 # Parse the options
 for ac_option
@@ -116,8 +118,22 @@ do
 				WITH_SILO=true
 			fi
 			;;
-		--without-mpi | --without-mpi=*)
+		--without-silo | --without-silo=*)
 			WITH_SILO=false
+			;;
+		--with-proc-dir | --with-proc-dir=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				WITH_PROC_DIR=true
+			elif test "x$ac_optarg" = "xno"
+			then
+				WITH_PROC_DIR=false
+			else
+				WITH_PROC_DIR=true
+			fi
+			;;
+		--without-proc-dir | --without-proc-dir=*)
+			WITH_PROC_DIR=false
 			;;
 		--enable-double | --enable-double=*)
 			if test "x$ac_optarg" = "xyes"
@@ -151,6 +167,24 @@ do
 			;;
 		--disable-profile | --disable-debug=*)
 			ENABLE_PROFILE=false
+			;;
+		--ndim)
+			echo -n "Error:  --ndim requires an argumet; "
+			echo "use either --ndim=2 or --ndim=3"
+			exit 1
+			;;
+		--ndim=*)
+			if test "x$ac_optarg" = "x3"
+			then
+				NDIM_VALUE=3
+			elif test "x$ac_optarg" = "x2"
+			then
+				NDIM_VALUE=2
+			else
+				echo -n "Error:  --ndim accepts only 2 and 3 "
+				echo "as arguments"
+				exit 1
+			fi
 			;;
 		-h | --help*)
 			SHOW_HELP=true
@@ -214,7 +248,13 @@ Optional features:
   --with-fftw[=VERSION]    This chooses between version 2 and version 3
                            of the FFTW library.  Default: 2.
   --with-silo              Use the SILO library to write visualisation
-                           outputs.
+                           outputs.  Default: no.
+  --with-proc-dir          If the code can use /proc/self/statm to query
+                           its memory usage (true at least on Linux),
+                           the you may use this option to allow the code
+                           to retrieve memory information at runtime.
+                           Default: no.
+
 
 Code properties:
   --enable-FEATURE[=ARG]   Switch on a feature. [ARG=YES]
@@ -224,6 +264,8 @@ Code properties:
                            precision floating point variables instead of
                            single precision for fields and particle
                            properties.  Default: yes.
+  --ndim=VALUE             Sets the dimensionality of the code.  Allowed
+                           values are 2 and 3.  Default: 3.
 
 Extra features:
   --enable-debug           Activates the debugging flags and forces the
@@ -352,6 +394,10 @@ if test "x$WITH_SILO" = "xtrue"
 then
 	sed -i -e 's/undef WITH_SILO/define WITH_SILO 1/' config.h
 fi
+if test "x$WITH_PROC_DIR" = "xtrue"
+then
+	sed -i -e 's/undef WITH_PROC_DIR/define WITH_PROC_DIR 1/' config.h
+fi
 if test "x$ENABLE_DEBUG" = "xtrue"
 then
 	sed -i -e 's/undef ENABLE_DEBUG/define ENABLE_DEBUG 1/' config.h
@@ -361,6 +407,7 @@ then
 	sed -i -e 's/undef ENABLE_DOUBLE/define ENABLE_DOUBLE 1/' config.h
 fi
 sed -i -e "s@__FFTW_VERSION__@$FFTW_VERSION@" config.h
+sed -i -e "s@__NDIM_VALUE__@$NDIM_VALUE@" config.h
 echo "done" | tee -a config.log
 
 

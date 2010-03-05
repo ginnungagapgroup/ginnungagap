@@ -16,6 +16,9 @@ clean:
 	$(MAKE) -C libgrid clean
 	$(MAKE) -C libutil clean
 
+tests:
+	$(MAKE) -C libgrid tests
+
 dist-clean:
 	$(MAKE) -C ginnungagap dist-clean
 	$(MAKE) -C libgrid dist-clean
