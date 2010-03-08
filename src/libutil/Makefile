@@ -14,7 +14,8 @@ sources = xmem.c \
           parse_ini.c \
           byteswap.c \
           cmdline.c \
-          siloTools.c
+          siloTools.c \
+          varArr.c
 
 include ../../Makefile.rules
 
