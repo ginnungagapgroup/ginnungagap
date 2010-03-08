@@ -15,6 +15,9 @@
 #endif
 
 
+/*--- Exported defines --------------------------------------------------*/
+
+
 /*--- ADT handle --------------------------------------------------------*/
 typedef struct gridRegular_struct *gridRegular_t;
 
@@ -41,6 +44,9 @@ gridRegular_allocVar(gridRegular_t grid, int varToAlloc);
 
 extern void
 gridRegular_deallocVar(gridRegular_t grid, int varToDealloc);
+
+extern int
+gridRegular_getNumVars(gridRegular_t grid);
 
 #ifdef WITH_MPI
 extern void

@@ -35,6 +35,9 @@
 static gridRegular_t
 local_getFakeGrid(gridPointSize_t *dims);
 
+static gridRegular_t
+local_getFakeGridWithVars(gridPointSize_t *dims);
+
 
 /*--- Prototypes of local functions -------------------------------------*/
 
@@ -178,6 +181,73 @@ gridRegular_setExtent_test(void)
 	return hasPassed ? true : false;
 } /* gridRegular_setExtent_test */
 
+extern bool
+gridRegular_attachVar_test(void)
+{
+	bool            hasPassed = true;
+	gridRegular_t   grid;
+	gridVar_t       testVar;
+	gridPointSize_t dims;
+	int             idxVar;
+	int             i;
+	int             rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid = local_getFakeGridWithVars(&dims);
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridRegular_allocVar_test(void)
+{
+	bool            hasPassed = true;
+	int             rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridRegular_deallocVar_test(void)
+{
+	bool            hasPassed = true;
+	int             rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridRegular_getNumVars_test(void)
+{
+	bool            hasPassed = true;
+	int             rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	return hasPassed ? true : false;
+}
+
 #ifdef WITH_MPI
 extern bool
 gridRegular_mpiSetDistribution_test(void)
@@ -220,16 +290,16 @@ gridRegular_mpiSetDistribution_test(void)
 extern bool
 gridRegular_writeSilo_test(void)
 {
-	bool hasPassed = true;
+	bool            hasPassed = true;
 	gridRegular_t   grid;
 	gridPointSize_t dims;
-	int  rank      = 0;
+	int             rank = 0;
 	gridPointDbl_t  extent;
 #  ifdef WITH_MPI
 	gridPointInt_t  nProcs;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	nProcs[NDIM-1] = 4;
-	for (int i = 0; i < NDIM-1; i++)
+	nProcs[NDIM - 1] = 4;
+	for (int i = 0; i < NDIM - 1; i++)
 		nProcs[i] = 0;
 #  endif
 
@@ -237,12 +307,12 @@ gridRegular_writeSilo_test(void)
 		printf("Testing %s... ", __func__);
 
 	grid = local_getFakeGrid(&dims);
-	for (int i=0; i<NDIM; i++)
-		extent[i] = (double)(1<<i);
+	for (int i = 0; i < NDIM; i++)
+		extent[i] = (double)(1 << i);
 	gridRegular_setExtent(grid, extent);
-#ifdef WITH_MPI
+#  ifdef WITH_MPI
 	gridRegular_mpiSetDistribution(grid, nProcs, MPI_COMM_WORLD);
-#endif
+#  endif
 	gridRegular_writeSilo(grid, "test");
 	gridRegular_del(&grid);
 
@@ -262,6 +332,21 @@ local_getFakeGrid(gridPointSize_t *dims)
 		(*dims)[i] = (gridSize_t)(64 * (1 << i));
 	}
 	grid = gridRegular_newWithoutData(TESTNAME, *dims);
+
+	return grid;
+}
+
+static gridRegular_t
+local_getFakeGridWithVars(gridPointSize_t *dims)
+{
+	gridRegular_t grid;
+	gridVar_t var;
+
+	grid = local_getFakeGrid(dims);
+	var = gridVar_new("TestVar", GRIDVARTYPES_FPV);
+	gridRegular_attachVar(grid, var);
+	var = gridVar_new("TestVarVec", GRIDVARTYPES_FPVVEC);
+	gridRegular_attachVar(grid, var);
 
 	return grid;
 }

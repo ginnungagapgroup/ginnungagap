@@ -7,6 +7,7 @@
 #include "gridConfig.h"
 #include "gridRegular.h"
 #include "gridPoint.h"
+#include "../libutil/varArr.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
 #ifdef WITH_MPI
@@ -128,6 +129,66 @@ gridRegular_setExtent(gridRegular_t grid, gridPointDbl_t extent)
 	local_resetDelta(grid);
 	local_resetGridLocalOrigin(grid);
 	local_resetGridLocalExtent(grid);
+}
+
+extern int
+gridRegular_attachVar(gridRegular_t grid, gridVar_t var)
+{
+	assert(grid != NULL);
+	assert(var != NULL);
+
+	return varArr_insert(grid->vars, var);
+}
+
+extern gridVar_t
+gridRegular_detachVar(gridRegular_t grid, int varToDetach)
+{
+	assert(grid != NULL)
+	assert(varToDetach >= 0
+	       && varToDetach < varArr_getLength(grid->Vars));
+
+	return varArr_remove(grid->vars, varToDetach);
+}
+
+extern void
+gridRegular_reallocVar(gridRegular_t grid, int varToRealloc)
+{
+	assert(grid != NULL);
+	assert(varToRealloc >= 0
+	       && varToAlloc < varArr_getLength(grid->Vars));
+	assert(grid->localNumCells > UINT64_C(0));
+
+	gridVar_realloc(varArr_getElementHandle(grid->Vars, varToRealloc),
+	                (size_t)grid->localNumCells);
+}
+
+extern void
+gridRegular_reallocAllVars(gridRegular_t grid)
+{
+	assert(grid != NULL);
+	assert(grid->localNumCells > UINT64_C(0));
+
+	for (int i=0; i<arArr_getLength(grid->Vars); i++)
+		gridRegular_reallocVar(grid, i);
+}
+
+extern void
+gridRegular_deallocVar(gridRegular_t grid, int varToDealloc)
+{
+	assert(grid != NULL);
+	assert(varToDealloc >= 0
+	       && varToDealloc < varArr_getLength(grid->Vars));
+
+	gridVar_dealloc(varArr_getElementHandle(grid->Vars, varToDealloc));
+}
+
+extern void
+gridRegular_deallocAllVars(gridRegular_t grid)
+{
+	assert(grid != NULL);
+
+	for (int i=0; i<arArr_getLength(grid->Vars); i++)
+		gridRegular_deallocVar(grid, i);
 }
 
 #ifdef WITH_MPI

@@ -24,6 +24,18 @@ gridRegular_setOrigin_test(void);
 extern bool
 gridRegular_setExtent_test(void);
 
+extern bool
+gridRegular_attachVar_test(void);
+
+extern bool
+gridRegular_allocVar_test(void);
+
+extern bool
+gridRegular_deallocVar_test(void);
+
+extern bool
+gridRegular_getNumVars_test(void);
+
 
 #ifdef WITH_MPI
 extern bool
