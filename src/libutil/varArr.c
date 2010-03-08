@@ -32,12 +32,13 @@ varArr_new(int numElements)
 	if (numElements > 0) {
 		arr->elements     = xmalloc(sizeof(void *) * numElements);
 		arr->numAllocated = numElements;
-		arr->increment    = numElements / 10;
-		arr->increment    = arr->increment == 0 ? 1 : arr->increment;
+		arr->increment    = numElements / 20;
+		arr->increment    = arr->increment < VARARR_MIN_INCR
+		                    ? VARARR_MIN_INCR : arr->increment;
 	} else {
 		arr->elements     = NULL;
 		arr->numAllocated = 0;
-		arr->increment    = 2;
+		arr->increment    = VARARR_MIN_INCR;
 	}
 	arr->numUsed = 0;
 
@@ -86,15 +87,15 @@ varArr_remove(varArr_t arr, int numElement)
 	void *removedElement;
 
 	assert(arr != NULL);
-	assert(numElement >= 0  && numElement < arr->numUsed);
+	assert(numElement >= 0 && numElement < arr->numUsed);
 
 	removedElement = arr->elements[numElement];
-	for (int i=numElement; i<arr->numUsed-1; i++)
-		arr->elements[i] = arr->elements[i+1];
+	for (int i = numElement; i < arr->numUsed - 1; i++)
+		arr->elements[i] = arr->elements[i + 1];
 	arr->numUsed--;
 	if (arr->numUsed + arr->increment < arr->numAllocated)
 		arr->elements = xrealloc(arr->elements,
-		                         sizeof(void *)*(arr->numUsed));
+		                         sizeof(void *) * (arr->numUsed));
 
 	return removedElement;
 }
@@ -103,7 +104,7 @@ extern void *
 varArr_getElementHandle(varArr_t arr, int numElement)
 {
 	assert(arr != NULL);
-	assert(numElement >= 0  && numElement < arr->numUsed);
+	assert(numElement >= 0 && numElement < arr->numUsed);
 
 	return arr->elements[numElement];
 }
