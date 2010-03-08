@@ -79,7 +79,7 @@ ifeq ($(WITH_FFTW), "2")
 else
 endif
 ifeq ($(WITH_SILO), "true")
-  LIBS += -lsilo
+  LIBS += -lsiloh5 -lhdf5  -lstdc++ -lz
 endif
 
 # The actual definitions depending on the chosen toolchain
