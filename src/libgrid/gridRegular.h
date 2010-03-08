@@ -9,6 +9,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPoint.h"
+#include "gridVar.h"
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
@@ -32,8 +33,14 @@ gridRegular_setOrigin(gridRegular_t grid, gridPointDbl_t origin);
 extern void
 gridRegular_setExtent(gridRegular_t grid, gridPointDbl_t extent);
 
+extern int
+gridRegular_attachVar(gridRegular_t grid, gridVar_t var);
+
 extern void
-gridRegular_addVarMeta(gridRegular_t grid, gridVarMeta_t meta);
+gridRegular_allocVar(gridRegular_t grid, int varToAlloc);
+
+extern void
+gridRegular_deallocVar(gridRegular_t grid, int varToDealloc);
 
 #ifdef WITH_MPI
 extern void

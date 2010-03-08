@@ -9,9 +9,13 @@ include ../../Makefile.config
 .PHONY: all clean dist-clean tests
 
 sources = gridRegular.c \
+          gridVar.c \
+          gridVarTypes.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
-               gridRegular_tests.c
+               gridRegular_tests.c \
+               gridVar_tests.c \
+               gridVarTypes_tests.c
 
 include ../../Makefile.rules
 

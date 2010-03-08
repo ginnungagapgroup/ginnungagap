@@ -4,6 +4,8 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
+#include "gridVarTypes_tests.h"
+#include "gridVar_tests.h"
 #include "gridRegular_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,6 +52,19 @@ main(int argc, char **argv)
 		printf("\nTesting %s on %i %s\n",
 		       NAME, size, size > 1 ? "tasks" : "task");
 	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for gridVarTypes:\n");
+	}
+	RUNTEST(&gridVarTypes_getSizePerElement_test, hasFailed);
+
+	if (rank == 0) {
+		printf("\nRunning tests for gridVar:\n");
+	}
+	RUNTEST(&gridVar_new_test, hasFailed);
+	RUNTEST(&gridVar_del_test, hasFailed);
+	RUNTEST(&gridVar_realloc_test, hasFailed);
+	RUNTEST(&gridVar_free_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegular:\n");
