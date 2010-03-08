@@ -8,3 +8,5 @@ src/ginnungagap/ginnungagap
 Makefile.config
 config.log
 config.h
+src/libgrid/libgrid_tests
+src/libutil/libutil_tests
