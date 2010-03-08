@@ -27,7 +27,7 @@
 #  endif
 #else
 #  ifdef WITH_MPI
-#    include <fftw3-mpi.h>
+//#    include <fftw3-mpi.h>
 #  else
 #    include <fftw3.h>
 #  endif
@@ -85,9 +85,9 @@ fft_new(uint32_t dim)
 	local_createPlans(fft);
 	local_calculateOffsets(fft);
 
-	fft->data  = xmalloc(sizeof(fftw_real) * fft->local_totalLocalSize);
-	fft->work  = xmalloc(sizeof(fftw_real) * fft->local_totalLocalSize);
-	fft->cdata = NULL;
+//	fft->data  = xmalloc(sizeof(fftw_real) * fft->local_totalLocalSize);
+//	fft->work  = xmalloc(sizeof(fftw_real) * fft->local_totalLocalSize);
+//	fft->cdata = NULL;
 
 	return fft;
 }
@@ -98,10 +98,10 @@ fft_del(fft_t *fft)
 	assert(fft != NULL);
 	assert(*fft != NULL);
 
-	if ((*fft)->data != NULL)
-		xfree((*fft)->data);
-	if ((*fft)->work != NULL)
-		xfree((*fft)->work);
+//	if ((*fft)->data != NULL)
+//		xfree((*fft)->data);
+//	if ((*fft)->work != NULL)
+//		xfree((*fft)->work);
 	local_destroyPlans(*fft);
 
 	xfree(*fft);
