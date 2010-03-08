@@ -16,7 +16,7 @@ else
 CONFIG_AVAILABLE=false
 endif
 
-.PHONY: all clean dist-clean doc tarball
+.PHONY: all clean dist-clean doc tarball statistics
 
 ifeq ($(CONFIG_AVAILABLE),true)
 include Makefile.config
@@ -40,3 +40,5 @@ tarball:
 	@scripts/make_tar.sh
 	@rm -f ChangeLog version.h
 
+statistics:
+	@scripts/show-statistics.sh
