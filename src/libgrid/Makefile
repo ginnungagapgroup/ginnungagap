@@ -6,7 +6,7 @@ LIBNAME = grid
 
 include ../../Makefile.config
 
-.PHONY: all clean dist-clean tests
+.PHONY: all clean dist-clean tests tests-clean
 
 sources = gridRegular.c \
           gridPatch.c \
@@ -27,8 +27,8 @@ all:
 	${MAKE} lib${LIBNAME}.a
 
 clean:
+	$(MAKE) tests-clean
 	rm -f lib${LIBNAME}.a $(sources:.c=.o)
-	rm -f lib${LIBNAME}_tests $(sourcesTests:.c=.o) 
 
 dist-clean:
 	$(MAKE) clean
@@ -41,6 +41,10 @@ ifeq ($(WITH_MPI), "true")
 else
 	./lib${LIBNAME}_tests
 endif
+
+tests-clean:
+	rm -f lib${LIBNAME}_tests $(sourcesTests:.c=.o) 
+	rm -rf siloTest*
 
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \

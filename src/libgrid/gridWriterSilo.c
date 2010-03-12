@@ -179,9 +179,9 @@ gridWriterSilo_writeGridPatch(gridWriterSilo_t writer,
 	DBPutQuadmesh(writer->f, patchName, NULL, coords, dims, NDIM,
 	              DB_DOUBLE, DB_COLLINEAR, NULL);
 
-	for (int i=0; i<numVarData; i++) {
+	//for (int i=0; i<numVarData; i++) {
 		//gridWriterSilo_writeVarData(varData, patchName);
-	}
+	//}
 
 	for (int i = 0; i < NDIM; i++)
 		xfree(coords[i]);
@@ -334,7 +334,7 @@ local_createDirName(gridWriterSilo_t writer)
 	sprintf(writer->dirName, "%s%0*i",
 	        LOCAL_DIRPREFIX, LOCAL_NUMDIRDIGITS, writer->globalRank);
 #  else
-	sprintf(writer->dirName, "");
+	writer->dirName[0] = '\0';
 #  endif
 }
 
