@@ -296,7 +296,7 @@ local_closeDB(void *file, void *udata)
 
 	assert((DBfile *)file == writer->f);
 
-	DBClose(writer->f);
+	DBClose((DBfile *)file);
 	writer->f = NULL;
 }
 
