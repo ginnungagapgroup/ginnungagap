@@ -6,10 +6,9 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridVar.h"
-#include "gridVarTypes.h"
+#include <assert.h>
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
-#include <assert.h>
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -24,54 +23,37 @@
 
 /*--- Implementations of exported functios ------------------------------*/
 extern gridVar_t
-gridVar_new(const char *varName, gridVarTypes_t type)
+gridVar_new(const char *name, gridVarType_t type, int numComponents)
 {
-	gridVar_t var;
+	gridVar_t gridVar;
 
-	assert(varName != NULL);
-	var                 = xmalloc(sizeof(struct gridVar_struct));
-	var->name           = xstrdup(varName);
-	var->type           = type;
-	var->numElements    = 0;
-	var->sizePerElement = gridVarTypes_getSizePerElement(type);
-	var->data           = NULL;
+	assert(name != NULL);
+	assert(numComponents > 0);
 
-	return var;
+	gridVar                = xmalloc(sizeof(struct gridVar_struct));
+	gridVar->name          = xstrdup(name);
+	gridVar->type          = type;
+	gridVar->numComponents = numComponents;
+
+	return gridVar;
 }
 
 extern void
-gridVar_del(gridVar_t *var)
+gridVar_del(gridVar_t *gridVar)
 {
-	assert(var != NULL && *var != NULL);
+	assert(gridVar != NULL && *gridVar != NULL);
 
-	xfree((*var)->name);
-	if ((*var)->data != NULL)
-		xfree((*var)->data);
-	xfree(*var);
+	xfree((*gridVar)->name);
+	xfree(*gridVar);
 
-	*var = NULL;
+	*gridVar = NULL;
 }
 
-extern void
-gridVar_realloc(gridVar_t var, size_t numElements)
+extern size_t
+gridVar_getSizePerElement(gridVar_t var)
 {
 	assert(var != NULL);
-	assert(numElements > 0);
-
-	var->data = xrealloc(var->data, var->sizePerElement * numElements);
-	var->numElements = numElements;
+	return gridVarType_sizeof(var->type) * var->numComponents;
 }
-
-extern void
-gridVar_free(gridVar_t var)
-{
-	assert(var != NULL);
-	assert(var->data != NULL);
-
-	xfree(var->data);
-	var->data = NULL;
-	var->numElements = 0;
-}
-
 
 /*--- Implementations of local functions --------------------------------*/

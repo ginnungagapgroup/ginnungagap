@@ -7,19 +7,11 @@
 #include "gridConfig.h"
 #include "gridRegular.h"
 #include "gridPoint.h"
-#include "../libutil/varArr.h"
+#include "gridVar.h"
+#include "gridPatch.h"
+#include <assert.h>
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
-#ifdef WITH_MPI
-#  include <mpi.h>
-#endif
-#include <inttypes.h>
-#include <assert.h>
-#ifdef WITH_SILO
-#  include <silo.h>
-#  include "../libutil/siloTools.h"
-#endif
-#include <stdio.h>
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -30,395 +22,227 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
-static gridRegular_t
-local_alloc(void);
+inline static void
+local_resetDelta(gridRegular_t gridRegular);
 
 inline static void
-local_resetDelta(gridRegular_t grid);
+local_freePatches(gridRegular_t grid);
 
 inline static void
-local_resetGridLocalOrigin(gridRegular_t grid);
+local_freeVars(gridRegular_t grid);
 
 inline static void
-local_resetGridLocalExtent(gridRegular_t grid);
+local_addVarToAllPatches(gridRegular_t grid, gridVar_t var, int idxOfVar);
 
+inline static void
+local_removeVarFromAllPatches(gridRegular_t grid, int idxOfVar);
 
-#ifdef WITH_MPI
-static void
-local_mpiSetCommGridInfo(gridRegular_t grid, MPI_Comm mpiCommGrid);
-
-static void
-local_mpiSetCartDims(gridRegular_t grid, gridPointInt_t nProcs);
-
-static void
-local_mpiSetCommCartInfo(gridRegular_t grid);
-
-static void
-local_mpiCalcLocalVals(gridRegular_t grid);
-
-#endif
-
-#ifdef WITH_SILO
-static void
-local_siloAddMesh(gridRegular_t grid, DBfile *file, int rank, int size);
-
-static void
-local_siloAddMasterMesh(gridRegular_t grid,
-                        DBfile        *file,
-                        int           size,
-                        const char    *siloBaseName);
-
-#endif
+inline static void
+local_addAllVarsToPatch(gridRegular_t grid, gridPatch_t patch);
 
 
 /*--- Implementations of exported functios ------------------------------*/
 extern gridRegular_t
-gridRegular_newWithoutData(const char      *gridName,
-                           gridPointSize_t dims)
+gridRegular_new(const char        *name,
+                gridPointDbl_t    origin,
+                gridPointDbl_t    extent,
+                gridPointUint32_t dims)
 {
-	gridRegular_t grid;
+	gridRegular_t gridRegular;
 
-	assert(gridName != NULL);
-
-	grid                 = local_alloc();
-	grid->gridName       = xstrdup(gridName);
-	grid->globalNumCells = UINT64_C(1);
-	grid->localNumCells  = UINT64_C(1);
 	for (int i = 0; i < NDIM; i++) {
-		grid->globalDims[i]   = dims[i];
-		grid->globalNumCells *= grid->globalDims[i];
-		grid->localDims[i]    = dims[i];
-		grid->localNumCells  *= grid->localDims[i];
+		assert(dims[i] > 0);
+		assert(extent[i] > 0.0);
 	}
-	local_resetDelta(grid);
-	local_resetGridLocalOrigin(grid);
-	local_resetGridLocalExtent(grid);
 
-	return grid;
+	gridRegular       = xmalloc(sizeof(struct gridRegular_struct));
+
+	gridRegular->name = xstrdup(name);
+	for (int i = 0; i < NDIM; i++) {
+		gridRegular->origin[i] = origin[i];
+		gridRegular->extent[i] = extent[i];
+		gridRegular->dims[i]   = dims[i];
+	}
+	local_resetDelta(gridRegular);
+	gridRegular->patches = varArr_new(0);
+	gridRegular->vars    = varArr_new(0);
+
+	return gridRegular;
 }
 
 extern void
-gridRegular_del(gridRegular_t *grid)
+gridRegular_del(gridRegular_t *gridRegular)
 {
-	assert(grid != NULL && *grid != NULL);
+	assert(gridRegular != NULL && *gridRegular != NULL);
 
-	xfree((*grid)->gridName);
-	xfree(*grid);
-	*grid = NULL;
+	xfree((*gridRegular)->name);
+	local_freePatches(*gridRegular);
+	local_freeVars(*gridRegular);
+	xfree(*gridRegular);
+
+	*gridRegular = NULL;
 }
 
-extern void
-gridRegular_setOrigin(gridRegular_t grid, gridPointDbl_t origin)
+extern char *
+gridRegular_getName(gridRegular_t grid)
 {
 	assert(grid != NULL);
+	assert(grid->name != NULL);
 
-	for (int i = 0; i < NDIM; i++) {
-		grid->globalOrigin[i] = origin[i];
-	}
-	local_resetGridLocalOrigin(grid);
+	return grid->name;
 }
 
 extern void
-gridRegular_setExtent(gridRegular_t grid, gridPointDbl_t extent)
+gridRegular_getOrigin(gridRegular_t grid, gridPointDbl_t origin)
 {
 	assert(grid != NULL);
+	assert(origin != NULL);
 
-	for (int i = 0; i < NDIM; i++) {
-		grid->globalExtent[i] = extent[i];
+	for (int i=0; i<NDIM; i++) {
+		origin[i] = grid->origin[i];
 	}
-	local_resetDelta(grid);
-	local_resetGridLocalOrigin(grid);
-	local_resetGridLocalExtent(grid);
+}
+
+extern void
+gridRegular_getDelta(gridRegular_t grid, gridPointDbl_t delta)
+{
+	assert(grid != NULL);
+	assert(delta != NULL);
+
+	for (int i=0; i<NDIM; i++) {
+		delta[i] = grid->delta[i];
+	}
 }
 
 extern int
 gridRegular_attachVar(gridRegular_t grid, gridVar_t var)
 {
+	int idxOfVar;
+
 	assert(grid != NULL);
 	assert(var != NULL);
 
-	return varArr_insert(grid->vars, var);
+	idxOfVar = varArr_insert(grid->vars, var);
+	local_addVarToAllPatches(grid, var, idxOfVar);
+
+	return idxOfVar;
 }
 
 extern gridVar_t
-gridRegular_detachVar(gridRegular_t grid, int varToDetach)
-{
-	assert(grid != NULL)
-	assert(varToDetach >= 0
-	       && varToDetach < varArr_getLength(grid->Vars));
-
-	return varArr_remove(grid->vars, varToDetach);
-}
-
-extern void
-gridRegular_reallocVar(gridRegular_t grid, int varToRealloc)
+gridRegular_detachVar(gridRegular_t grid, int idxOfVar)
 {
 	assert(grid != NULL);
-	assert(varToRealloc >= 0
-	       && varToAlloc < varArr_getLength(grid->Vars));
-	assert(grid->localNumCells > UINT64_C(0));
+	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(grid->vars));
 
-	gridVar_realloc(varArr_getElementHandle(grid->Vars, varToRealloc),
-	                (size_t)grid->localNumCells);
+	local_removeVarFromAllPatches(grid, idxOfVar);
+
+	return varArr_remove(grid->vars, idxOfVar);
 }
 
-extern void
-gridRegular_reallocAllVars(gridRegular_t grid)
-{
-	assert(grid != NULL);
-	assert(grid->localNumCells > UINT64_C(0));
-
-	for (int i=0; i<arArr_getLength(grid->Vars); i++)
-		gridRegular_reallocVar(grid, i);
-}
-
-extern void
-gridRegular_deallocVar(gridRegular_t grid, int varToDealloc)
-{
-	assert(grid != NULL);
-	assert(varToDealloc >= 0
-	       && varToDealloc < varArr_getLength(grid->Vars));
-
-	gridVar_dealloc(varArr_getElementHandle(grid->Vars, varToDealloc));
-}
-
-extern void
-gridRegular_deallocAllVars(gridRegular_t grid)
+extern int
+gridRegular_getNumPatches(gridRegular_t grid)
 {
 	assert(grid != NULL);
 
-	for (int i=0; i<arArr_getLength(grid->Vars); i++)
-		gridRegular_deallocVar(grid, i);
+	return varArr_getLength(grid->patches);
 }
 
-#ifdef WITH_MPI
-extern void
-gridRegular_mpiSetDistribution(gridRegular_t  grid,
-                               gridPointInt_t nProcs,
-                               MPI_Comm       mpiCommGrid)
+extern int
+gridRegular_attachPatch(gridRegular_t grid, gridPatch_t patch)
 {
-	gridPointInt_t periodic;
+	int idxOfPatch;
 
 	assert(grid != NULL);
-	assert(mpiCommGrid != MPI_COMM_NULL);
+	assert(patch != NULL);
 
-	local_mpiSetCommGridInfo(grid, mpiCommGrid);
-	local_mpiSetCartDims(grid, nProcs);
+	local_addAllVarsToPatch(grid, patch);
+	idxOfPatch = varArr_insert(grid->patches, patch);
 
-	for (int i = 0; i < NDIM; i++)
-		periodic[i] = 1;
-	(void)MPI_Cart_create(grid->mpiCommGrid, NDIM, grid->mpiNumProcs,
-	                      periodic, 1, &(grid->mpiCommCart));
-
-	local_mpiSetCommCartInfo(grid);
-	local_mpiCalcLocalVals(grid);
+	return idxOfPatch;
 }
 
-#endif
-
-#ifdef WITH_SILO
-extern void
-gridRegular_writeSilo(gridRegular_t grid, const char *siloBaseName)
+extern gridPatch_t
+gridRegular_detachPatch(gridRegular_t grid, int idxOfPatch)
 {
-	char   *fname;
-	int    size  = 1;
-	int    rank  = 0;
-	DBfile *file = NULL;
-#  ifdef WITH_MPI
-	size = grid->mpiCommGridSize;
-	rank = grid->mpiCommGridRank;
-#  endif
-
 	assert(grid != NULL);
-	assert(silBaseName != NULL);
+	assert(idxOfPatch >= 0 && idxOfPatch < varArr_getLength(grid->patches));
 
-	fname = siloTools_getFileName(siloBaseName, rank, size);
-
-	file  = DBCreate(fname, DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
-	local_siloAddMesh(grid, file, rank, size);
-	DBClose(file);
-	xfree(fname);
-
-	if (rank == 0) {
-		fname = siloTools_getMasterFileName(siloBaseName);
-		file  = DBCreate(fname, DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
-		local_siloAddMasterMesh(grid, file, size, siloBaseName);
-		DBClose(file);
-		xfree(fname);
-	}
+	return varArr_remove(grid->patches, idxOfPatch);
 }
 
-#endif
+extern gridPatch_t
+gridRegular_getPatchHandle(gridRegular_t grid, int idxPatchToGet)
+{
+	assert(grid != NULL);
+	assert(idxPatchToGet >= 0
+	       && idxPatchToGet < varArr_getLength(grid->patches));
+
+	return varArr_getElementHandle(grid->patches, idxPatchToGet);
+}
 
 
 /*--- Implementations of local functions --------------------------------*/
-static gridRegular_t
-local_alloc(void)
-{
-	gridRegular_t grid;
-
-	grid                  = xmalloc(sizeof(struct gridRegular_struct));
-	grid->gridName        = NULL;
-	grid->globalNumCells  = UINT64_C(0);
-	grid->localNumCells   = UINT64_C(0);
-#ifdef WITH_MPI
-	grid->mpiCommGrid     = MPI_COMM_NULL;
-	grid->mpiCommGridSize = 1;
-	grid->mpiCommGridRank = 0;
-	grid->mpiCommCart     = MPI_COMM_NULL;
-	grid->mpiCommCartSize = 1;
-	grid->mpiCommCartRank = 0;
-#endif
-	for (int i = 0; i < NDIM; i++) {
-		grid->globalOrigin[i]      = 0.0;
-		grid->globalExtent[i]      = 1.0;
-		grid->globalDims[i]        = 0;
-		grid->delta[i]             = 0.0;
-		grid->localOrigin[i]       = grid->globalOrigin[i];
-		grid->localExtent[i]       = grid->globalExtent[i];
-		grid->localDims[i]         = grid->globalDims[i];
-		grid->localStart[i]        = 0;
-#ifdef WITH_MPI
-		grid->mpiCommCartCoords[i] = 0;
-		grid->mpiNumProcs[i]       = 1;
-#endif
-	}
-
-	return grid;
-}
-
 inline static void
-local_resetDelta(gridRegular_t grid)
+local_resetDelta(gridRegular_t gridRegular)
 {
 	for (int i = 0; i < NDIM; i++) {
-		grid->delta[i]  = grid->globalExtent[i] - grid->globalOrigin[i];
-		grid->delta[i] /= (grid->globalDims[i]);
+		gridRegular->delta[i] = gridRegular->extent[i]
+		                        / ((double)(gridRegular->dims[i]));
 	}
 }
 
 inline static void
-local_resetGridLocalOrigin(gridRegular_t grid)
+local_freePatches(gridRegular_t grid)
 {
-	for (int i = 0; i < NDIM; i++) {
-		grid->localOrigin[i] = grid->globalOrigin[i]
-		                       + grid->delta[i] * grid->localStart[i];
+	while (varArr_getLength(grid->patches) != 0) {
+		gridPatch_t patch;
+		patch = varArr_remove(grid->patches, 0);
+		gridPatch_del(&patch);
+	}
+	varArr_del(&(grid->patches));
+}
+
+inline static void
+local_freeVars(gridRegular_t grid)
+{
+	while (varArr_getLength(grid->vars) != 0) {
+		gridVar_t var;
+		var = varArr_remove(grid->vars, 0);
+		gridVar_del(&var);
+	}
+	varArr_del(&(grid->vars));
+}
+
+inline static void
+local_addVarToAllPatches(gridRegular_t grid, gridVar_t var, int idxOfVar)
+{
+	int numPatches = varArr_getLength(grid->patches);
+
+	for (int i = 0; i < numPatches; i++) {
+		gridPatch_t patch        = varArr_getElementHandle(grid->patches, i);
+		int         idxOfVarData = gridPatch_attachVarData(patch, var);
+		assert(idxOfVarData == idxOfVar);
 	}
 }
 
 inline static void
-local_resetGridLocalExtent(gridRegular_t grid)
+local_removeVarFromAllPatches(gridRegular_t grid, int idxOfVar)
 {
-	for (int i = 0; i < NDIM; i++) {
-		grid->localExtent[i] = grid->delta[i] * grid->localDims[i];
+	int numPatches = varArr_getLength(grid->patches);
+
+	for (int i = 0; i < numPatches; i++) {
+		gridPatch_t patch = varArr_getElementHandle(grid->patches, i);
+		xfree(gridPatch_detachVarData(patch, idxOfVar));
 	}
 }
 
-#ifdef WITH_MPI
-static void
-local_mpiSetCommGridInfo(gridRegular_t grid, MPI_Comm mpiCommGrid)
+inline static void
+local_addAllVarsToPatch(gridRegular_t grid, gridPatch_t patch)
 {
-	grid->mpiCommGrid = mpiCommGrid;
-	MPI_Comm_size(grid->mpiCommGrid, &(grid->mpiCommGridSize));
-	MPI_Comm_rank(grid->mpiCommGrid, &(grid->mpiCommGridRank));
-}
+	int numVars = varArr_getLength(grid->vars);
 
-static void
-local_mpiSetCartDims(gridRegular_t grid, gridPointInt_t nProcs)
-{
-	for (int i = 0; i < NDIM; i++)
-		grid->mpiNumProcs[i] = nProcs[i];
-	MPI_Dims_create(grid->mpiCommGridSize, NDIM, grid->mpiNumProcs);
-}
-
-static void
-local_mpiSetCommCartInfo(gridRegular_t grid)
-{
-	MPI_Comm_size(grid->mpiCommCart, &(grid->mpiCommCartSize));
-	MPI_Comm_rank(grid->mpiCommCart, &(grid->mpiCommCartRank));
-	MPI_Cart_coords(grid->mpiCommCart, grid->mpiCommCartRank, NDIM,
-	                grid->mpiCommCartCoords);
-}
-
-static void
-local_mpiCalcLocalVals(gridRegular_t grid)
-{
-	int idealDistri;
-	int hangoverDistri;
-	int correction;
-
-	// For each dim assign cells allowing for a 1 cell imbalance
-	for (int i = 0; i < NDIM; i++) {
-		idealDistri         = grid->globalDims[i] / grid->mpiNumProcs[i];
-		hangoverDistri      = grid->globalDims[i] % grid->mpiNumProcs[i];
-		grid->localDims[i]  = (gridSize_t)idealDistri;
-		grid->localStart[i] = (gridSize_t)(idealDistri
-		                                   * grid->mpiCommCartCoords[i]);
-		if (grid->mpiCommCartCoords[i] < hangoverDistri)
-			grid->localDims[i]++;
-		correction = (grid->mpiCommCartCoords[i] < hangoverDistri)
-		             ? grid->mpiCommCartCoords[i]
-					 : hangoverDistri;
-		grid->localStart[i] = (gridSize_t)(grid->localStart[i] + correction);
+	for (int i=0; i<numVars; i++) {
+		gridVar_t var = varArr_getElementHandle(grid->vars, i);
+		gridPatch_attachVarData(patch, var);
 	}
-	local_resetGridLocalOrigin(grid);
-	local_resetGridLocalExtent(grid);
 }
-
-#endif
-
-#ifdef WITH_SILO
-static void
-local_siloAddMesh(gridRegular_t grid, DBfile *file, int rank, int size)
-{
-	double *coords[NDIM];
-	char   *gridName;
-	int    dims[NDIM];
-
-	gridName = siloTools_getGridName(grid->gridName, rank, size);
-	for (int i = 0; i < NDIM; i++) {
-		// need left and right coords of the cell, hence the +1
-		coords[i] = xmalloc(sizeof(double) * (grid->localDims[i] + 1));
-		for (int j = 0; j < grid->localDims[i] + 1; j++)
-			coords[i][j] = grid->localOrigin[i] + j * grid->delta[i];
-		dims[i] = grid->localDims[i] + 1;
-	}
-
-	DBPutQuadmesh(file, gridName, NULL, coords, dims, NDIM,
-	              DB_DOUBLE, DB_COLLINEAR, NULL);
-
-	for (int i = 0; i < NDIM; i++)
-		xfree(coords[i]);
-	xfree(gridName);
-}
-
-static void
-local_siloAddMasterMesh(gridRegular_t grid,
-                        DBfile        *file,
-                        int           size,
-                        const char    *siloBaseName)
-{
-	int  *gridTypes;
-	char **gridNames;
-	char *siloFileName;
-	int  i;
-
-	gridTypes = xmalloc(sizeof(int) * size);
-	gridNames = xmalloc(sizeof(char *) * size);
-
-	for (i = 0; i < size; i++) {
-		siloFileName = siloTools_getFileName(siloBaseName, i, size);
-		gridTypes[i] = DB_QUAD_RECT;
-		gridNames[i] = siloTools_getGridName(grid->gridName, i, size);
-		gridNames[i] = siloTools_prependFileName(gridNames[i], siloFileName);
-		xfree(siloFileName);
-	}
-
-	DBPutMultimesh(file, grid->gridName, size, gridNames, gridTypes, NULL);
-
-	for (i = 0; i < size; i++)
-		xfree(gridNames[i]);
-	xfree(gridNames);
-	xfree(gridTypes);
-}
-
-#endif

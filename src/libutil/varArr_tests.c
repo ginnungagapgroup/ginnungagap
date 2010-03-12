@@ -37,7 +37,7 @@ varArr_new_test(void)
 		hasPassed = false;
 	if (arr->increment != VARARR_MIN_INCR)
 		hasPassed = false;
-	if (arr->elements == NULL)
+	if (arr->elements != NULL)
 		hasPassed = false;
 	if (arr->numUsed != 0)
 		hasPassed = false;
@@ -124,10 +124,13 @@ varArr_insert_test(void)
 	if (arr->numAllocated != 5)
 		hasPassed = false;
 	varArr_insert(arr, &arr);
+	varArr_insert(arr, &arr);
 	if (arr->numAllocated != 5 + arr->increment)
 		hasPassed = false;
-	for (int i=0; i<5; i++)
+	while (varArr_getLength(arr) != 0)
 		varArr_remove(arr, 0);
+	if (varArr_getLength(arr) != 0)
+		hasPassed = false;
 
 	varArr_del(&arr);
 
@@ -150,12 +153,12 @@ varArr_remove_test(void)
 		hasPassed = false;
 	if (arr->numAllocated != 5+arr->increment)
 		hasPassed = false;
+	(void)varArr_remove(arr, 2);
 	(void)varArr_remove(arr, 0);
-	(void)varArr_remove(arr, 0);
-	if (arr->numUsed != 4)
+	if (arr->numUsed != 3)
 		hasPassed = false;
-	for (int i=0; i<varArr_getLength(arr); i++)
-		(void)varArr_remove(arr, 0);
+	while (varArr_getLength(arr) != 0)
+		varArr_remove(arr, 0);
 
 	varArr_del(&arr);
 

@@ -2,29 +2,26 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GRIDVAR_H
-#define GRIDVAR_H
+#ifndef GRIDVARTYPE_H
+#define GRIDVARTYPE_H
 
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#include "gridVarType.h"
 #include <stdlib.h>
 
 
-/*--- ADT handle --------------------------------------------------------*/
-typedef struct gridVar_struct *gridVar_t;
+/*--- Exported types ----------------------------------------------------*/
+typedef enum {
+	GRIDVARTYPE_INT,
+	GRIDVARTYPE_DOUBLE,
+	GRIDVARTYPE_FPV
+} gridVarType_t;
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
-extern gridVar_t
-gridVar_new(const char *name, gridVarType_t type, int numComponents);
-
-extern void
-gridVar_del(gridVar_t *gridVar);
-
 extern size_t
-gridVar_getSizePerElement(gridVar_t var);
+gridVarType_sizeof(gridVarType_t type);
 
 
 #endif

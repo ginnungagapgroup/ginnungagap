@@ -14,7 +14,6 @@ sources = xmem.c \
           parse_ini.c \
           byteswap.c \
           cmdline.c \
-          siloTools.c \
           varArr.c
 
 sourcesTests = lib${LIBNAME}_tests.c \

@@ -2,41 +2,42 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GRIDREGULAR_TESTS_H
-#define GRIDREGULAR_TESTS_H
+#ifndef GRIDWRITERSILO_TESTS_H
+#define GRIDWRITERSILO_TESTS_H
 
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#include <stdbool.h>
+#ifdef WITH_SILO
+#  include <stdbool.h>
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-gridRegular_new_test(void);
+gridWriterSilo_new_test(void);
 
 extern bool
-gridRegular_del_test(void);
+gridWriterSilo_del_test(void);
 
 extern bool
-gridRegular_getName_test(void);
+gridWriterSilo_activate_test(void);
 
 extern bool
-gridRegular_attachVar_test(void);
+gridWriterSilo_deactivate_test(void);
 
 extern bool
-gridRegular_detachVar_test(void);
+gridWriterSilo_writeGridPatch_test(void);
 
 extern bool
-gridRegular_getNumPatches_test(void);
+gridWriterSilo_writeGridRegular_test(void);
 
+
+#  ifdef WITH_MPI
 extern bool
-gridRegular_getPatchHandle_test(void);
+gridWriterSilo_initParallel_test(void);
 
-extern bool
-gridRegular_getOrigin_test(void);
+#  endif
 
-extern bool
-gridRegular_getDelta_test(void);
 
+#endif
 #endif

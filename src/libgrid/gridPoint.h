@@ -8,16 +8,14 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
+#include <stdint.h>
 
 
 /*--- Typedefs ----------------------------------------------------------*/
-typedef gridSize_t gridPointSize_t[NDIM];
-
-typedef int        gridPointInt_t[NDIM];
-
-typedef double     gridPointDbl_t[NDIM];
-
-typedef fpv_t      gridPointFpv_t[NDIM];
+typedef int      gridPointInt_t[NDIM];
+typedef uint32_t gridPointUint32_t[NDIM];
+typedef double   gridPointDbl_t[NDIM];
+typedef fpv_t    gridPointFpv_t[NDIM];
 
 
 #endif

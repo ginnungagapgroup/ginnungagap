@@ -8,16 +8,14 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#include "gridVarTypes.h"
+#include "gridVarType.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridVar_struct {
-	char           *name;
-	gridVarTypes_t type;
-	size_t         numElements;
-	size_t         sizePerElement;
-	void           *data;
+	char          *name;
+	gridVarType_t type;
+	int           numComponents;
 };
 
 

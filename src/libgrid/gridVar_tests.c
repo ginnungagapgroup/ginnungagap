@@ -7,21 +7,23 @@
 #include "gridConfig.h"
 #include "gridVar_tests.h"
 #include "gridVar.h"
-
-
-/*--- Local defines -----------------------------------------------------*/
+#include "gridVarType.h"
+#include <stdio.h>
+#include <string.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
+#ifdef XMEM_TRACK_MEM
+#  include "../libutil/xmem.h"
+#endif
 
 
 /*--- Implemention of main structure ------------------------------------*/
 #include "gridVar_adt.h"
-#ifdef WITH_MPI
-#  include <mpi.h>
-#endif
-#include <stdio.h>
 
 
 /*--- Local defines -----------------------------------------------------*/
-#define TESTNAME "asdk1l2kl3masdkwkejqwe"
+#define LOCAL_TESTNAME "ad12dklkg3t13t"
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -33,7 +35,10 @@ gridVar_new_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t var;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -41,19 +46,18 @@ gridVar_new_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new(TESTNAME, GRIDVARTYPES_FPVVEC);
-	if (strcmp(var->name, TESTNAME) != 0)
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	if (strcmp(gridVar->name, LOCAL_TESTNAME) != 0)
 		hasPassed = false;
-	if (var->type != GRIDVARTYPES_FPVVEC)
+	if (gridVar->type != GRIDVARTYPE_DOUBLE)
 		hasPassed = false;
-	if (var->numElements != 0)
+	if (gridVar->numComponents != NDIM)
 		hasPassed = false;
-	if (var->sizePerElement
-	    != gridVarTypes_getSizePerElement(GRIDVARTYPES_FPVVEC))
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
-	if (var->data != NULL)
-		hasPassed = false;
-	gridVar_del(&var);
+#endif
 
 	return hasPassed ? true : false;
 }
@@ -63,7 +67,10 @@ gridVar_del_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t var;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -71,26 +78,27 @@ gridVar_del_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new(TESTNAME, GRIDVARTYPES_FPVVEC);
-	gridVar_del(&var);
-	if (var != NULL)
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	gridVar_del(&gridVar);
+	if (gridVar != NULL)
 		hasPassed = false;
-
-	var = gridVar_new(TESTNAME, GRIDVARTYPES_FPVVEC);
-	gridVar_realloc(var, 2934);
-	gridVar_del(&var);
-	if (var != NULL)
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
+#endif
 
 	return hasPassed ? true : false;
 }
 
 extern bool
-gridVar_realloc_test(void)
+gridVar_getSizePerElement_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t var;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -98,38 +106,14 @@ gridVar_realloc_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new(TESTNAME, GRIDVARTYPES_FPVVEC);
-	gridVar_realloc(var, 2934);
-	if (var->numElements != 2934)
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	if (gridVar_getSizePerElement(gridVar) != sizeof(double)*NDIM)
 		hasPassed = false;
-	if (var->data == NULL)
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
-	gridVar_del(&var);
-
-	return hasPassed ? true : false;
-}
-
-extern bool
-gridVar_free_test(void)
-{
-	bool      hasPassed = true;
-	int       rank      = 0;
-	gridVar_t var;
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
-
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
-
-	var = gridVar_new(TESTNAME, GRIDVARTYPES_FPVVEC);
-	gridVar_realloc(var, 2934);
-	gridVar_free(var);
-	if (var->numElements != 0)
-		hasPassed = false;
-	if (var->data != NULL)
-		hasPassed = false;
-	gridVar_del(&var);
 
 	return hasPassed ? true : false;
 }

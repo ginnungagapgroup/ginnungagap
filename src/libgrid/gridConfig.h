@@ -6,13 +6,9 @@
 #define GRIDCONFIG_H
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "../../config.h"
 #include <stdint.h>
-
-typedef uint16_t gridSize_t;
-#define GRIDSIZE_C(a) UINT16_C(a)
-#define SCNgridSize SCNu16
-#define PRIgridSize PRIu16
 
 
 #endif

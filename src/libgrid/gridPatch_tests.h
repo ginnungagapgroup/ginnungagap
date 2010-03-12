@@ -2,8 +2,8 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GRIDVARTYPES_TESTS_H
-#define GRIDVARTYPES_TESTS_H
+#ifndef GRIDPATCH_TESTS_H
+#define GRIDPATCH_TESTS_H
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -13,7 +13,21 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-gridVarTypes_getSizePerElement_test(void);
+gridPatch_new_test(void);
 
+extern bool
+gridPatch_del_test(void);
+
+extern bool
+gridPatch_getOneDim_test(void);
+
+extern bool
+gridPatch_getIdxLo_test(void);
+
+extern bool
+gridPatch_attachVarData_test(void);
+
+extern bool
+gridPatch_detachVarData_test(void);
 
 #endif

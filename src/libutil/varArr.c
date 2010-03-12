@@ -71,10 +71,11 @@ varArr_insert(varArr_t arr, void *element)
 	assert(arr != NULL);
 	assert(element != NULL);
 
-	if (arr->numUsed == arr->numAllocated)
+	if (arr->numUsed == arr->numAllocated) {
+		arr->numAllocated = arr->numUsed + arr->increment;
 		arr->elements = xrealloc(arr->elements,
-		                         sizeof(void *) * (arr->numUsed
-		                                           + arr->increment));
+		                         sizeof(void *) * arr->numAllocated);
+	}
 	arr->elements[arr->numUsed] = element;
 	arr->numUsed++;
 
@@ -93,9 +94,14 @@ varArr_remove(varArr_t arr, int numElement)
 	for (int i = numElement; i < arr->numUsed - 1; i++)
 		arr->elements[i] = arr->elements[i + 1];
 	arr->numUsed--;
-	if (arr->numUsed + arr->increment < arr->numAllocated)
-		arr->elements = xrealloc(arr->elements,
-		                         sizeof(void *) * (arr->numUsed));
+	if (arr->numUsed + arr->increment < arr->numAllocated) {
+		size_t n = sizeof(void *);
+		if (arr->numUsed == 0)
+			n *= arr->increment;
+		else
+			n *= arr->numUsed;
+		arr->elements = xrealloc(arr->elements, n);
+	}
 
 	return removedElement;
 }

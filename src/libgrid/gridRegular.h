@@ -10,12 +10,7 @@
 #include "gridConfig.h"
 #include "gridPoint.h"
 #include "gridVar.h"
-#ifdef WITH_MPI
-#  include <mpi.h>
-#endif
-
-
-/*--- Exported defines --------------------------------------------------*/
+#include "gridPatch.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -24,44 +19,39 @@ typedef struct gridRegular_struct *gridRegular_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern gridRegular_t
-gridRegular_newWithoutData(const char      *gridName,
-                           gridPointSize_t dims);
+gridRegular_new(const char        *name,
+                gridPointDbl_t    origin,
+                gridPointDbl_t    extent,
+                gridPointUint32_t dims);
 
 extern void
-gridRegular_del(gridRegular_t *grid);
+gridRegular_del(gridRegular_t *gridRegular);
+
+extern char *
+gridRegular_getName(gridRegular_t grid);
 
 extern void
-gridRegular_setOrigin(gridRegular_t grid, gridPointDbl_t origin);
+gridRegular_getOrigin(gridRegular_t grid, gridPointDbl_t origin);
 
 extern void
-gridRegular_setExtent(gridRegular_t grid, gridPointDbl_t extent);
+gridRegular_getDelta(gridRegular_t grid, gridPointDbl_t delta);
 
 extern int
 gridRegular_attachVar(gridRegular_t grid, gridVar_t var);
 
-extern void
-gridRegular_allocVar(gridRegular_t grid, int varToAlloc);
-
-extern void
-gridRegular_deallocVar(gridRegular_t grid, int varToDealloc);
+extern gridVar_t
+gridRegular_detachVar(gridRegular_t grid, int idxOfVar);
 
 extern int
-gridRegular_getNumVars(gridRegular_t grid);
+gridRegular_getNumPatches(gridRegular_t grid);
 
-#ifdef WITH_MPI
-extern void
-gridRegular_mpiSetDistribution(gridRegular_t  grid,
-                               gridPointInt_t nProcs,
-                               MPI_Comm       mpiCommGrid);
+extern int
+gridRegular_attachPatch(gridRegular_t grid, gridPatch_t patch);
 
-#endif
+extern gridPatch_t
+gridRegular_detachPatch(gridRegular_t grid, int idxOfPatch);
 
-
-#ifdef WITH_SILO
-extern void
-gridRegular_writeSilo(gridRegular_t grid, const char *siloBaseName);
-
-#endif
-
+extern gridPatch_t
+gridRegular_getPatchHandle(gridRegular_t grid, int idxPatchToGet);
 
 #endif

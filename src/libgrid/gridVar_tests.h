@@ -19,10 +19,6 @@ extern bool
 gridVar_del_test(void);
 
 extern bool
-gridVar_realloc_test(void);
-
-extern bool
-gridVar_free_test(void);
-
+gridVar_getSizePerElement_test(void);
 
 #endif

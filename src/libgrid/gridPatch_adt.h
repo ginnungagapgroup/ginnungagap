@@ -2,25 +2,22 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GRIDREGULAR_ADT_H
-#define GRIDREGULAR_ADT_H
+#ifndef GRIDPATCH_ADT_H
+#define GRIDPATCH_ADT_H
 
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#include "gridPoint.h"
 #include "../libutil/varArr.h"
+#include <stdint.h>
 
 
 /*--- ADT implementation ------------------------------------------------*/
-struct gridRegular_struct {
-	char              *name;
-	gridPointDbl_t    origin;
-	gridPointDbl_t    extent;
-	gridPointDbl_t    delta;
+struct gridPatch_struct {
+	gridPointUint32_t idxLo;
 	gridPointUint32_t dims;
-	varArr_t          patches;
-	varArr_t          vars;
+	uint64_t          numCells;
+	varArr_t          varData;
 };
 
 

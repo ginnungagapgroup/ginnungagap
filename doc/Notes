@@ -5,11 +5,16 @@ SPRNG:  - sprng-2.0b
           setting the streams and the seeds, no MPI collective calls are
           needed from sprng itself
 
-fftw2:  - fftw2-2.1.5
-        - Built with type prefix switched on (--enable-type-prefix)
-        - Built double and float interface, if you want to be able to
-          choose between double and float precision, otherwise only
-          build the one you need.
+fftw:   - fftw3-3.2.2
+        - No need for the parallel version, ginnungagap does *A LOT* of
+          1D transforms an explicitly parallelizes over those.
 
 mpi:    - openmpi-1.2(?)
         - nothing special
+
+The following two libraries are required for IO:
+
+HDF5:   - hdf5-1.8.4p1
+
+SILO:   - silo-4.7.2
+        - Make sure that silo uses HDF5
