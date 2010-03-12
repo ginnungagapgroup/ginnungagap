@@ -1,0 +1,5 @@
+. /opt/env/set-env.sh load hdf5 intel
+. /opt/env/set-env.sh load silo intel
+. /opt/env/set-env.sh load fftw intel
+. /opt/env/set-env.sh load sprng intel
+. /opt/env/set-env.sh load openmpi intel
