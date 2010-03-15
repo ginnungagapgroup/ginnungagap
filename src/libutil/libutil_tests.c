@@ -4,6 +4,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
+#include "refCounter_tests.h"
 #include "varArr_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,13 +36,21 @@ int
 main(int argc, char **argv)
 {
 	bool hasFailed = false;
-	int  rank = 0;
-	int  size = 1;
+	int  rank      = 0;
+	int  size      = 1;
 
 	if (rank == 0) {
 		printf("\nTesting %s on %i %s\n",
 		       NAME, size, size > 1 ? "tasks" : "task");
 	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for refCounter:\n");
+	}
+	RUNTEST(&refCounter_init_test, hasFailed);
+	RUNTEST(&refCounter_ref_test, hasFailed);
+	RUNTEST(&refCounter_deref_test, hasFailed);
+	RUNTEST(&refCounter_noReferenceLeft_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for varArr:\n");
@@ -60,6 +69,7 @@ main(int argc, char **argv)
 	}
 	if (rank == 0)
 		printf("\nAll tests passed successfully!\n\n");
+
 	return EXIT_SUCCESS;
 } /* main */
 

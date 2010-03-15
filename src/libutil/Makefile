@@ -14,9 +14,11 @@ sources = xmem.c \
           parse_ini.c \
           byteswap.c \
           cmdline.c \
+          refCounter.c \
           varArr.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
+               refCounter_tests.c \
                varArr_tests.c
 
 include ../../Makefile.rules
