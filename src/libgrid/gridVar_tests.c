@@ -90,6 +90,43 @@ gridVar_del_test(void)
 	return hasPassed ? true : false;
 }
 
+
+extern bool
+gridVar_getRef_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t var, varBackup;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	var = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	varBackup = gridVar_getRef(var);
+	if (varBackup->name != var->name)
+		hasPassed = false;
+	if (varBackup->refCounter != var->refCounter)
+		hasPassed = false;
+	if (varBackup->refCounter != 2)
+		hasPassed = false;
+	gridVar_del(&var);
+	if (varBackup->refCounter != 1)
+		hasPassed = false;
+	gridVar_del(&varBackup);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 extern bool
 gridVar_getSizePerElement_test(void)
 {

@@ -9,10 +9,12 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridVarType.h"
+#include "../libutil/refCounter.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridVar_struct {
+	refCounter_t  refCounter;
 	char          *name;
 	gridVarType_t type;
 	int           numComponents;

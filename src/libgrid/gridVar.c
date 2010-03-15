@@ -7,6 +7,7 @@
 #include "gridConfig.h"
 #include "gridVar.h"
 #include <assert.h>
+#include "../libutil/refCounter.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
 
@@ -35,18 +36,32 @@ gridVar_new(const char *name, gridVarType_t type, int numComponents)
 	gridVar->type          = type;
 	gridVar->numComponents = numComponents;
 
-	return gridVar;
+	refCounter_init(&(gridVar->refCounter));
+
+	return gridVar_getRef(gridVar);
 }
 
 extern void
-gridVar_del(gridVar_t *gridVar)
+gridVar_del(gridVar_t *var)
 {
-	assert(gridVar != NULL && *gridVar != NULL);
+	assert(var != NULL && *var != NULL);
 
-	xfree((*gridVar)->name);
-	xfree(*gridVar);
+	if (refCounter_deref(&((*var)->refCounter))) {
+		xfree((*var)->name);
+		xfree(*var);
 
-	*gridVar = NULL;
+		*var = NULL;
+	}
+}
+
+extern gridVar_t
+gridVar_getRef(gridVar_t var)
+{
+	assert(var != NULL);
+
+	refCounter_ref(&(var->refCounter));
+
+	return var;
 }
 
 extern size_t

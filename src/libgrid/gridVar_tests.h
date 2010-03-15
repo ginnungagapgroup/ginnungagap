@@ -19,6 +19,9 @@ extern bool
 gridVar_del_test(void);
 
 extern bool
+gridVar_getRef_test(void);
+
+extern bool
 gridVar_getSizePerElement_test(void);
 
 #endif

@@ -65,6 +65,7 @@ main(int argc, char **argv)
 	}
 	RUNTEST(&gridVar_new_test, hasFailed);
 	RUNTEST(&gridVar_del_test, hasFailed);
+	RUNTEST(&gridVar_getRef_test, hasFailed);
 	RUNTEST(&gridVar_getSizePerElement_test, hasFailed);
 
 	if (rank == 0) {
