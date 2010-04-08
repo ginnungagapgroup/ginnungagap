@@ -30,4 +30,13 @@ gridPatch_attachVarData_test(void);
 extern bool
 gridPatch_detachVarData_test(void);
 
+extern bool
+gridPatch_getVarHandle_test(void);
+
+extern bool
+gridPatch_getVarDataHandle_test(void);
+
+extern bool
+gridPatch_getNumVars_test(void);
+
 #endif

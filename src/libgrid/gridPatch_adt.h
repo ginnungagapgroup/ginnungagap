@@ -17,6 +17,7 @@ struct gridPatch_struct {
 	gridPointUint32_t idxLo;
 	gridPointUint32_t dims;
 	uint64_t          numCells;
+	varArr_t          vars;
 	varArr_t          varData;
 };
 
