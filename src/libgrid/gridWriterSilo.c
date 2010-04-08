@@ -406,7 +406,7 @@ local_writePatchData(gridWriterSilo_t writer,
 		void      *data        = gridPatch_getVarDataHandle(patch, i);
 		int       varType      = local_getVarType(var);
 		int       varCentering = local_getVarCentering(var);
-	
+
 		for (int j = 0; j < NDIM; j++) {
 			dims[j] = (int)(gridPatch_getOneDim(patch, j));
 			if (varCentering == DB_ZONECENT)
