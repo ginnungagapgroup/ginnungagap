@@ -71,10 +71,34 @@ gridVar_getSizePerElement(gridVar_t var)
 	return gridVarType_sizeof(var->type) * var->numComponents;
 }
 
+extern gridVarType_t
+gridVar_getType(gridVar_t var)
+{
+	assert(var != NULL);
+	return var->type;
+}
+
+extern char *
+gridVar_getName(gridVar_t var)
+{
+	assert(var != NULL);
+	return var->name;
+}
+
 extern void *
 gridVar_getMemory(gridVar_t var, uint64_t numElements)
 {
 	return xmalloc(gridVar_getSizePerElement(var) * numElements);
+}
+
+extern void
+gridVar_freeMemory(gridVar_t var, void *data)
+{
+	assert(var != NULL);
+
+	if (data != NULL) {
+		xfree(data);
+	}
 }
 
 /*--- Implementations of local functions --------------------------------*/

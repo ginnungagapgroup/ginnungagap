@@ -30,8 +30,17 @@ gridVar_getRef(gridVar_t var);
 extern size_t
 gridVar_getSizePerElement(gridVar_t var);
 
+extern gridVarType_t
+gridVar_getType(gridVar_t var);
+
+extern char *
+gridVar_getName(gridVar_t var);
+
 extern void *
 gridVar_getMemory(gridVar_t var, uint64_t numElements);
+
+extern void
+gridVar_freeMemory(gridVar_t var, void *data);
 
 
 #endif
