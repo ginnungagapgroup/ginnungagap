@@ -71,6 +71,13 @@ gridVar_getSizePerElement(gridVar_t var)
 	return gridVarType_sizeof(var->type) * var->numComponents;
 }
 
+extern int
+gridVar_getNumComponents(gridVar_t var)
+{
+	assert(var != NULL);
+	return var->numComponents;
+}
+
 extern gridVarType_t
 gridVar_getType(gridVar_t var)
 {

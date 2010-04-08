@@ -30,6 +30,9 @@ gridVar_getRef(gridVar_t var);
 extern size_t
 gridVar_getSizePerElement(gridVar_t var);
 
+extern int
+gridVar_getNumComponents(gridVar_t var);
+
 extern gridVarType_t
 gridVar_getType(gridVar_t var);
 

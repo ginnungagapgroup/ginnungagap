@@ -156,6 +156,34 @@ gridVar_getSizePerElement_test(void)
 }
 
 extern bool
+gridVar_getNumComponents_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	if (gridVar_getNumComponents(gridVar) != NDIM)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 gridVar_getType_test(void)
 {
 	bool      hasPassed = true;
