@@ -10,6 +10,7 @@
 #include "gridVarType.h"
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
@@ -154,5 +155,38 @@ gridVar_getSizePerElement_test(void)
 
 	return hasPassed ? true : false;
 }
+
+extern bool
+gridVar_getMemory_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	void *tmp;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	tmp = gridVar_getMemory(gridVar, UINT64_C(1024));
+	if (tmp == NULL)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+	if (tmp != NULL)
+		xfree(tmp);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 
 /*--- Implementations of local functions --------------------------------*/

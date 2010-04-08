@@ -67,6 +67,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridVar_del_test, hasFailed);
 	RUNTEST(&gridVar_getRef_test, hasFailed);
 	RUNTEST(&gridVar_getSizePerElement_test, hasFailed);
+	RUNTEST(&gridVar_getMemory_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridVarType:\n");

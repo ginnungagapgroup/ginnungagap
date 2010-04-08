@@ -24,4 +24,7 @@ gridVar_getRef_test(void);
 extern bool
 gridVar_getSizePerElement_test(void);
 
+extern bool
+gridVar_getMemory_test(void);
+
 #endif

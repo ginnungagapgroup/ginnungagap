@@ -10,6 +10,7 @@
 #include "gridConfig.h"
 #include "gridVarType.h"
 #include <stdlib.h>
+#include <stdint.h>
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -28,6 +29,9 @@ gridVar_getRef(gridVar_t var);
 
 extern size_t
 gridVar_getSizePerElement(gridVar_t var);
+
+extern void *
+gridVar_getMemory(gridVar_t var, uint64_t numElements);
 
 
 #endif

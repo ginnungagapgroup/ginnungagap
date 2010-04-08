@@ -71,4 +71,10 @@ gridVar_getSizePerElement(gridVar_t var)
 	return gridVarType_sizeof(var->type) * var->numComponents;
 }
 
+extern void *
+gridVar_getMemory(gridVar_t var, uint64_t numElements)
+{
+	return xmalloc(gridVar_getSizePerElement(var) * numElements);
+}
+
 /*--- Implementations of local functions --------------------------------*/

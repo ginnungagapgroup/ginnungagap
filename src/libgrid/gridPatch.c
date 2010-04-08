@@ -88,7 +88,7 @@ gridPatch_attachVarData(gridPatch_t patch, gridVar_t var)
 	assert(patch != NULL);
 	assert(var != NULL);
 
-	data = xmalloc(gridVar_getSizePerElement(var)*patch->numCells);
+	data = gridVar_getMemory(var, patch->numCells);
 
 	return varArr_insert(patch->varData, data);
 }
