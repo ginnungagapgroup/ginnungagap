@@ -67,7 +67,9 @@ main(int argc, char **argv)
 	RUNTEST(&gridVar_del_test, hasFailed);
 	RUNTEST(&gridVar_getRef_test, hasFailed);
 	RUNTEST(&gridVar_getSizePerElement_test, hasFailed);
+	RUNTEST(&gridVar_getType_test, hasFailed);
 	RUNTEST(&gridVar_getMemory_test, hasFailed);
+	RUNTEST(&gridVar_freeMemory_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridVarType:\n");
@@ -83,6 +85,9 @@ main(int argc, char **argv)
 	RUNTEST(&gridPatch_getIdxLo_test, hasFailed);
 	RUNTEST(&gridPatch_attachVarData_test, hasFailed);
 	RUNTEST(&gridPatch_detachVarData_test, hasFailed);
+	RUNTEST(&gridPatch_getVarHandle_test, hasFailed);
+	RUNTEST(&gridPatch_getVarDataHandle_test, hasFailed);
+	RUNTEST(&gridPatch_getNumVars_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegular:\n");
