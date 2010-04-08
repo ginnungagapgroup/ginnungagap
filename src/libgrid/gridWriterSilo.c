@@ -62,6 +62,20 @@ local_getPatchNames(const char *base, int numPatches);
 static void
 local_delPatchNames(char **patchNames, int numPatches);
 
+static void
+local_writePatchData(gridWriterSilo_t writer,
+                     gridPatch_t      patch,
+                     const char       *patchName);
+
+inline static int
+local_getVarType(gridVar_t var);
+
+inline static int
+local_getVarCentering(gridVar_t var);
+
+static void *
+local_getPatchVarName(gridVar_t var, const char *patchName, char *varName);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern gridWriterSilo_t
@@ -162,9 +176,9 @@ gridWriterSilo_writeGridPatch(gridWriterSilo_t writer,
 	gridPointInt_t    dims;
 	gridPointUint32_t idxLo;
 
-	assert(writer != NULL);
-	assert(writer->isActive);
+	assert(writer != NULL && writer->isActive);
 	assert(patch != NULL);
+	assert(patchName != NULL);
 
 	gridPatch_getIdxLo(patch, idxLo);
 
@@ -179,12 +193,10 @@ gridWriterSilo_writeGridPatch(gridWriterSilo_t writer,
 	DBPutQuadmesh(writer->f, patchName, NULL, coords, dims, NDIM,
 	              DB_DOUBLE, DB_COLLINEAR, NULL);
 
-	//for (int i=0; i<numVarData; i++) {
-		//gridWriterSilo_writeVarData(varData, patchName);
-	//}
-
 	for (int i = 0; i < NDIM; i++)
 		xfree(coords[i]);
+
+	local_writePatchData(writer, patch, patchName);
 }
 
 extern void
@@ -198,8 +210,7 @@ gridWriterSilo_writeGridRegular(gridWriterSilo_t writer,
 	char           *gridName;
 	int            *meshTypes;
 
-	assert(writer != NULL);
-	assert(writer->isActive);
+	assert(writer != NULL && writer->isActive);
 	assert(grid != NULL);
 
 	gridName   = local_getGridName(writer, gridRegular_getName(grid));
@@ -378,6 +389,78 @@ local_delPatchNames(char **patchNames, int numPatches)
 	for (int i = 0; i < numPatches; i++)
 		xfree(patchNames[i]);
 	xfree(patchNames);
+}
+
+static void
+local_writePatchData(gridWriterSilo_t writer,
+                     gridPatch_t      patch,
+                     const char       *patchName)
+{
+	int            numVars  = gridPatch_getNumVars(patch);
+	char           *varName = NULL;
+	gridPointInt_t dims;
+
+
+	for (int i = 0; i < numVars; i++) {
+		gridVar_t var          = gridPatch_getVarHandle(patch, i);
+		void      *data        = gridPatch_getVarDataHandle(patch, i);
+		int       varType      = local_getVarType(var);
+		int       varCentering = local_getVarCentering(var);
+	
+		for (int j = 0; j < NDIM; j++) {
+			dims[j] = (int)(gridPatch_getOneDim(patch, j));
+			if (varCentering == DB_ZONECENT)
+				dims[j]++;
+		}
+
+		varName = local_getPatchVarName(var, patchName, varName);
+		DBPutQuadvar1(writer->f, varName, patchName, data, dims, NDIM,
+		              NULL, 0, varType, varCentering, NULL);
+	}
+
+	if (varName != NULL)
+		xfree(varName);
+}
+
+inline static int
+local_getVarType(gridVar_t var)
+{
+	int varType;
+
+	switch (gridVar_getType(var)) {
+	case GRIDVARTYPE_INT:
+		varType = DB_INT;
+		break;
+	case GRIDVARTYPE_DOUBLE:
+		varType = DB_FLOAT;
+		break;
+	case GRIDVARTYPE_FPV:
+		varType = (sizeof(fpv_t) == 4 ? DB_FLOAT : DB_DOUBLE);
+		break;
+	default:
+		exit(EXIT_FAILURE);
+	}
+
+	return varType;
+}
+
+inline static int
+local_getVarCentering(gridVar_t var)
+{
+	return DB_ZONECENT;
+}
+
+static void *
+local_getPatchVarName(gridVar_t var, const char *patchName, char *varName)
+{
+	char *baseVarName = gridVar_getName(var);
+	int  lenBaseName  = strlen(baseVarName);
+	int  lenSuffix    = strlen(patchName);
+
+	varName = xrealloc(varName, lenBaseName + lenSuffix + 1 + 1);
+	sprintf(varName, "%s_%s", baseVarName, patchName);
+
+	return varName;
 }
 
 #endif
