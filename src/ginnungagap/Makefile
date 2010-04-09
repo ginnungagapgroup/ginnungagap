@@ -26,13 +26,19 @@ dist-clean:
 	$(MAKE) clean
 	rm -f $(sources:.c=.d)
 
-$(progName): $(sources:.c=.o)
+$(progName): $(sources:.c=.o) \
+	                 ../libgrid/libgrid.a \
+	                 ../libutil/libutil.a
 	$(CC) $(LDFLAGS) $(CFLAGS) \
 	  -o $(progName) $(sources:.c=.o) \
+	                 ../libgrid/libgrid.a \
 	                 ../libutil/libutil.a \
 	                 $(LIBS)
 
 -include $(sources:.c=.d)
+
+../libgrid/libgrid.a:
+	$(MAKE) -C ../libgrid
 
 ../libutil/libutil.a:
 	$(MAKE) -C ../libutil

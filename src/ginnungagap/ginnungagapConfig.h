@@ -18,9 +18,19 @@ typedef struct ginnungagapConfig_struct *ginnungagapConfig_t;
 
 /*--- Implemention of main structure ------------------------------------*/
 struct ginnungagapConfig_struct {
-	uint32_t highDim1D;
-	bool     replaceLowFreqModes;
-	uint32_t lowDim1D;
+	uint32_t dim1D;
+	double   boxsizeInMpch;
+	char     *gridName;
+	bool     useConstraints;
+	char     *fileNameConstraints;
+	uint32_t dim1DConstraints;
+#ifdef WITH_SILO
+	char     *filePrefix;
+	int      dbtype;
+#  ifdef WITH_MPI
+	int      numFiles;
+#  endif
+#endif
 };
 
 
