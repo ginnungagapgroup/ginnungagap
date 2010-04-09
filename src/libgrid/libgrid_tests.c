@@ -83,6 +83,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridPatch_new_test, hasFailed);
 	RUNTEST(&gridPatch_del_test, hasFailed);
 	RUNTEST(&gridPatch_getOneDim_test, hasFailed);
+	RUNTEST(&gridPatch_getNumCells_test, hasFailed);
 	RUNTEST(&gridPatch_getIdxLo_test, hasFailed);
 	RUNTEST(&gridPatch_attachVarData_test, hasFailed);
 	RUNTEST(&gridPatch_detachVarData_test, hasFailed);

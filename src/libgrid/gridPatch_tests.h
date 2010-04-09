@@ -22,6 +22,9 @@ extern bool
 gridPatch_getOneDim_test(void);
 
 extern bool
+gridPatch_getNumCells_test(void);
+
+extern bool
 gridPatch_getIdxLo_test(void);
 
 extern bool

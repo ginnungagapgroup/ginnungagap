@@ -138,6 +138,43 @@ gridPatch_getOneDim_test(void)
 }
 
 extern bool
+gridPatch_getNumCells_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridPatch_t       patch;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+	uint64_t          numCells = UINT64_C(1);
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	for (int i = 0; i < NDIM; i++) {
+		idxLo[i] = 123;
+		idxHi[i] = 203;
+		numCells *= (idxHi[i] - idxLo[i] + 1);
+	}
+	patch = gridPatch_new(idxLo, idxHi);
+	if (gridPatch_getNumCells(patch) != numCells)
+		hasPassed = false;
+	gridPatch_del(&patch);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+
+extern bool
 gridPatch_getIdxLo_test(void)
 {
 	bool              hasPassed = true;
