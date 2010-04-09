@@ -37,6 +37,7 @@ local_getGrid(ginnungagap_t ginnungagap);
 static void
 local_generateWhiteNoise(ginnungagap_t ginnungagap);
 
+
 #ifdef WITH_SILO
 static void
 local_dumpGrid(ginnungagap_t ginnungagap);
@@ -110,14 +111,14 @@ local_getGrid(ginnungagap_t ginnungagap)
 		origin[i] = 0.0;
 		extent[i] = ginnungagap->config->boxsizeInMpch;
 		dims[i]   = ginnungagap->config->dim1D;
-		idxLo[i] = 0;
-		idxHi[i] = dims[i]-1;
+		idxLo[i]  = 0;
+		idxHi[i]  = dims[i] - 1;
 	}
 
 	grid = gridRegular_new(ginnungagap->config->gridName,
 	                       origin, extent, dims);
 
-	patch = gridPatch_new(idxLo, idxHi);
+	patch   = gridPatch_new(idxLo, idxHi);
 	density = gridVar_new("density", GRIDVARTYPE_FPV, 1);
 
 	gridRegular_attachPatch(grid, patch);
@@ -129,13 +130,23 @@ local_getGrid(ginnungagap_t ginnungagap)
 static void
 local_generateWhiteNoise(ginnungagap_t ginnungagap)
 {
-	gridPatch_t patch = gridRegular_getPatchHandle(ginnungagap->grid, 0);
-	fpv_t *data = gridPatch_getVarDataHandle(patch, 0);
-	uint64_t numCells = gridPatch_getNumCells(patch);
+	gridPatch_t patch = gridRegular_getPatchHandle(
+	    ginnungagap->grid,
+	    0);
+	fpv_t             *data    = gridPatch_getVarDataHandle(patch, 0);
+	gridPointUint32_t dims;
+	uint64_t          idxCells = 0;
 
-	for (uint64_t i=0; i<numCells; i++) {
-		data[i] = i;
+	gridPatch_getDims(patch, dims);
+
+	for (uint32_t iz = 0; iz < dims[0]; iz++) {
+		for (uint32_t iy = 0; iy < dims[1]; iy++) {
+			for (uint32_t ix = 0; ix < dims[2]; ix++) {
+				data[idxCells++] = ix * ix + iy * iy + iz * iz;
+			}
+		}
 	}
+
 }
 
 #ifdef WITH_SILO
