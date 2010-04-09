@@ -409,7 +409,7 @@ local_writePatchData(gridWriterSilo_t writer,
 
 		for (int j = 0; j < NDIM; j++) {
 			dims[j] = (int)(gridPatch_getOneDim(patch, j));
-			if (varCentering == DB_ZONECENT)
+			if (varCentering == DB_NODECENT)
 				dims[j]++;
 		}
 
@@ -432,7 +432,7 @@ local_getVarType(gridVar_t var)
 		varType = DB_INT;
 		break;
 	case GRIDVARTYPE_DOUBLE:
-		varType = DB_FLOAT;
+		varType = DB_DOUBLE;
 		break;
 	case GRIDVARTYPE_FPV:
 		varType = (sizeof(fpv_t) == 4 ? DB_FLOAT : DB_DOUBLE);
