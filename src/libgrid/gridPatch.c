@@ -76,6 +76,15 @@ gridPatch_getOneDim(gridPatch_t patch, int idxOfDim)
 	return patch->dims[idxOfDim];
 }
 
+extern void
+gridPatch_getDims(gridPatch_t patch, gridPointUint32_t dims)
+{
+	assert(patch != NULL);
+
+	for (int i=0; i<NDIM; i++)
+		dims[i] = patch->dims[i];
+}
+
 extern uint64_t
 gridPatch_getNumCells(gridPatch_t patch)
 {

@@ -124,8 +124,8 @@ gridPatch_getOneDim_test(void)
 		idxHi[i] = 231;
 	}
 	patch = gridPatch_new(idxLo, idxHi);
-	for (int i=0; i<NDIM; i++) {
-		if (gridPatch_getOneDim(patch, i) != (idxHi[i]-idxLo[i]+1))
+	for (int i = 0; i < NDIM; i++) {
+		if (gridPatch_getOneDim(patch, i) != (idxHi[i] - idxLo[i] + 1))
 			hasPassed = false;
 	}
 	gridPatch_del(&patch);
@@ -135,17 +135,17 @@ gridPatch_getOneDim_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_getOneDim_test */
 
 extern bool
-gridPatch_getNumCells_test(void)
+gridPatch_getDims_test(void)
 {
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       patch;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
-	uint64_t          numCells = UINT64_C(1);
+	gridPointUint32_t dims;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -157,8 +157,46 @@ gridPatch_getNumCells_test(void)
 		printf("Testing %s... ", __func__);
 
 	for (int i = 0; i < NDIM; i++) {
-		idxLo[i] = 123;
-		idxHi[i] = 203;
+		idxLo[i] = 12;
+		idxHi[i] = 231;
+	}
+	patch = gridPatch_new(idxLo, idxHi);
+	gridPatch_getDims(patch, dims);
+	for (int i = 0; i < NDIM; i++) {
+		if (dims[i] != (idxHi[i] - idxLo[i] + 1))
+			hasPassed = false;
+	}
+	gridPatch_del(&patch);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* gridPatch_getDims_test */
+
+extern bool
+gridPatch_getNumCells_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridPatch_t       patch;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+	uint64_t          numCells       = UINT64_C(1);
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	for (int i = 0; i < NDIM; i++) {
+		idxLo[i]  = 123;
+		idxHi[i]  = 203;
 		numCells *= (idxHi[i] - idxLo[i] + 1);
 	}
 	patch = gridPatch_new(idxLo, idxHi);
@@ -171,8 +209,7 @@ gridPatch_getNumCells_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
-
+} /* gridPatch_getNumCells_test */
 
 extern bool
 gridPatch_getIdxLo_test(void)
@@ -199,7 +236,7 @@ gridPatch_getIdxLo_test(void)
 	}
 	patch = gridPatch_new(idxLo, idxHi);
 	gridPatch_getIdxLo(patch, idxLo2);
-	for (int i=0; i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (idxLo2[i] != patch->idxLo[i])
 			hasPassed = false;
 	}
@@ -210,7 +247,7 @@ gridPatch_getIdxLo_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_getIdxLo_test */
 
 extern bool
 gridPatch_attachVarData_test(void)
@@ -272,7 +309,7 @@ gridPatch_detachVarData_test(void)
 		idxLo[i] = 0;
 		idxHi[i] = 31;
 	}
-	gridPatch    = gridPatch_new(idxLo, idxHi);
+	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(gridPatch, var);
 	gridPatch_attachVarData(gridPatch, var);
 	gridPatch_attachVarData(gridPatch, var);
@@ -315,7 +352,7 @@ gridPatch_getVarHandle_test(void)
 		idxLo[i] = 0;
 		idxHi[i] = 31;
 	}
-	gridPatch    = gridPatch_new(idxLo, idxHi);
+	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(gridPatch, var);
 	if (gridPatch_getVarHandle(gridPatch, 0) != var)
 		hasPassed = false;
@@ -327,7 +364,7 @@ gridPatch_getVarHandle_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_getVarHandle_test */
 
 extern bool
 gridPatch_getVarDataHandle_test(void)
@@ -353,9 +390,9 @@ gridPatch_getVarDataHandle_test(void)
 		idxLo[i] = 0;
 		idxHi[i] = 31;
 	}
-	gridPatch    = gridPatch_new(idxLo, idxHi);
+	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(gridPatch, var);
-	if (   gridPatch_getVarDataHandle(gridPatch, 0)
+	if (gridPatch_getVarDataHandle(gridPatch, 0)
 	    != varArr_getElementHandle(gridPatch->varData, 0))
 		hasPassed = false;
 	gridPatch_del(&gridPatch);
@@ -366,8 +403,7 @@ gridPatch_getVarDataHandle_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
-
+} /* gridPatch_getVarDataHandle_test */
 
 extern bool
 gridPatch_getNumVars_test(void)
@@ -393,7 +429,7 @@ gridPatch_getNumVars_test(void)
 		idxLo[i] = 0;
 		idxHi[i] = 31;
 	}
-	gridPatch    = gridPatch_new(idxLo, idxHi);
+	gridPatch = gridPatch_new(idxLo, idxHi);
 	if (gridPatch_getNumVars(gridPatch) != 0)
 		hasPassed = false;
 	gridPatch_attachVarData(gridPatch, var);
@@ -407,6 +443,6 @@ gridPatch_getNumVars_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_getNumVars_test */
 
 /*--- Implementations of local functions --------------------------------*/
