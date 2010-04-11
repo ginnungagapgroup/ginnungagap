@@ -11,25 +11,19 @@
 #  include <mpi.h>
 #endif
 #ifdef DEBUG
+// SPRNG internal thing
 #  define CHECK_POINTERS
 #endif
 #include <sprng.h>
+#include <math.h>
 #include <assert.h>
 
 
 /*--- Implemention of main structure ------------------------------------*/
-struct rng_struct {
-	int **streams;
-	int generatorType;
-	int baseStreamId;
-	int numStreamsTotal;
-	int numStreamsLocal;
-	int randomSeed;
-};
+#include "rng_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
-#define CONFIG_SECTION_NAME      "rng"
 #define CONFIG_GENERATOR_NAME    "generator"
 #define CONFIG_TOTALSTREAMS_NAME "numStreamsTotal"
 #define CONFIG_RANDOMSEED_NAME   "randomSeed"
@@ -37,13 +31,13 @@ struct rng_struct {
 
 /*--- Prototypes of local functions -------------------------------------*/
 static int
-local_getGeneratorType(parse_ini_t ini);
+local_getGeneratorType(parse_ini_t ini, const char *sectionName);
 
 static int
-local_getNumStreamsTotal(parse_ini_t ini);
+local_getNumStreamsTotal(parse_ini_t ini, const char *sectionName);
 
 static int
-local_getRandomSeed(parse_ini_t ini);
+local_getRandomSeed(parse_ini_t ini, const char *sectionName);
 
 static int
 local_getNumStreamsLocal(int numStreamsTotal);
@@ -54,14 +48,14 @@ local_getBaseStreamId(int numStreamsTotal);
 
 /*--- Implementations of exported functios ------------------------------*/
 extern rng_t
-rng_new(parse_ini_t ini)
+rng_new(int generatorType, int numStreamsTotal, int randomSeed)
 {
 	rng_t rng;
 
 	rng                  = xmalloc(sizeof(struct rng_struct));
-	rng->generatorType   = local_getGeneratorType(ini);
-	rng->numStreamsTotal = local_getNumStreamsTotal(ini);
-	rng->randomSeed      = local_getRandomSeed(ini);
+	rng->generatorType   = generatorType;
+	rng->numStreamsTotal = numStreamsTotal;
+	rng->randomSeed      = randomSeed;
 	rng->numStreamsLocal = local_getNumStreamsLocal(rng->numStreamsTotal);
 	rng->baseStreamId    = local_getBaseStreamId(rng->numStreamsLocal);
 
@@ -70,13 +64,23 @@ rng_new(parse_ini_t ini)
 	rng->streams = xmalloc(sizeof(int *) * rng->numStreamsLocal);
 	for (int i = 0; i < rng->numStreamsLocal; i++) {
 		rng->streams[i] = init_sprng(rng->generatorType,
-		                            rng->baseStreamId + i,
-		                            rng->numStreamsTotal,
-		                            rng->randomSeed,
-		                            SPRNG_DEFAULT);
+		                             rng->baseStreamId + i,
+		                             rng->numStreamsTotal,
+		                             rng->randomSeed,
+		                             SPRNG_DEFAULT);
 	}
 
 	return rng;
+}
+
+extern rng_t
+rng_newFromIni(parse_ini_t ini, const char *sectionName)
+{
+	int generatorType   = local_getGeneratorType(ini, sectionName);
+	int numStreamsTotal = local_getNumStreamsTotal(ini, sectionName);
+	int randomSeed      = local_getRandomSeed(ini, sectionName);
+
+	return rng_new(generatorType, numStreamsTotal, randomSeed);
 }
 
 extern void
@@ -92,13 +96,36 @@ rng_del(rng_t *rng)
 	*rng = NULL;
 }
 
+extern double
+rng_getGauss(const rng_t  rng,
+             const int    streamNumber,
+             const double mean,
+             const double sigma)
+{
+	double x, y, r2;
+
+	do {
+		x  = -1 + 2 * sprng(rng->streams[streamNumber]);
+		y  = -1 + 2 * sprng(rng->streams[streamNumber]);
+		r2 = x * x + y * y;
+	} while (r2 > 1.0 || r2 == 0);
+
+	return sigma * y * sqrt(-2.0 * log(r2) / r2) + mean;
+}
+
+extern double
+rng_getGaussUnit(const rng_t rng, const int streamNumber)
+{
+	return rng_getGauss(rng, streamNumber, 0.0, 1.0);
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static int
-local_getGeneratorType(parse_ini_t ini)
+local_getGeneratorType(parse_ini_t ini, const char *sectionName)
 {
 	int32_t tmp;
 	getFromIni(&tmp, parse_ini_get_int32,
-	           ini, CONFIG_GENERATOR_NAME, CONFIG_SECTION_NAME);
+	           ini, CONFIG_GENERATOR_NAME, sectionName);
 	if ((tmp < INT32_C(0)) || (tmp > INT32_C(5))) {
 		fprintf(stderr, "FATAL:  Generator type %i unknown!.\n",
 		        (int)tmp);
@@ -108,11 +135,11 @@ local_getGeneratorType(parse_ini_t ini)
 }
 
 static int
-local_getNumStreamsTotal(parse_ini_t ini)
+local_getNumStreamsTotal(parse_ini_t ini, const char *sectionName)
 {
 	int32_t tmp;
 	getFromIni(&tmp, parse_ini_get_int32,
-	           ini, CONFIG_TOTALSTREAMS_NAME, CONFIG_SECTION_NAME);
+	           ini, CONFIG_TOTALSTREAMS_NAME, sectionName);
 	if (tmp < INT32_C(1)) {
 		fprintf(stderr, "FATAL:  Cannot use less than 1 stream!\n");
 		exit(EXIT_FAILURE);
@@ -121,11 +148,11 @@ local_getNumStreamsTotal(parse_ini_t ini)
 }
 
 static int
-local_getRandomSeed(parse_ini_t ini)
+local_getRandomSeed(parse_ini_t ini, const char *sectionName)
 {
 	int32_t tmp;
 	getFromIni(&tmp, parse_ini_get_int32,
-	           ini, CONFIG_RANDOMSEED_NAME, CONFIG_SECTION_NAME);
+	           ini, CONFIG_RANDOMSEED_NAME, sectionName);
 	return (int)tmp;
 }
 
@@ -144,7 +171,7 @@ local_getNumStreamsLocal(int numStreamsTotal)
 	if (numStreamsTotal % size != 0) {
 		fprintf(stderr,
 		        "FATAL:  numStreamsTotal must be an integer multiple "
-		        "of the number of MPI tasks!\n");
+		        "of the number of tasks (size = %i)!\n", size);
 		exit(EXIT_FAILURE);
 	}
 	return numStreamsTotal / size;

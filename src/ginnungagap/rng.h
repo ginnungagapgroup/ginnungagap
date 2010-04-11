@@ -16,10 +16,21 @@ typedef struct rng_struct *rng_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern rng_t
-rng_new(parse_ini_t ini);
+rng_new(int generatorType, int numStreamsTotal, int randomSeed);
+
+extern rng_t
+rng_newFromIni(parse_ini_t ini, const char *sectionName);
 
 extern void
 rng_del(rng_t *rng);
 
+extern double
+rng_getGauss(const rng_t  rng,
+             const int    streamNumber,
+             const double mean,
+             const double sigma);
+
+extern double
+rng_getGaussUnit(const rng_t rng, const int streamNumber);
 
 #endif

@@ -54,7 +54,7 @@ ginnungagap_new(parse_ini_t ini)
 
 	ginnungagap         = xmalloc(sizeof(struct ginnungagap_struct));
 	ginnungagap->config = ginnungagapConfig_new(ini);
-	ginnungagap->rng    = rng_new(ini);
+	ginnungagap->rng    = rng_newFromIni(ini, "rng");
 	ginnungagap->fft    = fft_new(ginnungagap->config->dim1D);
 	if (ginnungagap->config->useConstraints)
 		ginnungagap->fftConstraints
