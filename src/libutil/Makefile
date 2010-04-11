@@ -15,7 +15,8 @@ sources = xmem.c \
           byteswap.c \
           cmdline.c \
           refCounter.c \
-          varArr.c
+          varArr.c \
+          rng.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
                refCounter_tests.c \

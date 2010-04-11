@@ -7,12 +7,12 @@
 #include "../../config.h"
 #include "ginnungagap.h"
 #include "ginnungagapConfig.h"
-#include "rng.h"
 #include "fft.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <inttypes.h>
+#include "../libutil/rng.h"
 #include "../libutil/xmem.h"
 #include "../libgrid/gridRegular.h"
 #ifdef WITH_SILO

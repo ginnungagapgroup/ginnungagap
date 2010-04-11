@@ -4,9 +4,8 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "../../config.h"
 #include "rng.h"
-#include "../libutil/xmem.h"
+#include "xmem.h"
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif

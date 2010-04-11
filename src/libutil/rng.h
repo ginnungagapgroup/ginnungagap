@@ -7,7 +7,8 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "../libutil/parse_ini.h"
+#include "util_config.h"
+#include "parse_ini.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
