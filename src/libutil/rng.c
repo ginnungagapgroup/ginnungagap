@@ -15,6 +15,7 @@
 #endif
 #include <sprng.h>
 #include <math.h>
+#include <float.h>
 #include <assert.h>
 
 
@@ -95,6 +96,13 @@ rng_del(rng_t *rng)
 	*rng = NULL;
 }
 
+extern int
+rng_getNumStreamsLocal(const rng_t rng)
+{
+	assert(rng != NULL);
+	return rng->numStreamsLocal;
+}
+
 extern double
 rng_getGauss(const rng_t  rng,
              const int    streamNumber,
@@ -104,10 +112,10 @@ rng_getGauss(const rng_t  rng,
 	double x, y, r2;
 
 	do {
-		x  = -1 + 2 * sprng(rng->streams[streamNumber]);
-		y  = -1 + 2 * sprng(rng->streams[streamNumber]);
+		x  = -1.0 + 2.0 * sprng(rng->streams[streamNumber]);
+		y  = -1.0 + 2.0 * sprng(rng->streams[streamNumber]);
 		r2 = x * x + y * y;
-	} while (r2 > 1.0 || r2 == 0);
+	} while (r2 > 1.0 || r2 < DBL_EPSILON);
 
 	return sigma * y * sqrt(-2.0 * log(r2) / r2) + mean;
 }

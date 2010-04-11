@@ -25,6 +25,9 @@ rng_newFromIni(parse_ini_t ini, const char *sectionName);
 extern void
 rng_del(rng_t *rng);
 
+extern int
+rng_getNumStreamsLocal(const rng_t rng);
+
 extern double
 rng_getGauss(const rng_t  rng,
              const int    streamNumber,
