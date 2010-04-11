@@ -130,23 +130,26 @@ local_getGrid(ginnungagap_t ginnungagap)
 static void
 local_generateWhiteNoise(ginnungagap_t ginnungagap)
 {
-	gridPatch_t patch = gridRegular_getPatchHandle(
-	    ginnungagap->grid,
-	    0);
-	fpv_t             *data    = gridPatch_getVarDataHandle(patch, 0);
-	gridPointUint32_t dims;
-	uint64_t          idxCells = 0;
+	gridPatch_t patch;
+	fpv_t       *data;
+	uint64_t    numCells = 0;
+	int         numStreams;
 
-	gridPatch_getDims(patch, dims);
+	patch      = gridRegular_getPatchHandle(ginnungagap->grid, 0);
+	data       = gridPatch_getVarDataHandle(patch, 0);
+	numCells   = gridPatch_getNumCells(patch);
+	numStreams = rng_getNumStreamsLocal(ginnungagap->rng);
 
-	for (uint32_t iz = 0; iz < dims[0]; iz++) {
-		for (uint32_t iy = 0; iy < dims[1]; iy++) {
-			for (uint32_t ix = 0; ix < dims[2]; ix++) {
-				data[idxCells++] = ix * ix + iy * iy + iz * iz;
-			}
-		}
+#ifdef _OPENMP
+#  pragma omp parallel for shared(data, numStreams, numCells)
+#endif
+	for (int i = 0; i < numStreams; i++) {
+		uint64_t cps   = numCells / numStreams;
+		uint64_t start = i * cps;
+		uint64_t stop  = (i == numStreams - 1) ? numCells : (start + cps);
+		for (uint64_t j = start; j < stop; j++)
+			data[j] = rng_getGaussUnit(ginnungagap->rng, i);
 	}
-
 }
 
 #ifdef WITH_SILO
