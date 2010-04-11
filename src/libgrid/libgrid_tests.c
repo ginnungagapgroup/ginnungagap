@@ -97,6 +97,7 @@ main(int argc, char **argv)
 	}
 	RUNTEST(&gridRegular_new_test, hasFailed);
 	RUNTEST(&gridRegular_del_test, hasFailed);
+	RUNTEST(&gridRegular_getRef_test, hasFailed);
 	RUNTEST(&gridRegular_getName_test, hasFailed);
 	RUNTEST(&gridRegular_attachVar_test, hasFailed);
 	RUNTEST(&gridRegular_detachVar_test, hasFailed);

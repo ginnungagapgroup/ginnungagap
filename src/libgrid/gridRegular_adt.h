@@ -9,11 +9,13 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPoint.h"
+#include "../libutil/refCounter.h"
 #include "../libutil/varArr.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridRegular_struct {
+	refCounter_t      refCounter;
 	char              *name;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;

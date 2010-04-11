@@ -27,6 +27,9 @@ gridRegular_new(const char        *name,
 extern void
 gridRegular_del(gridRegular_t *gridRegular);
 
+extern gridRegular_t
+gridRegular_getRef(gridRegular_t grid);
+
 extern char *
 gridRegular_getName(gridRegular_t grid);
 

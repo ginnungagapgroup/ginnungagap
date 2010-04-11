@@ -19,6 +19,9 @@ extern bool
 gridRegular_del_test(void);
 
 extern bool
+gridRegular_getRef_test(void);
+
+extern bool
 gridRegular_getName_test(void);
 
 extern bool

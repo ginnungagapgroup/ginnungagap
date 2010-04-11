@@ -10,6 +10,7 @@
 #include "gridVar.h"
 #include "gridPatch.h"
 #include <assert.h>
+#include "../libutil/refCounter.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
 
@@ -67,7 +68,9 @@ gridRegular_new(const char        *name,
 	gridRegular->patches = varArr_new(0);
 	gridRegular->vars    = varArr_new(0);
 
-	return gridRegular;
+	refCounter_init(&(gridRegular->refCounter));
+
+	return gridRegular_getRef(gridRegular);
 }
 
 extern void
@@ -75,12 +78,24 @@ gridRegular_del(gridRegular_t *gridRegular)
 {
 	assert(gridRegular != NULL && *gridRegular != NULL);
 
-	xfree((*gridRegular)->name);
-	local_freePatches(*gridRegular);
-	local_freeVars(*gridRegular);
-	xfree(*gridRegular);
+	if (refCounter_deref(&((*gridRegular)->refCounter))) {
+		xfree((*gridRegular)->name);
+		local_freePatches(*gridRegular);
+		local_freeVars(*gridRegular);
+		xfree(*gridRegular);
 
-	*gridRegular = NULL;
+		*gridRegular = NULL;
+	}
+}
+
+extern gridRegular_t
+gridRegular_getRef(gridRegular_t grid)
+{
+	assert(grid != NULL);
+
+	refCounter_ref(&(grid->refCounter));
+
+	return grid;
 }
 
 extern char *
@@ -98,7 +113,7 @@ gridRegular_getOrigin(gridRegular_t grid, gridPointDbl_t origin)
 	assert(grid != NULL);
 	assert(origin != NULL);
 
-	for (int i=0; i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		origin[i] = grid->origin[i];
 	}
 }
@@ -109,7 +124,7 @@ gridRegular_getDelta(gridRegular_t grid, gridPointDbl_t delta)
 	assert(grid != NULL);
 	assert(delta != NULL);
 
-	for (int i=0; i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		delta[i] = grid->delta[i];
 	}
 }
@@ -180,7 +195,6 @@ gridRegular_getPatchHandle(gridRegular_t grid, int idxPatchToGet)
 	return varArr_getElementHandle(grid->patches, idxPatchToGet);
 }
 
-
 /*--- Implementations of local functions --------------------------------*/
 inline static void
 local_resetDelta(gridRegular_t gridRegular)
@@ -219,7 +233,7 @@ local_addVarToAllPatches(gridRegular_t grid, gridVar_t var)
 	int numPatches = varArr_getLength(grid->patches);
 
 	for (int i = 0; i < numPatches; i++) {
-		gridPatch_t patch        = varArr_getElementHandle(grid->patches, i);
+		gridPatch_t patch = varArr_getElementHandle(grid->patches, i);
 		gridPatch_attachVarData(patch, var);
 	}
 }
@@ -240,7 +254,7 @@ local_addAllVarsToPatch(gridRegular_t grid, gridPatch_t patch)
 {
 	int numVars = varArr_getLength(grid->vars);
 
-	for (int i=0; i<numVars; i++) {
+	for (int i = 0; i < numVars; i++) {
 		gridVar_t var = varArr_getElementHandle(grid->vars, i);
 		gridPatch_attachVarData(patch, var);
 	}

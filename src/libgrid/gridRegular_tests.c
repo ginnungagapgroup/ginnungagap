@@ -108,6 +108,45 @@ gridRegular_del_test(void)
 } /* gridRegular_del_test */
 
 extern bool
+gridRegular_getRef_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridRegular_t     grid, gridBackup;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid = local_getFakeGrid(origin, extent, dims);
+	gridBackup = gridRegular_getRef(grid);
+	if (gridBackup->name != grid->name)
+		hasPassed = false;
+	if (gridBackup->refCounter != grid->refCounter)
+		hasPassed = false;
+	if (gridBackup->refCounter != 2)
+		hasPassed = false;
+	gridRegular_del(&grid);
+	if (gridBackup->refCounter != 1)
+		hasPassed = false;
+	gridRegular_del(&gridBackup);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 gridRegular_getName_test(void)
 {
 	bool              hasPassed = true;
