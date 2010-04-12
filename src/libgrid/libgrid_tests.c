@@ -6,6 +6,7 @@
 #include "gridConfig.h"
 #include "gridRegular_tests.h"
 #include "gridRegularDistrib_tests.h"
+#include "gridRegularFFT_tests.h"
 #include "gridPatch_tests.h"
 #include "gridVar_tests.h"
 #include "gridVarType_tests.h"
@@ -120,6 +121,13 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegularDistrib_getLocalRank_test, hasFailed);
 #endif
 	RUNTEST(&gridRegularDistrib_getPatchForRank_test, hasFailed);
+
+	if (rank == 0) {
+		printf("\nRunning tests for gridRegularFFT:\n");
+	}
+	RUNTEST(&gridRegularFFT_new_test, hasFailed);
+	RUNTEST(&gridRegularFFT_del_test, hasFailed);
+	RUNTEST(&gridRegularFFT_execute_test, hasFailed);
 
 #ifdef WITH_SILO
 	if (rank == 0) {

@@ -10,6 +10,7 @@ include ../../Makefile.config
 
 sources = gridRegular.c \
           gridRegularDistrib.c \
+          gridRegularFFT.c \
           gridPatch.c \
           gridVar.c \
           gridVarType.c \
@@ -18,6 +19,7 @@ sources = gridRegular.c \
 sourcesTests = lib${LIBNAME}_tests.c \
                gridRegular_tests.c \
                gridRegularDistrib_tests.c \
+               gridRegularFFT_tests.c \
                gridPatch_tests.c \
                gridVar_tests.c \
                gridVarType_tests.c \
