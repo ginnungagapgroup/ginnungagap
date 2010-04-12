@@ -40,6 +40,7 @@ ENABLE_PROFILE=false
 SHOW_HELP=false
 SHOW_VERSION=false
 NDIM_VALUE=3
+WITH_GSL_LIBS=auto
 
 # Parse the options
 for ac_option
@@ -66,6 +67,9 @@ do
 				WITH_OPENMP=false
 			fi
 			;;
+		--without-openmp)
+			WITH_OPENMP=false
+			;;
 		--with-mpi | --with-mpi=*)
 			if test "x$ac_optarg" = "xyes"
 			then
@@ -82,6 +86,12 @@ do
 			;;
 		--without-mpi | --without-mpi=*)
 			WITH_MPI=false
+			;;
+		--with-gsl-libs)
+			echo "Error:  --with-gsl-libs requires an argument."
+			;;
+		--with-gsl-libs=*)
+			WITH_GSL_LIBS="$ac_optarg"
 			;;
 		--with-fftw)
 			echo -n "Error:  --with-fftw requires an argumet; "
@@ -245,6 +255,10 @@ Optional features:
                            mpicc uses a C compiler that fits to your
                            selected toolchain.  Default: no.
   --with-openmp            Uses the OpenMP directives.  Default: no.
+  --with-gsl-libs=LIBS     This may be used to set specific libraries of
+                           GSL, normally it should not be neccessary to
+                           use this, as by default the right libraries
+                           will be queried with gsl-config.
   --with-fftw[=VERSION]    This chooses between version 2 and version 3
                            of the FFTW library.  Default: 2.
   --with-silo              Use the SILO library to write visualisation
@@ -316,6 +330,12 @@ _VERSION_EOF
 	exit 0
 fi
 
+# Now get the GSL libaries if required
+if test "x$WITH_GSL_LIBS" = "xauto"
+then
+	WITH_GSL_LIBS=`gsl-config --libs`
+fi
+
 # Now lets actually do something.
 
 # Say hello
@@ -374,6 +394,7 @@ sed -i -e "s@__LD__@$LD@" Makefile.config
 sed -i -e "s@__LDFLAGS__@$LDFLAGS@" Makefile.config
 sed -i -e "s@__AR__@$AR@" Makefile.config
 sed -i -e "s@__MAKE__@$MAKE@" Makefile.config
+sed -i -e "s@__WITH_GSL_LIBS__@$WITH_GSL_LIBS@" Makefile.config
 echo "done" | tee -a config.log
 
 

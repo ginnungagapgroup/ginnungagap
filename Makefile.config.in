@@ -1,6 +1,6 @@
-# Copyright (C) 2009, Steffen Knollmann
+# Copyright (C) 2009, 2010, Steffen Knollmann
 #
-# This file is part of `voelva'.
+# This file is part of `ginnungagap'.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -60,8 +60,11 @@ LDFLAGS = __LDFLAGS__
 AR = __AR__
 MAKE = __MAKE__
 
-# Those are additional required libraries, better not touch them.
+# Those are the basic libraries
 LIBS = -lsprng
+LIBS += __WITH_GSL_LIBS__
+
+# Those are additional required libraries, better not touch them.
 ifeq ($(WITH_FFTW), "2")
   ifeq ($(WITH_MPI), "true")
     ifeq ($(ENABLE_DOUBLE), "true")

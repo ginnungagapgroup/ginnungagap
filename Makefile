@@ -16,7 +16,7 @@ else
 CONFIG_AVAILABLE=false
 endif
 
-.PHONY: all clean dist-clean doc tarball statistics
+.PHONY: all clean dist-clean doc tarball statistics tests
 
 ifeq ($(CONFIG_AVAILABLE),true)
 include Makefile.config
@@ -33,6 +33,9 @@ dist-clean:
 	$(MAKE) -C src dist-clean
 	find . -name *.d.[0-9]* -exec rm {} \;
 	@rm -f version.h Makefile.config config.h config.log
+
+tests:
+	$(MAKE) -C src tests
 endif
 
 tarball:

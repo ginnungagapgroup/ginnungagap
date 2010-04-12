@@ -7,14 +7,19 @@ SPRNG:  - sprng-2.0b
 
 fftw:   - fftw3-3.2.2
         - No need for the parallel version, ginnungagap does *A LOT* of
-          1D transforms an explicitly parallelizes over those.
+          1D transforms and explicitly parallelizes over those.
 
 mpi:    - openmpi-1.2(?)
         - nothing special
 
+gsl:    - nothing special here, GSL is needed for integration routines
+          and spline fitting
+
 The following two libraries are required for IO:
 
 HDF5:   - hdf5-1.8.4p1
+        - It is possible to use the PDB backend of silo, however, HDF5
+          is strongly recommended.
 
 SILO:   - silo-4.7.2
         - Make sure that silo uses HDF5

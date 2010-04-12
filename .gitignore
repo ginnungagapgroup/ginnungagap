@@ -10,3 +10,5 @@ config.log
 config.h
 src/libgrid/libgrid_tests
 src/libutil/libutil_tests
+src/libcosmo/libcosmo_tests
+src/libcosmo/test.dat

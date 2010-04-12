@@ -34,14 +34,19 @@ tests:
 	./lib${LIBNAME}_tests
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
+                     ../libutil/libutil.a \
                      $(sourcesTests:.c=.o)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o lib${LIBNAME}_tests \
 	   $(sourcesTests:.c=.o) \
 	   lib${LIBNAME}.a \
+	   ../libutil/libutil.a \
 	   $(LIBS)
 
 lib${LIBNAME}.a: $(sources:.c=.o)
 	$(AR) -rs lib${LIBNAME}.a $(sources:.c=.o)
+
+../libutil/libutil.a:
+	$(MAKE) -C ../libutil
 
 -include $(sources:.c=.d)
 
