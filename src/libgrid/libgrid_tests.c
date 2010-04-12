@@ -5,6 +5,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridRegular_tests.h"
+#include "gridRegularDistrib_tests.h"
 #include "gridPatch_tests.h"
 #include "gridVar_tests.h"
 #include "gridVarType_tests.h"
@@ -105,6 +106,18 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegular_getPatchHandle_test, hasFailed);
 	RUNTEST(&gridRegular_getOrigin_test, hasFailed);
 	RUNTEST(&gridRegular_getDelta_test, hasFailed);
+	RUNTEST(&gridRegular_getDims_test, hasFailed);
+
+	if (rank == 0) {
+		printf("\nRunning tests for gridRegularDistrib:\n");
+	}
+	RUNTEST(&gridRegularDistrib_new_test, hasFailed);
+	RUNTEST(&gridRegularDistrib_del_test, hasFailed);
+#ifdef WITH_MPI
+	RUNTEST(&gridRegularDistrib_initMPI_test, hasFailed);
+	RUNTEST(&gridRegularDistrib_getLocalRank_test, hasFailed);
+#endif
+	RUNTEST(&gridRegularDistrib_getPatchForRank_test, hasFailed);
 
 #ifdef WITH_SILO
 	if (rank == 0) {
