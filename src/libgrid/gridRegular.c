@@ -140,6 +140,14 @@ gridRegular_getDims(gridRegular_t grid, gridPointUint32_t dims)
 }
 
 extern int
+gridRegular_getNumVars(gridRegular_t grid)
+{
+	assert(grid != NULL);
+
+	return varArr_getLength(grid->vars);
+}
+
+extern int
 gridRegular_attachVar(gridRegular_t grid, gridVar_t var)
 {
 	int idxOfVar;

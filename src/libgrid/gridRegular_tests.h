@@ -25,6 +25,9 @@ extern bool
 gridRegular_getName_test(void);
 
 extern bool
+gridRegular_getNumVars_test(void);
+
+extern bool
 gridRegular_attachVar_test(void);
 
 extern bool

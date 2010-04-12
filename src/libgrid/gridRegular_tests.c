@@ -126,7 +126,7 @@ gridRegular_getRef_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid = local_getFakeGrid(origin, extent, dims);
+	grid       = local_getFakeGrid(origin, extent, dims);
 	gridBackup = gridRegular_getRef(grid);
 	if (gridBackup->name != grid->name)
 		hasPassed = false;
@@ -144,7 +144,7 @@ gridRegular_getRef_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_getRef_test */
 
 extern bool
 gridRegular_getName_test(void)
@@ -180,6 +180,44 @@ gridRegular_getName_test(void)
 }
 
 extern bool
+gridRegular_getNumVars_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridRegular_t     grid;
+	gridVar_t         var;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid = local_getFakeGrid(origin, extent, dims);
+
+	if (gridRegular_getNumVars(grid) != 0)
+		hasPassed = false;
+	var = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	gridRegular_attachVar(grid, var);
+	if (gridRegular_getNumVars(grid) != 1)
+		hasPassed = false;
+
+	gridRegular_del(&grid);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* gridRegular_getNumVars_test */
+
+extern bool
 gridRegular_attachVar_test(void)
 {
 	bool              hasPassed = true;
@@ -201,7 +239,7 @@ gridRegular_attachVar_test(void)
 
 	grid = local_getFakeGrid(origin, extent, dims);
 
-	var         = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	var  = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
 	gridRegular_attachVar(grid, var);
 	if (varArr_getLength(grid->vars) != 1)
 		hasPassed = false;
@@ -235,11 +273,11 @@ gridRegular_detachVar_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid = local_getFakeGrid(origin, extent, dims);
+	grid     = local_getFakeGrid(origin, extent, dims);
 
-	var         = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
-	idxOfVar    = gridRegular_attachVar(grid, var);
-	var         = gridRegular_detachVar(grid, idxOfVar);
+	var      = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	idxOfVar = gridRegular_attachVar(grid, var);
+	var      = gridRegular_detachVar(grid, idxOfVar);
 	if (varArr_getLength(grid->vars) != 0) {
 		hasPassed = false;
 	}
@@ -256,14 +294,14 @@ gridRegular_detachVar_test(void)
 extern bool
 gridRegular_getNumPatches_test(void)
 {
-	bool   hasPassed      = true;
-	int    rank           = 0;
+	bool              hasPassed = true;
+	int               rank      = 0;
 	gridRegular_t     grid;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
 #ifdef XMEM_TRACK_MEM
-	size_t allocatedBytes = global_allocated_bytes;
+	size_t            allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -289,14 +327,14 @@ gridRegular_getNumPatches_test(void)
 extern bool
 gridRegular_getPatchHandle_test(void)
 {
-	bool   hasPassed      = true;
-	int    rank           = 0;
+	bool              hasPassed = true;
+	int               rank      = 0;
 	gridRegular_t     grid;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
 #ifdef XMEM_TRACK_MEM
-	size_t allocatedBytes = global_allocated_bytes;
+	size_t            allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -321,15 +359,15 @@ gridRegular_getPatchHandle_test(void)
 extern bool
 gridRegular_getOrigin_test(void)
 {
-	bool   hasPassed      = true;
-	int    rank           = 0;
+	bool              hasPassed = true;
+	int               rank      = 0;
 	gridRegular_t     grid;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    origin2;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
 #ifdef XMEM_TRACK_MEM
-	size_t allocatedBytes = global_allocated_bytes;
+	size_t            allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -341,7 +379,7 @@ gridRegular_getOrigin_test(void)
 	grid = local_getFakeGrid(origin, extent, dims);
 
 	gridRegular_getOrigin(grid, origin2);
-	for (int i=0; i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (islessgreater(origin2[i], grid->origin[i]))
 			hasPassed = false;
 	}
@@ -353,20 +391,20 @@ gridRegular_getOrigin_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_getOrigin_test */
 
 extern bool
 gridRegular_getDelta_test(void)
 {
-	bool   hasPassed      = true;
-	int    rank           = 0;
+	bool              hasPassed = true;
+	int               rank      = 0;
 	gridRegular_t     grid;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointDbl_t    delta;
 	gridPointUint32_t dims;
 #ifdef XMEM_TRACK_MEM
-	size_t allocatedBytes = global_allocated_bytes;
+	size_t            allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -378,7 +416,7 @@ gridRegular_getDelta_test(void)
 	grid = local_getFakeGrid(origin, extent, dims);
 
 	gridRegular_getDelta(grid, delta);
-	for (int i=0; i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (islessgreater(delta[i], grid->delta[i]))
 			hasPassed = false;
 	}
@@ -390,20 +428,20 @@ gridRegular_getDelta_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_getDelta_test */
 
 extern bool
 gridRegular_getDims_test(void)
 {
-	bool   hasPassed      = true;
-	int    rank           = 0;
+	bool              hasPassed = true;
+	int               rank      = 0;
 	gridRegular_t     grid;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
 	gridPointUint32_t dimsTest;
 #ifdef XMEM_TRACK_MEM
-	size_t allocatedBytes = global_allocated_bytes;
+	size_t            allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -415,7 +453,7 @@ gridRegular_getDims_test(void)
 	grid = local_getFakeGrid(origin, extent, dims);
 
 	gridRegular_getDims(grid, dimsTest);
-	for (int i=0; i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (dims[i] != dimsTest[i])
 			hasPassed = false;
 	}
@@ -427,7 +465,7 @@ gridRegular_getDims_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_getDims_test */
 
 /*--- Implementations of local functions --------------------------------*/
 static gridRegular_t

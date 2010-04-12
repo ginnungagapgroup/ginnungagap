@@ -43,6 +43,9 @@ extern void
 gridRegular_getDims(gridRegular_t grid, gridPointUint32_t dims);
 
 extern int
+gridRegular_getNumVars(gridRegular_t grid);
+
+extern int
 gridRegular_attachVar(gridRegular_t grid, gridVar_t var);
 
 extern gridVar_t
