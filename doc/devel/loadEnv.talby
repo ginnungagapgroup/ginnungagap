@@ -1,0 +1,5 @@
+. /opt/env/set-env.sh load hdf5 gcc
+. /opt/env/set-env.sh load silo gcc
+. /opt/env/set-env.sh load fftw gcc
+. /opt/env/set-env.sh load sprng gcc
+. /opt/env/set-env.sh load openmpi gcc
