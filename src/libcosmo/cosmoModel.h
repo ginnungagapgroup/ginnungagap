@@ -8,6 +8,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "cosmo_config.h"
+#include "../libutil/parse_ini.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -17,6 +18,9 @@ typedef struct cosmoModel_struct *cosmoModel_t;
 /*--- Prototypes of exported functions ----------------------------------*/
 extern cosmoModel_t
 cosmoModel_newFromFile(const char *fname);
+
+extern cosmoModel_t
+cosmoModel_newFromIni(parse_ini_t ini, const char *sectionName);
 
 extern void
 cosmoModel_del(cosmoModel_t *model);

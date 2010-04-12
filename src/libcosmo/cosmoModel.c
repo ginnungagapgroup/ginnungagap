@@ -46,6 +46,30 @@ cosmoModel_newFromFile(const char *fname)
 	return model;
 }
 
+extern cosmoModel_t
+cosmoModel_newFromIni(parse_ini_t ini, const char *sectionName)
+{
+	cosmoModel_t model;
+
+	model = local_new();
+	getFromIni(&(model->omegaRad0), parse_ini_get_double,
+	           ini, "omegaRad0", sectionName);
+	getFromIni(&(model->omegaLambda0), parse_ini_get_double,
+	           ini, "omegaLambda0", sectionName);
+	getFromIni(&(model->omegaMatter0), parse_ini_get_double,
+	           ini, "omegaMatter0", sectionName);
+	getFromIni(&(model->omegaBaryon0), parse_ini_get_double,
+	           ini, "omegaBaryon0", sectionName);
+	getFromIni(&(model->hubble), parse_ini_get_double,
+	           ini, "hubble", sectionName);
+	getFromIni(&(model->sigma8), parse_ini_get_double,
+	           ini, "sigma8", sectionName);
+	getFromIni(&(model->ns), parse_ini_get_double,
+	           ini, "ns", sectionName);
+
+	return model;
+}
+
 extern void
 cosmoModel_del(cosmoModel_t *model)
 {

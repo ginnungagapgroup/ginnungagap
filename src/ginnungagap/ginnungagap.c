@@ -17,6 +17,7 @@
 #endif
 #include "../libutil/rng.h"
 #include "../libutil/xmem.h"
+#include "../libcosmo/cosmoModel.h"
 #include "../libgrid/gridRegular.h"
 #include "../libgrid/gridRegularDistrib.h"
 #ifdef WITH_SILO
@@ -27,6 +28,7 @@
 /*--- Implemention of main structure ------------------------------------*/
 struct ginnungagap_struct {
 	ginnungagapConfig_t  config;
+	cosmoModel_t         model;
 	rng_t                rng;
 	gridRegular_t        grid;
 	gridRegularDistrib_t gridDistrib;
@@ -71,6 +73,7 @@ ginnungagap_new(parse_ini_t ini)
 
 	ginnungagap         = xmalloc(sizeof(struct ginnungagap_struct));
 	ginnungagap->config = ginnungagapConfig_new(ini);
+	ginnungagap->model  = cosmoModel_newFromIni(ini, "CosmoModel");
 	ginnungagap->rng    = rng_newFromIni(ini, "rng");
 	ginnungagap->fft    = fft_new(ginnungagap->config->dim1D);
 	if (ginnungagap->config->useConstraints)
@@ -110,6 +113,7 @@ ginnungagap_del(ginnungagap_t *ginnungagap)
 
 	if ((*ginnungagap)->fftConstraints != NULL)
 		fft_del(&((*ginnungagap)->fftConstraints));
+	cosmoModel_del(&((*ginnungagap)->model));
 	fft_del(&((*ginnungagap)->fft));
 	rng_del(&((*ginnungagap)->rng));
 	gridRegular_del(&((*ginnungagap)->grid));
@@ -204,7 +208,7 @@ local_generateWhiteNoise(ginnungagap_t ginnungagap)
 		uint64_t start = i * cps;
 		uint64_t stop  = (i == numStreams - 1) ? numCells : (start + cps);
 		for (uint64_t j = start; j < stop; j++)
-			data[j] = rng_getGaussUnit(ginnungagap->rng, i);
+			data[j] = (fpv_t)rng_getGaussUnit(ginnungagap->rng, i);
 	}
 }
 
@@ -233,7 +237,7 @@ static double
 local_startTimer(const char *text)
 {
 	double timing;
-	int rank = 0;
+	int    rank = 0;
 
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
