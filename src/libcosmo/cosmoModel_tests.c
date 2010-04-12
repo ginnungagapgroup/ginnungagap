@@ -1,5 +1,6 @@
 // Copyright (C) 2010, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
+// This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -161,7 +162,7 @@ cosmoModel_calcOmegas_test(void)
 {
 	cosmoModel_t model;
 	bool         hasSucceeded = true;
-	double       a, omegaRad, omegaMatter, omegaBaryon, omegaLambda, t;
+	double       a, omegaRad, omegaMatter, omegaBaryon, omegaLambda;
 	long double  sumOmegas0;
 	double       barFrac;
 
@@ -176,8 +177,8 @@ cosmoModel_calcOmegas_test(void)
 		omegaMatter = cosmoModel_calcOmegaMatter(model, a);
 		omegaBaryon = cosmoModel_calcOmegaBaryon(model, a);
 		omegaLambda = cosmoModel_calcOmegaLambda(model, a);
-		if (isgreater(fabs(sumOmegas0 - omegaRad - omegaMatter
-		                   - omegaLambda), 1e-4))
+		if (isgreater(fabsl(sumOmegas0 - omegaRad - omegaMatter
+		                    - omegaLambda), 1e-4))
 			hasSucceeded = false;
 		if (isgreater(fabs(barFrac - omegaBaryon / omegaMatter), 1e-10))
 			hasSucceeded = false;
@@ -192,15 +193,15 @@ cosmoModel_calcGrowth_test(void)
 	cosmoModel_t model;
 	bool         hasSucceeded = true;
 	double       a, error;
-	double D, DEdS;
+	double       D, DEdS;
 
 	printf("Testing %s... ", __func__);
 	model = cosmoModel_newFromFile("tests/model_EdS.dat");
-	for (int i=0; i<10; i++) {
-		a = 1.0-i*0.1;
-		D = cosmoModel_calcGrowth(model, a, &error);
+	for (int i = 0; i < 10; i++) {
+		a    = 1.0 - i * 0.1;
+		D    = cosmoModel_calcGrowth(model, a, &error);
 		DEdS = a;
-		if (isgreater(fabs(D-DEdS),1e-10))
+		if (isgreater(fabs(D - DEdS), 1e-10))
 			hasSucceeded = false;
 	}
 	cosmoModel_del(&model);

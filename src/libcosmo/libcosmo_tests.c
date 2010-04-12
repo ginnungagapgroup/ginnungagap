@@ -1,6 +1,6 @@
 // Copyright (C) 2010, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
-
+// This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -12,23 +12,22 @@
 
 
 /*--- Macros ------------------------------------------------------------*/
-#define RUNTEST(a, hasFailed) \
-	if (!(a())) { \
-		printf("failed\n"); \
-		hasFailed = true; \
-	} else { \
-		printf("passed\n"); \
-		if (!hasFailed) \
+#define RUNTEST(a, hasFailed)  \
+    if (!(a())) {              \
+		printf("failed\n");    \
+		hasFailed = true;      \
+	} else {                   \
+		printf("passed\n");    \
+		if (!hasFailed)        \
 			hasFailed = false; \
 	}
-
 
 
 /*--- M A I N -----------------------------------------------------------*/
 int
 main(void)
 {
-	bool hasFailed;
+	bool hasFailed = false;
 
 	printf("Running tests for cosmoPk:\n");
 	RUNTEST(cosmoPk_newFromFile_test, hasFailed);

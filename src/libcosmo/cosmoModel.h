@@ -1,5 +1,6 @@
 // Copyright (C) 2010, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
+// This file is part of `ginnungagap'.
 
 #ifndef COSMOMODEL_H
 #define COSMOMODEL_H
@@ -22,13 +23,13 @@ cosmoModel_del(cosmoModel_t *model);
 
 extern double
 cosmoModel_calcAgeFromExpansion(cosmoModel_t model,
-                                double a,
-                                double *error);
+                                double       a,
+                                double       *error);
 
 extern double
 cosmoModel_calcExpansionFromAge(cosmoModel_t model,
-                                double t,
-                                double *error);
+                                double       t,
+                                double       *error);
 
 extern double
 cosmoModel_calcADot(cosmoModel_t model, double a);

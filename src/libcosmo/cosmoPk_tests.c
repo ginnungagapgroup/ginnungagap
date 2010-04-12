@@ -1,5 +1,6 @@
 // Copyright (C) 2010, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
+// This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -151,18 +152,17 @@ cosmoPk_calcMomentFiltered_test(void)
 	cosmoPk_t pk;
 	double    *k, *P;
 	double    error, sigmaSqr, sigmaSqrTheo;
-	double exponent = -1.0;
-	bool hasSucceeded = true;
+	double    exponent     = -1.0;
+	bool      hasSucceeded = true;
 
 	printf("Testing %s... ", __func__);
 	k = xmalloc(sizeof(double) * 100 * 2);
 	P = k + 100;
 	for (int i = 0; i < 100; i++) {
 		k[i] = exp(log(0.1) + i * 0.1);
-		P[i] = 1./k[i];
+		P[i] = 1. / k[i];
 	}
 	pk = cosmoPk_newFromArrays(100, k, P, -1.0, -1.0);
-	cosmoPk_dumpToFile(pk, "test.dat", 100);
 
 	sigmaSqrTheo = 1. / ((2. * 0. + 1.) * TWOPI * PI)
 	               * (pow(k[99], 2. * 0. + 1.)
@@ -172,7 +172,7 @@ cosmoPk_calcMomentFiltered_test(void)
 	                                      &exponent,
 	                                      k[10], k[99],
 	                                      &error);
-	if (isgreater(fabs(sigmaSqr/sigmaSqrTheo - 1.0),4e-5))
+	if (isgreater(fabs(sigmaSqr / sigmaSqrTheo - 1.0), 4e-5))
 		hasSucceeded = false;
 	sigmaSqrTheo = 1. / ((2. * 1. + 1.) * TWOPI * PI)
 	               * (pow(k[99], 2. * 1. + 1.)
@@ -182,12 +182,12 @@ cosmoPk_calcMomentFiltered_test(void)
 	                                      &exponent,
 	                                      k[10], k[99],
 	                                      &error);
-	if (isgreater(fabs(sigmaSqr/sigmaSqrTheo - 1.0),2e-4))
+	if (isgreater(fabs(sigmaSqr / sigmaSqrTheo - 1.0), 2e-4))
 		hasSucceeded = false;
 
 	xfree(k);
 	cosmoPk_del(&pk);
 	return hasSucceeded;
-}
+} /* cosmoPk_calcMomentFiltered_test */
 
 /*--- Implementations of local functions --------------------------------*/

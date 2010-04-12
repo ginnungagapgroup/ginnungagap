@@ -1,5 +1,6 @@
 // Copyright (C) 2010, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
+// This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -104,14 +105,14 @@ cosmoPk_del(cosmoPk_t *pk)
 extern void
 cosmoPk_dumpToFile(cosmoPk_t pk, const char *fname, uint32_t numSubSample)
 {
-	FILE *f;
+	FILE   *f;
 	assert(pk != NULL && fname != NULL);
 	double k, P;
 
 	f = xfopen(fname, "w");
-	for (uint32_t i= 0; i<pk->numPoints-1; i++) {
-		for (uint32_t j=0; j<numSubSample; j++) {
-			k = pk->k[i] + j*(pk->k[i+1] - pk->k[i])/numSubSample;
+	for (uint32_t i = 0; i < pk->numPoints - 1; i++) {
+		for (uint32_t j = 0; j < numSubSample; j++) {
+			k = pk->k[i] + j * (pk->k[i + 1] - pk->k[i]) / numSubSample;
 			P = cosmoPk_eval(pk, k);
 			fprintf(f, "%15.12g\t%15.12g\n", k, P);
 		}

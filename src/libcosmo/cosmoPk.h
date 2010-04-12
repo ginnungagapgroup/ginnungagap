@@ -1,5 +1,6 @@
 // Copyright (C) 2010, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
+// This file is part of `ginnungagap'.
 
 #ifndef COSMOPK_H
 #define COSMOPK_H
@@ -37,13 +38,14 @@ cosmoPk_eval(cosmoPk_t pk, double k);
 extern double
 cosmoPk_evalGSL(double k, void *param);
 
+
 //! This implements the calculation of the moments of the power spectrum
 //! filtered with a window function.  Solved is the following integral
 //! (cf. Peacock 2007, 8th edition, eq. (16.22), p. 500):
 //!
 //! \sigma_n^2 / V
 //!     =    1/(2 \pi^2)
-//!         \int_{k_{\mathrm{min}}}^{k_{\mathrm{max}}} 
+//!         \int_{k_{\mathrm{min}}}^{k_{\mathrm{max}}}
 //!             k^(2n + 2) P(k) W_k^2(k)
 //!         dk
 extern double
@@ -55,13 +57,13 @@ cosmoPk_calcMomentFiltered(cosmoPk_t pk,
                            double kmax,
                            double *error);
 
+
 //! Calculates \sigma_8 and NOT(!!!) \sigma^2_8.  Uses the moments.
 extern double
 cosmoPk_calcSigma8(cosmoPk_t pk,
-                   double kmin,
-                   double kmax,
-                   double *error);
-
+                   double    kmin,
+                   double    kmax,
+                   double    *error);
 
 
 #endif

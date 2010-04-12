@@ -1,5 +1,6 @@
 // Copyright (C) 2010, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
+// This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -12,7 +13,8 @@
 extern double
 cosmoFunc_const(double x, void *value)
 {
-	return *((double *)value);
+	x = *((double *)value);
+	return x;
 }
 
 extern double
@@ -25,8 +27,8 @@ cosmoFunc_tophat(double k, void *lengthScale)
 extern double
 cosmoFunc_tophatSqr(double k, void *lengthScale)
 {
-	double tmp =  cosmoFunc_tophat(k, lengthScale);
-	return tmp*tmp;
+	double tmp = cosmoFunc_tophat(k, lengthScale);
+	return tmp * tmp;
 }
 
 extern double
