@@ -10,6 +10,7 @@
 #include "../libutil/parse_ini.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include "../libgrid/gridPoint.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -24,11 +25,14 @@ struct ginnungagapConfig_struct {
 	bool     useConstraints;
 	char     *fileNameConstraints;
 	uint32_t dim1DConstraints;
+#ifdef WITH_MPI
+	int      nProcs[NDIM];
+#endif
 #ifdef WITH_SILO
-	char     *filePrefix;
-	int      dbtype;
+	char *filePrefix;
+	int  dbtype;
 #  ifdef WITH_MPI
-	int      numFiles;
+	int  numFiles;
 #  endif
 #endif
 };

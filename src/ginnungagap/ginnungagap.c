@@ -15,6 +15,7 @@
 #include "../libutil/rng.h"
 #include "../libutil/xmem.h"
 #include "../libgrid/gridRegular.h"
+#include "../libgrid/gridRegularDistrib.h"
 #ifdef WITH_SILO
 #  include "../libgrid/gridWriterSilo.h"
 #endif
@@ -22,17 +23,24 @@
 
 /*--- Implemention of main structure ------------------------------------*/
 struct ginnungagap_struct {
-	ginnungagapConfig_t config;
-	rng_t               rng;
-	gridRegular_t       grid;
-	fft_t               fft;
-	fft_t               fftConstraints;
+	ginnungagapConfig_t  config;
+	rng_t                rng;
+	gridRegular_t        grid;
+	gridRegularDistrib_t gridDistrib;
+	fft_t                fft;
+	fft_t                fftConstraints;
 };
 
 
 /*--- Prototypes of local functions -------------------------------------*/
 static gridRegular_t
 local_getGrid(ginnungagap_t ginnungagap);
+
+static gridRegularDistrib_t
+local_getGridDistrib(ginnungagap_t ginnungagap);
+
+static void
+local_initGrid(ginnungagap_t ginnungagap);
 
 static void
 local_generateWhiteNoise(ginnungagap_t ginnungagap);
@@ -61,7 +69,9 @@ ginnungagap_new(parse_ini_t ini)
 		    = fft_new(ginnungagap->config->dim1DConstraints);
 	else
 		ginnungagap->fftConstraints = NULL;
-	ginnungagap->grid = local_getGrid(ginnungagap);
+	ginnungagap->grid        = local_getGrid(ginnungagap);
+	ginnungagap->gridDistrib = local_getGridDistrib(ginnungagap);
+	local_initGrid(ginnungagap);
 
 	return ginnungagap;
 }
@@ -89,6 +99,7 @@ ginnungagap_del(ginnungagap_t *ginnungagap)
 	fft_del(&((*ginnungagap)->fft));
 	rng_del(&((*ginnungagap)->rng));
 	gridRegular_del(&((*ginnungagap)->grid));
+	gridRegularDistrib_del(&((*ginnungagap)->gridDistrib));
 	ginnungagapConfig_del(&((*ginnungagap)->config));
 	xfree(*ginnungagap);
 	*ginnungagap = NULL;
@@ -102,29 +113,60 @@ local_getGrid(ginnungagap_t ginnungagap)
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
-	gridPointUint32_t idxLo;
-	gridPointUint32_t idxHi;
-	gridVar_t         density;
-	gridPatch_t       patch;
 
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
 		extent[i] = ginnungagap->config->boxsizeInMpch;
 		dims[i]   = ginnungagap->config->dim1D;
-		idxLo[i]  = 0;
-		idxHi[i]  = dims[i] - 1;
 	}
 
 	grid = gridRegular_new(ginnungagap->config->gridName,
 	                       origin, extent, dims);
 
-	patch   = gridPatch_new(idxLo, idxHi);
-	density = gridVar_new("density", GRIDVARTYPE_FPV, 1);
-
-	gridRegular_attachPatch(grid, patch);
-	gridRegular_attachVar(grid, density);
 
 	return grid;
+}
+
+static gridRegularDistrib_t
+local_getGridDistrib(ginnungagap_t ginnungagap)
+{
+	gridRegularDistrib_t distrib;
+
+	distrib = gridRegularDistrib_new(ginnungagap->grid, NULL);
+#ifdef WITH_MPI
+	gridRegularDistrib_initMPI(distrib, ginnungagap->config->nProcs,
+	                           MPI_COMM_WORLD);
+#endif
+
+	return distrib;
+}
+
+static void
+local_initGrid(ginnungagap_t ginnungagap)
+{
+	int         localRank = 0;
+	gridPatch_t patch;
+	gridVar_t   dens;
+	fpv_t       *data;
+	uint64_t    numCells;
+
+#ifdef WITH_MPI
+	localRank = gridRegularDistrib_getLocalRank(ginnungagap->gridDistrib);
+#endif
+	patch     = gridRegularDistrib_getPatchForRank(ginnungagap->gridDistrib,
+	                                               localRank);
+	gridRegular_attachPatch(ginnungagap->grid, patch);
+
+	dens = gridVar_new("density", GRIDVARTYPE_FPV, 1);
+	gridRegular_attachVar(ginnungagap->grid, dens);
+
+	data     = gridPatch_getVarDataHandle(patch, 0);
+	numCells = gridPatch_getNumCells(patch);
+#ifdef _OPENMP
+#  pragma omp parallel for shared(data, numCells)
+#endif
+	for (uint64_t i = 0; i < numCells; i++)
+		data[i] = 1e10;
 }
 
 static void

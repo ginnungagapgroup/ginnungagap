@@ -19,6 +19,12 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+#ifdef WITH_MPI
+static void
+local_parseMPIStuff(ginnungagapConfig_t config, parse_ini_t ini);
+
+#endif
+
 #ifdef WITH_SILO
 static void
 local_parseSiloStuff(ginnungagapConfig_t config, parse_ini_t ini);
@@ -52,6 +58,9 @@ ginnungagapConfig_new(parse_ini_t ini)
 		config->fileNameConstraints = NULL;
 		config->dim1DConstraints    = UINT32_C(0);
 	}
+#ifdef WITH_MPI
+	local_parseMPIStuff(config, ini);
+#endif
 #ifdef WITH_SILO
 	local_parseSiloStuff(config, ini);
 #endif
@@ -76,6 +85,25 @@ ginnungagapConfig_del(ginnungagapConfig_t *config)
 }
 
 /*--- Implementations of local functions --------------------------------*/
+#ifdef WITH_MPI
+static void
+local_parseMPIStuff(ginnungagapConfig_t config, parse_ini_t ini)
+{
+	int32_t *nProcs;
+	bool    rtn;
+
+	rtn = parse_ini_get_int32list(ini, "nProcs", "MPI", NDIM, &nProcs);
+	if (!rtn) {
+		fprintf(stderr, "Could not get nProcs from section MPI.\n");
+		exit(EXIT_FAILURE);
+	}
+	for (int i = 0; i < NDIM; i++)
+		config->nProcs[i] = (int)(nProcs[i]);
+	xfree(nProcs);
+}
+
+#endif
+
 #ifdef WITH_SILO
 static void
 local_parseSiloStuff(ginnungagapConfig_t config, parse_ini_t ini)
