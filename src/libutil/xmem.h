@@ -6,6 +6,7 @@
 #define XMEM_H
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,12 +15,15 @@
 #endif
 
 
+/*--- Exported global variables -----------------------------------------*/
 #ifdef XMEM_TRACK_MEM
 extern size_t  global_allocated_bytes;
 extern size_t  global_max_allocated_bytes;
 extern int64_t global_malloc_vs_free;
 #endif
 
+
+/*--- Prototypes of exported functions ----------------------------------*/
 
 /**
  * \brief  A wrapper function for malloc, performing a check whether it

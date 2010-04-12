@@ -3,6 +3,7 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "xmem.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,11 +11,13 @@
 #include <inttypes.h>
 
 
+/*--- Implementation of exported variables ------------------------------*/
 size_t  global_allocated_bytes     = 0;
 size_t  global_max_allocated_bytes = 0;
 int64_t global_malloc_vs_free      = 0;
 
 
+/*--- Prototypes of local functions -------------------------------------*/
 extern void *
 xmalloc(size_t size)
 {
@@ -37,15 +40,16 @@ xmalloc(size_t size)
 #ifdef XMEM_TRACK_MEM
 		xmem_info(stderr);
 #endif
-		fprintf(stderr, "Exiting... :-(\n");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "Aborting... :-(\n");
+		abort();
 	}
 
 #ifdef XMEM_TRACK_MEM
 	global_allocated_bytes += size;
 	global_malloc_vs_free++;
-	if (global_allocated_bytes > global_max_allocated_bytes)
+	if (global_allocated_bytes > global_max_allocated_bytes) {
 		global_max_allocated_bytes = global_allocated_bytes;
+	}
 	*((uint64_t *)dummy) = (uint64_t)size;
 	dummy                = (void *)(((uint64_t *)dummy) + 1);
 #endif
@@ -61,10 +65,9 @@ xfree(void *ptr)
 		return;
 
 	if (global_malloc_vs_free <= 0) {
-		fprintf(stderr,
-		        "Calling free too often.\n");
+		fprintf(stderr, "Calling free too often.\n");
 		xmem_info(stderr);
-		exit(EXIT_FAILURE);
+		abort();
 	}
 	global_allocated_bytes -= *(((uint64_t *)ptr) - 1);
 	global_malloc_vs_free--;
@@ -74,7 +77,7 @@ xfree(void *ptr)
 #endif
 
 	return;
-} /* xfree */
+}
 
 extern void *
 xrealloc(void *ptr, size_t size)
@@ -106,16 +109,17 @@ xrealloc(void *ptr, size_t size)
 #ifdef XMEM_TRACK_MEM
 		xmem_info(stderr);
 #endif
-		fprintf(stderr, "Exiting... :-(\n");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "Aborting... :-(\n");
+		abort();
 	}
 
 #ifdef XMEM_TRACK_MEM
-	old_size                = *((uint64_t *)dummy);
+	old_size = *((uint64_t *)dummy);
 	global_allocated_bytes -= old_size;
 	global_allocated_bytes += size;
-	if (global_allocated_bytes > global_max_allocated_bytes)
+	if (global_allocated_bytes > global_max_allocated_bytes) {
 		global_max_allocated_bytes = global_allocated_bytes;
+	}
 	*((uint64_t *)dummy) = (uint64_t)size;
 	dummy                = (void *)(((uint64_t *)dummy) + 1);
 #endif
@@ -147,6 +151,6 @@ xmem_info(FILE *f)
 	        global_malloc_vs_free);
 
 	return;
-} /* xmem_info */
+}
 
 #endif

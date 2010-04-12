@@ -6,10 +6,13 @@
 #define XFILE_H
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include <stdlib.h>
 #include <stdio.h>
 
+
+/*--- Prototypes of exported functions ----------------------------------*/
 
 /**
  * \brief  A wrapper function for fopen.
@@ -25,6 +28,7 @@
 extern FILE *
 xfopen(const char *path, const char *mode);
 
+
 /**
  * \brief  A wrapper function for fclose.
  *
@@ -32,11 +36,12 @@ xfopen(const char *path, const char *mode);
  * variable holding the stream to NULL.
  *
  * \param  **fp  Pointer to the variable holding the stream;
- * 
+ *
  * \return  This function will always return 0.
  */
 extern int
 xfclose(FILE **fp);
+
 
 /**
  * \brief  A wrapper function for fread that will abort the program, if
@@ -53,6 +58,7 @@ xfclose(FILE **fp);
 extern size_t
 xfread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
+
 /**
  * \brief  A wrapper function for fwrite that will abort the program if
  *         anything went wrong.
@@ -66,6 +72,7 @@ xfread(void *ptr, size_t size, size_t nmemb, FILE *stream);
  */
 extern size_t
 xfwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+
 
 /**
  * \brief  A wrapper function for fseek that will terminate the program

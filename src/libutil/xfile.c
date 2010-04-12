@@ -3,11 +3,13 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "xfile.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 
+/*--- Implementations of exported functios ------------------------------*/
 extern FILE *
 xfopen(const char *path, const char *mode)
 {

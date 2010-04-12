@@ -3,12 +3,15 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "cmdline.h"
 #include "xmem.h"
 #include "xstring.h"
 #include <string.h>
 #include <ctype.h>
 
+
+/*--- Implemention of main structure ------------------------------------*/
 
 /**
  *  This is the actual implementation of the cmdline ADT structure.
@@ -68,6 +71,7 @@ struct cmdline_struct {
 typedef struct cmdline_struct cmdline_struct_t;
 
 
+/*--- Implementations of exported functios ------------------------------*/
 extern cmdline_t
 cmdline_new(int numArgs, int numOpts, const char *progName)
 {
@@ -535,7 +539,7 @@ cmdline_getOptValueByNum(cmdline_t cmdline, int optNum, void *val)
 	}
 
 	return true;
-} /* cmdline_getOptValueByNum */
+}
 
 extern bool
 cmdline_checkArgSetByNum(cmdline_t cmdline, int argNum)
@@ -570,4 +574,4 @@ cmdline_getArgValueByNum(cmdline_t cmdline, int argNum, void *val)
 	}
 
 	return true;
-} /* cmdline_getArgValueByNum */
+}
