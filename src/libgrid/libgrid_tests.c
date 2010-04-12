@@ -114,6 +114,7 @@ main(int argc, char **argv)
 	}
 	RUNTEST(&gridRegularDistrib_new_test, hasFailed);
 	RUNTEST(&gridRegularDistrib_del_test, hasFailed);
+	RUNTEST(&gridRegularDistrib_getRef_test, hasFailed);
 #ifdef WITH_MPI
 	RUNTEST(&gridRegularDistrib_initMPI_test, hasFailed);
 	RUNTEST(&gridRegularDistrib_getLocalRank_test, hasFailed);

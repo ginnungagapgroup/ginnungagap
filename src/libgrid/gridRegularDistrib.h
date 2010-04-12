@@ -23,9 +23,11 @@ typedef struct gridRegularDistrib_struct *gridRegularDistrib_t;
 extern gridRegularDistrib_t
 gridRegularDistrib_new(gridRegular_t grid, gridPointInt_t nProcs);
 
-
 extern void
 gridRegularDistrib_del(gridRegularDistrib_t *distrib);
+
+extern gridRegularDistrib_t
+gridRegularDistrib_getRef(gridRegularDistrib_t distrib);
 
 
 #ifdef WITH_MPI

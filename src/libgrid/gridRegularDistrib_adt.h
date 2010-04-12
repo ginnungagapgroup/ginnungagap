@@ -8,10 +8,12 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
+#include "../libutil/refCounter.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridRegularDistrib_struct {
+	refCounter_t   refCounter;
 	gridRegular_t  grid;
 	gridPointInt_t nProcs;
 	int            numProcs;

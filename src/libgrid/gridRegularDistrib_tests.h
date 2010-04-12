@@ -18,6 +18,9 @@ gridRegularDistrib_new_test(void);
 extern bool
 gridRegularDistrib_del_test(void);
 
+extern bool
+gridRegularDistrib_getRef_test(void);
+
 #ifdef WITH_MPI
 extern bool
 gridRegularDistrib_initMPI_test(void);

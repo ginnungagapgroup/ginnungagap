@@ -46,7 +46,9 @@ gridRegularDistrib_new(gridRegular_t grid, gridPointInt_t nProcs)
 	distrib->commCart   = MPI_COMM_NULL;
 #endif
 
-	return distrib;
+	refCounter_init(&(distrib->refCounter));
+
+	return gridRegularDistrib_getRef(distrib);
 }
 
 extern void
@@ -54,16 +56,28 @@ gridRegularDistrib_del(gridRegularDistrib_t *distrib)
 {
 	assert(distrib != NULL && *distrib != NULL);
 
-	gridRegular_del(&((*distrib)->grid));
+	if (refCounter_deref(&((*distrib)->refCounter))) {
+		gridRegular_del(&((*distrib)->grid));
 #ifdef WITH_MPI
-	if ((*distrib)->commGlobal != MPI_COMM_NULL)
-		MPI_Comm_free(&((*distrib)->commGlobal));
-	if ((*distrib)->commCart != MPI_COMM_NULL)
-		MPI_Comm_free(&((*distrib)->commCart));
+		if ((*distrib)->commGlobal != MPI_COMM_NULL)
+			MPI_Comm_free(&((*distrib)->commGlobal));
+		if ((*distrib)->commCart != MPI_COMM_NULL)
+			MPI_Comm_free(&((*distrib)->commCart));
 #endif
-	xfree(*distrib);
+		xfree(*distrib);
 
-	*distrib = NULL;
+		*distrib = NULL;
+	}
+}
+
+extern gridRegularDistrib_t
+gridRegularDistrib_getRef(gridRegularDistrib_t distrib)
+{
+	assert(distrib != NULL);
+
+	refCounter_ref(&(distrib->refCounter));
+
+	return distrib;
 }
 
 #ifdef WITH_MPI

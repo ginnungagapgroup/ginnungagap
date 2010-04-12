@@ -102,6 +102,44 @@ gridRegularDistrib_del_test(void)
 	return hasPassed ? true : false;
 }
 
+extern bool
+gridRegularDistrib_getRef_test(void)
+{
+	bool                 hasPassed = true;
+	int                  rank      = 0;
+	gridRegularDistrib_t distrib;
+	gridRegularDistrib_t distribBack;
+	gridRegular_t        fakeGrid;
+#ifdef XMEM_TRACK_MEM
+	size_t               allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	fakeGrid    = local_getFakeGrid();
+	distrib     = gridRegularDistrib_new(fakeGrid, NULL);
+	gridRegular_del(&fakeGrid);
+	distribBack = gridRegularDistrib_getRef(distrib);
+	if (distribBack != distrib)
+		hasPassed = false;
+	if (distribBack->refCounter != 2)
+		hasPassed = false;
+	gridRegularDistrib_del(&distrib);
+	if (distribBack->refCounter != 1)
+		hasPassed = false;
+	gridRegularDistrib_del(&distribBack);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* gridRegularDistrib_getRef_test */
+
 #ifdef WITH_MPI
 extern bool
 gridRegularDistrib_initMPI_test(void)
@@ -184,7 +222,7 @@ gridRegularDistrib_getPatchForRank_test(void)
 	int                  rank      = 0;
 	gridRegularDistrib_t distrib;
 	gridRegular_t        fakeGrid;
-	gridPatch_t   patch;
+	gridPatch_t          patch;
 	gridPointInt_t       nProcs;
 	int                  localRank      = 0;
 #ifdef XMEM_TRACK_MEM
