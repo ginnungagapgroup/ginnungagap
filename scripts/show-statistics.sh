@@ -34,6 +34,7 @@ function showForDir ()
 echo ""
 showForDir src/ginnungagap
 showForDir src/libgrid
+showForDir src/libcosmo
 showForDir src/libutil
 showForDir src
 echo ""
