@@ -217,8 +217,8 @@ parse_ini_get_bool(parse_ini_t ini,
  * \brief  Returns a list of strings, which are separated by
  *         white-spaces.
  *
- * \param ini
- * \param *key_name
+ * \param ini            The ini file to work on.
+ * \param *key_name      The key name to look for.
  * \param *section_name  The section in which to look.
  * \param num_values     The number of values expected in this key.
  * \param ***values      A pointer to the variable that will hold the
@@ -235,6 +235,28 @@ parse_ini_get_stringlist(parse_ini_t ini,
                          const char  *section_name,
                          uint32_t    num_values,
                          char        ***values);
+
+
+/**
+ * \brief  Returns the list of values.
+ *
+ * \param  ini            The ini file to work on.
+ * \param  *key_name      The key name to look for.
+ * \param  *section_name  The section in which to look.
+ * \param  num_values     The numer of values expected in this key.
+ * \param  **value        A pointer to the variable that will hold the
+ *                        result. This will only be set if the function
+ *                        returns true.
+ *
+ * \return  Returns true if the value was found and something got passed
+ *          back via the result pointer, otherwise false is returned.
+ */
+extern bool
+parse_ini_get_int32list(parse_ini_t ini,
+                        const char  *key_name,
+                        const char  *section_name,
+                        uint32_t    num_values,
+                        int32_t     **values);
 
 
 #endif

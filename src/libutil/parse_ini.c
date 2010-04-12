@@ -3,6 +3,7 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "parse_ini.h"
 #include "xmem.h"
 #include "xstring.h"
@@ -13,6 +14,7 @@
 #include <inttypes.h>
 
 
+/*--- Implemention of local structures ----------------------------------*/
 typedef struct local_section_struct local_section_struct_t;
 typedef local_section_struct_t      *local_section_t;
 typedef struct local_key_struct     local_key_struct_t;
@@ -59,6 +61,8 @@ struct parse_ini_struct {
 	int             cursec;
 };
 
+
+/*--- Prototypes of local functions -------------------------------------*/
 
 /**
  * \brief  Parses a line into a section name
@@ -113,6 +117,7 @@ static int
 local_find_key(local_section_t sec, const char *key_name);
 
 
+/*--- Implementations of exported functios ------------------------------*/
 extern parse_ini_t
 parse_ini_open(const char *fname)
 {
@@ -593,6 +598,69 @@ parse_ini_get_stringlist(parse_ini_t ini,
 	return true;
 } /* parse_ini_get_stringlist */
 
+extern bool
+parse_ini_get_int32list(parse_ini_t ini,
+                        const char  *key_name,
+                        const char  *section_name,
+                        uint32_t    num_values,
+                        int32_t     **values)
+{
+	int      sec, key;
+	uint32_t i;
+	size_t   j, k, key_length;
+	char     *keyval;
+	/* Sanity check */
+	if (values == NULL)
+		return false;
+
+	/* Find the section */
+	sec = local_find_section(ini, section_name);
+	if (sec == -1)
+		return false;
+
+	/* Now find the key*/
+	key = local_find_key(ini->sections + sec, key_name);
+	if (key == -1)
+		return false;
+
+	/* Set helpful variables */
+	keyval     = ini->sections[sec].keys[key].value;
+	key_length = strlen(keyval);
+	/* Get memory for the values */
+	*values    = xmalloc(sizeof(int32_t *) * num_values);
+	/* Chunk the key value into substrings */
+	for (i = 0, j = 0; i < num_values; i++) {
+		/* Ignore leading white-space */
+		while (j < key_length && isspace(keyval[j]))
+			j++;
+		if (j >= key_length) {
+			/* Not good.. we need to clean up */
+			xfree(*values);
+			return false;
+		}
+		/* Remember where the value starts */
+		k = j;
+		/* Find the end of the value */
+		while (j < key_length && !isspace(keyval[j]))
+			j++;
+		if (j >= key_length) {
+			if ((j == key_length) && (keyval[j] == '\0')) {
+			} else {
+				/* Not good.. we need to clean up */
+				xfree(*values);
+				return false;
+			}
+		}
+		/* Parse the data */
+		sscanf(keyval + k, "%" PRIi32, (*values) + i);
+	}
+	/* This was now (successfully) requested */
+	ini->sections[sec].keys[key].requested = true;
+	/* Success! */
+	return true;
+} /* parse_ini_get_int32list */
+
+/*--- Implementations of local functions --------------------------------*/
 static char *
 local_parse_secname(const char *line)
 {
