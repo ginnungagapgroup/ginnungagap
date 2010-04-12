@@ -392,6 +392,43 @@ gridRegular_getDelta_test(void)
 	return hasPassed ? true : false;
 }
 
+extern bool
+gridRegular_getDims_test(void)
+{
+	bool   hasPassed      = true;
+	int    rank           = 0;
+	gridRegular_t     grid;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+	gridPointUint32_t dimsTest;
+#ifdef XMEM_TRACK_MEM
+	size_t allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid = local_getFakeGrid(origin, extent, dims);
+
+	gridRegular_getDims(grid, dimsTest);
+	for (int i=0; i<NDIM; i++) {
+		if (dims[i] != dimsTest[i])
+			hasPassed = false;
+	}
+
+	gridRegular_del(&grid);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static gridRegular_t
 local_getFakeGrid(gridPointDbl_t    origin,

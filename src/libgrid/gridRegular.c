@@ -129,6 +129,16 @@ gridRegular_getDelta(gridRegular_t grid, gridPointDbl_t delta)
 	}
 }
 
+extern void
+gridRegular_getDims(gridRegular_t grid, gridPointUint32_t dims)
+{
+	assert(grid != NULL);
+	assert(dims != NULL);
+	
+	for (int i=0; i<NDIM; i++)
+		dims[i] = grid->dims[i];
+}
+
 extern int
 gridRegular_attachVar(gridRegular_t grid, gridVar_t var)
 {
