@@ -16,6 +16,7 @@
 #  endif
 #  include "../libutil/xmem.h"
 #  include "../libutil/xstring.h"
+#  include "../libutil/diediedie.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -438,7 +439,8 @@ local_getVarType(gridVar_t var)
 		varType = (sizeof(fpv_t) == 4 ? DB_FLOAT : DB_DOUBLE);
 		break;
 	default:
-		exit(EXIT_FAILURE);
+		// We should never ever end up here.
+		diediedie(EXIT_FAILURE);
 	}
 
 	return varType;

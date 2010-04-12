@@ -6,19 +6,11 @@
 #define COSMO_CONFIG_H
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "../../config.h"
 
 
-#ifndef diediedie
-#  define diediedie(errCode)                              \
-	{                                                     \
-		fprintf(stderr,                                   \
-		        "FATAL:  Deathtrap in %s() at %s:%i\n"    \
-		        "Terminating with error code: %i\n\n",    \
-		        __func__, __FILE__, __LINE__, (errCode)); \
-		exit(errCode);                                    \
-	}
-#endif
+/*--- Defines for the library --------------------------------------------*/
 #ifndef PI
 #  define PI 3.14159265359
 #endif

@@ -9,6 +9,7 @@
 #include "cosmoFunc.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xfile.h"
+#include "../libutil/diediedie.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
