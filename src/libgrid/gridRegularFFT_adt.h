@@ -12,9 +12,12 @@
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridRegularFFT_struct {
-	gridRegular_t        grid;
-	gridRegularDistrib_t gridDistrib;
-	int                  idxFFTVar;
+	gridVarType_t varType;
+	int           direction;
+	void          *remap[NDIM];
+	void          *remapParams[NDIM];
+	void          *fft1d[NDIM];
+	void          *fftPlans[NDIM];
 };
 
 

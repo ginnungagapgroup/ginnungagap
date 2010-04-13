@@ -55,12 +55,8 @@ gridRegularFFT_new_test(void)
 
 	grid    = local_getFakeGrid();
 	distrib = local_getFakeGridDistrib(grid);
-	fft     = gridRegularFFT_new(grid, distrib, 0);
-	if (fft->grid != grid)
-		hasPassed = false;
-	if (fft->gridDistrib != distrib)
-		hasPassed = false;
-	if (fft->idxFFTVar != 0)
+	fft     = gridRegularFFT_new(grid, distrib, 0, GRIDREGULARFFT_FORWARD);
+	if (fft->direction != GRIDREGULARFFT_FORWARD)
 		hasPassed = false;
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
@@ -71,18 +67,18 @@ gridRegularFFT_new_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegularFFT_new_test */
 
 extern bool
 gridRegularFFT_del_test(void)
 {
-	bool             hasPassed = true;
-	int              rank      = 0;
-	gridRegularFFT_t fft;
+	bool                 hasPassed = true;
+	int                  rank      = 0;
+	gridRegularFFT_t     fft;
 	gridRegular_t        grid;
 	gridRegularDistrib_t distrib;
 #ifdef XMEM_TRACK_MEM
-	size_t           allocatedBytes = global_allocated_bytes;
+	size_t               allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -93,7 +89,7 @@ gridRegularFFT_del_test(void)
 
 	grid    = local_getFakeGrid();
 	distrib = local_getFakeGridDistrib(grid);
-	fft     = gridRegularFFT_new(grid, distrib, 0);
+	fft     = gridRegularFFT_new(grid, distrib, 0, GRIDREGULARFFT_FORWARD);
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
 	gridRegularFFT_del(&fft);
@@ -127,7 +123,7 @@ gridRegularFFT_execute_test(void)
 
 	grid    = local_getFakeGrid();
 	distrib = local_getFakeGridDistrib(grid);
-	fft     = gridRegularFFT_new(grid, distrib, 0);
+	fft     = gridRegularFFT_new(grid, distrib, 0, GRIDREGULARFFT_FORWARD);
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
 	// TODO test execute1
@@ -144,18 +140,18 @@ gridRegularFFT_execute_test(void)
 static gridRegular_t
 local_getFakeGrid(void)
 {
-	gridRegular_t    grid;
+	gridRegular_t     grid;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
-	gridVar_t            var;
+	gridVar_t         var;
 
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
 		extent[i] = 1.0;
 		dims[i]   = 64;
 	}
-	var = gridVar_new("test", GRIDVARTYPE_FPV, 1);
+	var  = gridVar_new("test", GRIDVARTYPE_FPV, 1);
 
 	grid = gridRegular_new("bla", origin, extent, dims);
 	gridRegular_attachVar(grid, var);
@@ -177,7 +173,7 @@ local_getFakeGridDistrib(gridRegular_t grid)
 #ifdef WITH_MPI
 	for (int i = 0; i < NDIM - 1; i++)
 		nProcs[i] = 1;
-	MPI_Comm_size(MPI_COMM_WORLD, &(nProcs[NDIM-1]));
+	MPI_Comm_size(MPI_COMM_WORLD, &(nProcs[NDIM - 1]));
 	gridRegularDistrib_initMPI(distrib, nProcs, MPI_COMM_WORLD);
 	rank = gridRegularDistrib_getLocalRank(distrib);
 #endif
