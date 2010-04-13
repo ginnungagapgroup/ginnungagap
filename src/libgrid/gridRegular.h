@@ -51,6 +51,9 @@ gridRegular_attachVar(gridRegular_t grid, gridVar_t var);
 extern gridVar_t
 gridRegular_detachVar(gridRegular_t grid, int idxOfVar);
 
+extern gridVar_t
+gridRegular_getVarHandle(gridRegular_t grid, int idxOfVar);
+
 extern int
 gridRegular_getNumPatches(gridRegular_t grid);
 

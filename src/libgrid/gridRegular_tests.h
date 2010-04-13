@@ -34,6 +34,9 @@ extern bool
 gridRegular_detachVar_test(void);
 
 extern bool
+gridRegular_getVarHandle_test(void);
+
+extern bool
 gridRegular_getNumPatches_test(void);
 
 extern bool

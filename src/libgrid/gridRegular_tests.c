@@ -292,6 +292,43 @@ gridRegular_detachVar_test(void)
 } /* gridRegular_detachVar_test */
 
 extern bool
+gridRegular_getVarHandle_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridRegular_t     grid;
+	gridVar_t         var;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid = local_getFakeGrid(origin, extent, dims);
+
+	var  = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	gridRegular_attachVar(grid, var);
+
+	if (gridRegular_getVarHandle(grid, 0) != var)
+		hasPassed = false;
+
+	gridRegular_del(&grid);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* gridRegular_getVarHandle_test */
+
+extern bool
 gridRegular_getNumPatches_test(void)
 {
 	bool              hasPassed = true;

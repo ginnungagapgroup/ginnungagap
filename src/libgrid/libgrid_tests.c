@@ -108,6 +108,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegular_getNumVars_test, hasFailed);
 	RUNTEST(&gridRegular_attachVar_test, hasFailed);
 	RUNTEST(&gridRegular_detachVar_test, hasFailed);
+	RUNTEST(&gridRegular_getVarHandle_test, hasFailed);
 	RUNTEST(&gridRegular_getNumPatches_test, hasFailed);
 	RUNTEST(&gridRegular_getPatchHandle_test, hasFailed);
 	RUNTEST(&gridRegular_getOrigin_test, hasFailed);

@@ -172,6 +172,15 @@ gridRegular_detachVar(gridRegular_t grid, int idxOfVar)
 	return varArr_remove(grid->vars, idxOfVar);
 }
 
+extern gridVar_t
+gridRegular_getVarHandle(gridRegular_t grid, int idxOfVar)
+{
+	assert(grid != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(grid->vars));
+
+	return varArr_getElementHandle(grid->vars, idxOfVar);
+}
+
 extern int
 gridRegular_getNumPatches(gridRegular_t grid)
 {
