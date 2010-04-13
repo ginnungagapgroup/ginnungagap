@@ -13,8 +13,7 @@ progName = ginnungagap
 
 sources = main.c \
           $(progName).c \
-          ginnungagapConfig.c \
-          fft.c
+          ginnungagapConfig.c
 
 include ../../Makefile.rules
 

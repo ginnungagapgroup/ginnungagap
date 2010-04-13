@@ -30,9 +30,9 @@ PACKAGE_VERSION_MICRO=`  grep 'define PACKAGE_VERSION_MICRO' $VERSIONFILE \
 TOOLCHAIN=gnu
 WITH_OPENMP=false
 WITH_MPI=false
-WITH_FFTW=true
-FFTW_VERSION=2
+ENABLE_FFT_BACKEND=fftw3
 WITH_SILO=false
+WITH_SILO_LIBS=auto
 WITH_PROC_DIR=false
 ENABLE_DOUBLE=true
 ENABLE_DEBUG=false
@@ -89,33 +89,10 @@ do
 			;;
 		--with-gsl-libs)
 			echo "Error:  --with-gsl-libs requires an argument."
+			exit 1
 			;;
 		--with-gsl-libs=*)
 			WITH_GSL_LIBS="$ac_optarg"
-			;;
-		--with-fftw)
-			echo -n "Error:  --with-fftw requires an argumet; "
-			echo "use either --with-fftw=2 or --with-fftw=3"
-			exit 1
-			;;
-		--with-fftw=*)
-			if test "x$ac_optarg" = "x3"
-			then
-				WITH_FFTW=true
-				FFTW_VERSION=3
-			elif test "x$ac_optarg" = "x2"
-			then
-				WITH_FFTW=true
-				FFTW_VERSION=2
-			else
-				echo -n "Error:  --with-fftw accepts only 2 and 3 "
-				echo "as arguments"
-				exit 1
-			fi
-			;;
-		--without-fftw | --without-fftw=*)
-			echo "Error:  FFTW is required and cannot be deactivated."
-			exit 1
 			;;
 		--with-silo | --with-silo=*)
 			if test "x$ac_optarg" = "xyes"
@@ -131,6 +108,13 @@ do
 		--without-silo | --without-silo=*)
 			WITH_SILO=false
 			;;
+		--with-silo-libs)
+			echo "Error:  --with-silo-libs requires an argument."
+			exit 1
+			;;
+		--with-silo-libs=*)
+			WITH_SILO_LIBS="$ac_optarg"
+			;;
 		--with-proc-dir | --with-proc-dir=*)
 			if test "x$ac_optarg" = "xyes"
 			then
@@ -144,6 +128,22 @@ do
 			;;
 		--without-proc-dir | --without-proc-dir=*)
 			WITH_PROC_DIR=false
+			;;
+		--enable-fft-backend)
+			echo "Error:  --enable-fft-backend requires an argument."
+			exit 1
+			;;
+		--enable-fft-backend=*)
+			if test "x$ac_optarg" = "xfftw3"
+			then
+				FFT_BACKEND=fftw3
+			elif test "x$ac_optarg" = "xfftw2"
+			then
+				FFT_BACKEND=fftw2
+			else
+				echo "Error:  Unkown argument for --enable-fft-backend."
+				exit 1
+			fi
 			;;
 		--enable-double | --enable-double=*)
 			if test "x$ac_optarg" = "xyes"
@@ -203,13 +203,13 @@ do
 			SHOW_VERSION=true
 			;;
 		-* | --*)
-			echo "Unknown option $ac_option, try \`$0 --help' to get a "
-			echo "list of allowed options."
+			echo "Unknown option $ac_option."
+			echo "Try \`$0 --help' to get a list of allowed options."
 			exit 1
 			;;
 		*)
-			echo "Unknown parameter $ac_option, try \`$0 --help' to get a "
-			echo "list of allowed options."
+			echo "Unknown parameter $ac_option"
+			echo "Try \`$0 --help' to get a list of allowed options."
 			exit 1
 			;;
 	esac
@@ -259,10 +259,17 @@ Optional features:
                            GSL, normally it should not be neccessary to
                            use this, as by default the right libraries
                            will be queried with gsl-config.
-  --with-fftw[=VERSION]    This chooses between version 2 and version 3
-                           of the FFTW library.  Default: 2.
   --with-silo              Use the SILO library to write visualisation
                            outputs.  Default: no.
+  --with-silo-libs=LIBS    This can be used to specify the required
+                           libraries for using Silo.  If Silo is
+                           actually used, it defaults to:
+                             -lsiloh5 -lhdf5 -lstdc++ -lz
+                           For a non-HDF5 version of Silo, that should
+                           look different though.  Note that it is
+                           recommended to use the HDF5 version of Silo
+                           anyways, so this option should not be needed
+                           in most situations.
   --with-proc-dir          If the code can use /proc/self/statm to query
                            its memory usage (true at least on Linux),
                            the you may use this option to allow the code
@@ -274,6 +281,12 @@ Code properties:
   --enable-FEATURE[=ARG]   Switch on a feature. [ARG=YES]
   --disable-FEATURE        Do not use FEATURE.  This is the same as
                            --enable-FEATURE=no.
+  --enable-fft-backend=ARG This selects the FFT backend that will be
+                           used.  Possible options are (note that single
+                           and double precision versions are required):
+                             fftw2       Version 2 of FFTW
+                             fftw3  (*)  Version 3 of FFTW
+                           The default choice is marked.
   --enable-double          This switches on the usage of double
                            precision floating point variables instead of
                            single precision for fields and particle
@@ -330,10 +343,14 @@ _VERSION_EOF
 	exit 0
 fi
 
-# Now get the GSL libaries if required
+# Now set all the deferred libaries
 if test "x$WITH_GSL_LIBS" = "xauto"
 then
 	WITH_GSL_LIBS=`gsl-config --libs`
+fi
+if test "x$WITH_SILO_LIBS" = "xauto"
+then
+	WITH_SILO_LIBS="-lsiloh5 -lhdf5 -lstdc++ -lz"
 fi
 
 # Now lets actually do something.
@@ -385,7 +402,7 @@ then
 else
 	sed -i s/__ENABLE_PROFILE__/false/ Makefile.config
 fi
-sed -i -e "s@__FFTW_VERSION__@$FFTW_VERSION@" Makefile.config
+sed -i -e "s@__ENABLE_FFT_BACKEND__@$ENABLE_FFT_BACKEND@" Makefile.config
 sed -i -e "s@__CC__@$CC@" Makefile.config
 sed -i -e "s@__CFLAGS__@$CFLAGS@" Makefile.config
 sed -i -e "s@__CPPFLAGS__@$CPPFLAGS@" Makefile.config
@@ -395,6 +412,7 @@ sed -i -e "s@__LDFLAGS__@$LDFLAGS@" Makefile.config
 sed -i -e "s@__AR__@$AR@" Makefile.config
 sed -i -e "s@__MAKE__@$MAKE@" Makefile.config
 sed -i -e "s@__WITH_GSL_LIBS__@$WITH_GSL_LIBS@" Makefile.config
+sed -i -e "s@__WITH_SILO_LIBS__@$WITH_SILO_LIBS@" Makefile.config
 echo "done" | tee -a config.log
 
 
@@ -427,7 +445,13 @@ if test "x$ENABLE_DOUBLE" = "xtrue"
 then
 	sed -i -e 's/undef ENABLE_DOUBLE/define ENABLE_DOUBLE 1/' config.h
 fi
-sed -i -e "s@__FFTW_VERSION__@$FFTW_VERSION@" config.h
+if test "x$ENABLE_FFT_BACKEND" = "xfftw2"
+then
+	sed -i -e 's/undef ENABLE_FFT_BACKEND_FFTW2/define ENABLE_FFT_BACKEND_FFTW2 1/' config.h
+elif test "x$ENABLE_FFT_BACKEND" = "xfftw3"
+then
+	sed -i -e 's/undef ENABLE_FFT_BACKEND_FFTW3/define ENABLE_FFT_BACKEND_FFTW3 1/' config.h
+fi
 sed -i -e "s@__NDIM_VALUE__@$NDIM_VALUE@" config.h
 echo "done" | tee -a config.log
 

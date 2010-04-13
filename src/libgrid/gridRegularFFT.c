@@ -10,7 +10,7 @@
 #include <assert.h>
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
-#if (WITH_FFTW == 3)
+#ifdef ENABLE_FFT_BACKEND_FFTW3
 #  include <fftw3.h>
 #endif
 
@@ -39,7 +39,7 @@ static void
 local_getActualFFTsBackward(gridRegularFFT_t fft);
 
 
-#if (WITH_FFTW == 3)
+#ifdef ENABLE_FFT_BACKEND_FFTW3
 static void
 local_fft_fftw3(const void *plan);
 
@@ -206,7 +206,7 @@ local_getActualFFTsBackward(gridRegularFFT_t fft)
 	}
 }
 
-#if (WITH_FFTW == 3)
+#ifdef ENABLE_FFT_BACKEND_FFTW3
 static void
 local_fft_fftw3(const void *plan)
 {

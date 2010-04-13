@@ -9,9 +9,10 @@
 /*--- Code Features (to be adjusted by the configure script) ------------*/
 #undef WITH_MPI
 #undef WITH_OPENMP
-#define WITH_FFTW __FFTW_VERSION__
 #undef WITH_SILO
 #undef WITH_PROC_DIR
+#undef ENABLE_FFT_BACKEND_FFTW2
+#undef ENABLE_FFT_BACKEND_FFTW3
 #undef ENABLE_DOUBLE
 #undef ENABLE_DEBUG
 #define NDIM __NDIM_VALUE__
@@ -34,9 +35,8 @@
 #  endif
 #endif
 
-#if (WITH_FFTW < 2 || WITH_FFTW > 3)
-#  undef WITH_FFTW
-#  define WITH_FFTW 2
+#if (!defined ENABLE_FFT_BACKEND_FFTW2 && !defined ENABLE_FFT_BACKEND_FFTW3)
+#  define ENABLE_FFT_BACKEND_FFTW3
 #endif
 
 #ifdef ENABLE_DOUBLE

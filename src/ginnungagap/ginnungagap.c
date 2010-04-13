@@ -7,7 +7,6 @@
 #include "../../config.h"
 #include "ginnungagap.h"
 #include "ginnungagapConfig.h"
-#include "fft.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -32,8 +31,6 @@ struct ginnungagap_struct {
 	rng_t                rng;
 	gridRegular_t        grid;
 	gridRegularDistrib_t gridDistrib;
-	fft_t                fft;
-	fft_t                fftConstraints;
 };
 
 
@@ -75,12 +72,6 @@ ginnungagap_new(parse_ini_t ini)
 	ginnungagap->config = ginnungagapConfig_new(ini);
 	ginnungagap->model  = cosmoModel_newFromIni(ini, "CosmoModel");
 	ginnungagap->rng    = rng_newFromIni(ini, "rng");
-	ginnungagap->fft    = fft_new(ginnungagap->config->dim1D);
-	if (ginnungagap->config->useConstraints)
-		ginnungagap->fftConstraints
-		    = fft_new(ginnungagap->config->dim1DConstraints);
-	else
-		ginnungagap->fftConstraints = NULL;
 	ginnungagap->grid        = local_getGrid(ginnungagap);
 	ginnungagap->gridDistrib = local_getGridDistrib(ginnungagap);
 	local_initGrid(ginnungagap);
@@ -111,10 +102,7 @@ ginnungagap_del(ginnungagap_t *ginnungagap)
 	assert(ginnungagap != NULL);
 	assert(*ginnungagap != NULL);
 
-	if ((*ginnungagap)->fftConstraints != NULL)
-		fft_del(&((*ginnungagap)->fftConstraints));
 	cosmoModel_del(&((*ginnungagap)->model));
-	fft_del(&((*ginnungagap)->fft));
 	rng_del(&((*ginnungagap)->rng));
 	gridRegular_del(&((*ginnungagap)->grid));
 	gridRegularDistrib_del(&((*ginnungagap)->gridDistrib));

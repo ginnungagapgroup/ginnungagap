@@ -41,8 +41,8 @@ TOOLCHAIN = "__TOOLCHAIN__"
 WITH_OPENMP = "__WITH_OPENMP__"
 WITH_MPI = "__WITH_MPI__"
 WITH_SILO = "__WITH_SILO__"
-WITH_FFTW = "__FFTW_VERSION__"
 MPICC = __MPICC__
+ENABLE_FFT_BACKEND = "__ENABLE_FFT_BACKEND__"
 ENABLE_DEBUG = "__ENABLE_DEBUG__"
 ENABLE_DOUBLE = "__ENABLE_DOUBLE__"
 ENABLE_PROFILE = "__ENABLE_PROFILE__"
@@ -60,20 +60,19 @@ LDFLAGS = __LDFLAGS__
 AR = __AR__
 MAKE = __MAKE__
 
-# Those are the basic libraries
-LIBS = -lsprng
-LIBS += __WITH_GSL_LIBS__
-
-# Those are additional required libraries, better not touch them.
-ifeq ($(WITH_FFTW), "3")
+# Do all the libraries
+LIBS =
+ifeq ($(WITH_SILO), "true")
+  LIBS += __WITH_SILO_LIBS__
+endif
+ifeq ($(ENABLE_FFT_BACKEND), "fftw3")
   LIBS += -lfftw3 -lfftw3f
-else
+endif
+ifeq ($(ENABLE_FFT_BACKEND), "fftw2")
   LIBS += -ldrfftw -ldfftw -lsrfftw -lsfftw
 endif
-ifeq ($(WITH_SILO), "true")
-  LIBS += -lsiloh5 -lhdf5  -lstdc++ -lz
-endif
-# Add the math library at the end
+LIBS += -lsprng
+LIBS += __WITH_GSL_LIBS__
 LIBS += -lm
 
 # The actual definitions depending on the chosen toolchain
