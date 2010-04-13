@@ -65,25 +65,16 @@ LIBS = -lsprng
 LIBS += __WITH_GSL_LIBS__
 
 # Those are additional required libraries, better not touch them.
-ifeq ($(WITH_FFTW), "2")
-  ifeq ($(WITH_MPI), "true")
-    ifeq ($(ENABLE_DOUBLE), "true")
-      LIBS += -ldrfftw_mpi -ldfftw_mpi -ldrfftw -ldfftw -lm
-    else
-      LIBS += -lsrfftw_mpi -lsfftw_mpi -lsrfftw -lsfftw -lm
-    endif
-  else
-    ifeq ($(ENABLE_DOUBLE), "true")
-      LIBS += -ldrfftw -ldfftw -lm
-    else
-      LIBS += -lsrfftw -lsfftw -lm
-    endif
-  endif
+ifeq ($(WITH_FFTW), "3")
+  LIBS += -lfftw3 -lfftw3f
 else
+  LIBS += -ldrfftw -ldfftw -lsrfftw -lsfftw
 endif
 ifeq ($(WITH_SILO), "true")
   LIBS += -lsiloh5 -lhdf5  -lstdc++ -lz
 endif
+# Add the math library at the end
+LIBS += -lm
 
 # The actual definitions depending on the chosen toolchain
 ifeq ($(TOOLCHAIN), "gnu")
