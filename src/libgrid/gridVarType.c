@@ -8,6 +8,7 @@
 #include "gridVarType.h"
 #include <assert.h>
 #include "../libutil/xmem.h"
+#include "../libutil/diediedie.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -23,8 +24,6 @@ gridVarType_sizeof(gridVarType_t type)
 	size_t size;
 
 	switch (type) {
-	default:
-	// If type is unknown (should NEVER happen) treat it as an int.
 	case GRIDVARTYPE_INT:
 		size = sizeof(int);
 		break;
@@ -34,9 +33,61 @@ gridVarType_sizeof(gridVarType_t type)
 	case GRIDVARTYPE_FPV:
 		size = sizeof(fpv_t);
 		break;
+	default:
+		diediedie(EXIT_FAILURE);
 	}
 
 	return size;
+}
+
+extern bool
+gridVarType_isFloating(gridVarType_t type)
+{
+	switch (type) {
+	case GRIDVARTYPE_DOUBLE:
+	case GRIDVARTYPE_FPV:
+		return true;
+	}
+
+	return false;
+}
+
+extern bool
+gridVarType_isInteger(gridVarType_t type)
+{
+	switch (type) {
+	case GRIDVARTYPE_INT:
+		return true;
+	}
+
+	return false;
+}
+
+extern bool
+gridVarType_isNativeFloat(gridVarType_t type)
+{
+	switch (type) {
+#ifndef ENABLE_DOUBLE
+	case GRIDVARTYPE_FPV:
+		return true;
+#endif
+	}
+
+	return false;
+}
+
+extern bool
+gridVarType_isNativeDouble(gridVarType_t type)
+{
+	switch (type) {
+	case GRIDVARTYPE_DOUBLE:
+#ifdef ENABLE_DOUBLE
+	case GRIDVARTYPE_FPV:
+#endif
+		return true;
+	}
+
+	return false;
 }
 
 /*--- Implementations of local functions --------------------------------*/

@@ -15,5 +15,17 @@
 extern bool
 gridVarType_sizeof_test(void);
 
+extern bool
+gridVarType_isFloating_test(void);
+
+extern bool
+gridVarType_isInteger_test(void);
+
+extern bool
+gridVarType_isNativeFloat_test(void);
+
+extern bool
+gridVarType_isNativeDouble_test(void);
+
 
 #endif

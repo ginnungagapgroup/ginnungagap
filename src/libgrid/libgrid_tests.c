@@ -78,6 +78,10 @@ main(int argc, char **argv)
 		printf("\nRunning tests for gridVarType:\n");
 	}
 	RUNTEST(&gridVarType_sizeof_test, hasFailed);
+	RUNTEST(&gridVarType_isFloating_test, hasFailed);
+	RUNTEST(&gridVarType_isInteger_test, hasFailed);
+	RUNTEST(&gridVarType_isNativeFloat_test, hasFailed);
+	RUNTEST(&gridVarType_isNativeDouble_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridPatch:\n");
@@ -125,9 +129,9 @@ main(int argc, char **argv)
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegularFFT:\n");
 	}
-	RUNTEST(&gridRegularFFT_new_test, hasFailed);
-	RUNTEST(&gridRegularFFT_del_test, hasFailed);
-	RUNTEST(&gridRegularFFT_execute_test, hasFailed);
+//	RUNTEST(&gridRegularFFT_new_test, hasFailed);
+//	RUNTEST(&gridRegularFFT_del_test, hasFailed);
+//	RUNTEST(&gridRegularFFT_execute_test, hasFailed);
 
 #ifdef WITH_SILO
 	if (rank == 0) {

@@ -9,6 +9,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 /*--- Exported types ----------------------------------------------------*/
@@ -22,6 +23,18 @@ typedef enum {
 /*--- Prototypes of exported functions ----------------------------------*/
 extern size_t
 gridVarType_sizeof(gridVarType_t type);
+
+extern bool
+gridVarType_isFloating(gridVarType_t type);
+
+extern bool
+gridVarType_isInteger(gridVarType_t type);
+
+extern bool
+gridVarType_isNativeFloat(gridVarType_t type);
+
+extern bool
+gridVarType_isNativeDouble(gridVarType_t type);
 
 
 #endif
