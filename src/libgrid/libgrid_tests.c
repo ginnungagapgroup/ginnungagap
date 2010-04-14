@@ -71,6 +71,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridVar_getSizePerElement_test, hasFailed);
 	RUNTEST(&gridVar_getNumComponents_test, hasFailed);
 	RUNTEST(&gridVar_getType_test, hasFailed);
+	RUNTEST(&gridVar_setMemFuncs_test, hasFailed);
 	RUNTEST(&gridVar_getMemory_test, hasFailed);
 	RUNTEST(&gridVar_freeMemory_test, hasFailed);
 

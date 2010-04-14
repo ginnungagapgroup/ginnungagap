@@ -240,6 +240,38 @@ gridVar_getName_test(void)
 }
 
 extern bool
+gridVar_setMemFuncs_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	gridVar_setMemFuncs(gridVar, NULL, NULL);
+	if (gridVar->mallocFunc != NULL || gridVar->freeFunc != NULL)
+		hasPassed = false;
+	gridVar_setMemFuncs(gridVar, &malloc, &free);
+	if (gridVar->mallocFunc != &malloc || gridVar->freeFunc != &free)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 gridVar_getMemory_test(void)
 {
 	bool      hasPassed = true;

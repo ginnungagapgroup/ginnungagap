@@ -35,6 +35,8 @@ gridVar_new(const char *name, gridVarType_t type, int numComponents)
 	gridVar->name          = xstrdup(name);
 	gridVar->type          = type;
 	gridVar->numComponents = numComponents;
+	gridVar->mallocFunc    = NULL;
+	gridVar->freeFunc      = NULL;
 
 	refCounter_init(&(gridVar->refCounter));
 
@@ -92,20 +94,43 @@ gridVar_getName(gridVar_t var)
 	return var->name;
 }
 
+extern void
+gridVar_setMemFuncs(gridVar_t var,
+                    void *(*mallocFunc)(size_t size),
+                    void      (*freeFunc)(void *ptr))
+{
+	assert(var != NULL);
+
+	var->mallocFunc = mallocFunc;
+	var->freeFunc   = freeFunc;
+}
+
 extern void *
 gridVar_getMemory(gridVar_t var, uint64_t numElements)
 {
-	return xmalloc(gridVar_getSizePerElement(var) * numElements);
+	size_t sizeToAlloc;
+
+	assert(var != NULL);
+	assert(numElements > UINT64_C(0));
+
+	sizeToAlloc = gridVar_getSizePerElement(var) * numElements;
+
+	if (var->mallocFunc != NULL)
+		return var->mallocFunc(sizeToAlloc);
+
+	return xmalloc(sizeToAlloc);
 }
 
 extern void
 gridVar_freeMemory(gridVar_t var, void *data)
 {
 	assert(var != NULL);
+	assert(data != NULL);
 
-	if (data != NULL) {
+	if (var->freeFunc != NULL)
+		var->freeFunc(data);
+	else
 		xfree(data);
-	}
 }
 
 /*--- Implementations of local functions --------------------------------*/

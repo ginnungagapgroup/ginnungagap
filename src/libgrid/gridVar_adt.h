@@ -10,6 +10,7 @@
 #include "gridConfig.h"
 #include "gridVarType.h"
 #include "../libutil/refCounter.h"
+#include <stdlib.h>
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -18,6 +19,8 @@ struct gridVar_struct {
 	char          *name;
 	gridVarType_t type;
 	int           numComponents;
+	void          *(*mallocFunc)(size_t size);
+	void          (*freeFunc)(void *ptr);
 };
 
 

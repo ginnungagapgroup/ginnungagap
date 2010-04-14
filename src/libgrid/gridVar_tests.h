@@ -34,6 +34,9 @@ extern bool
 gridVar_getName_test(void);
 
 extern bool
+gridVar_setMemFuncs_test(void);
+
+extern bool
 gridVar_getMemory_test(void);
 
 extern bool

@@ -39,6 +39,11 @@ gridVar_getType(gridVar_t var);
 extern char *
 gridVar_getName(gridVar_t var);
 
+extern void
+gridVar_setMemFuncs(gridVar_t var,
+                    void *(*mallocFunc)(size_t size),
+                    void      (*freeFunc)(void *ptr));
+
 extern void *
 gridVar_getMemory(gridVar_t var, uint64_t numElements);
 
