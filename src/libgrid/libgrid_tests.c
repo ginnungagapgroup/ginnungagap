@@ -188,7 +188,7 @@ local_runtest(bool (*f)(void))
 
 	if (!hasPassed) {
 		if (rank == 0)
-			printf("failed\n");
+			printf("!! FAILED !!\n");
 	} else {
 		if (rank == 0)
 			printf("passed\n");

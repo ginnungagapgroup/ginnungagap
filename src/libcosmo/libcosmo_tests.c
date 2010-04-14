@@ -14,7 +14,7 @@
 /*--- Macros ------------------------------------------------------------*/
 #define RUNTEST(a, hasFailed)  \
     if (!(a())) {              \
-		printf("failed\n");    \
+		printf("!! FAILED !!\n");    \
 		hasFailed = true;      \
 	} else {                   \
 		printf("passed\n");    \
