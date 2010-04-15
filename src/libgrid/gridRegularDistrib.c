@@ -138,19 +138,40 @@ gridRegularDistrib_getPatchForRank(gridRegularDistrib_t distrib, int rank)
 	gridRegular_getDims(distrib->grid, gridDims);
 
 	for (int i = 0; i < NDIM; i++) {
-		int cellsPerProc   = gridDims[i] / distrib->nProcs[i];
-		int cellsUnbalance = gridDims[i] % distrib->nProcs[i];
-		idxLo[i] = procCoords[i] * cellsPerProc;
-		if (procCoords[i] < cellsUnbalance)
-			idxLo[i] += procCoords[i];
-		else
-			idxLo[i] += cellsUnbalance;
-		idxHi[i] = idxLo[i] + cellsPerProc - 1;
-		if (procCoords[i] < cellsUnbalance)
-			idxHi[i]++;
+		gridRegular_calcIdxsForRank1D(gridDims[i], distrib->nProcs[i],
+		                              procCoords[i], idxLo + i, idxHi + i);
 	}
 
 	return gridPatch_new(idxLo, idxHi);
+}
+
+extern void
+gridRegular_calcIdxsForRank1D(uint32_t nCells,
+                              int      nProcs,
+                              int      rank,
+                              uint32_t *idxLo,
+                              uint32_t *idxHi)
+{
+	int cellsPerProc;
+	int cellsUnbalance;
+
+	assert(nCells > 0);
+	assert(nProcs > 0 && nProcs < nCells);
+	assert(rank >= 0 && rank < nProcs);
+	assert(idxLo != NULL);
+	assert(idxHi != NULL);
+
+	cellsPerProc   = nCells / nProcs;
+	cellsUnbalance = nCells % nProcs;
+
+	*idxLo         = rank * cellsPerProc;
+	if (rank < cellsUnbalance)
+		*idxLo += rank;
+	else
+		*idxLo += cellsUnbalance;
+	*idxHi = *idxLo + cellsPerProc - 1;
+	if (rank < cellsUnbalance)
+		(*idxHi)++;
 }
 
 /*--- Implementations of local functions --------------------------------*/

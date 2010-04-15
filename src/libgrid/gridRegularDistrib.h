@@ -10,6 +10,7 @@
 #include "gridConfig.h"
 #include "gridRegular.h"
 #include "gridPatch.h"
+#include <stdint.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
@@ -43,6 +44,13 @@ gridRegularDistrib_getLocalRank(gridRegularDistrib_t distrib);
 
 extern gridPatch_t
 gridRegularDistrib_getPatchForRank(gridRegularDistrib_t distrib, int rank);
+
+extern void
+gridRegular_calcIdxsForRank1D(uint32_t nCells,
+                              int      nProcs,
+                              int      rank,
+                              uint32_t *idxLo,
+                              uint32_t *idxHi);
 
 
 #endif

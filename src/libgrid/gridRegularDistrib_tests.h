@@ -32,5 +32,8 @@ gridRegularDistrib_getLocalRank_test(void);
 extern bool
 gridRegularDistrib_getPatchForRank_test(void);
 
+extern bool
+gridRegularDistrib_calcIdxsForRank1D_test(void);
+
 
 #endif
