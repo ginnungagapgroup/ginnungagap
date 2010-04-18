@@ -160,19 +160,19 @@ gridPatch_getDimActual1D_test(void)
 		idxLo[i] = 12;
 		idxHi[i] = 231;
 	}
-	var0 = gridVar_new("Var0", GRIDVARTYPE_INT, 1);
-	var1 = gridVar_new("Var1", GRIDVARTYPE_INT, 1);
+	var0  = gridVar_new("Var0", GRIDVARTYPE_INT, 1);
+	var1  = gridVar_new("Var1", GRIDVARTYPE_INT, 1);
 	patch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(patch, var0);
 	gridPatch_attachVarData(patch, var1);
 	for (int i = 0; i < NDIM; i++) {
-		uint32_t dimActual = gridPatch_getDimActual1D(patch, 0, i);
+		uint32_t dimActual   = gridPatch_getDimActual1D(patch, 0, i);
 		uint32_t dimExpected = (idxHi[i] - idxLo[i] + 1);
 		if (dimActual != dimExpected)
 			hasPassed = false;
 		dimActual = gridPatch_getDimActual1D(patch, 1, i);
-		if (i == NDIM-1)
-			dimExpected = 2*(dimExpected/2 +1);
+		if (i == NDIM - 1)
+			dimExpected = 2 * (dimExpected / 2 + 1);
 		if (dimActual != dimExpected)
 			hasPassed = false;
 	}
@@ -183,7 +183,7 @@ gridPatch_getDimActual1D_test(void)
 #endif
 
 	return hasPassed ? true : false;
-} /* gridPatch_getOneDim_test */
+} /* gridPatch_getDimActual1D_test */
 
 extern bool
 gridPatch_getDims_test(void)
@@ -268,8 +268,8 @@ gridPatch_getNumCellsActual_test(void)
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 	gridVar_t         var0, var1;
-	uint64_t          numCellsVar0 = UINT64_C(1);
-	uint64_t          numCellsVar1 = UINT64_C(1);
+	uint64_t          numCellsVar0   = UINT64_C(1);
+	uint64_t          numCellsVar1   = UINT64_C(1);
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -281,22 +281,22 @@ gridPatch_getNumCellsActual_test(void)
 		printf("Testing %s... ", __func__);
 
 	for (int i = 0; i < NDIM; i++) {
-		idxLo[i]  = 123;
-		idxHi[i]  = 203;
+		idxLo[i]      = 123;
+		idxHi[i]      = 203;
 		numCellsVar0 *= (idxHi[i] - idxLo[i] + 1);
-		if (i < NDIM-1)
+		if (i < NDIM - 1)
 			numCellsVar1 *= (idxHi[i] - idxLo[i] + 1);
 		else
-			numCellsVar1 *= 2*((idxHi[i] - idxLo[i] + 1)/2 +1);
+			numCellsVar1 *= 2 * ((idxHi[i] - idxLo[i] + 1) / 2 + 1);
 	}
-	var0 = gridVar_new("Var0", GRIDVARTYPE_INT, 1);
-	var1 = gridVar_new("Var1", GRIDVARTYPE_INT, 1);
+	var0  = gridVar_new("Var0", GRIDVARTYPE_INT, 1);
+	var1  = gridVar_new("Var1", GRIDVARTYPE_INT, 1);
 	patch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(patch, var0);
 	gridPatch_attachVarData(patch, var1);
 	if (gridPatch_getNumCellsActual(patch, 0) != numCellsVar0)
 		hasPassed = false;
-	if (gridPatch_getNumCellsActual(patch,01) != numCellsVar1)
+	if (gridPatch_getNumCellsActual(patch, 01) != numCellsVar1)
 		hasPassed = false;
 	gridPatch_del(&patch);
 #ifdef XMEM_TRACK_MEM
@@ -305,7 +305,7 @@ gridPatch_getNumCellsActual_test(void)
 #endif
 
 	return hasPassed ? true : false;
-} /* gridPatch_getNumCells_test */
+} /* gridPatch_getNumCellsActual_test */
 
 extern bool
 gridPatch_getIdxLo_test(void)
@@ -542,3 +542,13 @@ gridPatch_getNumVars_test(void)
 } /* gridPatch_getNumVars_test */
 
 /*--- Implementations of local functions --------------------------------*/
+static void
+local_fillGrid(const char *param, gridPointUint32_t pos)
+{
+#if (NDIM == 3)
+	return pos[0] * pos[0] + pos[1] * pos[1] + pos[2] * pos[2];
+
+#elif (NDIM == 2)
+	return pos[0] * pos[0] + pos[1] * pos[1];
+#endif
+}
