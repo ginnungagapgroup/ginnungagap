@@ -42,5 +42,14 @@ gridVar_getMemory_test(void);
 extern bool
 gridVar_freeMemory_test(void);
 
+extern bool
+gridVar_setFFTWPadded_test(void);
+
+extern bool
+gridVar_unsetFFTWPadded_test(void);
+
+extern bool
+gridVar_isFFTWPadded_test(void);
+
 
 #endif

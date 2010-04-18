@@ -7,6 +7,7 @@
 #include "gridConfig.h"
 #include "gridVar.h"
 #include <assert.h>
+#include <stdbool.h>
 #include "../libutil/refCounter.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
@@ -37,6 +38,7 @@ gridVar_new(const char *name, gridVarType_t type, int numComponents)
 	gridVar->numComponents = numComponents;
 	gridVar->mallocFunc    = NULL;
 	gridVar->freeFunc      = NULL;
+	gridVar->isFFTWPadded  = false;
 
 	refCounter_init(&(gridVar->refCounter));
 
@@ -131,6 +133,27 @@ gridVar_freeMemory(gridVar_t var, void *data)
 		var->freeFunc(data);
 	else
 		xfree(data);
+}
+
+extern void
+gridVar_setFFTWPadded(gridVar_t var)
+{
+	assert(var != NULL);
+	var->isFFTWPadded = true;
+}
+
+extern void
+gridVar_unsetFFTWPadded(gridVar_t var)
+{
+	assert(var != NULL);
+	var->isFFTWPadded = false;
+}
+
+extern bool
+gridVar_isFFTWPadded(gridVar_t var)
+{
+	assert(var != NULL);
+	return var->isFFTWPadded;
 }
 
 /*--- Implementations of local functions --------------------------------*/

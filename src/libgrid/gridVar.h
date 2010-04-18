@@ -11,6 +11,7 @@
 #include "gridVarType.h"
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -49,6 +50,15 @@ gridVar_getMemory(gridVar_t var, uint64_t numElements);
 
 extern void
 gridVar_freeMemory(gridVar_t var, void *data);
+
+extern void
+gridVar_setFFTWPadded(gridVar_t var);
+
+extern void
+gridVar_unsetFFTWPadded(gridVar_t var);
+
+extern bool
+gridVar_isFFTWPadded(gridVar_t var);
 
 
 #endif

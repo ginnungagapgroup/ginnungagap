@@ -54,6 +54,8 @@ gridVar_new_test(void)
 		hasPassed = false;
 	if (gridVar->numComponents != NDIM)
 		hasPassed = false;
+	if (gridVar->isFFTWPadded)
+		hasPassed = false;
 	gridVar_del(&gridVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -330,5 +332,96 @@ gridVar_freeMemory_test(void)
 
 	return hasPassed ? true : false;
 }
+
+extern bool
+gridVar_setFFTWPadded_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	gridVar_setFFTWPadded(gridVar);
+	if (!gridVar->isFFTWPadded)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridVar_unsetFFTWPadded_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	gridVar_setFFTWPadded(gridVar);
+	gridVar_unsetFFTWPadded(gridVar);
+	if (gridVar->isFFTWPadded)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridVar_isFFTWPadded_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	if (gridVar_isFFTWPadded(gridVar))
+		hasPassed = false;
+	gridVar_setFFTWPadded(gridVar);
+	if (!gridVar_isFFTWPadded(gridVar))
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 
 /*--- Implementations of local functions --------------------------------*/

@@ -11,6 +11,7 @@
 #include "gridVarType.h"
 #include "../libutil/refCounter.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -21,6 +22,7 @@ struct gridVar_struct {
 	int           numComponents;
 	void          *(*mallocFunc)(size_t size);
 	void          (*freeFunc)(void *ptr);
+	bool          isFFTWPadded;
 };
 
 
