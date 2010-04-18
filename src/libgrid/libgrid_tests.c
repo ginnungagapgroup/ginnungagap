@@ -74,6 +74,9 @@ main(int argc, char **argv)
 	RUNTEST(&gridVar_setMemFuncs_test, hasFailed);
 	RUNTEST(&gridVar_getMemory_test, hasFailed);
 	RUNTEST(&gridVar_freeMemory_test, hasFailed);
+	RUNTEST(&gridVar_setFFTWPadded_test, hasFailed);
+	RUNTEST(&gridVar_unsetFFTWPadded_test, hasFailed);
+	RUNTEST(&gridVar_isFFTWPadded_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridVarType:\n");
