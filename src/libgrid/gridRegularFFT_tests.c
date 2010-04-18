@@ -55,8 +55,8 @@ gridRegularFFT_new_test(void)
 
 	grid    = local_getFakeGrid();
 	distrib = local_getFakeGridDistrib(grid);
-	fft     = gridRegularFFT_new(grid, distrib, 0, GRIDREGULARFFT_FORWARD);
-	if (fft->direction != GRIDREGULARFFT_FORWARD)
+	fft     = gridRegularFFT_new(grid, distrib, 0);
+	if (fft->varType != GRIDVARTYPE_FPV)
 		hasPassed = false;
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
@@ -89,7 +89,7 @@ gridRegularFFT_del_test(void)
 
 	grid    = local_getFakeGrid();
 	distrib = local_getFakeGridDistrib(grid);
-	fft     = gridRegularFFT_new(grid, distrib, 0, GRIDREGULARFFT_FORWARD);
+	fft     = gridRegularFFT_new(grid, distrib, 0);
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
 	gridRegularFFT_del(&fft);
@@ -111,6 +111,8 @@ gridRegularFFT_execute_test(void)
 	gridRegularFFT_t     fft;
 	gridRegular_t        grid;
 	gridRegularDistrib_t distrib;
+	fpvComplex_t         *data;
+	fpv_t                *dataBack;
 #ifdef XMEM_TRACK_MEM
 	size_t               allocatedBytes = global_allocated_bytes;
 #endif
@@ -121,12 +123,15 @@ gridRegularFFT_execute_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid    = local_getFakeGrid();
-	distrib = local_getFakeGridDistrib(grid);
-	fft     = gridRegularFFT_new(grid, distrib, 0, GRIDREGULARFFT_FORWARD);
+	grid     = local_getFakeGrid();
+	distrib  = local_getFakeGridDistrib(grid);
+	fft      = gridRegularFFT_new(grid, distrib, 0);
+	data     = (fpvComplex_t *)gridRegularFFT_execute(fft, 1);
+	dataBack = (fpv_t *)gridRegularFFT_execute(fft, -1);
+	if ((void *)data != (void *)dataBack)
+		hasPassed = false;
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
-	// TODO test execute1
 	gridRegularFFT_del(&fft);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -134,7 +139,7 @@ gridRegularFFT_execute_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegularFFT_execute_test */
 
 /*--- Implementations of local functions --------------------------------*/
 static gridRegular_t
@@ -152,6 +157,7 @@ local_getFakeGrid(void)
 		dims[i]   = 64;
 	}
 	var  = gridVar_new("test", GRIDVARTYPE_FPV, 1);
+	gridVar_setFFTWPadded(var);
 
 	grid = gridRegular_new("bla", origin, extent, dims);
 	gridRegular_attachVar(grid, var);

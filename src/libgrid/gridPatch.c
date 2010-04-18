@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include "../libutil/xmem.h"
 #include "../libutil/varArr.h"
+#include "../libutil/diediedie.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -40,7 +41,7 @@ gridPatch_new(gridPointUint32_t idxLo, gridPointUint32_t idxHi)
 		gridPatch->dims[i]   = idxHi[i] - idxLo[i] + 1;
 		gridPatch->numCells *= gridPatch->dims[i];
 	}
-	gridPatch->vars = varArr_new(0);
+	gridPatch->vars    = varArr_new(0);
 	gridPatch->varData = varArr_new(0);
 
 	return gridPatch;
@@ -49,7 +50,7 @@ gridPatch_new(gridPointUint32_t idxLo, gridPointUint32_t idxHi)
 extern void
 gridPatch_del(gridPatch_t *gridPatch)
 {
-	int numVarData;
+	int       numVarData;
 	gridVar_t var;
 
 	assert(gridPatch != NULL && *gridPatch != NULL);
@@ -76,12 +77,32 @@ gridPatch_getOneDim(gridPatch_t patch, int idxOfDim)
 	return patch->dims[idxOfDim];
 }
 
+extern uint32_t
+gridPatch_getDimActual1D(gridPatch_t patch, int idxOfVar, int dim)
+{
+	uint64_t  actualDim;
+	gridVar_t var;
+
+	assert(patch != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(patch->vars));
+	assert(dim >= 0 && dim < NDIM);
+
+	var = gridPatch_getVarHandle(patch, idxOfVar);
+
+	if (gridVar_isFFTWPadded(var) && (dim == NDIM - 1))
+		actualDim = 2 * ((patch->dims[dim]) / 2 + 1);
+	else
+		actualDim = patch->dims[dim];
+
+	return actualDim;
+}
+
 extern void
 gridPatch_getDims(gridPatch_t patch, gridPointUint32_t dims)
 {
 	assert(patch != NULL);
 
-	for (int i=0; i<NDIM; i++)
+	for (int i = 0; i < NDIM; i++)
 		dims[i] = patch->dims[i];
 }
 
@@ -91,6 +112,20 @@ gridPatch_getNumCells(gridPatch_t patch)
 	assert(patch != NULL);
 
 	return patch->numCells;
+}
+
+extern uint64_t
+gridPatch_getNumCellsActual(gridPatch_t patch, int idxOfVar)
+{
+	uint64_t numCellsActual = 1;
+
+	assert(patch != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(patch->vars));
+
+	for (int i = 0; i < NDIM; i++)
+		numCellsActual *= gridPatch_getDimActual1D(patch, idxOfVar, i);
+
+	return numCellsActual;
 }
 
 extern void
@@ -105,20 +140,24 @@ gridPatch_getIdxLo(gridPatch_t patch, gridPointUint32_t idxLo)
 extern int
 gridPatch_attachVarData(gridPatch_t patch, gridVar_t var)
 {
-	void *data;
+	void      *data;
 	gridVar_t varClone;
-	int posVar, posVarData;
+	int       posVar, posVarData;
+	uint64_t  numCellsToAllocate = 1;
 
 	assert(patch != NULL);
 	assert(var != NULL);
 
-	varClone = gridVar_getRef(var);
-	data = gridVar_getMemory(varClone, patch->numCells);
+	varClone           = gridVar_getRef(var);
+	posVar             = varArr_insert(patch->vars, varClone);
 
-	posVar = varArr_insert(patch->vars, varClone);
-	posVarData = varArr_insert(patch->varData, data);
+	numCellsToAllocate = gridPatch_getNumCellsActual(patch, posVar);
+	data               = gridVar_getMemory(varClone, numCellsToAllocate);
+	posVarData         = varArr_insert(patch->varData, data);
 
-	assert(posVar == posVarData);
+	if (posVar != posVarData) {
+		diediedie(EXIT_FAILURE);
+	}
 
 	return posVar;
 }

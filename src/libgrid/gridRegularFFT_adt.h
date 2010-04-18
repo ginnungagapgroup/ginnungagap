@@ -13,11 +13,8 @@
 /*--- ADT implementation ------------------------------------------------*/
 struct gridRegularFFT_struct {
 	gridVarType_t varType;
-	int           direction;
-	void          *remap[NDIM];
-	void          *remapParams[NDIM];
-	void          *fft1d[NDIM];
-	void          *fftPlans[NDIM];
+	gridPatch_t   patch;
+	void          *data;
 };
 
 

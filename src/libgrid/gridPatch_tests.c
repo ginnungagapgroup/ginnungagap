@@ -138,6 +138,54 @@ gridPatch_getOneDim_test(void)
 } /* gridPatch_getOneDim_test */
 
 extern bool
+gridPatch_getDimActual1D_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridPatch_t       patch;
+	gridVar_t         var0, var1;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	for (int i = 0; i < NDIM; i++) {
+		idxLo[i] = 12;
+		idxHi[i] = 231;
+	}
+	var0 = gridVar_new("Var0", GRIDVARTYPE_INT, 1);
+	var1 = gridVar_new("Var1", GRIDVARTYPE_INT, 1);
+	patch = gridPatch_new(idxLo, idxHi);
+	gridPatch_attachVarData(patch, var0);
+	gridPatch_attachVarData(patch, var1);
+	for (int i = 0; i < NDIM; i++) {
+		uint32_t dimActual = gridPatch_getDimActual1D(patch, 0, i);
+		uint32_t dimExpected = (idxHi[i] - idxLo[i] + 1);
+		if (dimActual != dimExpected)
+			hasPassed = false;
+		dimActual = gridPatch_getDimActual1D(patch, 1, i);
+		if (i == NDIM-1)
+			dimExpected = 2*(dimExpected/2 +1);
+		if (dimActual != dimExpected)
+			hasPassed = false;
+	}
+	gridPatch_del(&patch);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* gridPatch_getOneDim_test */
+
+extern bool
 gridPatch_getDims_test(void)
 {
 	bool              hasPassed = true;
@@ -201,6 +249,54 @@ gridPatch_getNumCells_test(void)
 	}
 	patch = gridPatch_new(idxLo, idxHi);
 	if (gridPatch_getNumCells(patch) != numCells)
+		hasPassed = false;
+	gridPatch_del(&patch);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* gridPatch_getNumCells_test */
+
+extern bool
+gridPatch_getNumCellsActual_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridPatch_t       patch;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+	gridVar_t         var0, var1;
+	uint64_t          numCellsVar0 = UINT64_C(1);
+	uint64_t          numCellsVar1 = UINT64_C(1);
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	for (int i = 0; i < NDIM; i++) {
+		idxLo[i]  = 123;
+		idxHi[i]  = 203;
+		numCellsVar0 *= (idxHi[i] - idxLo[i] + 1);
+		if (i < NDIM-1)
+			numCellsVar1 *= (idxHi[i] - idxLo[i] + 1);
+		else
+			numCellsVar1 *= 2*((idxHi[i] - idxLo[i] + 1)/2 +1);
+	}
+	var0 = gridVar_new("Var0", GRIDVARTYPE_INT, 1);
+	var1 = gridVar_new("Var1", GRIDVARTYPE_INT, 1);
+	patch = gridPatch_new(idxLo, idxHi);
+	gridPatch_attachVarData(patch, var0);
+	gridPatch_attachVarData(patch, var1);
+	if (gridPatch_getNumCellsActual(patch, 0) != numCellsVar0)
+		hasPassed = false;
+	if (gridPatch_getNumCellsActual(patch,01) != numCellsVar1)
 		hasPassed = false;
 	gridPatch_del(&patch);
 #ifdef XMEM_TRACK_MEM

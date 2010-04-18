@@ -25,7 +25,13 @@ extern bool
 gridPatch_getDims_test(void);
 
 extern bool
+gridPatch_getDimActual1D_test(void);
+
+extern bool
 gridPatch_getNumCells_test(void);
+
+extern bool
+gridPatch_getNumCellsActual_test(void);
 
 extern bool
 gridPatch_getIdxLo_test(void);

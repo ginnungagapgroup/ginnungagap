@@ -26,11 +26,17 @@ gridPatch_del(gridPatch_t *gridPatch);
 extern uint32_t
 gridPatch_getOneDim(gridPatch_t patch, int idxOfDim);
 
+extern uint32_t
+gridPatch_getDimActual1D(gridPatch_t patch, int idxOfVar, int dim);
+
 extern void
 gridPatch_getDims(gridPatch_t patch, gridPointUint32_t dim);
 
 extern uint64_t
 gridPatch_getNumCells(gridPatch_t patch);
+
+extern uint64_t
+gridPatch_getNumCellsActual(gridPatch_t patch, int idxOfVar);
 
 extern void
 gridPatch_getIdxLo(gridPatch_t patch, gridPointUint32_t idxLo);

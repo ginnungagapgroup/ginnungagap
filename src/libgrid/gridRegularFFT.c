@@ -26,44 +26,10 @@
 static gridVarType_t
 local_getVarType(gridRegular_t grid, int idxFFTVar);
 
-static void
-local_getRemapping(gridRegularFFT_t fft);
 
-static void
-local_getActualFFTs(gridRegularFFT_t fft);
-
-static void
-local_getActualFFTsForward(gridRegularFFT_t fft);
-
-static void
-local_getActualFFTsBackward(gridRegularFFT_t fft);
-
-
-#ifdef ENABLE_FFT_BACKEND_FFTW3
-static void
-local_fft_fftw3(const void *plan);
-
-static void
-local_fft_fftw3f(const void *plan);
-
-static fftw_plan
-local_getPlan_r2c_fftw3(gridRegularFFT_t fft, int idxDim);
-
-static fftw_plan
-local_getPlan_c2c_fftw3(gridRegularFFT_t fft, int idxDim);
-
-static fftw_plan
-local_getPlan_c2r_fftw3(gridRegularFFT_t fft, int idxDim);
-
-static fftwf_plan
-local_getPlan_r2c_fftw3f(gridRegularFFT_t fft, int idxDim);
-
-static fftwf_plan
-local_getPlan_c2c_fftw3f(gridRegularFFT_t fft, int idxDim);
-
-static fftwf_plan
-local_getPlan_c2r_fftw3f(gridRegularFFT_t fft, int idxDim);
-
+#if (!defined WITH_MPI)
+static void *
+local_doFFTCompletelyLocal(gridRegularFFT_t fft, int direction);
 
 #endif
 
@@ -71,23 +37,19 @@ local_getPlan_c2r_fftw3f(gridRegularFFT_t fft, int idxDim);
 extern gridRegularFFT_t
 gridRegularFFT_new(gridRegular_t        grid,
                    gridRegularDistrib_t gridDistrib,
-                   int                  idxFFTVar,
-                   int                  direction)
+                   int                  idxFFTVar)
 {
 	gridRegularFFT_t fft;
 
 	assert(grid != NULL);
 	assert(gridDistrib != NULL);
 	assert(idxFFTVar >= 0 && idxFFTVar < gridRegular_getNumVars(grid));
-	assert(direction == GRIDREGULARFFT_FORWARD
-	       || direction == GRIDREGULARFFT_BACKWARD);
 	assert(gridRegular_getNumPatches(grid) == 1);
 
-	fft            = xmalloc(sizeof(struct gridRegularFFT_struct));
-	fft->varType   = local_getVarType(grid, idxFFTVar);
-	fft->direction = direction;
-	local_getRemapping(fft);
-	local_getActualFFTs(fft);
+	fft          = xmalloc(sizeof(struct gridRegularFFT_struct));
+	fft->varType = local_getVarType(grid, idxFFTVar);
+	fft->patch   = gridRegular_getPatchHandle(grid, 0);
+	fft->data    = gridPatch_getVarDataHandle(fft->patch, idxFFTVar);
 
 	return fft;
 }
@@ -97,38 +59,21 @@ gridRegularFFT_del(gridRegularFFT_t *fft)
 {
 	assert(fft != NULL && *fft != NULL);
 
-	for (int i = 0; i < NDIM; i++) {
-		if ((*fft)->remapParams[i] != NULL) {
-			// TODO
-		}
-		if ((*fft)->fftPlans[i] != NULL) {
-#if (defined ENABLE_FFT_BACKEND_FFTW3)
-			if (gridVarType_isNativeDouble((*fft)->varType))
-				fftw_destroy_plan((fftw_plan)((*fft)->fftPlans[i]));
-			else
-				fftwf_destroy_plan((fftw_plan)((*fft)->fftPlans[i]));
-#endif
-		}
-	}
 	xfree(*fft);
 
 	*fft = NULL;
 }
 
-#define TOFUNC void(*)(const void *)
-extern void
-gridRegularFFT_execute(gridRegularFFT_t fft)
+extern void *
+gridRegularFFT_execute(gridRegularFFT_t fft, int direction)
 {
 	assert(fft != NULL);
 
-	for (int i = 0; i < NDIM; i++) {
-		if (fft->remap[i] != NULL) {
-			((TOFUNC)(fft->remap[i]))(fft->remapParams[i]);
-		}
-		((TOFUNC)(fft->fft1d[i]))(fft->fftPlans[i]);
-	}
+#if (!defined WITH_MPI)
+	return local_doFFTCompletelyLocal(fft, direction);
+#else
+#endif
 }
-#undef TOFUNC
 
 /*--- Implementations of local functions --------------------------------*/
 static gridVarType_t
@@ -142,148 +87,49 @@ local_getVarType(gridRegular_t grid, int idxFFTVar)
 	return varType;
 }
 
-static void
-local_getRemapping(gridRegularFFT_t fft)
+#if (!defined WITH_MPI)
+static void *
+local_doFFTCompletelyLocal(gridRegularFFT_t fft, int direction)
 {
-	int i;
-
-	if (fft->direction == GRIDREGULARFFT_FORWARD) {
-		fft->remap[0]       = NULL;
-		fft->remapParams[0] = NULL;
-		for (i = 1; i < NDIM; i++) {
-			fft->remap[i]       = NULL;
-			fft->remapParams[i] = NULL;
+#  if (defined ENABLE_FFT_BACKEND_FFTW3)
+	if (gridVarType_isNativeFloat(fft->varType)) {
+	} else {
+		fftw_plan plan;
+		if (direction == GRIDREGULARFFT_FORWARD) {
+#    if (NDIM == 2)
+			plan = fftw_plan_dft_r2c_2d(gridPatch_getOneDim(fft->patch, 0),
+			                            gridPatch_getOneDim(fft->patch, 1),
+			                            (double *)(fft->data),
+			                            (fftw_complex *)(fft->data),
+			                            FFTW_ESTIMATE);
+#    elif (NDIM == 3)
+			plan = fftw_plan_dft_r2c_3d(gridPatch_getOneDim(fft->patch, 0),
+			                            gridPatch_getOneDim(fft->patch, 1),
+			                            gridPatch_getOneDim(fft->patch, 2),
+			                            (double *)(fft->data),
+			                            (fftw_complex *)(fft->data),
+			                            FFTW_ESTIMATE);
+#    endif
+		} else {
+#    if (NDIM == 2)
+			plan = fftw_plan_dft_c2r_2d(gridPatch_getOneDim(fft->patch, 0),
+			                            gridPatch_getOneDim(fft->patch, 1),
+			                            (fftw_complex *)(fft->data),
+			                            (double *)(fft->data),
+			                            FFTW_ESTIMATE);
+#    elif (NDIM == 3)
+			plan = fftw_plan_dft_c2r_3d(gridPatch_getOneDim(fft->patch, 0),
+			                            gridPatch_getOneDim(fft->patch, 1),
+			                            gridPatch_getOneDim(fft->patch, 2),
+			                            (fftw_complex *)(fft->data),
+			                            (double *)(fft->data),
+			                            FFTW_ESTIMATE);
+#    endif
 		}
-	} else {
-		for (i = 0; i < NDIM - 1; i++) {
-			fft->remap[i]       = NULL;
-			fft->remapParams[i] = NULL;
-		}
-		fft->remap[i]       = NULL;
-		fft->remapParams[i] = NULL;
+		fftw_execute(plan);
 	}
-}
-
-static void
-local_getActualFFTs(gridRegularFFT_t fft)
-{
-#if (defined ENABLE_FFT_BACKEND_FFT3)
-	if (gridVarType_isNativeDouble(fft->varType)) {
-		for (int i = 0; i < NDIM; i++)
-			fft->fft1d[i] = &local_fft_fftw3;
-	} else {
-		for (int i = 0; i < NDIM; i++)
-			fft->fft1d[i] = &local_fft_fftw3f;
-	}
-#endif
-
-	if (fft->direction == GRIDREGULARFFT_FORWARD)
-		local_getActualFFTsForward(fft);
-	else
-		local_getActualFFTsBackward(fft);
-}
-
-static void
-local_getActualFFTsForward(gridRegularFFT_t fft)
-{
-	if (gridVarType_isNativeDouble(fft->varType)) {
-		fft->fftPlans[0] = (void *)local_getPlan_r2c_fftw3(fft, 0);
-		for (int i = 1; i < NDIM; i++)
-			fft->fftPlans[i] = (void *)local_getPlan_c2c_fftw3(fft, i);
-	} else {
-		fft->fftPlans[0] = (void *)local_getPlan_r2c_fftw3f(fft, 0);
-		for (int i = 1; i < NDIM; i++)
-			fft->fftPlans[i] = (void *)local_getPlan_c2c_fftw3f(fft, i);
-	}
-}
-
-static void
-local_getActualFFTsBackward(gridRegularFFT_t fft)
-{
-	if (gridVarType_isNativeDouble(fft->varType)) {
-		for (int i = 0; i < NDIM - 1; i++)
-			fft->fftPlans[i] = (void *)local_getPlan_c2c_fftw3(fft, i);
-		fft->fftPlans[NDIM - 1] = (void *)local_getPlan_c2r_fftw3(fft,
-		                                                          NDIM - 1);
-	} else {
-		for (int i = 1; i < NDIM; i++)
-			fft->fftPlans[i] = (void *)local_getPlan_c2c_fftw3f(fft, i);
-		fft->fftPlans[NDIM - 1] = (void *)local_getPlan_c2r_fftw3f(fft,
-		                                                           NDIM - 1);
-	}
-}
-
-#ifdef ENABLE_FFT_BACKEND_FFTW3
-static void
-local_fft_fftw3(const void *plan)
-{
-	fftw_execute((fftw_plan)plan);
-}
-
-static void
-local_fft_fftw3f(const void *plan)
-{
-	fftwf_execute((fftwf_plan)plan);
-}
-
-static fftw_plan
-local_getPlan_r2c_fftw3(gridRegularFFT_t fft, int idxDim)
-{
-	fftw_plan plan = NULL;
-	assert(fft != NULL);
-	assert(idxDim >= 0 && idxDim < NDIM);
-
-	return plan;
-}
-
-static fftw_plan
-local_getPlan_c2c_fftw3(gridRegularFFT_t fft, int idxDim)
-{
-	fftw_plan plan = NULL;
-	assert(fft != NULL);
-	assert(idxDim >= 0 && idxDim < NDIM);
-
-	return plan;
-}
-
-static fftw_plan
-local_getPlan_c2r_fftw3(gridRegularFFT_t fft, int idxDim)
-{
-	fftw_plan plan = NULL;
-	assert(fft != NULL);
-	assert(idxDim >= 0 && idxDim < NDIM);
-
-	return plan;
-}
-
-static fftwf_plan
-local_getPlan_r2c_fftw3f(gridRegularFFT_t fft, int idxDim)
-{
-	fftwf_plan plan = NULL;
-	assert(fft != NULL);
-	assert(idxDim >= 0 && idxDim < NDIM);
-
-	return plan;
-}
-
-static fftwf_plan
-local_getPlan_c2c_fftw3f(gridRegularFFT_t fft, int idxDim)
-{
-	fftwf_plan plan = NULL;
-	assert(fft != NULL);
-	assert(idxDim >= 0 && idxDim < NDIM);
-
-	return plan;
-}
-
-static fftwf_plan
-local_getPlan_c2r_fftw3f(gridRegularFFT_t fft, int idxDim)
-{
-	fftwf_plan plan = NULL;
-	assert(fft != NULL);
-	assert(idxDim >= 0 && idxDim < NDIM);
-
-	return plan;
-}
+	return fft->data;
+#  endif
+} /* local_doFFTCompletelyLocal */
 
 #endif
