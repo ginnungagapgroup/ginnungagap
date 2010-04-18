@@ -223,12 +223,12 @@ gridRegularDistrib_getPatchForRank_test(void)
 	gridRegularDistrib_t distrib;
 	gridRegular_t        fakeGrid;
 	gridPatch_t          patch;
-	gridPointInt_t       nProcs;
 	int                  localRank      = 0;
 #ifdef XMEM_TRACK_MEM
 	size_t               allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
+	gridPointInt_t       nProcs;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
