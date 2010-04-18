@@ -11,11 +11,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include <inttypes.h>
-#if (!defined WITH_MPI && !defined _OPENMP)
-#  include <time.h>
-#endif
 #include "../libutil/rng.h"
 #include "../libutil/xmem.h"
+#include "../libutil/timer.h"
 #include "../libcosmo/cosmoModel.h"
 #include "../libgrid/gridRegular.h"
 #include "../libgrid/gridRegularDistrib.h"
@@ -54,12 +52,6 @@ local_dumpGrid(ginnungagap_t ginnungagap);
 
 #endif
 
-static double
-local_startTimer(const char *text);
-
-static double
-local_stopTimer(double timing);
-
 
 /*--- Implementations of exported functios ------------------------------*/
 extern ginnungagap_t
@@ -85,14 +77,14 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	double timing;
 	assert(ginnungagap != NULL);
 
-	timing = local_startTimer("Generating white noise");
+	timing = timer_start("Generating white noise");
 	local_generateWhiteNoise(ginnungagap);
-	timing = local_stopTimer(timing);
+	timing = timer_stop(timing);
 
 #ifdef WITH_SILO
-	timing = local_startTimer("Dumping grid to silo file");
+	timing = timer_start("Dumping grid to silo file");
 	local_dumpGrid(ginnungagap);
-	timing = local_stopTimer(timing);
+	timing = timer_stop(timing);
 #endif
 }
 
@@ -220,62 +212,3 @@ local_dumpGrid(ginnungagap_t ginnungagap)
 }
 
 #endif
-
-static double
-local_startTimer(const char *text)
-{
-	double timing;
-	int    rank = 0;
-
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-
-	if (rank == 0) {
-		printf("%s... ", text);
-		fflush(stdout);
-	}
-
-#if (defined WITH_MPI)
-	MPI_Barrier(MPI_COMM_WORLD);
-	timing = -MPI_Wtime();
-#elif (defined _OPENMP)
-	timing = -omp_get_wtime();
-#else
-	timing = -clock() / CLOCKS_PER_SEC;
-#endif
-
-	return timing;
-}
-
-static double
-local_stopTimer(double timing)
-{
-	int rank = 0;
-
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-
-#if (defined WITH_MPI)
-	timing += MPI_Wtime();
-	{
-		double timingMax;
-		MPI_Allreduce(&timing, &timingMax, 1, MPI_DOUBLE, MPI_MAX,
-		              MPI_COMM_WORLD);
-		timing = timingMax;
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
-#elif (defined _OPENMP)
-	timing += omp_get_wtime();
-#else
-	timing += clock() / CLOCKS_PER_SEC;
-#endif
-
-	if (rank == 0) {
-		printf("took %.5fs\n", timing);
-		fflush(stdout);
-	}
-
-	return timing;
-}

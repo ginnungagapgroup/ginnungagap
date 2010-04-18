@@ -14,6 +14,7 @@ sources = xmem.c \
           parse_ini.c \
           byteswap.c \
           cmdline.c \
+          timer.c \
           refCounter.c \
           varArr.c \
           rng.c
