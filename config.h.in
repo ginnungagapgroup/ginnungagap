@@ -40,12 +40,20 @@
 #endif
 
 #ifdef ENABLE_DOUBLE
-typedef double fpv_t;
+typedef double         fpv_t;
+#  if (defined ENABLE_FFT_BACKEND_FFTW3)
+#    include <complex.h>
+typedef double complex fpvComplex_t;
+#  endif
 #  define FPV_C(a) a
 #  define SCNfpv "lf"
 #  define PRIfpv "g"
 #else
-typedef float fpv_t;
+typedef float         fpv_t;
+#  if (defined ENABLE_FFT_BACKEND_FFTW3)
+#    include <complex.h>
+typedef float complex fpvComplex_t;
+#  endif
 #  define FPV_C(a) a ## f
 #  define SCNfpv "f"
 #  define PRIfpv "g"
