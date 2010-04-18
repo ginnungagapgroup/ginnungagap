@@ -93,6 +93,39 @@ local_doFFTCompletelyLocal(gridRegularFFT_t fft, int direction)
 {
 #  if (defined ENABLE_FFT_BACKEND_FFTW3)
 	if (gridVarType_isNativeFloat(fft->varType)) {
+		fftwf_plan plan;
+		if (direction == GRIDREGULARFFT_FORWARD) {
+#    if (NDIM == 2)
+			plan = fftwf_plan_dft_r2c_2d(gridPatch_getOneDim(fft->patch, 0),
+			                            gridPatch_getOneDim(fft->patch, 1),
+			                            (float *)(fft->data),
+			                            (fftwf_complex *)(fft->data),
+			                            FFTW_ESTIMATE);
+#    elif (NDIM == 3)
+			plan = fftwf_plan_dft_r2c_3d(gridPatch_getOneDim(fft->patch, 0),
+			                            gridPatch_getOneDim(fft->patch, 1),
+			                            gridPatch_getOneDim(fft->patch, 2),
+			                            (float *)(fft->data),
+			                            (fftwf_complex *)(fft->data),
+			                            FFTW_ESTIMATE);
+#    endif
+		} else {
+#    if (NDIM == 2)
+			plan = fftwf_plan_dft_c2r_2d(gridPatch_getOneDim(fft->patch, 0),
+			                            gridPatch_getOneDim(fft->patch, 1),
+			                            (fftwf_complex *)(fft->data),
+			                            (float *)(fft->data),
+			                            FFTW_ESTIMATE);
+#    elif (NDIM == 3)
+			plan = fftwf_plan_dft_c2r_3d(gridPatch_getOneDim(fft->patch, 0),
+			                            gridPatch_getOneDim(fft->patch, 1),
+			                            gridPatch_getOneDim(fft->patch, 2),
+			                            (fftwf_complex *)(fft->data),
+			                            (float *)(fft->data),
+			                            FFTW_ESTIMATE);
+#    endif
+		}
+		fftw_execute(plan);
 	} else {
 		fftw_plan plan;
 		if (direction == GRIDREGULARFFT_FORWARD) {
