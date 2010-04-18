@@ -102,7 +102,12 @@ gridRegularFFT_del(gridRegularFFT_t *fft)
 			// TODO
 		}
 		if ((*fft)->fftPlans[i] != NULL) {
-			fftw_destroy_plan((fftw_plan)((*fft)->fftPlans[i]));
+#if (defined ENABLE_FFT_BACKEND_FFTW3)
+			if (gridVarType_isNativeDouble((*fft)->varType))
+				fftw_destroy_plan((fftw_plan)((*fft)->fftPlans[i]));
+			else
+				fftwf_destroy_plan((fftw_plan)((*fft)->fftPlans[i]));
+#endif
 		}
 	}
 	xfree(*fft);
@@ -162,6 +167,7 @@ local_getRemapping(gridRegularFFT_t fft)
 static void
 local_getActualFFTs(gridRegularFFT_t fft)
 {
+#if (defined ENABLE_FFT_BACKEND_FFT3)
 	if (gridVarType_isNativeDouble(fft->varType)) {
 		for (int i = 0; i < NDIM; i++)
 			fft->fft1d[i] = &local_fft_fftw3;
@@ -169,6 +175,7 @@ local_getActualFFTs(gridRegularFFT_t fft)
 		for (int i = 0; i < NDIM; i++)
 			fft->fft1d[i] = &local_fft_fftw3f;
 	}
+#endif
 
 	if (fft->direction == GRIDREGULARFFT_FORWARD)
 		local_getActualFFTsForward(fft);
