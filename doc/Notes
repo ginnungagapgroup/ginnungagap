@@ -5,14 +5,17 @@ SPRNG:  - sprng-2.0b
           setting the streams and the seeds, no MPI collective calls are
           needed from sprng itself
 
-fftw:   - fftw3-3.2.2
-        - No need for the parallel version, ginnungagap does *A LOT* of
-          1D transforms and explicitly parallelizes over those.
+FFTW:   - fftw3-3.2.2
+        - No need for the MPI parallel version, however, OpenMP or
+          threaded version is advised.  Ginnungagap does nothing to
+          parallelize local transforms --- only global transforms are
+          MPI parallel --- and hence relies and FFTW to do what it deems
+          suitable.
 
-mpi:    - openmpi-1.2(?)
+MPI:    - openmpi-1.2(?)
         - nothing special
 
-gsl:    - nothing special here, GSL is needed for integration routines
+GSL:    - nothing special here, GSL is needed for integration routines
           and spline fitting
 
 The following two libraries are required for IO:
