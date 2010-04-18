@@ -10,6 +10,7 @@
 #include "gridRegular.h"
 #include "gridRegularDistrib.h"
 #include <stdio.h>
+#include <math.h>
 #include <string.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
@@ -32,6 +33,12 @@ local_getFakeGrid(void);
 
 static gridRegularDistrib_t
 local_getFakeGridDistrib(gridRegular_t grid);
+
+static void
+local_fillFakeGrid(gridRegular_t grid);
+
+static bool
+local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -111,8 +118,10 @@ gridRegularFFT_execute_test(void)
 	gridRegularFFT_t     fft;
 	gridRegular_t        grid;
 	gridRegularDistrib_t distrib;
+	gridPatch_t          patch;
 	fpvComplex_t         *data;
 	fpv_t                *dataBack;
+	fpv_t                *dataCpy, *dataTmp;
 #ifdef XMEM_TRACK_MEM
 	size_t               allocatedBytes = global_allocated_bytes;
 #endif
@@ -123,16 +132,26 @@ gridRegularFFT_execute_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid     = local_getFakeGrid();
-	distrib  = local_getFakeGridDistrib(grid);
+	grid    = local_getFakeGrid();
+	distrib = local_getFakeGridDistrib(grid);
+	local_fillFakeGrid(grid);
+	patch   = gridRegular_getPatchHandle(grid, 0);
+	dataTmp = gridPatch_getVarDataHandle(patch, 0);
+	dataCpy = xmalloc(sizeof(fpv_t)
+	                  * gridPatch_getNumCellsActual(patch, 0));
+	memcpy(dataCpy, dataTmp,
+	       sizeof(fpv_t) * gridPatch_getNumCellsActual(patch, 0));
 	fft      = gridRegularFFT_new(grid, distrib, 0);
 	data     = (fpvComplex_t *)gridRegularFFT_execute(fft, 1);
 	dataBack = (fpv_t *)gridRegularFFT_execute(fft, -1);
 	if ((void *)data != (void *)dataBack)
 		hasPassed = false;
+	if (!local_testFFTResult(grid, dataCpy))
+		hasPassed = false;
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
 	gridRegularFFT_del(&fft);
+	xfree(dataCpy);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -154,9 +173,9 @@ local_getFakeGrid(void)
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
 		extent[i] = 1.0;
-		dims[i]   = 64;
+		dims[i]   = 32;
 	}
-	var  = gridVar_new("test", GRIDVARTYPE_FPV, 1);
+	var = gridVar_new("test", GRIDVARTYPE_FPV, 1);
 	gridVar_setFFTWPadded(var);
 
 	grid = gridRegular_new("bla", origin, extent, dims);
@@ -189,3 +208,90 @@ local_getFakeGridDistrib(gridRegular_t grid)
 
 	return distrib;
 }
+
+#define PI 3.14159265359
+static void
+local_fillFakeGrid(gridRegular_t grid)
+{
+	gridPointUint32_t dims;
+	gridPointUint32_t dimsActual;
+	uint64_t          offset = UINT64_C(0);
+	gridPatch_t       patch  = gridRegular_getPatchHandle(grid, 0);
+	fpv_t             *data  = gridPatch_getVarDataHandle(patch, 0);
+
+	gridPatch_getDims(patch, dims);
+	gridPatch_getDimsActual(patch, 0, dimsActual);
+
+#if (NDIM == 3)
+	for (int k = 0; k < dims[2]; k++) {
+		for (int j = 0; j < dims[1]; j++) {
+			offset = dimsActual[0] * (j + k * dimsActual[1]);
+			for (int i = 0; i < dims[0]; i++) {
+				data[offset++] = sin(4 * i / ((double)(dims[0])) * PI)
+				                 * sin(4 * j / ((double)(dims[1])) * PI)
+				                 * sin(4 * k / ((double)(dims[2])) * PI);
+			}
+		}
+	}
+#elif (NDIM == 2)
+	for (int j = 0; j < dims[1]; j++) {
+		offset = dimsActual[0] * (j + k * dimsActual[1]);
+		for (int i = 0; i < dims[0]; i++) {
+			data[offset++] = sin(4 * i / ((double)(dims[0])) * PI)
+			                 * sin(4 * j / ((double)(dims[1])) * PI);
+		}
+	}
+#endif
+}
+
+static bool
+local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
+{
+	gridPointUint32_t dims;
+	gridPointUint32_t dimsActual;
+	uint64_t          normFac = 1;
+	uint64_t          offset  = UINT64_C(0);
+	gridPatch_t       patch   = gridRegular_getPatchHandle(grid, 0);
+	fpv_t             *data   = gridPatch_getVarDataHandle(patch, 0);
+	long double       sumSqr  = 0.;
+	gridVar_t         var     = gridPatch_getVarHandle(patch, 0);
+	gridVarType_t     varType = gridVar_getType(var);
+
+	gridPatch_getDims(patch, dims);
+	gridPatch_getDimsActual(patch, 0, dimsActual);
+
+	for (int i = 0; i < NDIM; i++)
+		normFac *= dims[i];
+
+#if (NDIM == 3)
+	for (int k = 0; k < dims[2]; k++) {
+		for (int j = 0; j < dims[1]; j++) {
+			offset = dimsActual[0] * (j + k * dimsActual[1]);
+			for (int i = 0; i < dims[0]; i++) {
+				double tmp = data[offset] - dataCpy[offset] * normFac;
+				sumSqr += tmp * tmp;
+				offset++;
+			}
+		}
+	}
+#elif (NDIM == 2)
+	for (int j = 0; j < dims[1]; j++) {
+		offset = dimsActual[0] * (j + k * dimsActual[1]);
+		for (int i = 0; i < dims[0]; i++) {
+			double tmp = data[offset] - dataCpy[offset] * normFac;
+			sumSqr += tmp * tmp;
+			offset++;
+		}
+	}
+#endif
+
+	if (gridVarType_isNativeDouble(varType)) {
+		if ((sqrt(sumSqr) > 8e-10))
+			return false;
+	} else {
+		if ((sqrt(sumSqr) > 1.9e-1))
+			return false;
+	}
+
+	return true;
+} /* local_testFFTResult */
