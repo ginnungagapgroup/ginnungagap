@@ -32,6 +32,11 @@ gridPatch_getDimActual1D(gridPatch_t patch, int idxOfVar, int dim);
 extern void
 gridPatch_getDims(gridPatch_t patch, gridPointUint32_t dim);
 
+extern void
+gridPatch_getDimsActual(gridPatch_t       patch,
+                        int               idxOfVar,
+                        gridPointUint32_t dimsActual);
+
 extern uint64_t
 gridPatch_getNumCells(gridPatch_t patch);
 

@@ -542,13 +542,3 @@ gridPatch_getNumVars_test(void)
 } /* gridPatch_getNumVars_test */
 
 /*--- Implementations of local functions --------------------------------*/
-static void
-local_fillGrid(const char *param, gridPointUint32_t pos)
-{
-#if (NDIM == 3)
-	return pos[0] * pos[0] + pos[1] * pos[1] + pos[2] * pos[2];
-
-#elif (NDIM == 2)
-	return pos[0] * pos[0] + pos[1] * pos[1];
-#endif
-}

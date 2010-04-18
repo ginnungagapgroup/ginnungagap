@@ -89,7 +89,7 @@ gridPatch_getDimActual1D(gridPatch_t patch, int idxOfVar, int dim)
 
 	var = gridPatch_getVarHandle(patch, idxOfVar);
 
-	if (gridVar_isFFTWPadded(var) && (dim == NDIM - 1))
+	if (gridVar_isFFTWPadded(var) && (dim == 0))
 		actualDim = 2 * ((patch->dims[dim]) / 2 + 1);
 	else
 		actualDim = patch->dims[dim];
@@ -101,10 +101,25 @@ extern void
 gridPatch_getDims(gridPatch_t patch, gridPointUint32_t dims)
 {
 	assert(patch != NULL);
+	assert(dims != NULL);
 
 	for (int i = 0; i < NDIM; i++)
 		dims[i] = patch->dims[i];
 }
+
+extern void
+gridPatch_getDimsActual(gridPatch_t       patch,
+                        int               idxOfVar,
+                        gridPointUint32_t dimsActual)
+{
+	assert(patch != NULL);
+	assert(idxOfVar >=0 && idxOfVar < varArr_getLength(patch->vars));
+	assert(dimsActual != NULL);
+
+	for (int i=0; i<NDIM; i++)
+		dimsActual[i] = gridPatch_getDimActual1D(patch, idxOfVar, i);
+}
+
 
 extern uint64_t
 gridPatch_getNumCells(gridPatch_t patch)
