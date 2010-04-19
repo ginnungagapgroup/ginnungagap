@@ -173,7 +173,7 @@ local_getFakeGrid(void)
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
 		extent[i] = 1.0;
-		dims[i]   = 32;
+		dims[i]   = 32+i;
 	}
 	var = gridVar_new("test", GRIDVARTYPE_FPV, 1);
 	gridVar_setFFTWPadded(var);
@@ -286,10 +286,10 @@ local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
 #endif
 
 	if (gridVarType_isNativeDouble(varType)) {
-		if ((sqrt(sumSqr) > 8e-10))
+		if ((sqrtl(sumSqr) > 8e-10))
 			return false;
 	} else {
-		if ((sqrt(sumSqr) > 1.9e-1))
+		if ((sqrtl(sumSqr) > 1.9e-1))
 			return false;
 	}
 

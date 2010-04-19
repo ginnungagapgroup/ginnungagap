@@ -24,7 +24,7 @@ typedef struct gridRegularFFT_struct *gridRegularFFT_t;
 /*--- Prototypes of exported functions ----------------------------------*/
 extern gridRegularFFT_t
 gridRegularFFT_new(gridRegular_t        grid,
-                   gridRegularDistrib_t gridDistrib,
+                   gridRegularDistrib_t distrib,
                    int                  idxFFTVar);
 
 extern void
