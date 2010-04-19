@@ -100,7 +100,7 @@ gridRegularDistrib_initMPI(gridRegularDistrib_t distrib,
 	MPI_Dims_create(size, NDIM, distrib->nProcs);
 	distrib->numProcs = 1;
 	for (int i = 0; i < NDIM; i++) {
-		periodicity[i]     = 1; // means true
+		periodicity[i]     = 0; // means false
 		distrib->numProcs *= distrib->nProcs[i];
 	}
 	assert(distrib->numProcs == size);
@@ -120,6 +120,17 @@ gridRegularDistrib_getLocalRank(gridRegularDistrib_t distrib)
 	MPI_Comm_rank(distrib->commCart, &rank);
 
 	return rank;
+}
+
+extern void
+gridRegularDistrib_getProcCoords(gridRegularDistrib_t distrib,
+                                 gridPointInt_t       procCoords)
+{
+	int localRank;
+	assert(distrib != NULL);
+
+	localRank = gridRegularDistrib_getLocalRank(distrib);
+	MPI_Cart_coords(distrib->commCart, localRank, NDIM, procCoords);
 }
 
 #endif
@@ -143,6 +154,17 @@ gridRegularDistrib_getPatchForRank(gridRegularDistrib_t distrib, int rank)
 	}
 
 	return gridPatch_new(idxLo, idxHi);
+}
+
+extern void
+gridRegularDistrib_getNProcs(gridRegularDistrib_t distrib,
+                             gridPointInt_t       nProcs)
+{
+	assert(distrib != NULL);
+	assert(nProcs != NULL);
+
+	for (int i = 0; i < NDIM; i++)
+		nProcs[i] = distrib->nProcs[i];
 }
 
 extern void

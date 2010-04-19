@@ -40,10 +40,18 @@ gridRegularDistrib_initMPI(gridRegularDistrib_t distrib,
 extern int
 gridRegularDistrib_getLocalRank(gridRegularDistrib_t distrib);
 
+extern void
+gridRegularDistrib_getProcCoords(gridRegularDistrib_t distrib,
+                                 gridPointInt_t       procCoords);
+
 #endif
 
 extern gridPatch_t
 gridRegularDistrib_getPatchForRank(gridRegularDistrib_t distrib, int rank);
+
+extern void
+gridRegularDistrib_getNProcs(gridRegularDistrib_t distrib,
+                             gridPointInt_t       nProcs);
 
 extern void
 gridRegular_calcIdxsForRank1D(uint32_t nCells,
