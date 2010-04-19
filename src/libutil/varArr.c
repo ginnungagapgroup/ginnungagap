@@ -107,6 +107,20 @@ varArr_remove(varArr_t arr, int numElement)
 }
 
 extern void *
+varArr_replace(varArr_t arr, int numElement, void *newElement)
+{
+	void *replacedElement;
+
+	assert(arr != NULL);
+	assert(numElement >= 0 && numElement < arr->numUsed);
+
+	replacedElement = arr->elements[numElement];
+	arr->elements[numElement] = newElement;
+
+	return replacedElement;
+}
+
+extern void *
 varArr_getElementHandle(varArr_t arr, int numElement)
 {
 	assert(arr != NULL);

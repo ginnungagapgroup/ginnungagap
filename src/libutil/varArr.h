@@ -34,6 +34,9 @@ extern void *
 varArr_remove(varArr_t arr, int numElement);
 
 extern void *
+varArr_replace(varArr_t arr, int numElement, void *newElement);
+
+extern void *
 varArr_getElementHandle(varArr_t arr, int numElement);
 
 #endif

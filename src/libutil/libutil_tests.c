@@ -60,6 +60,7 @@ main(int argc, char **argv)
 	RUNTEST(&varArr_getLength_test, hasFailed);
 	RUNTEST(&varArr_insert_test, hasFailed);
 	RUNTEST(&varArr_remove_test, hasFailed);
+	RUNTEST(&varArr_replace_test, hasFailed);
 	RUNTEST(&varArr_getElementHandle_test, hasFailed);
 
 	if (hasFailed) {

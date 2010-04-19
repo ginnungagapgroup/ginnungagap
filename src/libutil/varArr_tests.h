@@ -28,6 +28,9 @@ extern bool
 varArr_remove_test(void);
 
 extern bool
+varArr_replace_test(void);
+
+extern bool
 varArr_getElementHandle_test(void);
 
 
