@@ -173,8 +173,8 @@ local_doFFTCompletelyLocal(gridRegularFFT_t fft, int direction)
 			                          (fftwf_complex *)(fft->data),
 			                          FFTW_ESTIMATE);
 		} else {
-			plan = fftwf_plan_dft_c2r(NDIM, n, (float *)(fft->data),
-			                          (fftwf_complex *)(fft->data),
+			plan = fftwf_plan_dft_c2r(NDIM, n, (fftwf_complex *)(fft->data),
+			                          (float *)(fft->data),
 			                          FFTW_ESTIMATE);
 		}
 		fftwf_execute(plan);
@@ -186,8 +186,8 @@ local_doFFTCompletelyLocal(gridRegularFFT_t fft, int direction)
 			                         (fftw_complex *)(fft->data),
 			                         FFTW_ESTIMATE);
 		} else {
-			plan = fftw_plan_dft_c2r(NDIM, n, (double *)(fft->data),
-			                         (fftw_complex *)(fft->data),
+			plan = fftw_plan_dft_c2r(NDIM, n, (fftw_complex *)(fft->data),
+			                         (double *)(fft->data),
 			                         FFTW_ESTIMATE);
 		}
 		fftw_execute(plan);

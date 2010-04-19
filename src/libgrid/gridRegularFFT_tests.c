@@ -173,7 +173,7 @@ local_getFakeGrid(void)
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
 		extent[i] = 1.0;
-		dims[i]   = 32+i;
+		dims[i]   = 32 + i;
 	}
 	var = gridVar_new("test", GRIDVARTYPE_FPV, 1);
 	gridVar_setFFTWPadded(var);
@@ -227,9 +227,10 @@ local_fillFakeGrid(gridRegular_t grid)
 		for (int j = 0; j < dims[1]; j++) {
 			offset = dimsActual[0] * (j + k * dimsActual[1]);
 			for (int i = 0; i < dims[0]; i++) {
-				data[offset++] = sin(4 * i / ((double)(dims[0])) * PI)
-				                 * sin(4 * j / ((double)(dims[1])) * PI)
-				                 * sin(4 * k / ((double)(dims[2])) * PI);
+				data[offset++] = (fpv_t)
+				                 (sin(4 * i / ((double)(dims[0])) * PI)
+				                  * sin(4 * j / ((double)(dims[1])) * PI)
+				                  * sin(4 * k / ((double)(dims[2])) * PI));
 			}
 		}
 	}
@@ -237,12 +238,13 @@ local_fillFakeGrid(gridRegular_t grid)
 	for (int j = 0; j < dims[1]; j++) {
 		offset = dimsActual[0] * (j + k * dimsActual[1]);
 		for (int i = 0; i < dims[0]; i++) {
-			data[offset++] = sin(4 * i / ((double)(dims[0])) * PI)
-			                 * sin(4 * j / ((double)(dims[1])) * PI);
+			data[offset++] = (fpv_t)
+			                 (sin(4 * i / ((double)(dims[0])) * PI)
+			                  * sin(4 * j / ((double)(dims[1])) * PI));
 		}
 	}
 #endif
-}
+} /* local_fillFakeGrid */
 
 static bool
 local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
@@ -286,10 +288,10 @@ local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
 #endif
 
 	if (gridVarType_isNativeDouble(varType)) {
-		if ((sqrtl(sumSqr) > 8e-10))
+		if ((sqrtl(sumSqr) > 2e-9))
 			return false;
 	} else {
-		if ((sqrtl(sumSqr) > 1.9e-1))
+		if ((sqrtl(sumSqr) > 7e-1))
 			return false;
 	}
 
