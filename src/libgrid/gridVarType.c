@@ -47,6 +47,9 @@ gridVarType_isFloating(gridVarType_t type)
 	case GRIDVARTYPE_DOUBLE:
 	case GRIDVARTYPE_FPV:
 		return true;
+
+	default:
+		break;
 	}
 
 	return false;
@@ -58,6 +61,9 @@ gridVarType_isInteger(gridVarType_t type)
 	switch (type) {
 	case GRIDVARTYPE_INT:
 		return true;
+
+	default:
+		break;
 	}
 
 	return false;
@@ -71,6 +77,8 @@ gridVarType_isNativeFloat(gridVarType_t type)
 	case GRIDVARTYPE_FPV:
 		return true;
 #endif
+	default:
+		break;
 	}
 
 	return false;
@@ -85,6 +93,9 @@ gridVarType_isNativeDouble(gridVarType_t type)
 	case GRIDVARTYPE_FPV:
 #endif
 		return true;
+
+	default:
+		break;
 	}
 
 	return false;
