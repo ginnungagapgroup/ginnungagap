@@ -15,6 +15,9 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#ifdef ENABLE_FFT_BACKEND_FFTW3
+#  include <fftw3.h>
+#endif
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
@@ -176,7 +179,16 @@ local_getFakeGrid(void)
 		dims[i]   = 32 + i;
 	}
 	var = gridVar_new("test", GRIDVARTYPE_FPV, 1);
+#ifndef WITH_MPI
 	gridVar_setFFTWPadded(var);
+#endif
+#ifdef ENABLE_FFT_BACKEND_FFTW3
+#  ifdef ENABLE_DOUBLE
+	gridVar_setMemFuncs(var, &fftw_malloc, &fftw_free);
+#  else
+	gridVar_setMemFuncs(var, &fftwf_malloc, &fftwf_free);
+#  endif
+#endif
 
 	grid = gridRegular_new("bla", origin, extent, dims);
 	gridRegular_attachVar(grid, var);
