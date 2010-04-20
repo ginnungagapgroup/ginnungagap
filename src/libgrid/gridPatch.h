@@ -64,4 +64,10 @@ gridPatch_getVarDataHandle(gridPatch_t patch, int idxOfVarData);
 extern int
 gridPatch_getNumVars(gridPatch_t patch);
 
+extern void
+gridPatch_transposeVar(gridPatch_t patch,
+                       int         idxOfVarData,
+                       int         dimA,
+                       int         dimB);
+
 #endif

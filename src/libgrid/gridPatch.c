@@ -9,6 +9,7 @@
 #include "gridPoint.h"
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 #include "../libutil/xmem.h"
 #include "../libutil/varArr.h"
 #include "../libutil/diediedie.h"
@@ -22,6 +23,14 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+#if (NDIM == 2)
+static void
+local_transposeVar_2d(const void              *data,
+                      void                    *dataT,
+                      const int               size,
+                      const gridPointUint32_t dimsT);
+
+#endif
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -230,4 +239,66 @@ gridPatch_getNumVars(gridPatch_t patch)
 	return varArr_getLength(patch->vars);
 }
 
+extern void
+gridPatch_transposeVar(gridPatch_t patch,
+                       int         idxOfVarData,
+                       int         dimA,
+                       int         dimB)
+{
+	void              *data;
+	void              *dataT;
+	gridVar_t         var;
+	int               size;
+	gridPointUint32_t dims;
+	gridPointUint32_t dimsT;
+	uint64_t          numCellsActual;
+
+	assert(patch != NULL);
+	assert((idxOfVarData >= 0)
+	       && (idxOfVarData < gridPatch_getNumVars(patch)));
+	assert(dimA >= 0 && dimA < NDIM);
+	assert(dimB >= 0 && dimB < NDIM);
+
+	data = gridPatch_getVarDataHandle(patch, idxOfVarData);
+	var  = gridPatch_getVarHandle(patch, idxOfVarData);
+	size = gridVar_getSizePerElement(var);
+	gridPatch_getDimsActual(patch, idxOfVarData, dims);
+	gridPatch_getDimsActual(patch, idxOfVarData, dimsT);
+	dimsT[dimA]    = dims[dimB];
+	dimsT[dimB]    = dims[dimA];
+	numCellsActual = gridPatch_getNumCellsActual(patch, idxOfVarData);
+	dataT          = gridVar_getMemory(var, numCellsActual);
+
+	switch (size) {
+	default:
+#if (NDIM == 2)
+		local_transposeVar_2d(data, dataT, size, dimsT);
+#elif (NDIM == 3)
+//		local_transposeVar_3d(data, dataT, size, dimsT);
+#endif
+	}
+} /* gridPatch_transposeVar */
+
 /*--- Implementations of local functions --------------------------------*/
+
+#if (NDIM == 2)
+static void
+local_transposeVar_2d(const void              *data,
+                      void                    *dataT,
+                      const int               size,
+                      const gridPointUint32_t dimsT)
+{
+	// Write contiguous, read random
+#pragma omp parallel for shared(data, dataT)
+	for (int k1 = 0; k1 < dimsT[1]; k1++) {
+		for (int k0 = 0; k0 < dimsT[0]; k0++) {
+			size_t posT = (k0 + k1 * dimsT[0]) * size;
+			size_t pos  = (k1 + k0 * dimsT[1]) * size;
+			memcpy(((char *)dataT) + posT, ((const char *)data) + pos, size);
+		}
+	}
+}
+
+#elif (NDIM == 3)
+
+#endif
