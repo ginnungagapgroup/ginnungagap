@@ -155,6 +155,10 @@ gridRegularFFT_execute_test(void)
 	gridRegularDistrib_del(&distrib);
 	gridRegularFFT_del(&fft);
 	xfree(dataCpy);
+#ifdef ENABLE_FFT_BACKEND_FFTW3
+	fftw_cleanup();
+	fftwf_cleanup();
+#endif
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
