@@ -248,7 +248,7 @@ local_fillFakeGrid(gridRegular_t grid)
 	}
 #elif (NDIM == 2)
 	for (int j = 0; j < dims[1]; j++) {
-		offset = dimsActual[0] * (j + k * dimsActual[1]);
+		offset = dimsActual[0] * j;
 		for (int i = 0; i < dims[0]; i++) {
 			data[offset++] = (fpv_t)
 			                 (sin(4 * i / ((double)(dims[0])) * PI)
@@ -290,7 +290,7 @@ local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
 	}
 #elif (NDIM == 2)
 	for (int j = 0; j < dims[1]; j++) {
-		offset = dimsActual[0] * (j + k * dimsActual[1]);
+		offset = dimsActual[0] * j;
 		for (int i = 0; i < dims[0]; i++) {
 			double tmp = data[offset] - dataCpy[offset] * normFac;
 			sumSqr += tmp * tmp;

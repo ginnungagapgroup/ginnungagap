@@ -54,11 +54,17 @@ gridRegularDistrib_getNProcs(gridRegularDistrib_t distrib,
                              gridPointInt_t       nProcs);
 
 extern void
-gridRegular_calcIdxsForRank1D(uint32_t nCells,
-                              int      nProcs,
-                              int      rank,
-                              uint32_t *idxLo,
-                              uint32_t *idxHi);
+gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
+                                     int      nProcs,
+                                     int      rank,
+                                     uint32_t *idxLo,
+                                     uint32_t *idxHi);
+
+extern void
+gridRegularDistrib_transposeVar(gridRegularDistrib_t distrib,
+                                int                  idxVar,
+                                int                  dimA,
+                                int                  dimB);
 
 
 #endif

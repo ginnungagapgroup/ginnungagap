@@ -283,33 +283,33 @@ gridRegularDistrib_calcIdxsForRank1D_test(void)
 		uint32_t idxLo;
 		uint32_t idxHi;
 		printf("Testing %s... ", __func__);
-		gridRegular_calcIdxsForRank1D(11, 2, 0, &idxLo, &idxHi);
+		gridRegularDistrib_calcIdxsForRank1D(11, 2, 0, &idxLo, &idxHi);
 		if ((idxLo != 0) || (idxHi != 5))
 			hasPassed = false;
-		gridRegular_calcIdxsForRank1D(11, 2, 1, &idxLo, &idxHi);
+		gridRegularDistrib_calcIdxsForRank1D(11, 2, 1, &idxLo, &idxHi);
 		if ((idxLo != 6) || (idxHi != 10))
 			hasPassed = false;
 
-		gridRegular_calcIdxsForRank1D(11, 3, 0, &idxLo, &idxHi);
+		gridRegularDistrib_calcIdxsForRank1D(11, 3, 0, &idxLo, &idxHi);
 		if ((idxLo != 0) || (idxHi != 3))
 			hasPassed = false;
-		gridRegular_calcIdxsForRank1D(11, 3, 1, &idxLo, &idxHi);
+		gridRegularDistrib_calcIdxsForRank1D(11, 3, 1, &idxLo, &idxHi);
 		if ((idxLo != 4) || (idxHi != 7))
 			hasPassed = false;
-		gridRegular_calcIdxsForRank1D(11, 3, 2, &idxLo, &idxHi);
+		gridRegularDistrib_calcIdxsForRank1D(11, 3, 2, &idxLo, &idxHi);
 		if ((idxLo != 8) || (idxHi != 10))
 			hasPassed = false;
 
-		gridRegular_calcIdxsForRank1D(11, 4, 0, &idxLo, &idxHi);
+		gridRegularDistrib_calcIdxsForRank1D(11, 4, 0, &idxLo, &idxHi);
 		if ((idxLo != 0) || (idxHi != 2))
 			hasPassed = false;
-		gridRegular_calcIdxsForRank1D(11, 4, 1, &idxLo, &idxHi);
+		gridRegularDistrib_calcIdxsForRank1D(11, 4, 1, &idxLo, &idxHi);
 		if ((idxLo != 3) || (idxHi != 5))
 			hasPassed = false;
-		gridRegular_calcIdxsForRank1D(11, 4, 2, &idxLo, &idxHi);
+		gridRegularDistrib_calcIdxsForRank1D(11, 4, 2, &idxLo, &idxHi);
 		if ((idxLo != 6) || (idxHi != 8))
 			hasPassed = false;
-		gridRegular_calcIdxsForRank1D(11, 4, 3, &idxLo, &idxHi);
+		gridRegularDistrib_calcIdxsForRank1D(11, 4, 3, &idxLo, &idxHi);
 		if ((idxLo != 9) || (idxHi != 10))
 			hasPassed = false;
 	}

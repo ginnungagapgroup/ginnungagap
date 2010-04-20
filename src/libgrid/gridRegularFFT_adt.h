@@ -17,7 +17,7 @@ struct gridRegularFFT_struct {
 	int                  idxFFTVar;
 	gridVar_t            var;
 	gridPatch_t          patch;
-	gridPointInt_t nProcs;
+	gridPointInt_t       nProcs;
 #if (defined WITH_MPI)
 	gridPointUint32_t    globalDims[NDIM];
 	gridPointUint32_t    localIdxLo[NDIM];

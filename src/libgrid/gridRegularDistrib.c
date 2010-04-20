@@ -149,8 +149,11 @@ gridRegularDistrib_getPatchForRank(gridRegularDistrib_t distrib, int rank)
 	gridRegular_getDims(distrib->grid, gridDims);
 
 	for (int i = 0; i < NDIM; i++) {
-		gridRegular_calcIdxsForRank1D(gridDims[i], distrib->nProcs[i],
-		                              procCoords[i], idxLo + i, idxHi + i);
+		gridRegularDistrib_calcIdxsForRank1D(gridDims[i],
+		                                     distrib->nProcs[i],
+		                                     procCoords[i],
+		                                     idxLo + i,
+		                                     idxHi + i);
 	}
 
 	return gridPatch_new(idxLo, idxHi);
@@ -168,11 +171,11 @@ gridRegularDistrib_getNProcs(gridRegularDistrib_t distrib,
 }
 
 extern void
-gridRegular_calcIdxsForRank1D(uint32_t nCells,
-                              int      nProcs,
-                              int      rank,
-                              uint32_t *idxLo,
-                              uint32_t *idxHi)
+gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
+                                     int      nProcs,
+                                     int      rank,
+                                     uint32_t *idxLo,
+                                     uint32_t *idxHi)
 {
 	int cellsPerProc;
 	int cellsUnbalance;
@@ -194,6 +197,25 @@ gridRegular_calcIdxsForRank1D(uint32_t nCells,
 	*idxHi = *idxLo + cellsPerProc - 1;
 	if (rank < cellsUnbalance)
 		(*idxHi)++;
+}
+
+extern void
+gridRegularDistrib_transposeVar(gridRegularDistrib_t distrib,
+                                int                  idxVar,
+                                int                  dimA,
+                                int                  dimB)
+{
+	gridPatch_t patch;
+
+	assert(distrib != NULL);
+	assert((idxVar >= 0)
+	       && (idxVar < gridRegular_getNumVars(distrib->grid)));
+	assert(dimA >= 0 && dimA < NDIM);
+	assert(dimB >= 0 && dimB < NDIM);
+
+	patch = gridRegular_getPatchHandle(distrib->grid, 0);
+
+	gridPatch_transposeVar(patch, idxVar, dimA, dimB);
 }
 
 /*--- Implementations of local functions --------------------------------*/

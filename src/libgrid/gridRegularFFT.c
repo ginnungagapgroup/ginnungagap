@@ -131,11 +131,11 @@ local_initMPIStuff(gridRegularFFT_t fft)
 
 	for (int i = 0; i < NDIM; i++) {
 		for (int j = 0; j < NDIM; j++) {
-			gridRegular_calcIdxsForRank1D(fft->globalDims[i][j],
-			                              fft->nProcs[j],
-			                              procCoords[j],
-			                              fft->localIdxLo[i] + j,
-			                              fft->localIdxHi[i] + j);
+			gridRegularDistrib_calcIdxsForRank1D(fft->globalDims[i][j],
+			                                     fft->nProcs[j],
+			                                     procCoords[j],
+			                                     fft->localIdxLo[i] + j,
+			                                     fft->localIdxHi[i] + j);
 			fft->localDims[i][j] = fft->localIdxHi[i][j]
 			                       - fft->localIdxLo[i][j] + 1;
 		}
@@ -209,6 +209,9 @@ local_doFFTParallelForward(gridRegularFFT_t fft)
 	void *result;
 
 	result = local_doFFTParallelR2CPencil(fft);
+	gridPatch_replaceVarData(fft->patch, fft->idxFFTVar, result);
+	gridRegularDistrib_transposeVar(fft->distrib, fft->idxFFTVar, 0, 1);
+//	result = local_doFFTParallelC2CPencil(fft);
 
 	return result;
 }
