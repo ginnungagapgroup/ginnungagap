@@ -63,7 +63,7 @@ gridRegularFFT_new_test(void)
 	grid    = local_getFakeGrid();
 	distrib = local_getFakeGridDistrib(grid);
 	fft     = gridRegularFFT_new(grid, distrib, 0);
-	if (fft->varType != GRIDVARTYPE_FPV)
+	if (gridVar_getType(fft->var) != GRIDVARTYPE_FPV)
 		hasPassed = false;
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
