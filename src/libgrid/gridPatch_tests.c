@@ -25,6 +25,11 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+static gridPatch_t
+local_getFakePatch(void);
+
+static bool
+local_verifyFakePatchTransposed(gridPatch_t patch, gridPointInt_t s);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -449,7 +454,7 @@ gridPatch_replaceVarData_test(void)
 		idxLo[i] = 0;
 		idxHi[i] = 31;
 	}
-	gridPatch = gridPatch_new(idxLo, idxHi);
+	gridPatch   = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(gridPatch, var);
 	replaceData = gridVar_getMemory(var, gridPatch->numCells);
 	gridPatch_replaceVarData(gridPatch, 0, replaceData);
@@ -463,7 +468,7 @@ gridPatch_replaceVarData_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_replaceVarData_test */
 
 extern bool
 gridPatch_getVarHandle_test(void)
@@ -582,4 +587,116 @@ gridPatch_getNumVars_test(void)
 	return hasPassed ? true : false;
 } /* gridPatch_getNumVars_test */
 
+extern bool
+gridPatch_transposeVar_test(void)
+{
+	bool           hasPassed = true;
+	int            rank      = 0;
+	gridPatch_t    patch;
+	gridPointInt_t s;
+#ifdef XMEM_TRACK_MEM
+	size_t         allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	patch = local_getFakePatch();
+	gridPatch_transposeVar(patch, 0, 0, 1);
+	s[0]  = 1;
+	s[1]  = 0;
+	if (!local_verifyFakePatchTransposed(patch, s))
+		hasPassed = false;
+	gridPatch_del(&patch);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 /*--- Implementations of local functions --------------------------------*/
+static gridPatch_t
+local_getFakePatch(void)
+{
+	gridPatch_t       patch;
+	gridVar_t         var;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+	int               *data;
+	int               offset = 0;
+
+	var      = gridVar_new("TEST", GRIDVARTYPE_INT, 1);
+	idxLo[0] = 0;
+	idxHi[0] = 1;
+	for (int i = 1; i < NDIM; i++) {
+		idxLo[i] = 0;
+		idxHi[i] = 3;
+	}
+	patch = gridPatch_new(idxLo, idxHi);
+	gridPatch_attachVarData(patch, var);
+	data  = gridPatch_getVarDataHandle(patch, 0);
+#if (NDIM == 2)
+	for (int j = 0; j < patch->dims[1]; j++) {
+		for (int i = 0; i < patch->dims[0]; i++) {
+			data[offset] = offset;
+			offset++;
+		}
+	}
+#elif (NDIM == 3)
+	for (int k = 0; k < patch->dims[2]; k++) {
+		for (int j = 0; j < patch->dims[1]; j++) {
+			for (int i = 0; i < patch->dims[0]; i++) {
+				data[offset] = offset;
+				offset++;
+			}
+		}
+	}
+#endif
+	gridVar_del(&var);
+
+	return patch;
+} /* local_getFakePatch */
+
+static bool
+local_verifyFakePatchTransposed(gridPatch_t patch, gridPointInt_t s)
+{
+	int            *data;
+	gridPointInt_t k;
+	int            expected;
+	int            offset = 0;
+
+	data = gridPatch_getVarDataHandle(patch, 0);
+
+#if (NDIM == 2)
+	for (k[1] = 0; k[1] < patch->dims[1]; k[1]++) {
+		for (k[0] = 0; k[0] < patch->dims[0]; k[0]++) {
+			expected = k[s[0]] + k[s[1]] * patch->dims[s[0]];
+			if (data[offset] != expected)
+				return false;
+
+			offset++;
+		}
+	}
+#elif (NDIM == 3)
+	for (int k = 0; k < patch->dims[2]; k++) {
+		for (int j = 0; j < patch->dims[1]; j++) {
+			for (int i = 0; i < patch->dims[0]; i++) {
+				expected = k[s[0]] + k[s[1]] * patch->dims[s[0]]
+				           + k[s[2]] * patch->dims[s[0]]
+				           * patch->dims[s[1]];
+				if (data[offset] != expected)
+					return false;
+
+				offset++;
+			}
+		}
+	}
+#endif
+
+	return true;
+} /* local_verifyFakePatchTransposed */

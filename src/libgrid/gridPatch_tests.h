@@ -22,10 +22,12 @@ extern bool
 gridPatch_getOneDim_test(void);
 
 extern bool
-gridPatch_getDims_test(void);
+gridPatch_getDimActual1D_test(void);
 
 extern bool
-gridPatch_getDimActual1D_test(void);
+gridPatch_getDims_test(void);
+
+// TODO:  gridPatch_getDimsActual_test(void);
 
 extern bool
 gridPatch_getNumCells_test(void);
@@ -53,5 +55,9 @@ gridPatch_getVarDataHandle_test(void);
 
 extern bool
 gridPatch_getNumVars_test(void);
+
+extern bool
+gridPatch_transposeVar_test(void);
+
 
 #endif

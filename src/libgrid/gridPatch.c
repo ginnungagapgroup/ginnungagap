@@ -276,7 +276,9 @@ gridPatch_transposeVar(gridPatch_t patch,
 #elif (NDIM == 3)
 //		local_transposeVar_3d(data, dataT, size, dimsT);
 #endif
+		break;
 	}
+	gridPatch_replaceVarData(patch, 0, dataT);
 } /* gridPatch_transposeVar */
 
 /*--- Implementations of local functions --------------------------------*/
