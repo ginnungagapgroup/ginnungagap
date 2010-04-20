@@ -43,6 +43,9 @@ extern bool
 gridPatch_detachVarData_test(void);
 
 extern bool
+gridPatch_replaceVarData_test(void);
+
+extern bool
 gridPatch_getVarHandle_test(void);
 
 extern bool

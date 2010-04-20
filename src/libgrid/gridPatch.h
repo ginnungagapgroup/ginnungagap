@@ -52,6 +52,9 @@ gridPatch_attachVarData(gridPatch_t patch, gridVar_t var);
 extern void *
 gridPatch_detachVarData(gridPatch_t patch, int idxOfVarData);
 
+extern void
+gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);
+
 extern gridVar_t
 gridPatch_getVarHandle(gridPatch_t patch, int idxOfVar);
 

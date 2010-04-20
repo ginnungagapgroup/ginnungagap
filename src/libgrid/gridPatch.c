@@ -113,13 +113,12 @@ gridPatch_getDimsActual(gridPatch_t       patch,
                         gridPointUint32_t dimsActual)
 {
 	assert(patch != NULL);
-	assert(idxOfVar >=0 && idxOfVar < varArr_getLength(patch->vars));
+	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(patch->vars));
 	assert(dimsActual != NULL);
 
-	for (int i=0; i<NDIM; i++)
+	for (int i = 0; i < NDIM; i++)
 		dimsActual[i] = gridPatch_getDimActual1D(patch, idxOfVar, i);
 }
-
 
 extern uint64_t
 gridPatch_getNumCells(gridPatch_t patch)
@@ -189,6 +188,21 @@ gridPatch_detachVarData(gridPatch_t patch, int idxOfVarData)
 	gridVar_del(&tmp);
 
 	return varArr_remove(patch->varData, idxOfVarData);
+}
+
+extern void
+gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData)
+{
+	void      *oldData;
+	gridVar_t var;
+
+	assert(patch != NULL);
+	assert(idxOfVarData >= 0
+	       && idxOfVarData < varArr_getLength(patch->varData));
+
+	oldData = varArr_replace(patch->varData, idxOfVarData, newData);
+	var     = gridPatch_getVarHandle(patch, idxOfVarData);
+	gridVar_freeMemory(var, oldData);
 }
 
 extern gridVar_t
