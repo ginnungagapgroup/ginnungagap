@@ -18,9 +18,7 @@
 #ifdef ENABLE_FFT_BACKEND_FFTW3
 #  include <fftw3.h>
 #endif
-#ifdef XMEM_TRACK_MEM
-#  include "../libutil/xmem.h"
-#endif
+#include "../libutil/xmem.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
