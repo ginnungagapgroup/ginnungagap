@@ -25,6 +25,17 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+#if (NDIM == 2)
+static bool
+local_tranposeVar_test_2d(void);
+
+
+#elif (NDIM == 3)
+static bool
+local_tranposeVar_test_3d(void);
+
+#endif
+
 static gridPatch_t
 local_getFakePatch(void);
 
@@ -590,12 +601,10 @@ gridPatch_getNumVars_test(void)
 extern bool
 gridPatch_transposeVar_test(void)
 {
-	bool           hasPassed = true;
-	int            rank      = 0;
-	gridPatch_t    patch;
-	gridPointInt_t s;
+	bool   hasPassed      = true;
+	int    rank           = 0;
 #ifdef XMEM_TRACK_MEM
-	size_t         allocatedBytes = global_allocated_bytes;
+	size_t allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -604,13 +613,13 @@ gridPatch_transposeVar_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	patch = local_getFakePatch();
-	gridPatch_transposeVar(patch, 0, 0, 1);
-	s[0]  = 1;
-	s[1]  = 0;
-	if (!local_verifyFakePatchTransposed(patch, s))
+#if (NDIM == 2)
+	if (!local_tranposeVar_test_2d())
 		hasPassed = false;
-	gridPatch_del(&patch);
+#elif (NDIM == 3)
+	if (!local_tranposeVar_test_3d())
+		hasPassed = false;
+#endif
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -620,6 +629,89 @@ gridPatch_transposeVar_test(void)
 }
 
 /*--- Implementations of local functions --------------------------------*/
+#if (NDIM == 2)
+static bool
+local_tranposeVar_test_2d(void)
+{
+	bool           hasPassed = true;
+	gridPatch_t    patch;
+	gridPointInt_t s;
+
+	patch = local_getFakePatch();
+
+	gridPatch_transposeVar(patch, 0, 0, 1);
+	s[0] = 1;
+	s[1] = 0;
+	if (!local_verifyFakePatchTransposed(patch, s))
+		hasPassed = false;
+
+	gridPatch_transposeVar(patch, 0, 0, 1);
+	s[0] = 0;
+	s[1] = 1;
+	if (!local_verifyFakePatchTransposed(patch, s))
+		hasPassed = false;
+
+	gridPatch_del(&patch);
+
+	return hasPassed ? true : false;
+}
+
+#elif (NDIM == 3)
+static bool
+local_tranposeVar_test_3d(void)
+{
+	bool           hasPassed = true;
+	gridPatch_t    patch;
+	gridPointInt_t s;
+
+	patch = local_getFakePatch();
+
+	gridPatch_transposeVar(patch, 0, 0, 1);
+	s[0] = 1;
+	s[1] = 0;
+	s[2] = 2;
+	if (!local_verifyFakePatchTransposed(patch, s))
+		hasPassed = false;
+	gridPatch_transposeVar(patch, 0, 0, 1);
+	s[0] = 0;
+	s[1] = 1;
+	s[2] = 2;
+	if (!local_verifyFakePatchTransposed(patch, s))
+		hasPassed = false;
+
+	gridPatch_transposeVar(patch, 0, 0, 2);
+	s[0] = 2;
+	s[1] = 1;
+	s[2] = 0;
+	if (!local_verifyFakePatchTransposed(patch, s))
+		hasPassed = false;
+	gridPatch_transposeVar(patch, 0, 0, 2);
+	s[0] = 0;
+	s[1] = 1;
+	s[2] = 2;
+	if (!local_verifyFakePatchTransposed(patch, s))
+		hasPassed = false;
+
+	gridPatch_transposeVar(patch, 0, 1, 2);
+	s[0] = 0;
+	s[1] = 2;
+	s[2] = 1;
+	if (!local_verifyFakePatchTransposed(patch, s))
+		hasPassed = false;
+	gridPatch_transposeVar(patch, 0, 1, 2);
+	s[0] = 0;
+	s[1] = 1;
+	s[2] = 2;
+	if (!local_verifyFakePatchTransposed(patch, s))
+		hasPassed = false;
+
+	gridPatch_del(&patch);
+
+	return hasPassed ? true : false;
+} /* local_tranposeVar_test_3d */
+
+#endif
+
 static gridPatch_t
 local_getFakePatch(void)
 {
@@ -632,14 +724,16 @@ local_getFakePatch(void)
 
 	var      = gridVar_new("TEST", GRIDVARTYPE_INT, 1);
 	idxLo[0] = 0;
-	idxHi[0] = 1;
-	for (int i = 1; i < NDIM; i++) {
-		idxLo[i] = 0;
-		idxHi[i] = 3;
-	}
-	patch = gridPatch_new(idxLo, idxHi);
+	idxHi[0] = 500;
+	idxLo[1] = 0;
+	idxHi[1] = 500;
+#if (NDIM > 2)
+	idxLo[2] = 0;
+	idxHi[2] = 500;
+#endif
+	patch    = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(patch, var);
-	data  = gridPatch_getVarDataHandle(patch, 0);
+	data     = gridPatch_getVarDataHandle(patch, 0);
 #if (NDIM == 2)
 	for (int j = 0; j < patch->dims[1]; j++) {
 		for (int i = 0; i < patch->dims[0]; i++) {
@@ -683,9 +777,9 @@ local_verifyFakePatchTransposed(gridPatch_t patch, gridPointInt_t s)
 		}
 	}
 #elif (NDIM == 3)
-	for (int k = 0; k < patch->dims[2]; k++) {
-		for (int j = 0; j < patch->dims[1]; j++) {
-			for (int i = 0; i < patch->dims[0]; i++) {
+	for (k[2] = 0; k[2] < patch->dims[2]; k[2]++) {
+		for (k[1] = 0; k[1] < patch->dims[1]; k[1]++) {
+			for (k[0] = 0; k[0] < patch->dims[0]; k[0]++) {
 				expected = k[s[0]] + k[s[1]] * patch->dims[s[0]]
 				           + k[s[2]] * patch->dims[s[0]]
 				           * patch->dims[s[1]];

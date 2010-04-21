@@ -30,6 +30,26 @@ local_transposeVar_2d(const void              *data,
                       const int               size,
                       const gridPointUint32_t dimsT);
 
+
+#elif (NDIM == 3)
+static void
+local_transposeVar102_3d(const void              *data,
+                         void                    *dataT,
+                         const int               size,
+                         const gridPointUint32_t dimsT);
+
+static void
+local_transposeVar210_3d(const void              *data,
+                         void                    *dataT,
+                         const int               size,
+                         const gridPointUint32_t dimsT);
+
+static void
+local_transposeVar021_3d(const void              *data,
+                         void                    *dataT,
+                         const int               size,
+                         const gridPointUint32_t dimsT);
+
 #endif
 
 
@@ -251,6 +271,7 @@ gridPatch_transposeVar(gridPatch_t patch,
 	int               size;
 	gridPointUint32_t dims;
 	gridPointUint32_t dimsT;
+	uint32_t          tmp;
 	uint64_t          numCellsActual;
 
 	assert(patch != NULL);
@@ -274,11 +295,22 @@ gridPatch_transposeVar(gridPatch_t patch,
 #if (NDIM == 2)
 		local_transposeVar_2d(data, dataT, size, dimsT);
 #elif (NDIM == 3)
-//		local_transposeVar_3d(data, dataT, size, dimsT);
+		if (((dimA == 0) && (dimB == 1)) || ((dimA == 1) && (dimB == 0)))
+			local_transposeVar102_3d(data, dataT, size, dimsT);
+		else if (((dimA == 0) && (dimB == 2)) || ((dimA == 2) && (dimB == 0)))
+			local_transposeVar210_3d(data, dataT, size, dimsT);
+		else if (((dimA == 1) && (dimB == 2)) || ((dimA == 2) && (dimB == 1)))
+			local_transposeVar021_3d(data, dataT, size, dimsT);
 #endif
 		break;
 	}
 	gridPatch_replaceVarData(patch, 0, dataT);
+	tmp                = patch->idxLo[dimA];
+	patch->idxLo[dimA] = patch->idxLo[dimB];
+	patch->idxLo[dimB] = tmp;
+	tmp                = patch->dims[dimA];
+	patch->dims[dimA]  = patch->dims[dimB];
+	patch->dims[dimB]  = tmp;
 } /* gridPatch_transposeVar */
 
 /*--- Implementations of local functions --------------------------------*/
@@ -291,7 +323,7 @@ local_transposeVar_2d(const void              *data,
                       const gridPointUint32_t dimsT)
 {
 	// Write contiguous, read random
-#pragma omp parallel for shared(data, dataT)
+#  pragma omp parallel for shared(data, dataT)
 	for (int k1 = 0; k1 < dimsT[1]; k1++) {
 		for (int k0 = 0; k0 < dimsT[0]; k0++) {
 			size_t posT = (k0 + k1 * dimsT[0]) * size;
@@ -302,5 +334,68 @@ local_transposeVar_2d(const void              *data,
 }
 
 #elif (NDIM == 3)
+static void
+local_transposeVar102_3d(const void              *data,
+                         void                    *dataT,
+                         const int               size,
+                         const gridPointUint32_t dimsT)
+{
+	size_t pos, posT;
+
+#  pragma omp parallel for shared(data, dataT) private(pos, posT)
+	for (int k2 = 0; k2 < dimsT[2]; k2++) {
+		for (int k1 = 0; k1 < dimsT[1]; k1++) {
+			for (int k0 = 0; k0 < dimsT[0]; k0++) {
+				posT = (k0 + (k1 + k2 * dimsT[1]) * dimsT[0]) * size;
+				pos  = (k1 + (k0 + k2 * dimsT[0]) * dimsT[1]) * size;
+				memcpy(((char *)dataT) + posT,
+				       ((const char *)data) + pos,
+				       size);
+			}
+		}
+	}
+}
+
+static void
+local_transposeVar210_3d(const void              *data,
+                         void                    *dataT,
+                         const int               size,
+                         const gridPointUint32_t dimsT)
+{
+	size_t pos, posT;
+
+#  pragma omp parallel for shared(data, dataT) private(pos, posT)
+	for (int k2 = 0; k2 < dimsT[2]; k2++) {
+		for (int k1 = 0; k1 < dimsT[1]; k1++) {
+			for (int k0 = 0; k0 < dimsT[0]; k0++) {
+				posT = (k0 + (k1 + k2 * dimsT[1]) * dimsT[0]) * size;
+				pos  = (k2 + (k1 + k0 * dimsT[1]) * dimsT[2]) * size;
+				memcpy(((char *)dataT) + posT,
+				       ((const char *)data) + pos,
+				       size);
+			}
+		}
+	}
+}
+
+static void
+local_transposeVar021_3d(const void              *data,
+                         void                    *dataT,
+                         const int               size,
+                         const gridPointUint32_t dimsT)
+{
+	size_t pos, posT;
+
+#  pragma omp parallel for shared(data, dataT) private(pos, posT)
+	for (int k2 = 0; k2 < dimsT[2]; k2++) {
+		for (int k1 = 0; k1 < dimsT[1]; k1++) {
+			posT = ((k1 + k2 * dimsT[1]) * dimsT[0]) * size;
+			pos  = ((k2 + k1 * dimsT[2]) * dimsT[0]) * size;
+			memcpy(((char *)dataT) + posT,
+			       ((const char *)data) + pos,
+			       size * dimsT[0]);
+		}
+	}
+}
 
 #endif
