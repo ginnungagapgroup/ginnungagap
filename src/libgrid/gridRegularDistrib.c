@@ -24,6 +24,15 @@ local_calcProcCoords(gridRegularDistrib_t distrib,
                      gridPointInt_t       procCoords);
 
 
+#ifdef WITH_MPI
+static void
+local_transposeCalcCommScheme(gridRegularDistrib_t distrib,
+                              int                  dimA,
+                              int                  dimB);
+
+#endif
+
+
 /*--- Implementations of exported functios ------------------------------*/
 extern gridRegularDistrib_t
 gridRegularDistrib_new(gridRegular_t grid, gridPointInt_t nProcs)
@@ -215,6 +224,10 @@ gridRegularDistrib_transposeVar(gridRegularDistrib_t distrib,
 
 	patch = gridRegular_getPatchHandle(distrib->grid, 0);
 
+#ifdef WITH_MPI
+	local_transposeCalcCommScheme(distrib, dimA, dimB);
+#endif
+
 	gridPatch_transposeVar(patch, idxVar, dimA, dimB);
 }
 
@@ -233,3 +246,14 @@ local_calcProcCoords(gridRegularDistrib_t distrib,
 	}
 #endif
 }
+
+#ifdef WITH_MPI
+static void
+local_transposeCalcCommScheme(gridRegularDistrib_t distrib,
+                              int                  dimA,
+                              int                  dimB)
+{
+	MPI_Comm comm;
+}
+
+#endif
