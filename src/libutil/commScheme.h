@@ -32,10 +32,10 @@ commScheme_addBuffer(commScheme_t       scheme,
                      int                type);
 
 extern void
-commScheme_execute(commScheme_t scheme);
+commScheme_fire(commScheme_t scheme);
 
 extern void
-commScheme_executeBlock(commScheme_t scheme);
+commScheme_fireBlock(commScheme_t scheme);
 
 extern void
 commScheme_wait(commScheme_t);

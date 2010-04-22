@@ -22,10 +22,10 @@ extern bool
 commScheme_addBuffer_test(void);
 
 extern bool
-commScheme_execute_test(void);
+commScheme_fire_test(void);
 
 extern bool
-commScheme_executeBlock_test(void);
+commScheme_fireBlock_test(void);
 
 extern bool
 commScheme_wait_test(void);

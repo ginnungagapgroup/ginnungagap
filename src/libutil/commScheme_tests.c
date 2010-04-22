@@ -123,7 +123,7 @@ commScheme_addBuffer_test(void)
 }
 
 extern bool
-commScheme_execute_test(void)
+commScheme_fire_test(void)
 {
 	bool         hasPassed = true;
 	int          rank;
@@ -138,7 +138,7 @@ commScheme_execute_test(void)
 		printf("Testing %s... ", __func__);
 
 	scheme = local_getFakeScheme(&buffers);
-	commScheme_execute(scheme);
+	commScheme_fire(scheme);
 	commScheme_wait(scheme);
 	if (buffers[0] != (rank + scheme->size - 1) % scheme->size)
 		hasPassed = false;
@@ -153,7 +153,7 @@ commScheme_execute_test(void)
 }
 
 extern bool
-commScheme_executeBlock_test(void)
+commScheme_fireBlock_test(void)
 {
 	bool         hasPassed = true;
 	int          rank;
@@ -168,7 +168,7 @@ commScheme_executeBlock_test(void)
 		printf("Testing %s... ", __func__);
 
 	scheme = local_getFakeScheme(&buffers);
-	commScheme_executeBlock(scheme);
+	commScheme_fireBlock(scheme);
 	if (buffers[0] != (rank + scheme->size - 1) % scheme->size)
 		hasPassed = false;
 	commScheme_del(&scheme);
@@ -197,7 +197,7 @@ commScheme_wait_test(void)
 		printf("Testing %s... ", __func__);
 
 	scheme = local_getFakeScheme(&buffers);
-	commScheme_executeBlock(scheme);
+	commScheme_fireBlock(scheme);
 	if (scheme->status != COMMSCHEME_STATUS_POSTFIRE)
 		hasPassed = false;
 	if (scheme->requestsRecv != NULL)

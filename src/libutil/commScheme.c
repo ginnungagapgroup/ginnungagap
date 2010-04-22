@@ -90,7 +90,7 @@ commScheme_addBuffer(commScheme_t       scheme,
 }
 
 extern void
-commScheme_execute(commScheme_t scheme)
+commScheme_fire(commScheme_t scheme)
 {
 	assert(scheme != NULL);
 	assert(scheme->status == COMMSCHEME_STATUS_PREFIRE);
@@ -102,12 +102,12 @@ commScheme_execute(commScheme_t scheme)
 }
 
 extern void
-commScheme_executeBlock(commScheme_t scheme)
+commScheme_fireBlock(commScheme_t scheme)
 {
 	assert(scheme != NULL);
 	assert(scheme->status == COMMSCHEME_STATUS_PREFIRE);
 
-	commScheme_execute(scheme);
+	commScheme_fire(scheme);
 	commScheme_wait(scheme);
 }
 

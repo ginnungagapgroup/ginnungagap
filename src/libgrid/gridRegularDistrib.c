@@ -261,17 +261,13 @@ local_transposeVarMPI(gridRegularDistrib_t distrib,
                       int                  dimA,
                       int                  dimB)
 {
-	commScheme_t send;
-	commScheme_t recv;
+	commScheme_t scheme;
 
 //	local_transposeCalcCommSchemes(distrib, dimA, dimB, &send, &recv);
 
-	commScheme_execute(recv);
-	commScheme_executeBlock(send);
+	commScheme_fire(recv);
 	commScheme_wait(recv);
-
-	commScheme_del(&send);
-	commScheme_del(&recv);
+	commScheme_del(&scheme);
 }
 
 #endif

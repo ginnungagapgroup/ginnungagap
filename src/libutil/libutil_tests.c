@@ -110,8 +110,8 @@ main(int argc, char **argv)
 	RUNTESTMPI(&commScheme_new_test, hasFailed);
 	RUNTESTMPI(&commScheme_del_test, hasFailed);
 	RUNTESTMPI(&commScheme_addBuffer_test, hasFailed);
-	RUNTESTMPI(&commScheme_execute_test, hasFailed);
-	RUNTESTMPI(&commScheme_executeBlock_test, hasFailed);
+	RUNTESTMPI(&commScheme_fire_test, hasFailed);
+	RUNTESTMPI(&commScheme_fireBlock_test, hasFailed);
 	RUNTESTMPI(&commScheme_wait_test, hasFailed);
 
 	MPI_Finalize();
