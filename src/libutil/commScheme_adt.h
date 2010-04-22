@@ -13,16 +13,23 @@
 #  include "varArr.h"
 
 
+/*--- Local defines -----------------------------------------------------*/
+#  define COMMSCHEME_STATUS_PREFIRE  0
+#  define COMMSCHEME_STATUS_FIRING   1
+#  define COMMSCHEME_STATUS_POSTFIRE 2
+
+
 /*--- ADT implementation ------------------------------------------------*/
 struct commScheme_struct {
 	MPI_Comm    comm;
 	int         size;
 	int         rank;
-	int         type;
 	int         tag;
 	int         status;
-	varArr_t    buffers;
-	MPI_Request *requests;
+	varArr_t    buffersRecv;
+	MPI_Request *requestsRecv;
+	varArr_t    buffersSend;
+	MPI_Request *requestsSend;
 };
 
 

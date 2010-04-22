@@ -21,13 +21,15 @@ typedef struct commScheme_struct *commScheme_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern commScheme_t
-commScheme_new(MPI_Comm comm, int type, int tag);
+commScheme_new(MPI_Comm comm, int tag);
 
 extern void
 commScheme_del(commScheme_t *scheme);
 
 extern int
-commScheme_addBuffer(commScheme_t scheme, commSchemeBuffer_t buffer);
+commScheme_addBuffer(commScheme_t       scheme,
+                     commSchemeBuffer_t buffer,
+                     int                type);
 
 extern void
 commScheme_execute(commScheme_t scheme);
