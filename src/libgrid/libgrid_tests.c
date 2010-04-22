@@ -21,7 +21,7 @@
 #  include <mpi.h>
 #endif
 #ifdef XMEM_TRACK_MEM
-#include "../libutil/xmem.h"
+#  include "../libutil/xmem.h"
 #endif
 
 
@@ -49,8 +49,8 @@ int
 main(int argc, char **argv)
 {
 	bool hasFailed = false;
-	int  rank = 0;
-	int  size = 1;
+	int  rank      = 0;
+	int  size      = 1;
 
 #ifdef WITH_MPI
 	MPI_Init(&argc, &argv);
@@ -146,9 +146,9 @@ main(int argc, char **argv)
 		printf("\nRunning tests for gridWriterSilo:\n");
 	}
 	RUNTEST(&gridWriterSilo_new_test, hasFailed);
-#ifdef WITH_MPI
+#  ifdef WITH_MPI
 	RUNTEST(&gridWriterSilo_initParallel_test, hasFailed);
-#endif
+#  endif
 	RUNTEST(&gridWriterSilo_del_test, hasFailed);
 	RUNTEST(&gridWriterSilo_activate_test, hasFailed);
 	RUNTEST(&gridWriterSilo_deactivate_test, hasFailed);
