@@ -7,6 +7,11 @@
 #include "gridConfig.h"
 #include "gridRegularDistrib.h"
 #include <assert.h>
+#ifdef WITH_MPI
+#include "../libutil/commScheme.h"
+#include "../libutil/commSchemeBuffer.h"
+#include <mpi.h>
+#endif
 #include "../libutil/xmem.h"
 
 
@@ -25,10 +30,11 @@ local_calcProcCoords(gridRegularDistrib_t distrib,
 
 
 #ifdef WITH_MPI
-static void
-local_transposeCalcCommScheme(gridRegularDistrib_t distrib,
-                              int                  dimA,
-                              int                  dimB);
+extern void
+local_transposeVarMPI(gridRegularDistrib_t distrib,
+                      int                  idxVar,
+                      int                  dimA,
+                      int                  dimB);
 
 #endif
 
@@ -225,7 +231,7 @@ gridRegularDistrib_transposeVar(gridRegularDistrib_t distrib,
 	patch = gridRegular_getPatchHandle(distrib->grid, 0);
 
 #ifdef WITH_MPI
-	local_transposeCalcCommScheme(distrib, dimA, dimB);
+	local_transposeVarMPI(distrib, idxVar, dimA, dimB);
 #endif
 
 	gridPatch_transposeVar(patch, idxVar, dimA, dimB);
@@ -248,12 +254,24 @@ local_calcProcCoords(gridRegularDistrib_t distrib,
 }
 
 #ifdef WITH_MPI
-static void
-local_transposeCalcCommScheme(gridRegularDistrib_t distrib,
-                              int                  dimA,
-                              int                  dimB)
+
+extern void
+local_transposeVarMPI(gridRegularDistrib_t distrib,
+                      int                  idxVar,
+                      int                  dimA,
+                      int                  dimB)
 {
-	MPI_Comm comm;
+	commScheme_t send;
+	commScheme_t recv;
+
+//	local_transposeCalcCommSchemes(distrib, dimA, dimB, &send, &recv);
+
+	commScheme_execute(recv);
+	commScheme_executeBlock(send);
+	commScheme_wait(recv);
+
+	commScheme_del(&send);
+	commScheme_del(&recv);
 }
 
 #endif
