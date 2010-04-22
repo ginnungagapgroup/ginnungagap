@@ -19,12 +19,6 @@
 #  include "commSchemeBuffer_adt.h"
 
 
-/*--- Local defines -----------------------------------------------------*/
-#  define COMMSCHEME_STATUS_PREFIRE  0
-#  define COMMSCHEME_STATUS_FIRING   1
-#  define COMMSCHEME_STATUS_POSTFIRE 2
-
-
 /*--- Prototypes of local functions -------------------------------------*/
 inline static void
 local_startReceiving(commScheme_t scheme);
