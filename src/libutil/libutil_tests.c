@@ -10,7 +10,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#undef WITH_MPI
+#ifdef WITH_MPI
+#  include "commSchemeBuffer_tests.h"
+#  include "commScheme_tests.h"
+#  include <mpi.h>
+#endif
+#ifdef XMEM_TRACK_MEM
+#  include "../libutil/xmem.h"
+#endif
 
 /*--- Local defines -----------------------------------------------------*/
 #define NAME "libutil"
@@ -25,10 +32,27 @@
 			hasFailed = false; \
 	}
 
+#ifdef WITH_MPI
+#  define RUNTESTMPI(a, hasFailed) \
+    if (!(local_runtestMPI(a))) {  \
+		hasFailed = true;          \
+	} else {                       \
+		if (!hasFailed)            \
+			hasFailed = false;     \
+	}
+#endif
+
 
 /*--- Prototypes of loceal functions ------------------------------------*/
 static bool
 local_runtest(bool (*f)(void));
+
+
+#ifdef WITH_MPI
+static bool
+local_runtestMPI(bool (*f)(void));
+
+#endif
 
 
 /*--- M A I N -----------------------------------------------------------*/
@@ -39,6 +63,12 @@ main(int argc, char **argv)
 	int  rank      = 0;
 	int  size      = 1;
 
+#ifdef WITH_MPI
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+#endif
+
 	if (rank == 0) {
 		printf("\nTesting %s on %i %s\n",
 		       NAME, size, size > 1 ? "tasks" : "task");
@@ -46,22 +76,46 @@ main(int argc, char **argv)
 
 	if (rank == 0) {
 		printf("\nRunning tests for refCounter:\n");
+		RUNTEST(&refCounter_init_test, hasFailed);
+		RUNTEST(&refCounter_ref_test, hasFailed);
+		RUNTEST(&refCounter_deref_test, hasFailed);
+		RUNTEST(&refCounter_noReferenceLeft_test, hasFailed);
 	}
-	RUNTEST(&refCounter_init_test, hasFailed);
-	RUNTEST(&refCounter_ref_test, hasFailed);
-	RUNTEST(&refCounter_deref_test, hasFailed);
-	RUNTEST(&refCounter_noReferenceLeft_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for varArr:\n");
+		RUNTEST(&varArr_new_test, hasFailed);
+		RUNTEST(&varArr_del_test, hasFailed);
+		RUNTEST(&varArr_getLength_test, hasFailed);
+		RUNTEST(&varArr_insert_test, hasFailed);
+		RUNTEST(&varArr_remove_test, hasFailed);
+		RUNTEST(&varArr_replace_test, hasFailed);
+		RUNTEST(&varArr_getElementHandle_test, hasFailed);
 	}
-	RUNTEST(&varArr_new_test, hasFailed);
-	RUNTEST(&varArr_del_test, hasFailed);
-	RUNTEST(&varArr_getLength_test, hasFailed);
-	RUNTEST(&varArr_insert_test, hasFailed);
-	RUNTEST(&varArr_remove_test, hasFailed);
-	RUNTEST(&varArr_replace_test, hasFailed);
-	RUNTEST(&varArr_getElementHandle_test, hasFailed);
+
+#ifdef WITH_MPI
+	if (rank == 0) {
+		printf("\nRunning tests for commSchemeBuffer:\n");
+	}
+	RUNTESTMPI(&commSchemeBuffer_new_test, hasFailed);
+	RUNTESTMPI(&commSchemeBuffer_del_test, hasFailed);
+	RUNTESTMPI(&commSchemeBuffer_getBuf_test, hasFailed);
+	RUNTESTMPI(&commSchemeBuffer_getCount_test, hasFailed);
+	RUNTESTMPI(&commSchemeBuffer_getDatatype_test, hasFailed);
+	RUNTESTMPI(&commSchemeBuffer_getRank_test, hasFailed);
+
+	if (rank == 0) {
+		printf("\nRunning tests for commScheme:\n");
+	}
+	RUNTESTMPI(&commScheme_new_test, hasFailed);
+	RUNTESTMPI(&commScheme_del_test, hasFailed);
+	RUNTESTMPI(&commScheme_addBuffer_test, hasFailed);
+	RUNTESTMPI(&commScheme_execute_test, hasFailed);
+	RUNTESTMPI(&commScheme_executeBlock_test, hasFailed);
+	RUNTESTMPI(&commScheme_wait_test, hasFailed);
+
+	MPI_Finalize();
+#endif
 
 	if (hasFailed) {
 		if (rank == 0)
@@ -80,16 +134,6 @@ local_runtest(bool (*f)(void))
 {
 	bool hasPassed = f();
 	int  rank      = 0;
-#ifdef WITH_MPI
-	int  failedGlobal;
-	int  failedLocal = hasPassed ? 0 : 1;
-
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Allreduce(&failedLocal, &failedGlobal, 1, MPI_INT, MPI_MAX,
-	              MPI_COMM_WORLD);
-	if (failedGlobal != 0)
-		hasPassed = false;
-#endif
 
 	if (!hasPassed) {
 		if (rank == 0)
@@ -101,3 +145,31 @@ local_runtest(bool (*f)(void))
 
 	return hasPassed;
 }
+
+#ifdef WITH_MPI
+static bool
+local_runtestMPI(bool (*f)(void))
+{
+	bool hasPassed   = f();
+	int  rank        = 0;
+	int  failedGlobal;
+	int  failedLocal = hasPassed ? 0 : 1;
+
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Allreduce(&failedLocal, &failedGlobal, 1, MPI_INT, MPI_MAX,
+	              MPI_COMM_WORLD);
+	if (failedGlobal != 0)
+		hasPassed = false;
+
+	if (!hasPassed) {
+		if (rank == 0)
+			printf("!! FAILED !!\n");
+	} else {
+		if (rank == 0)
+			printf("passed\n");
+	}
+
+	return hasPassed;
+}
+
+#endif

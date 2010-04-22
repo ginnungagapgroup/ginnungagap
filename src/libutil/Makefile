@@ -19,9 +19,20 @@ sources = xmem.c \
           varArr.c \
           rng.c
 
+ifeq ($(WITH_MPI), "true")
+sources += commScheme.c \
+           commSchemeBuffer.c
+endif
+
 sourcesTests = lib${LIBNAME}_tests.c \
                refCounter_tests.c \
                varArr_tests.c
+
+ifeq ($(WITH_MPI), "true")
+sourcesTests += commScheme_tests.c \
+                commSchemeBuffer_tests.c
+endif
+
 
 include ../../Makefile.rules
 
@@ -38,7 +49,11 @@ dist-clean:
 
 tests:
 	$(MAKE) lib${LIBNAME}_tests
+ifeq ($(WITH_MPI), "true")
+	mpiexec -n 16 ./lib${LIBNAME}_tests
+else
 	./lib${LIBNAME}_tests
+endif
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
                      $(sourcesTests:.c=.o)
