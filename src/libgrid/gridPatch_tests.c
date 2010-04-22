@@ -722,16 +722,28 @@ local_getFakePatch(void)
 
 	var      = gridVar_new("TEST", GRIDVARTYPE_INT, 1);
 	idxLo[0] = 0;
-	idxHi[0] = 500;
+#ifdef WITH_MPI
+	idxHi[0] = 32;
+#else
+	idxHi[0] = 250;
+#endif
 	idxLo[1] = 0;
-	idxHi[1] = 500;
+#ifdef WITH_MPI
+	idxHi[1] = 33;
+#else
+	idxHi[2] = 250;
+#endif
 #if (NDIM > 2)
 	idxLo[2] = 0;
-	idxHi[2] = 500;
+#  ifdef WITH_MPI
+	idxHi[2] = 34;
+#  else
+	idxHi[2] = 250;
+#  endif
 #endif
-	patch    = gridPatch_new(idxLo, idxHi);
+	patch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(patch, var);
-	data     = gridPatch_getVarDataHandle(patch, 0);
+	data  = gridPatch_getVarDataHandle(patch, 0);
 #if (NDIM == 2)
 	for (int j = 0; j < patch->dims[1]; j++) {
 		for (int i = 0; i < patch->dims[0]; i++) {

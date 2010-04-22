@@ -14,7 +14,8 @@ sources = gridRegular.c \
           gridPatch.c \
           gridVar.c \
           gridVarType.c \
-          gridWriterSilo.c
+          gridWriterSilo.c \
+          gridUtil.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
                gridRegular_tests.c \
@@ -23,7 +24,8 @@ sourcesTests = lib${LIBNAME}_tests.c \
                gridPatch_tests.c \
                gridVar_tests.c \
                gridVarType_tests.c \
-               gridWriterSilo_tests.c
+               gridWriterSilo_tests.c \
+               gridUtil_tests.c
 
 include ../../Makefile.rules
 

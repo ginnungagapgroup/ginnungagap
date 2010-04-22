@@ -10,6 +10,7 @@
 #include "gridPatch_tests.h"
 #include "gridVar_tests.h"
 #include "gridVarType_tests.h"
+#include "gridUtil_tests.h"
 #ifdef WITH_SILO
 #  include "gridWriterSilo_tests.h"
 #endif
@@ -61,6 +62,11 @@ main(int argc, char **argv)
 		printf("\nTesting %s on %i %s\n",
 		       NAME, size, size > 1 ? "tasks" : "task");
 	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for gridUtil:\n");
+	}
+	RUNTEST(&gridUtil_intersection1D_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridVar:\n");
