@@ -73,7 +73,7 @@ gridPatch_transposeVar(gridPatch_t patch,
 extern void *
 gridPatch_getWindowedDataCopy(gridPatch_t       patch,
                               int               idxVar,
-                              gridPointUin32_t  idxLo,
+                              gridPointUint32_t idxLo,
                               gridPointUint32_t idxHi,
                               uint64_t          *numElements);
 

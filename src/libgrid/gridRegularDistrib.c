@@ -8,6 +8,8 @@
 #include "gridRegularDistrib.h"
 #include <assert.h>
 #ifdef WITH_MPI
+#  include "gridUtil.h"
+#  include "../libutil/varArr.h"
 #  include "../libutil/commScheme.h"
 #  include "../libutil/commSchemeBuffer.h"
 #  include <mpi.h>
@@ -22,6 +24,18 @@
 /*--- Local defines -----------------------------------------------------*/
 
 
+/*--- Local structures --------------------------------------------------*/
+#ifdef WITH_MPI
+typedef struct local_transposeLayout_struct *local_layoutElement_t;
+
+struct local_transposeLayout_struct {
+	gridPointUint32_t  idxLo;
+	gridPointUint32_t  idxHi;
+	gridPointInt_t     processCoord;
+	commSchemeBuffer_t buffer;
+};
+#endif
+
 /*--- Prototypes of local functions -------------------------------------*/
 static void
 local_calcProcCoords(gridRegularDistrib_t distrib,
@@ -32,9 +46,39 @@ local_calcProcCoords(gridRegularDistrib_t distrib,
 #ifdef WITH_MPI
 static void
 local_transposeVarMPI(gridRegularDistrib_t distrib,
+                      gridPatch_t          patch,
                       int                  idxVar,
                       int                  dimA,
                       int                  dimB);
+
+static commScheme_t
+local_transposeGetCommScheme(MPI_Comm          comm,
+                             gridPatch_t       patch,
+                             int               idxVar,
+                             gridPointUint32_t dims,
+                             gridPointInt_t    nProcs,
+                             gridPointInt_t    pPos);
+
+static void
+local_getSendBuffers(MPI_Comm    comm,
+                     gridPatch_t patch,
+                     int         idxVar,
+                     varArr_t    send);
+
+static varArr_t
+local_transposeGetSendLayout(gridPointUint32_t dims,
+                             gridPointInt_t    nProcs,
+                             gridPointInt_t    pPos);
+
+static varArr_t
+local_transposeGetRecvLayout(gridPointUint32_t dims,
+                             gridPointInt_t    nProcs,
+                             gridPointInt_t    pPos);
+
+static local_layoutElement_t
+local_layoutElement_new(gridPointUint32_t idxLo,
+                        gridPointUint32_t idxHi,
+                        gridPointInt_t    processCoord);
 
 #endif
 
@@ -268,7 +312,7 @@ local_transposeVarMPI(gridRegularDistrib_t distrib,
 	gridPointInt_t    pPos;
 
 	gridRegular_getDims(distrib->grid, dims);
-	MPI_Comm_rank(distrib->commCart);
+	MPI_Comm_rank(distrib->commCart, &rank);
 	MPI_Cart_coords(distrib->commCart, rank, NDIM, pPos);
 	scheme = local_transposeGetCommScheme(distrib->commCart, patch, idxVar,
 	                                      dims, distrib->nProcs, pPos);
@@ -297,10 +341,10 @@ local_transposeGetCommScheme(MPI_Comm          comm,
 
 	local_getSendBuffers(comm, patch, idxVar, sendLayout);
 
-	while (varArr_length(sendLayout > 0))
+	while (varArr_getLength(sendLayout) > 0)
 		xfree(varArr_remove(sendLayout, 0));
 	varArr_del(&sendLayout);
-	while (varArr_length(recvLayout > 0))
+	while (varArr_getLength(recvLayout) > 0)
 		xfree(varArr_remove(recvLayout, 0));
 	varArr_del(&recvLayout);
 
@@ -308,15 +352,15 @@ local_transposeGetCommScheme(MPI_Comm          comm,
 }
 
 static void
-local_getSendBuffers(MPI_Comm comm;
+local_getSendBuffers(MPI_Comm    comm,
                      gridPatch_t patch,
                      int         idxVar,
                      varArr_t    send)
 {
-	gridVar_t var   = patch_getVarHandle(patch, idxVar);
-	void      *data = patch_getVarDataHandle(patch, idxVar);
+	gridVar_t var   = gridPatch_getVarHandle(patch, idxVar);
+	void      *data = gridPatch_getVarDataHandle(patch, idxVar);
 
-	for (int i = 0; i < varArr_length(send); i++) {
+	for (int i = 0; i < varArr_getLength(send); i++) {
 		void                  *dataSend;
 		uint64_t              dataSize;
 		local_layoutElement_t le = varArr_getElementHandle(send, i);
@@ -327,8 +371,8 @@ local_getSendBuffers(MPI_Comm comm;
 		dataSend = gridPatch_getWindowedDataCopy(patch, idxVar,
 		                                         le->idxLo, le->idxHi,
 		                                         &dataSize);
-		type = gridVar_getMPIDataype(var);
-		count = gridVar_getMPICount(var, dataSize);
+		type       = gridVar_getMPIDatatype(var);
+		count      = gridVar_getMPICount(var, dataSize);
 		MPI_Cart_rank(comm, le->processCoord, &rank);
 		le->buffer = commSchemeBuffer_new(dataSend, count, type, rank);
 
@@ -337,7 +381,7 @@ local_getSendBuffers(MPI_Comm comm;
 }
 
 #  define getIdx gridRegularDistrib_calcIdxsForRank1D
-#  define is     gridUtil_intersection
+#  define is     gridUtil_intersection1D
 #  define vAi    varArr_insert
 static varArr_t
 local_transposeGetSendLayout(gridPointUint32_t dims,
@@ -353,7 +397,7 @@ local_transposeGetSendLayout(gridPointUint32_t dims,
 	for (p[1] = 0; p[1] < nProcs[1]; p[1]++) {
 		getIdx(dims[0], nProcs[1], p[1], lo + 1, hi + 1);
 		if (is(loMine[1], hiMine[1], lo[1], hi[1], loS + 1, hiS + 1)) {
-			for (int p[0] = 0; p[0] < nProcs[0]; p[0]++) {
+			for (p[0] = 0; p[0] < nProcs[0]; p[0]++) {
 				getIdx(dims[1], nProcs[0], p[0], lo + 0, hi + 0);
 				if (is(loMine[0], hiMine[0], lo[0], hi[0], loS, hiS)) {
 					// i, j is the process we need to send loS,hiS to
@@ -400,12 +444,12 @@ local_layoutElement_new(gridPointUint32_t idxLo,
                         gridPointUint32_t idxHi,
                         gridPointInt_t    processCoord)
 {
-	local_transposeLayout_t element;
+	local_layoutElement_t element;
 
 	element = xmalloc(sizeof(struct local_transposeLayout_struct));
 	for (int i = 0; i < NDIM; i++) {
-		element->idxLo[i]        = loS[i];
-		element->idxHi[i]        = hiS[i];
+		element->idxLo[i]        = idxLo[i];
+		element->idxHi[i]        = idxHi[i];
 		element->processCoord[i] = processCoord[i];
 		element->buffer          = NULL;
 	}
