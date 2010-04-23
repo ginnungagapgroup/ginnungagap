@@ -313,6 +313,52 @@ gridPatch_transposeVar(gridPatch_t patch,
 	patch->dims[dimB]  = tmp;
 } /* gridPatch_transposeVar */
 
+extern void *
+gridPatch_getWindowedDataCopy(gridPatch_t       patch,
+                              int               idxVar,
+                              gridPointUin32_t  idxLo,
+                              gridPointUint32_t idxHi,
+                              uint64_t          *numElements)
+{
+	void *data, *dataCopy;
+	gridUint32_t dims;
+	uint64_t numElements = 1;
+	gridVar_t var;
+
+	assert(patch != NULL);
+	assert((idxOfVarData >= 0)
+	       && (idxOfVarData < gridPatch_getNumVars(patch)));
+	assert(idxLo[0]>= patch->idxLo[0]);
+	assert(dxHi[0] < patch->idxLo[0] + patch->dims[0]);
+	assert(idxLo[1]>= patch->idxLo[1]);
+	assert(dxHi[1] < patch->idxLo[1] + patch->dims[1]);
+#if (NDIM > 2)
+	assert(idxLo[2]>= patch->idxLo[2]);
+	assert(dxHi[2] < patch->idxLo[2] + patch->dims[2]);
+#else
+
+	for (int i=0; i<NDIM; i++) {
+		dims[i] = idxHi[i] - idxLo[i] + 1;
+		numElements *= dims[i];
+	}
+
+	var = gridPatch_getVarHandle(patch, idxVar);
+	dataCopy = gridVar_getMemory(var, numElements);
+
+#if (NDIM == 2)
+	for (int j=0; j<dims[1]; j++) {
+		offset = idxLo[0] - patch->idxLo[0]
+		         + (idxLo[1]-patch->idxLo[1]+j)*patch->dims[0];
+		// XXX 
+	}
+#elif (NDIM == 3)
+	
+#endif
+
+	return dataCopy;
+}
+
+
 /*--- Implementations of local functions --------------------------------*/
 
 #if (NDIM == 2)
