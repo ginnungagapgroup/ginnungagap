@@ -8,6 +8,9 @@
 #include "gridVar.h"
 #include <assert.h>
 #include <stdbool.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
 #include "../libutil/refCounter.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
@@ -155,5 +158,24 @@ gridVar_isFFTWPadded(gridVar_t var)
 	assert(var != NULL);
 	return var->isFFTWPadded;
 }
+
+#ifdef WITH_MPI
+extern MPI_Datatype
+gridVar_getMPIDatatype(gridVar_t var)
+{
+	assert(var != NULL);
+
+	return MPI_BYTE;
+}
+
+extern int
+gridVar_getMPICount(gridVar_t var, uint64_t numElements)
+{
+	assert(var != NULL);
+
+	return (int)(numElements * gridVar_getSizePerElement(var));
+}
+
+#endif
 
 /*--- Implementations of local functions --------------------------------*/

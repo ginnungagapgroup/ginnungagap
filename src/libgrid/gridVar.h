@@ -12,6 +12,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -60,5 +63,14 @@ gridVar_unsetFFTWPadded(gridVar_t var);
 extern bool
 gridVar_isFFTWPadded(gridVar_t var);
 
+
+#ifdef WITH_MPI
+extern MPI_Datatype
+gridVar_getMPIDatatype(gridVar_t var);
+
+extern int
+gridVar_getMPICount(gridVar_t var, uint64_t numElements);
+
+#endif
 
 #endif
