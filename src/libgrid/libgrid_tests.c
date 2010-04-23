@@ -139,6 +139,7 @@ main(int argc, char **argv)
 #endif
 	RUNTEST(&gridRegularDistrib_getPatchForRank_test, hasFailed);
 	RUNTEST(&gridRegularDistrib_calcIdxsForRank1D_test, hasFailed);
+	RUNTEST(&gridRegularDistrib_transposeVar_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegularFFT:\n");
