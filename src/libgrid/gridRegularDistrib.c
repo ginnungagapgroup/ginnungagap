@@ -340,6 +340,7 @@ local_transposeGetCommScheme(MPI_Comm          comm,
 	recvLayout = local_transposeGetRecvLayout(dims, nProcs, pPos);
 
 	local_getSendBuffers(comm, patch, idxVar, sendLayout);
+	local_setRecvBuffers(comm, patch, idxVar, recvLayout);
 
 	while (varArr_getLength(sendLayout) > 0)
 		xfree(varArr_remove(sendLayout, 0));
@@ -371,12 +372,33 @@ local_getSendBuffers(MPI_Comm    comm,
 		dataSend = gridPatch_getWindowedDataCopy(patch, idxVar,
 		                                         le->idxLo, le->idxHi,
 		                                         &dataSize);
-		type       = gridVar_getMPIDatatype(var);
 		count      = gridVar_getMPICount(var, dataSize);
+		type       = gridVar_getMPIDatatype(var);
 		MPI_Cart_rank(comm, le->processCoord, &rank);
 		le->buffer = commSchemeBuffer_new(dataSend, count, type, rank);
+	}
+}
 
-		// XXX
+static void
+local_getSendBuffers(MPI_Comm    comm,
+                     gridPatch_t patch,
+                     int         idxVar,
+                     varArr_t    send)
+{
+	gridVar_t var   = gridPatch_getVarHandle(patch, idxVar);
+
+	for (int i = 0; i < varArr_getLength(send); i++) {
+		uint64_t              dataSize = 1;
+		local_layoutElement_t le = varArr_getElementHandle(send, i);
+		MPI_Datatype          type;
+		int                   count;
+		int                   rank;
+
+		for (int j=0; j<NDIM; j++)
+			dataSize *= (le->idxHi[j] - le->idxLo[j] + 1);
+		data = ((char *)recvData) + dataSize;
+		MPI_Cart_rank(comm, le->processCoord, &rank);
+		le->buffer = commSchemeBuffer_new(data, count, type, rank);
 	}
 }
 

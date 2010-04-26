@@ -338,7 +338,7 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 	assert(idxHi[1] < patch->idxLo[1] + patch->dims[1]);
 #if (NDIM > 2)
 	assert(idxLo[2] >= patch->idxLo[2]);
-	assert(dxHi[2] < patch->idxLo[2] + patch->dims[2]);
+	assert(idxHi[2] < patch->idxLo[2] + patch->dims[2]);
 #endif
 
 	for (int i = 0; i < NDIM; i++) {
@@ -355,7 +355,8 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 	offsetData =   idxLo[0] - patch->idxLo[0]
 	             + patch->idxLo[1]* patch->dims[0];
 	for (int j = 0; j < dimsWindow[1]; j++) {
-		memcpy(dataCopy + offsetCopy, data + offsetData,
+		memcpy(((char*)dataCopy) + offsetCopy * sizePerElement,
+		       ((char *)data) + offsetData * sizePerElement,
 		       dimsWindow[0] * sizePerElement);
 		offsetCopy += dimsWindow[0];
 		offsetData += patch->dims[0];
@@ -365,7 +366,8 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 	             + patch->idxLo[1]* patch->dims[0];
 	for (int k = 0; k < dimsWindow[2]; k++) {
 		for (int j=0; j<dimsWindow[1]; j++) {
-			memcpy(dataCopy + offsetCopy, data + offsetData,
+			memcpy(((char*)dataCopy) + offsetCopy * sizePerElement,
+			       ((char *)data) + offsetData * sizePerElement,
 			       dimsWindow[0] * sizePerElement);
 			offsetCopy += dimsWindow[0];
 			offsetData += patch->dims[0];
