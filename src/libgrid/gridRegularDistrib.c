@@ -265,6 +265,8 @@ gridRegularDistrib_transposeVar(gridRegularDistrib_t distrib,
                                 int                  dimB)
 {
 	gridPatch_t patch;
+	gridPointUint32_t dims;
+	gridPointUint32_t dimsT;
 
 	assert(distrib != NULL);
 	assert((idxVar >= 0)
@@ -272,13 +274,18 @@ gridRegularDistrib_transposeVar(gridRegularDistrib_t distrib,
 	assert(dimA >= 0 && dimA < NDIM);
 	assert(dimB >= 0 && dimB < NDIM);
 
+	gridRegular_getDims(distrib->grid, dims);
+	gridRegular_transpose(distrib->grid);
+	gridRegular_getDims(distrib->grid, dimsT);
+
 	patch = gridRegular_getPatchHandle(distrib->grid, 0);
-
 #ifdef WITH_MPI
-	local_transposeVarMPI(distrib, patch, idxVar, dimA, dimB);
+	patch = local_transposeVarMPI(distrib, patch, idxVar, dimA, dimB,
+	                              dims, dimT);
+	gridRegular_replacePatch(distrib->grid, 0, patch);
 #endif
-
 	gridPatch_transposeVar(patch, idxVar, dimA, dimB);
+
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -299,27 +306,35 @@ local_calcProcCoords(gridRegularDistrib_t distrib,
 
 #ifdef WITH_MPI
 
-extern void
+extern gridPatch_t 
 local_transposeVarMPI(gridRegularDistrib_t distrib,
                       gridPatch_t          patch,
                       int                  idxVar,
                       int                  dimA,
-                      int                  dimB)
+                      int                  dimB,
+                      gridPointUint32_t    dims,
+                      gridPointUint32_t    dimsT)
 {
 	commScheme_t      scheme;
-	gridPointUint32_t dims;
+	gridPointUint32_t dimsLoc;
+	gridPointUint32_t dimsLocT;
 	int               rank;
 	gridPointInt_t    pPos;
+	gridPatch_t       patchT;
 
-	gridRegular_getDims(distrib->grid, dims);
 	MPI_Comm_rank(distrib->commCart, &rank);
 	MPI_Cart_coords(distrib->commCart, rank, NDIM, pPos);
+
+	patchT = gridRegularDistrib_getPatchForRank(distrib, rank);
+
 	scheme = local_transposeGetCommScheme(distrib->commCart, patch, idxVar,
 	                                      dims, distrib->nProcs, pPos);
 
 	commScheme_fire(scheme);
 	commScheme_wait(scheme);
 	commScheme_del(&scheme);
+
+	return patchT;
 }
 
 static commScheme_t
