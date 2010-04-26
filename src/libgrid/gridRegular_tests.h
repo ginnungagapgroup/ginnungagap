@@ -48,25 +48,20 @@ gridRegular_getVarHandle_test(void);
 extern bool
 gridRegular_getNumPatches_test(void);
 
+extern bool
+gridRegular_attachPatch_test(void);
 
-/* TODO: Implement Tests
- * extern bool
- * gridRegular_attachPatch_test(void);
- *
- * extern bool
- * gridRegular_detachPatch_test(void);
- */
+extern bool
+gridRegular_detachPatch_test(void);
 
 extern bool
 gridRegular_getPatchHandle_test(void);
 
+extern bool
+gridRegular_replacePatch_test(void);
 
-/* TODO: Implement Tests
- * extern bool
- * gridRegular_replacePatch_test(void);
- *
- * extern bool
- * gridRegular_transpose_test(void);
- */
+extern bool
+gridRegular_transpose_test(void);
+
 
 #endif

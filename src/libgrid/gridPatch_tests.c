@@ -238,6 +238,32 @@ gridPatch_getDims_test(void)
 } /* gridPatch_getDims_test */
 
 extern bool
+gridPatch_getDimsActual_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	// TODO Actually implement the patch
+	hasPassed = false;
+
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 gridPatch_getNumCells_test(void)
 {
 	bool              hasPassed = true;
@@ -597,7 +623,7 @@ gridPatch_getNumVars_test(void)
 } /* gridPatch_getNumVars_test */
 
 extern bool
-gridPatch_transposeVar_test(void)
+gridPatch_transpose_test(void)
 {
 	bool   hasPassed      = true;
 	int    rank           = 0;
@@ -626,6 +652,36 @@ gridPatch_transposeVar_test(void)
 	return hasPassed ? true : false;
 }
 
+extern bool
+gridPatch_getWindowedDataCopy_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridPatch_t       patch;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	patch = local_getFakePatch();
+
+	// TODO  Implement the test
+	hasPassed = false;
+
+	gridPatch_del(&patch);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 /*--- Implementations of local functions --------------------------------*/
 #if (NDIM == 2)
 static bool
@@ -637,13 +693,13 @@ local_tranposeVar_test_2d(void)
 
 	patch = local_getFakePatch();
 
-	gridPatch_transposeVar(patch, 0, 0, 1);
+	gridPatch_transpose(patch, 0, 1);
 	s[0] = 1;
 	s[1] = 0;
 	if (!local_verifyFakePatchTransposed(patch, s))
 		hasPassed = false;
 
-	gridPatch_transposeVar(patch, 0, 0, 1);
+	gridPatch_transpose(patch, 0, 1);
 	s[0] = 0;
 	s[1] = 1;
 	if (!local_verifyFakePatchTransposed(patch, s))
@@ -664,39 +720,39 @@ local_tranposeVar_test_3d(void)
 
 	patch = local_getFakePatch();
 
-	gridPatch_transposeVar(patch, 0, 0, 1);
+	gridPatch_transpose(patch, 0, 1);
 	s[0] = 1;
 	s[1] = 0;
 	s[2] = 2;
 	if (!local_verifyFakePatchTransposed(patch, s))
 		hasPassed = false;
-	gridPatch_transposeVar(patch, 0, 0, 1);
+	gridPatch_transpose(patch, 0, 1);
 	s[0] = 0;
 	s[1] = 1;
 	s[2] = 2;
 	if (!local_verifyFakePatchTransposed(patch, s))
 		hasPassed = false;
 
-	gridPatch_transposeVar(patch, 0, 0, 2);
+	gridPatch_transpose(patch, 0, 2);
 	s[0] = 2;
 	s[1] = 1;
 	s[2] = 0;
 	if (!local_verifyFakePatchTransposed(patch, s))
 		hasPassed = false;
-	gridPatch_transposeVar(patch, 0, 0, 2);
+	gridPatch_transpose(patch, 0, 2);
 	s[0] = 0;
 	s[1] = 1;
 	s[2] = 2;
 	if (!local_verifyFakePatchTransposed(patch, s))
 		hasPassed = false;
 
-	gridPatch_transposeVar(patch, 0, 1, 2);
+	gridPatch_transpose(patch, 1, 2);
 	s[0] = 0;
 	s[1] = 2;
 	s[2] = 1;
 	if (!local_verifyFakePatchTransposed(patch, s))
 		hasPassed = false;
-	gridPatch_transposeVar(patch, 0, 1, 2);
+	gridPatch_transpose(patch, 1, 2);
 	s[0] = 0;
 	s[1] = 1;
 	s[2] = 2;

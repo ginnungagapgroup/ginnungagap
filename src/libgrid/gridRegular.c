@@ -134,8 +134,8 @@ gridRegular_getDims(gridRegular_t grid, gridPointUint32_t dims)
 {
 	assert(grid != NULL);
 	assert(dims != NULL);
-	
-	for (int i=0; i<NDIM; i++)
+
+	for (int i = 0; i < NDIM; i++)
 		dims[i] = grid->dims[i];
 }
 
@@ -241,28 +241,32 @@ gridRegular_replacePatch(gridRegular_t grid,
 extern void
 gridRegular_transpose(gridRegular_t grid, int dimA, int dimB)
 {
-	double tmpDbl;
+	double   tmpDbl;
 	uint32_t tmpInt;
 
 	assert(grid != 0);
 	assert(dimA >= 0 && dimA < NDIM);
 	assert(dimB >= 0 && dimB < NDIM);
 
-	tmpDbl = grid->origin[dimA];
+	tmpDbl             = grid->origin[dimA];
 	grid->origin[dimA] = grid->origin[dimB];
 	grid->origin[dimB] = tmpDbl;
 
-	tmpDbl = grid->extent[dimA];
+	tmpDbl             = grid->extent[dimA];
 	grid->extent[dimA] = grid->extent[dimB];
 	grid->extent[dimB] = tmpDbl;
 
-	tmpDbl = grid->delta[dimA];
-	grid->delta[dimA] = grid->delta[dimB];
-	grid->delta[dimB] = tmpDbl;
+	tmpDbl             = grid->delta[dimA];
+	grid->delta[dimA]  = grid->delta[dimB];
+	grid->delta[dimB]  = tmpDbl;
 
-	tmpInt = grid->dims[dimA];
-	grid->dims[dimA] = grid->dims[dimB];
-	grid->dims[dimB] = tmpInt;
+	tmpInt             = grid->dims[dimA];
+	grid->dims[dimA]   = grid->dims[dimB];
+	grid->dims[dimB]   = tmpInt;
+
+	for (int i = 0; i < varArr_getLength(grid->patches); i++)
+		gridPatch_transpose(varArr_getElementHandle(grid->patches, i),
+		                    dimA, dimB);
 }
 
 /*--- Implementations of local functions --------------------------------*/

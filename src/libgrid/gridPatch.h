@@ -53,6 +53,9 @@ extern void *
 gridPatch_detachVarData(gridPatch_t patch, int idxOfVarData);
 
 extern void
+gridPatch_wipeVarData(gridPatch_t patch, int idxOfVarData);
+
+extern void
 gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);
 
 extern gridVar_t
@@ -65,10 +68,9 @@ extern int
 gridPatch_getNumVars(gridPatch_t patch);
 
 extern void
-gridPatch_transposeVar(gridPatch_t patch,
-                       int         idxOfVarData,
-                       int         dimA,
-                       int         dimB);
+gridPatch_transpose(gridPatch_t patch,
+                    int         dimA,
+                    int         dimB);
 
 extern void *
 gridPatch_getWindowedDataCopy(gridPatch_t       patch,

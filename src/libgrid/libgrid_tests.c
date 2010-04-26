@@ -100,6 +100,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridPatch_del_test, hasFailed);
 	RUNTEST(&gridPatch_getOneDim_test, hasFailed);
 	RUNTEST(&gridPatch_getDims_test, hasFailed);
+	RUNTEST(&gridPatch_getDimsActual_test, hasFailed);
 	RUNTEST(&gridPatch_getNumCells_test, hasFailed);
 	RUNTEST(&gridPatch_getIdxLo_test, hasFailed);
 	RUNTEST(&gridPatch_attachVarData_test, hasFailed);
@@ -108,7 +109,8 @@ main(int argc, char **argv)
 	RUNTEST(&gridPatch_getVarHandle_test, hasFailed);
 	RUNTEST(&gridPatch_getVarDataHandle_test, hasFailed);
 	RUNTEST(&gridPatch_getNumVars_test, hasFailed);
-	RUNTEST(&gridPatch_transposeVar_test, hasFailed);
+	RUNTEST(&gridPatch_transpose_test, hasFailed);
+	RUNTEST(&gridPatch_getWindowedDataCopy_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegular:\n");
@@ -117,15 +119,19 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegular_del_test, hasFailed);
 	RUNTEST(&gridRegular_getRef_test, hasFailed);
 	RUNTEST(&gridRegular_getName_test, hasFailed);
+	RUNTEST(&gridRegular_getOrigin_test, hasFailed);
+	RUNTEST(&gridRegular_getDelta_test, hasFailed);
+	RUNTEST(&gridRegular_getDims_test, hasFailed);
 	RUNTEST(&gridRegular_getNumVars_test, hasFailed);
 	RUNTEST(&gridRegular_attachVar_test, hasFailed);
 	RUNTEST(&gridRegular_detachVar_test, hasFailed);
 	RUNTEST(&gridRegular_getVarHandle_test, hasFailed);
 	RUNTEST(&gridRegular_getNumPatches_test, hasFailed);
+	RUNTEST(&gridRegular_attachPatch_test, hasFailed);
+	RUNTEST(&gridRegular_detachPatch_test, hasFailed);
 	RUNTEST(&gridRegular_getPatchHandle_test, hasFailed);
-	RUNTEST(&gridRegular_getOrigin_test, hasFailed);
-	RUNTEST(&gridRegular_getDelta_test, hasFailed);
-	RUNTEST(&gridRegular_getDims_test, hasFailed);
+	RUNTEST(&gridRegular_replacePatch_test, hasFailed);
+	RUNTEST(&gridRegular_transpose_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegularDistrib:\n");

@@ -23,6 +23,13 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+static void
+local_transposeVar(gridPatch_t patch,
+                   int         idxOfVarData,
+                   int         dimA,
+                   int         dimB);
+
+
 #if (NDIM == 2)
 static void
 local_transposeVar_2d(const void              *data,
@@ -220,6 +227,21 @@ gridPatch_detachVarData(gridPatch_t patch, int idxOfVarData)
 }
 
 extern void
+gridPatch_wipeVarData(gridPatch_t patch, int idxOfVarData)
+{
+	gridVar_t var;
+	void      *data;
+
+	assert(idxOfVarData >= 0
+	       && idxOfVarData < varArr_getLength(patch->varData));
+
+	var  = varArr_getElementHandle(patch->vars, idxOfVarData);
+	data = varArr_replace(patch->varData, idxOfVarData, NULL);
+
+	gridVar_freeMemory(var, data);
+}
+
+extern void
 gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData)
 {
 	void      *oldData;
@@ -231,7 +253,8 @@ gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData)
 
 	oldData = varArr_replace(patch->varData, idxOfVarData, newData);
 	var     = gridPatch_getVarHandle(patch, idxOfVarData);
-	gridVar_freeMemory(var, oldData);
+	if (oldData != NULL)
+		gridVar_freeMemory(var, oldData);
 }
 
 extern gridVar_t
@@ -260,58 +283,30 @@ gridPatch_getNumVars(gridPatch_t patch)
 }
 
 extern void
-gridPatch_transposeVar(gridPatch_t patch,
-                       int         idxOfVarData,
-                       int         dimA,
-                       int         dimB)
+gridPatch_transpose(gridPatch_t patch,
+                    int         dimA,
+                    int         dimB)
 {
-	void              *data;
-	void              *dataT;
-	gridVar_t         var;
-	int               size;
-	gridPointUint32_t dims;
-	gridPointUint32_t dimsT;
-	uint32_t          tmp;
-	uint64_t          numCellsActual;
+	uint32_t tmp;
 
 	assert(patch != NULL);
-	assert((idxOfVarData >= 0)
-	       && (idxOfVarData < gridPatch_getNumVars(patch)));
 	assert(dimA >= 0 && dimA < NDIM);
 	assert(dimB >= 0 && dimB < NDIM);
 
-	data = gridPatch_getVarDataHandle(patch, idxOfVarData);
-	var  = gridPatch_getVarHandle(patch, idxOfVarData);
-	size = gridVar_getSizePerElement(var);
-	gridPatch_getDimsActual(patch, idxOfVarData, dims);
-	gridPatch_getDimsActual(patch, idxOfVarData, dimsT);
-	dimsT[dimA]    = dims[dimB];
-	dimsT[dimB]    = dims[dimA];
-	numCellsActual = gridPatch_getNumCellsActual(patch, idxOfVarData);
-	dataT          = gridVar_getMemory(var, numCellsActual);
-
-	switch (size) {
-	default:
-#if (NDIM == 2)
-		local_transposeVar_2d(data, dataT, size, dimsT);
-#elif (NDIM == 3)
-		if (((dimA == 0) && (dimB == 1)) || ((dimA == 1) && (dimB == 0)))
-			local_transposeVar102_3d(data, dataT, size, dimsT);
-		else if (((dimA == 0) && (dimB == 2)) || ((dimA == 2) && (dimB == 0)))
-			local_transposeVar210_3d(data, dataT, size, dimsT);
-		else if (((dimA == 1) && (dimB == 2)) || ((dimA == 2) && (dimB == 1)))
-			local_transposeVar021_3d(data, dataT, size, dimsT);
+#ifdef _OPENMP
+#  pragma omp parallel for shared(patch, dimA, dimB)
 #endif
-		break;
+	for (int i = 0; i < NDIM; i++) {
+		local_transposeVar(patch, i, dimA, dimB);
 	}
-	gridPatch_replaceVarData(patch, 0, dataT);
+
 	tmp                = patch->idxLo[dimA];
 	patch->idxLo[dimA] = patch->idxLo[dimB];
 	patch->idxLo[dimB] = tmp;
 	tmp                = patch->dims[dimA];
 	patch->dims[dimA]  = patch->dims[dimB];
 	patch->dims[dimB]  = tmp;
-} /* gridPatch_transposeVar */
+}
 
 extern void *
 gridPatch_getWindowedDataCopy(gridPatch_t       patch,
@@ -351,22 +346,24 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 	dataCopy       = gridVar_getMemory(var, num);
 	sizePerElement = gridVar_getSizePerElement(var);
 
+	// XXX THIS IS WRONG WRONG WRONG WRONG WRONG!!!
 #if (NDIM == 2)
-	offsetData =   idxLo[0] - patch->idxLo[0]
-	             + patch->idxLo[1]* patch->dims[0];
+	offsetData = idxLo[0] - patch->idxLo[0]
+	             + patch->idxLo[1] * patch->dims[0];
 	for (int j = 0; j < dimsWindow[1]; j++) {
-		memcpy(((char*)dataCopy) + offsetCopy * sizePerElement,
+		memcpy(((char *)dataCopy) + offsetCopy * sizePerElement,
 		       ((char *)data) + offsetData * sizePerElement,
 		       dimsWindow[0] * sizePerElement);
 		offsetCopy += dimsWindow[0];
 		offsetData += patch->dims[0];
 	}
 #elif (NDIM == 3)
-	offsetData =   idxLo[0] - patch->idxLo[0]
-	             + patch->idxLo[1]* patch->dims[0];
+	offsetData = idxLo[0] - patch->idxLo[0]
+	             + patch->idxLo[1] * patch->dims[0]
+	             + patch->idxLo[2] * patch->dims[0] * patch->dims[1];
 	for (int k = 0; k < dimsWindow[2]; k++) {
-		for (int j=0; j<dimsWindow[1]; j++) {
-			memcpy(((char*)dataCopy) + offsetCopy * sizePerElement,
+		for (int j = 0; j < dimsWindow[1]; j++) {
+			memcpy(((char *)dataCopy) + offsetCopy * sizePerElement,
 			       ((char *)data) + offsetData * sizePerElement,
 			       dimsWindow[0] * sizePerElement);
 			offsetCopy += dimsWindow[0];
@@ -382,6 +379,47 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 } /* gridPatch_getWindowedDataCopy */
 
 /*--- Implementations of local functions --------------------------------*/
+
+static void
+local_transposeVar(gridPatch_t patch,
+                   int         idxOfVarData,
+                   int         dimA,
+                   int         dimB)
+{
+	void              *data;
+	gridVar_t         var;
+	int               size;
+	gridPointUint32_t dimsT;
+	uint32_t          tmp;
+	uint64_t          numCellsActual;
+	void              *dataT;
+
+	data           = gridPatch_getVarDataHandle(patch, idxOfVarData);
+	var            = gridPatch_getVarHandle(patch, idxOfVarData);
+	size           = gridVar_getSizePerElement(var);
+	gridPatch_getDimsActual(patch, idxOfVarData, dimsT);
+	tmp            = dimsT[dimA];
+	dimsT[dimA]    = dimsT[dimB];
+	dimsT[dimB]    = tmp;
+	numCellsActual = gridPatch_getNumCellsActual(patch, idxOfVarData);
+	dataT          = gridVar_getMemory(var, numCellsActual);
+
+	switch (size) {
+	default:
+#if (NDIM == 2)
+		local_transposeVar_2d(data, dataT, size, dimsT);
+#elif (NDIM == 3)
+		if (((dimA == 0) && (dimB == 1)) || ((dimA == 1) && (dimB == 0)))
+			local_transposeVar102_3d(data, dataT, size, dimsT);
+		else if (((dimA == 0) && (dimB == 2)) || ((dimA == 2) && (dimB == 0)))
+			local_transposeVar210_3d(data, dataT, size, dimsT);
+		else if (((dimA == 1) && (dimB == 2)) || ((dimA == 2) && (dimB == 1)))
+			local_transposeVar021_3d(data, dataT, size, dimsT);
+#endif
+		break;
+	}
+	gridPatch_replaceVarData(patch, idxOfVarData, dataT);
+} /* local_transposeVar */
 
 #if (NDIM == 2)
 static void
