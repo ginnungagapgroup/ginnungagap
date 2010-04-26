@@ -222,6 +222,49 @@ gridRegular_getPatchHandle(gridRegular_t grid, int idxPatchToGet)
 	return varArr_getElementHandle(grid->patches, idxPatchToGet);
 }
 
+extern void
+gridRegular_replacePatch(gridRegular_t grid,
+                         int           idxOfPatch,
+                         gridPatch_t   newPatch)
+{
+	gridPatch_t oldPatch;
+
+	assert(grid != NULL);
+	assert(idxOfPatch >= 0 && idxOfPatch < varArr_getLength(grid->patches));
+	assert(newPatch != NULL);
+
+	oldPatch = varArr_replace(grid->patches, idxOfPatch, newPatch);
+	if (oldPatch != newPatch)
+		gridPatch_del(&oldPatch);
+}
+
+extern void
+gridRegular_transpose(gridRegular_t grid, int dimA, int dimB)
+{
+	double tmpDbl;
+	uint32_t tmpInt;
+
+	assert(grid != 0);
+	assert(dimA >= 0 && dimA < NDIM);
+	assert(dimB >= 0 && dimB < NDIM);
+
+	tmpDbl = grid->origin[dimA];
+	grid->origin[dimA] = grid->origin[dimB];
+	grid->origin[dimB] = tmpDbl;
+
+	tmpDbl = grid->extent[dimA];
+	grid->extent[dimA] = grid->extent[dimB];
+	grid->extent[dimB] = tmpDbl;
+
+	tmpDbl = grid->delta[dimA];
+	grid->delta[dimA] = grid->delta[dimB];
+	grid->delta[dimB] = tmpDbl;
+
+	tmpInt = grid->dims[dimA];
+	grid->dims[dimA] = grid->dims[dimB];
+	grid->dims[dimB] = tmpInt;
+}
+
 /*--- Implementations of local functions --------------------------------*/
 inline static void
 local_resetDelta(gridRegular_t gridRegular)

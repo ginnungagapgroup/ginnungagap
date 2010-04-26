@@ -25,6 +25,15 @@ extern bool
 gridRegular_getName_test(void);
 
 extern bool
+gridRegular_getOrigin_test(void);
+
+extern bool
+gridRegular_getDelta_test(void);
+
+extern bool
+gridRegular_getDims_test(void);
+
+extern bool
 gridRegular_getNumVars_test(void);
 
 extern bool
@@ -39,16 +48,25 @@ gridRegular_getVarHandle_test(void);
 extern bool
 gridRegular_getNumPatches_test(void);
 
+
+/* TODO: Implement Tests
+ * extern bool
+ * gridRegular_attachPatch_test(void);
+ *
+ * extern bool
+ * gridRegular_detachPatch_test(void);
+ */
+
 extern bool
 gridRegular_getPatchHandle_test(void);
 
-extern bool
-gridRegular_getOrigin_test(void);
 
-extern bool
-gridRegular_getDelta_test(void);
-
-extern bool
-gridRegular_getDims_test(void);
+/* TODO: Implement Tests
+ * extern bool
+ * gridRegular_replacePatch_test(void);
+ *
+ * extern bool
+ * gridRegular_transpose_test(void);
+ */
 
 #endif

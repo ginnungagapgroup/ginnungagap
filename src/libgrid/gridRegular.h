@@ -66,4 +66,12 @@ gridRegular_detachPatch(gridRegular_t grid, int idxOfPatch);
 extern gridPatch_t
 gridRegular_getPatchHandle(gridRegular_t grid, int idxPatchToGet);
 
+extern void
+gridRegular_replacePatch(gridRegular_t grid,
+                         int           idxOfPatch,
+                         gridPatch_t   newPatch);
+
+extern void
+gridRegular_transpose(gridRegular_t grid, int dimA, int dimB);
+
 #endif
