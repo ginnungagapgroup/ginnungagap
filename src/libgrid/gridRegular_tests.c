@@ -33,6 +33,9 @@ local_getFakeGrid(gridPointDbl_t    origin,
                   gridPointDbl_t    extent,
                   gridPointUint32_t dims);
 
+static gridPatch_t
+local_getFakePatch(void);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern bool
@@ -477,6 +480,11 @@ gridRegular_attachPatch_test(void)
 {
 	bool              hasPassed = true;
 	int               rank      = 0;
+	gridRegular_t     grid;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+	gridPatch_t       patch;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -487,9 +495,16 @@ gridRegular_attachPatch_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	// TODO Actually implement the test
-	hasPassed = false;
+	grid = local_getFakeGrid(origin, extent, dims);
+	patch = local_getFakePatch();
 
+	if (grid->patches == 0)
+		hasPassed = false;
+	gridRegular_attachPatch(grid, patch);
+	if (varArr_getLength(grid->patches) != 1)
+		hasPassed = false;
+
+	gridRegular_del(&grid);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -615,4 +630,21 @@ local_getFakeGrid(gridPointDbl_t    origin,
 	}
 
 	return gridRegular_new(LOCAL_TESTNAME, origin, extent, dims);
+}
+
+static gridPatch_t
+local_getFakePatch(void)
+{
+	gridPatch_t patch;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+
+	for (int i=0; i<NDIM; i++) {
+		idxLo[i] = 0;
+		idxHi[i] = i+1;
+	}
+
+	patch = gridPatch_new(idxLo, idxHi);
+
+	return patch;
 }

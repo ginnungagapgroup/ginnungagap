@@ -210,7 +210,7 @@ local_doFFTParallelForward(gridRegularFFT_t fft)
 
 	result = local_doFFTParallelR2CPencil(fft);
 	gridPatch_replaceVarData(fft->patch, fft->idxFFTVar, result);
-	gridRegularDistrib_transposeVar(fft->distrib, fft->idxFFTVar, 0, 1);
+	gridRegularDistrib_transpose(fft->distrib, 0, 1);
 //	result = local_doFFTParallelC2CPencil(fft);
 
 	return result;

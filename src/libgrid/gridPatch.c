@@ -91,14 +91,16 @@ gridPatch_del(gridPatch_t *gridPatch)
 
 	assert(gridPatch != NULL && *gridPatch != NULL);
 
-	numVarData = varArr_getLength((*gridPatch)->varData);
-	for (int i = 0; i < numVarData; i++) {
-		var = varArr_remove((*gridPatch)->vars, 0);
-		gridVar_freeMemory(var, varArr_remove((*gridPatch)->varData, 0));
-		gridVar_del(&var);
+	if ((*gridPatch)->varData != NULL) {
+		numVarData = varArr_getLength((*gridPatch)->varData);
+		for (int i = 0; i < numVarData; i++) {
+			var = varArr_remove((*gridPatch)->vars, 0);
+			gridVar_freeMemory(var, varArr_remove((*gridPatch)->varData, 0));
+			gridVar_del(&var);
+		}
+		varArr_del(&((*gridPatch)->varData));
+		varArr_del(&((*gridPatch)->vars));
 	}
-	varArr_del(&((*gridPatch)->varData));
-	varArr_del(&((*gridPatch)->vars));
 	xfree(*gridPatch);
 
 	*gridPatch = NULL;
@@ -296,7 +298,7 @@ gridPatch_transpose(gridPatch_t patch,
 #ifdef _OPENMP
 #  pragma omp parallel for shared(patch, dimA, dimB)
 #endif
-	for (int i = 0; i < NDIM; i++) {
+	for (int i = 0; i < varArr_getLength(patch->vars); i++) {
 		local_transposeVar(patch, i, dimA, dimB);
 	}
 
@@ -346,10 +348,9 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 	dataCopy       = gridVar_getMemory(var, num);
 	sizePerElement = gridVar_getSizePerElement(var);
 
-	// XXX THIS IS WRONG WRONG WRONG WRONG WRONG!!!
 #if (NDIM == 2)
 	offsetData = idxLo[0] - patch->idxLo[0]
-	             + patch->idxLo[1] * patch->dims[0];
+	             + (idxLo[1] - patch->idxLo[1]) * patch->dims[0];
 	for (int j = 0; j < dimsWindow[1]; j++) {
 		memcpy(((char *)dataCopy) + offsetCopy * sizePerElement,
 		       ((char *)data) + offsetData * sizePerElement,
@@ -358,10 +359,11 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 		offsetData += patch->dims[0];
 	}
 #elif (NDIM == 3)
-	offsetData = idxLo[0] - patch->idxLo[0]
-	             + patch->idxLo[1] * patch->dims[0]
-	             + patch->idxLo[2] * patch->dims[0] * patch->dims[1];
 	for (int k = 0; k < dimsWindow[2]; k++) {
+		offsetData = idxLo[0] - patch->idxLo[0]
+		             + (idxLo[1] - patch->idxLo[1]) * patch->dims[0]
+		             + (idxLo[2] - patch->idxLo[2] + k)
+		             * patch->dims[0] * patch->dims[1];
 		for (int j = 0; j < dimsWindow[1]; j++) {
 			memcpy(((char *)dataCopy) + offsetCopy * sizePerElement,
 			       ((char *)data) + offsetData * sizePerElement,

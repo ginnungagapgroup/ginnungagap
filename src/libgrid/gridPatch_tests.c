@@ -40,6 +40,9 @@ local_getFakePatch(void);
 static bool
 local_verifyFakePatchTransposed(gridPatch_t patch, gridPointInt_t s);
 
+static gridPatch_t
+local_getFakePatchForCopy(void);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern bool
@@ -240,10 +243,15 @@ gridPatch_getDims_test(void)
 extern bool
 gridPatch_getDimsActual_test(void)
 {
-	bool              hasPassed = true;
-	int               rank      = 0;
+	bool   hasPassed      = true;
+	int    rank           = 0;
+	gridPatch_t       patch;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+	gridPointUint32_t dims;
+	gridVar_t var;
 #ifdef XMEM_TRACK_MEM
-	size_t            allocatedBytes = global_allocated_bytes;
+	size_t allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -252,9 +260,23 @@ gridPatch_getDimsActual_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	// TODO Actually implement the patch
-	hasPassed = false;
-
+	for (int i = 0; i < NDIM; i++) {
+		idxLo[i] = 12;
+		idxHi[i] = 231;
+	}
+	patch = gridPatch_new(idxLo, idxHi);
+	var = gridVar_new("basd", GRIDVARTYPE_INT, 1);
+	gridVar_setFFTWPadded(var);
+	gridPatch_attachVarData(patch, var);
+	gridPatch_getDimsActual(patch, 0, dims);
+	if (dims[0] != (2 * ((idxHi[0] - idxLo[0] + 1)/2 + 1)))
+		hasPassed = false;
+	for (int i = 1; i < NDIM; i++) {
+		if (dims[i] != (idxHi[i] - idxLo[i] + 1))
+			hasPassed = false;
+	}
+	gridVar_del(&var);
+	gridPatch_del(&patch);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -658,6 +680,11 @@ gridPatch_getWindowedDataCopy_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       patch;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+	uint64_t          numElements;
+	int               *data;
+	int               offset         = 0;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -668,10 +695,40 @@ gridPatch_getWindowedDataCopy_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	patch = local_getFakePatch();
+	patch = local_getFakePatchForCopy();
 
-	// TODO  Implement the test
-	hasPassed = false;
+	for (int i = 0; i < NDIM; i++) {
+		idxLo[i] = 3;
+		idxHi[i] = 4;
+	}
+	data = gridPatch_getWindowedDataCopy(patch, 0, idxLo, idxHi,
+	                                     &numElements);
+#if (NDIM == 2)
+	if (numElements != 4)
+		hasPassed = false;
+	for (int j = 3; j <= 4; j++) {
+		for (int i = 3; i <= 4; i++) {
+			int expected = i + j * (patch->idxLo[0] + patch->dims[0]);
+			if (data[offset++] != expected)
+				hasPassed = false;
+		}
+	}
+#elif (NDIM == 3)
+	if (numElements != 8)
+		hasPassed = false;
+	for (int k = 3; k <= 4; k++) {
+		for (int j = 3; j <= 4; j++) {
+			for (int i = 3; i <= 4; i++) {
+				int expected = i + j * (patch->idxLo[0] + patch->dims[0])
+				               + k * (patch->idxLo[0] + patch->dims[0])
+				               * (patch->idxLo[1] + patch->dims[1]);
+				if (data[offset++] != expected)
+					hasPassed = false;
+			}
+		}
+	}
+#endif
+	xfree(data);
 
 	gridPatch_del(&patch);
 #ifdef XMEM_TRACK_MEM
@@ -680,7 +737,7 @@ gridPatch_getWindowedDataCopy_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_getWindowedDataCopy_test */
 
 /*--- Implementations of local functions --------------------------------*/
 #if (NDIM == 2)
@@ -781,20 +838,20 @@ local_getFakePatch(void)
 #ifdef WITH_MPI
 	idxHi[0] = 32;
 #else
-	idxHi[0] = 250;
+	idxHi[0] = 150;
 #endif
 	idxLo[1] = 0;
 #ifdef WITH_MPI
 	idxHi[1] = 33;
 #else
-	idxHi[2] = 250;
+	idxHi[1] = 150;
 #endif
 #if (NDIM > 2)
 	idxLo[2] = 0;
 #  ifdef WITH_MPI
 	idxHi[2] = 34;
 #  else
-	idxHi[2] = 250;
+	idxHi[2] = 150;
 #  endif
 #endif
 	patch = gridPatch_new(idxLo, idxHi);
@@ -860,3 +917,48 @@ local_verifyFakePatchTransposed(gridPatch_t patch, gridPointInt_t s)
 
 	return true;
 } /* local_verifyFakePatchTransposed */
+
+static gridPatch_t
+local_getFakePatchForCopy(void)
+{
+	gridPatch_t       patch;
+	gridVar_t         var;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+	int               *data;
+	int               offset = 0;
+
+	var      = gridVar_new("TEST", GRIDVARTYPE_INT, 1);
+	idxLo[0] = 1;
+	idxHi[0] = 32;
+	idxLo[1] = 2;
+	idxHi[1] = 33;
+#if (NDIM > 2)
+	idxLo[2] = 3;
+	idxHi[2] = 34;
+#endif
+	patch    = gridPatch_new(idxLo, idxHi);
+	gridPatch_attachVarData(patch, var);
+	data     = gridPatch_getVarDataHandle(patch, 0);
+#if (NDIM == 2)
+	for (int j = idxLo[1]; j <= idxHi[1]; j++) {
+		for (int i = idxLo[0]; i <= idxHi[0]; i++) {
+			data[offset] = i + j * (idxHi[0] + 1);
+			offset++;
+		}
+	}
+#elif (NDIM == 3)
+	for (int k = idxLo[2]; k <= idxHi[2]; k++) {
+		for (int j = idxLo[1]; j <= idxHi[1]; j++) {
+			for (int i = idxLo[0]; i <= idxHi[0]; i++) {
+				data[offset] = i + j * (idxHi[0] + 1)
+				               + k * (idxHi[0] + 1) * (idxHi[1] + 1);
+				offset++;
+			}
+		}
+	}
+#endif
+	gridVar_del(&var);
+
+	return patch;
+} /* local_getFakePatch */

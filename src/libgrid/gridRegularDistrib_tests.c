@@ -255,6 +255,7 @@ gridRegularDistrib_getPatchForRank_test(void)
 		if ((patch->idxLo[i] != 0) || (patch->dims[i] != 31))
 			hasPassed = false;
 	}
+#ifdef WITH_MPI
 	if (size == 16) {
 		if (rank == 1) {
 			if ((patch->idxLo[0] != 2) || (patch->dims[0] != 2))
@@ -265,6 +266,7 @@ gridRegularDistrib_getPatchForRank_test(void)
 				hasPassed = false;
 		}
 	}
+#endif
 
 	gridRegular_del(&fakeGrid);
 	gridPatch_del(&patch);
@@ -333,7 +335,7 @@ gridRegularDistrib_calcIdxsForRank1D_test(void)
 } /* gridRegularDistrib_calcIdxsForRank1D_test */
 
 extern bool
-gridRegularDistrib_transposeVar_test(void)
+gridRegularDistrib_transpose_test(void)
 {
 	bool                 hasPassed = true;
 	int                  rank      = 0;
@@ -351,7 +353,7 @@ gridRegularDistrib_transposeVar_test(void)
 
 	distrib = local_getFakeDistribForTranspose();
 
-	gridRegularDistrib_transposeVar(distrib, 0, 0, 1);
+	gridRegularDistrib_transpose(distrib, 0, 1);
 
 	gridRegularDistrib_del(&distrib);
 
@@ -415,7 +417,7 @@ local_getFakeDistribForTranspose(void)
 	origin[1] = 0.0;
 	extent[1] = 5.0;
 	dims[1]   = 5;
-	nProcs[0] = 3;
+	nProcs[1] = 3;
 #if (NDIM > 2)
 	origin[2] = 0.0;
 	extent[2] = 6.0;

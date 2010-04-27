@@ -61,10 +61,9 @@ gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
                                      uint32_t *idxHi);
 
 extern void
-gridRegularDistrib_transposeVar(gridRegularDistrib_t distrib,
-                                int                  idxVar,
-                                int                  dimA,
-                                int                  dimB);
+gridRegularDistrib_transpose(gridRegularDistrib_t distrib,
+                             int                  dimA,
+                             int                  dimB);
 
 
 #endif

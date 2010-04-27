@@ -36,6 +36,6 @@ extern bool
 gridRegularDistrib_calcIdxsForRank1D_test(void);
 
 extern bool
-gridRegularDistrib_transposeVar_test(void);
+gridRegularDistrib_transpose_test(void);
 
 #endif
