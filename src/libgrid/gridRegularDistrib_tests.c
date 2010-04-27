@@ -42,6 +42,9 @@ local_getFakeDistribForTranspose(void);
 static void
 local_fillFakeGridForTranspose(gridRegular_t grid);
 
+static bool
+local_verifyFakeDistribForTranspose(gridRegularDistrib_t distrib);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern bool
@@ -355,6 +358,8 @@ gridRegularDistrib_transpose_test(void)
 
 	gridRegularDistrib_transpose(distrib, 0, 1);
 
+	hasPassed = local_verifyFakeDistribForTranspose(distrib);
+
 	gridRegularDistrib_del(&distrib);
 
 #ifdef XMEM_TRACK_MEM
@@ -425,7 +430,7 @@ local_getFakeDistribForTranspose(void)
 	nProcs[2] = 2;
 #endif
 	grid      = gridRegular_new("bla", origin, extent, dims);
-	var       = gridVar_new("blaVar", GRIDVARTYPE_FPV, 1);
+	var       = gridVar_new("blaVar", GRIDVARTYPE_INT, 1);
 	gridRegular_attachVar(grid, var);
 	distrib   = gridRegularDistrib_new(grid, nProcs);
 #ifdef WITH_MPI
@@ -446,7 +451,7 @@ static void
 local_fillFakeGridForTranspose(gridRegular_t grid)
 {
 	gridPatch_t       patch;
-	fpv_t             *data;
+	int               *data;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t dims;
 	gridPointUint32_t dimsGlobal;
@@ -464,4 +469,33 @@ local_fillFakeGridForTranspose(gridRegular_t grid)
 			                 + (j + idxLo[1]) * dimsGlobal[0];
 		}
 	}
+}
+
+static bool
+local_verifyFakeDistribForTranspose(gridRegularDistrib_t distrib)
+{
+	gridPatch_t       patch;
+	int               *data;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t dims;
+	gridPointUint32_t dimsGlobal;
+	uint64_t          offset = 0;
+
+	patch = gridRegular_getPatchHandle(distrib->grid, 0);
+	gridPatch_getDims(patch, dims);
+	gridPatch_getIdxLo(patch, idxLo);
+	data = gridPatch_getVarDataHandle(patch, 0);
+	gridRegular_getDims(distrib->grid, dimsGlobal);
+
+	for (int j = 0; j < dims[1]; j++) {
+		for (int i = 0; i < dims[0]; i++) {
+			int expected = j + idxLo[1]
+			           +(i + idxLo[0])*dimsGlobal[1];
+			if (data[offset] != expected)
+				return false;
+			offset++;
+		}
+	}
+
+	return true;
 }
