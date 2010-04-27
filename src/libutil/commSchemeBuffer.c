@@ -12,7 +12,7 @@
 #  include "xmem.h"
 
 
-/*--- Implemention of main structure ------------------------------------*/
+/*--- Implementation of main structure ----------------------------------*/
 #  include "commSchemeBuffer_adt.h"
 
 
@@ -22,7 +22,7 @@
 /*--- Prototypes of local functions -------------------------------------*/
 
 
-/*--- Implementations of exported functios ------------------------------*/
+/*--- Implementations of exported functions -----------------------------*/
 extern commSchemeBuffer_t
 commSchemeBuffer_new(void *buf, int count, MPI_Datatype datatype, int rank)
 {

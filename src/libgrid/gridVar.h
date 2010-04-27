@@ -54,6 +54,9 @@ gridVar_getMemory(gridVar_t var, uint64_t numElements);
 extern void
 gridVar_freeMemory(gridVar_t var, void *data);
 
+extern void *
+gridVar_getPointerByOffset(gridVar_t var, const void *base, uint64_t offset);
+
 extern void
 gridVar_setFFTWPadded(gridVar_t var);
 

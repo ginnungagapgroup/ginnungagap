@@ -138,6 +138,19 @@ gridVar_freeMemory(gridVar_t var, void *data)
 		xfree(data);
 }
 
+extern void *
+gridVar_getPointerByOffset(gridVar_t var, const void *base, uint64_t offset)
+{
+	size_t size;
+
+	assert(var != NULL);
+	assert(base != NULL);
+
+	size = gridVar_getSizePerElement(var);
+
+	return ((const char *)base) + offset*size;
+}
+
 extern void
 gridVar_setFFTWPadded(gridVar_t var)
 {

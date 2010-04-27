@@ -14,7 +14,7 @@
 #  include "varArr.h"
 
 
-/*--- Implemention of main structure ------------------------------------*/
+/*--- Implementation of main structure ----------------------------------*/
 #  include "commScheme_adt.h"
 #  include "commSchemeBuffer_adt.h"
 
@@ -27,7 +27,7 @@ inline static void
 local_startSending(commScheme_t scheme);
 
 
-/*--- Implementations of exported functios ------------------------------*/
+/*--- Implementations of exported functions -----------------------------*/
 extern commScheme_t
 commScheme_new(MPI_Comm comm, int tag)
 {

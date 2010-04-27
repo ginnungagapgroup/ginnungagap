@@ -26,11 +26,11 @@ gridUtil_intersection1D(uint32_t loA,
                         uint32_t *loC,
                         uint32_t *hiC)
 {
+	if (loA > hiB || hiA < loB)
+		return false;
+
 	*loC = (loA < loB) ? MIN(hiA, loB) : loA;
 	*hiC = (hiA > hiB) ? MAX(loA, hiB) : hiA;
-
-	if (*loC == *hiC)
-		return false;
 
 	return true;
 }
