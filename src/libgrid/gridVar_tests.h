@@ -43,6 +43,9 @@ extern bool
 gridVar_freeMemory_test(void);
 
 extern bool
+gridVar_getPointerByOffset_test(void);
+
+extern bool
 gridVar_setFFTWPadded_test(void);
 
 extern bool
@@ -51,5 +54,23 @@ gridVar_unsetFFTWPadded_test(void);
 extern bool
 gridVar_isFFTWPadded_test(void);
 
+extern bool
+gridVar_setComplexified_test(void);
+
+extern bool
+gridVar_unsetComplexified_test(void);
+
+extern bool
+gridVar_isComplexified_test(void);
+
+#ifdef WITH_MPI
+
+extern bool
+gridVar_getMPIDatatype_test(void);
+
+extern bool
+gridVar_getMPICount_test(void);
+
+#endif
 
 #endif

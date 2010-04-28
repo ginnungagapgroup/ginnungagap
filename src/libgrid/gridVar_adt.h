@@ -23,6 +23,7 @@ struct gridVar_struct {
 	void          *(*mallocFunc)(size_t size);
 	void          (*freeFunc)(void *ptr);
 	bool          isFFTWPadded;
+	bool          isComplexified;
 };
 
 

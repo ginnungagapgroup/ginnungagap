@@ -75,14 +75,10 @@ gridUtil_intersection1D_test(void)
 	sB[1] = 2;
 	if(gridUtil_intersection1D(sA[0], sA[1], sB[0], sB[1], sC, sC + 1))
 		hasPassed = false;
-	if (sC[0] != 10 && sC[1] != 10)
-		hasPassed = false;
 
 	sB[0] = 25;
 	sB[1] = 35;
 	if(gridUtil_intersection1D(sA[0], sA[1], sB[0], sB[1], sC, sC + 1))
-		hasPassed = false;
-	if (sC[0] != 20 && sC[1] != 20)
 		hasPassed = false;
 
 #ifdef XMEM_TRACK_MEM

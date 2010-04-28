@@ -148,6 +148,9 @@ gridVar_getSizePerElement_test(void)
 	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
 	if (gridVar_getSizePerElement(gridVar) != sizeof(double) * NDIM)
 		hasPassed = false;
+	gridVar_setComplexified(gridVar);
+	if (gridVar_getSizePerElement(gridVar) != sizeof(double) * NDIM * 2)
+		hasPassed = false;
 	gridVar_del(&gridVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -259,10 +262,10 @@ gridVar_setMemFuncs_test(void)
 
 	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
 	gridVar_setMemFuncs(gridVar, NULL, NULL);
-	if (gridVar->mallocFunc != NULL || gridVar->freeFunc != NULL)
+	if ((gridVar->mallocFunc != NULL) || (gridVar->freeFunc != NULL))
 		hasPassed = false;
 	gridVar_setMemFuncs(gridVar, &malloc, &free);
-	if (gridVar->mallocFunc != &malloc || gridVar->freeFunc != &free)
+	if ((gridVar->mallocFunc != &malloc) || (gridVar->freeFunc != &free))
 		hasPassed = false;
 	gridVar_del(&gridVar);
 #ifdef XMEM_TRACK_MEM
@@ -332,6 +335,45 @@ gridVar_freeMemory_test(void)
 
 	return hasPassed ? true : false;
 }
+
+extern bool
+gridVar_getPointerByOffset_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	void      *tmp;
+	double    *tmpCorrect;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar    = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, 1);
+	tmp        = gridVar_getMemory(gridVar, UINT64_C(1024));
+	tmpCorrect = (double *)tmp;
+
+	if (gridVar_getPointerByOffset(gridVar, tmp, 14) != tmpCorrect + 14)
+		hasPassed = false;
+	if (gridVar_getPointerByOffset(gridVar, tmp, 321) != tmpCorrect + 321)
+		hasPassed = false;
+	if (gridVar_getPointerByOffset(gridVar, tmp, 0) != tmpCorrect)
+		hasPassed = false;
+
+	gridVar_freeMemory(gridVar, tmp);
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* gridVar_getPointerByOffset_test */
 
 extern bool
 gridVar_setFFTWPadded_test(void)
@@ -423,5 +465,157 @@ gridVar_isFFTWPadded_test(void)
 	return hasPassed ? true : false;
 }
 
+extern bool
+gridVar_setComplexified_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	gridVar_setComplexified(gridVar);
+	if (!gridVar->isComplexified)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridVar_unsetComplexified_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	gridVar_unsetComplexified(gridVar);
+	if (gridVar->isComplexified)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridVar_isComplexified_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	if (gridVar->isComplexified)
+		hasPassed = false;
+	gridVar_setComplexified(gridVar);
+	if (!gridVar->isComplexified)
+		hasPassed = false;
+	gridVar_unsetComplexified(gridVar);
+	if (gridVar->isComplexified)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+#ifdef WITH_MPI
+extern bool
+gridVar_getMPIDatatype_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#  ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#  endif
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, 1);
+	if (gridVar_getMPIDatatype(gridVar) != MPI_DOUBLE)
+		hasPassed = false;
+	gridVar_setComplexified(gridVar);
+	if (gridVar_getMPIDatatype(gridVar) != MPI_BYTE)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#  ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#  endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridVar_getMPICount_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar;
+#  ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#  endif
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, 1);
+	if (gridVar_getMPICount(gridVar, 2) != 2)
+		hasPassed = false;
+	gridVar_setComplexified(gridVar);
+	if (gridVar_getMPICount(gridVar, 2) != 2 * 2 * sizeof(double))
+		hasPassed = false;
+	gridVar_del(&gridVar);
+#  ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#  endif
+
+	return hasPassed ? true : false;
+}
+
+#endif
 
 /*--- Implementations of local functions --------------------------------*/

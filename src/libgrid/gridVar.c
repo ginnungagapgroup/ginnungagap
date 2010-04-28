@@ -35,13 +35,14 @@ gridVar_new(const char *name, gridVarType_t type, int numComponents)
 	assert(name != NULL);
 	assert(numComponents > 0);
 
-	gridVar                = xmalloc(sizeof(struct gridVar_struct));
-	gridVar->name          = xstrdup(name);
-	gridVar->type          = type;
-	gridVar->numComponents = numComponents;
-	gridVar->mallocFunc    = NULL;
-	gridVar->freeFunc      = NULL;
-	gridVar->isFFTWPadded  = false;
+	gridVar                 = xmalloc(sizeof(struct gridVar_struct));
+	gridVar->name           = xstrdup(name);
+	gridVar->type           = type;
+	gridVar->numComponents  = numComponents;
+	gridVar->mallocFunc     = NULL;
+	gridVar->freeFunc       = NULL;
+	gridVar->isFFTWPadded   = false;
+	gridVar->isComplexified = false;
 
 	refCounter_init(&(gridVar->refCounter));
 
@@ -75,6 +76,9 @@ extern size_t
 gridVar_getSizePerElement(gridVar_t var)
 {
 	assert(var != NULL);
+	if (var->isComplexified)
+		return gridVarType_sizeof(var->type) * 2 * var->numComponents;
+
 	return gridVarType_sizeof(var->type) * var->numComponents;
 }
 
@@ -148,7 +152,7 @@ gridVar_getPointerByOffset(gridVar_t var, const void *base, uint64_t offset)
 
 	size = gridVar_getSizePerElement(var);
 
-	return ((const char *)base) + offset*size;
+	return (void *)(((const char *)base) + offset * size);
 }
 
 extern void
@@ -172,21 +176,80 @@ gridVar_isFFTWPadded(gridVar_t var)
 	return var->isFFTWPadded;
 }
 
+extern void
+gridVar_setComplexified(gridVar_t var)
+{
+	assert(var != NULL);
+	var->isComplexified = true;
+}
+
+extern void
+gridVar_unsetComplexified(gridVar_t var)
+{
+	assert(var != NULL);
+	var->isComplexified = false;
+}
+
+extern bool
+gridVar_isComplexified(gridVar_t var)
+{
+	assert(var != NULL);
+	return var->isComplexified;
+}
+
 #ifdef WITH_MPI
 extern MPI_Datatype
 gridVar_getMPIDatatype(gridVar_t var)
 {
+	MPI_Datatype dt = MPI_BYTE;
+
 	assert(var != NULL);
 
-	return MPI_BYTE;
+	if (!gridVar_isComplexified(var)) {
+		switch (var->type) {
+		case GRIDVARTYPE_DOUBLE:
+			dt = MPI_DOUBLE;
+			break;
+		case GRIDVARTYPE_INT:
+			dt = MPI_INT;
+			break;
+		case GRIDVARTYPE_FPV:
+#  ifdef ENABLE_DOUBLE
+			dt = MPI_DOUBLE;
+#  else
+			dt = MPI_FLOAT
+#  endif
+			break;
+		default:
+			break;
+		}
+	}
+
+	return dt;
 }
 
 extern int
 gridVar_getMPICount(gridVar_t var, uint64_t numElements)
 {
+	int count;
+
 	assert(var != NULL);
 
-	return (int)(numElements * gridVar_getSizePerElement(var));
+	count = (int)(numElements * gridVar_getSizePerElement(var));
+
+	if (!gridVar_isComplexified(var)) {
+		switch (var->type) {
+		case GRIDVARTYPE_DOUBLE:
+		case GRIDVARTYPE_INT:
+		case GRIDVARTYPE_FPV:
+			count = (int)numElements;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return count;
 }
 
 #endif

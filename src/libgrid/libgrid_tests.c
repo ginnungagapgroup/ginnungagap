@@ -80,9 +80,17 @@ main(int argc, char **argv)
 	RUNTEST(&gridVar_setMemFuncs_test, hasFailed);
 	RUNTEST(&gridVar_getMemory_test, hasFailed);
 	RUNTEST(&gridVar_freeMemory_test, hasFailed);
+	RUNTEST(&gridVar_getPointerByOffset_test, hasFailed);
 	RUNTEST(&gridVar_setFFTWPadded_test, hasFailed);
 	RUNTEST(&gridVar_unsetFFTWPadded_test, hasFailed);
 	RUNTEST(&gridVar_isFFTWPadded_test, hasFailed);
+	RUNTEST(&gridVar_setComplexified_test, hasFailed);
+	RUNTEST(&gridVar_unsetComplexified_test, hasFailed);
+	RUNTEST(&gridVar_isComplexified_test, hasFailed);
+#ifdef WITH_MPI
+	RUNTEST(&gridVar_getMPIDatatype_test, hasFailed);
+	RUNTEST(&gridVar_getMPICount_test, hasFailed);
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridVarType:\n");

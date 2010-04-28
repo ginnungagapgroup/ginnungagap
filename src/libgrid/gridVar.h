@@ -66,6 +66,15 @@ gridVar_unsetFFTWPadded(gridVar_t var);
 extern bool
 gridVar_isFFTWPadded(gridVar_t var);
 
+extern void
+gridVar_setComplexified(gridVar_t var);
+
+extern void
+gridVar_unsetComplexified(gridVar_t var);
+
+extern bool
+gridVar_isComplexified(gridVar_t var);
+
 
 #ifdef WITH_MPI
 extern MPI_Datatype
