@@ -444,17 +444,17 @@ local_getFakeDistribForTranspose(void)
 
 	origin[0] = 0.0;
 	extent[0] = 4.0;
-	dims[0]   = 40;
-	nProcs[0] = 0;
+	dims[0]   = 4;
+	nProcs[0] = 2;
 	origin[1] = 0.0;
 	extent[1] = 5.0;
-	dims[1]   = 50;
-	nProcs[1] = 0;
+	dims[1]   = 5;
+	nProcs[1] = 3;
 #if (NDIM > 2)
 	origin[2] = 0.0;
-	extent[2] = 6.0;
-	dims[2]   = 60;
-	nProcs[2] = 0;
+	extent[2] = 2.0;
+	dims[2]   = 3;
+	nProcs[2] = 2;
 #endif
 	grid      = gridRegular_new("bla", origin, extent, dims);
 	var       = gridVar_new("blaVar", GRIDVARTYPE_INT, 1);

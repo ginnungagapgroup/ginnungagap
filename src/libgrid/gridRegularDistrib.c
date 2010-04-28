@@ -235,7 +235,7 @@ gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
 	int cellsUnbalance;
 
 	assert(nCells > 0);
-	assert(nProcs > 0 && nProcs < nCells);
+	assert(nProcs > 0 && nProcs <= nCells);
 	assert(rank >= 0 && rank < nProcs);
 	assert(idxLo != NULL);
 	assert(idxHi != NULL);
@@ -296,6 +296,8 @@ local_transposeMPI(gridRegularDistrib_t distrib,
 	gridPointUint32_t dims;
 	varArr_t          sendLayout;
 	varArr_t          recvLayout;
+	gridPointUint32_t dimsPatchT;
+	gridPointUint32_t idxLoPatchT;
 
 	MPI_Comm_rank(distrib->commCart, &rank);
 	MPI_Cart_coords(distrib->commCart, rank, NDIM, pPos);
@@ -344,9 +346,10 @@ local_transposeMPI(gridRegularDistrib_t distrib,
 			                                  type,
 			                                  rankSend);
 #  ifdef DEBUG2
-			printf("\nAm %i, send to %i: %u %u - %u %u\n",
+			printf("\nAm %i, send to %i: %u %u %u - %u %u %u\n",
 			       rank, rankSend, le->idxLo[0], le->idxLo[1],
-			       le->idxHi[0], le->idxHi[1]);
+			       le->idxLo[2], le->idxHi[0], le->idxHi[1],
+			       le->idxHi[2]);
 #  endif
 			commScheme_addBuffer(scheme, le->buffer, COMMSCHEME_TYPE_SEND);
 		}
@@ -354,8 +357,12 @@ local_transposeMPI(gridRegularDistrib_t distrib,
 		gridVar_freeMemory(var, gridPatch_detachVarData(patch, 0));
 		idxOfVar = gridPatch_attachVarData(patchT, var);
 		data     = gridPatch_getVarDataHandle(patchT, idxOfVar);
+		gridPatch_getIdxLo(patchT, idxLoPatchT);
+		gridPatch_getDims(patchT, dimsPatchT);
+		printf("\nAm %i, funky patch: %u %u %u (%u %u %u)\n",
+		       rank, idxLoPatchT[0], idxLoPatchT[1], idxLoPatchT[2],
+		       dimsPatchT[0], dimsPatchT[1], dimsPatchT[2]);
 
-		uint64_t offset = 0;
 #  ifdef DEBUG2
 		printf("\nAm %i, receiving from %i tasks\n", rank,
 		       varArr_getLength(recvLayout));
@@ -367,22 +374,30 @@ local_transposeMPI(gridRegularDistrib_t distrib,
 			int                   rankRecv;
 			void                  *dataRecv;
 			uint64_t              numCells = 1;
+			uint64_t              offset;
 
+#if (NDIM == 2)
+			offset = (le->idxLo[0] - idxLoPatchT[0])
+			         + (le->idxLo[1] - idxLoPatchT[1]) * dimsPatchT[0];
+#elif (NDIM ==3)
+			offset = (le->idxLo[0] - idxLoPatchT[0])
+			         + (le->idxLo[1] - idxLoPatchT[1]) * dimsPatchT[0]
+			         + (le->idxLo[2] - idxLoPatchT[2])
+			         * dimsPatchT[0] * dimsPatchT[1];
+#endif
 
 			dataRecv = gridVar_getPointerByOffset(var, data, offset);
 			for (int k = 0; k < NDIM; k++)
 				numCells *= (le->idxHi[k] - le->idxLo[k] + 1);
-			offset    += numCells;
 			count      = gridVar_getMPICount(var, numCells);
 			MPI_Cart_rank(distrib->commCart, le->processCoord, &rankRecv);
-			le->buffer = commSchemeBuffer_new(dataRecv,
-			                                  count,
-			                                  type,
-			                                  rankRecv);
+			le->buffer = commSchemeBuffer_new(dataRecv, count,
+			                                  type, rankRecv);
 #  ifdef DEBUG2
-			printf("\nAm %i, receive from %i: %u %u - %u %u\n",
+			printf("\nAm %i, receive from %i: %u %u %u - %u %u %u\n",
 			       rank, rankRecv, le->idxLo[0], le->idxLo[1],
-			       le->idxHi[0], le->idxHi[1]);
+			       le->idxLo[2], le->idxHi[0], le->idxHi[1],
+			       le->idxHi[2]);
 #  endif
 			commScheme_addBuffer(scheme, le->buffer, COMMSCHEME_TYPE_RECV);
 		}
@@ -447,22 +462,27 @@ static varArr_t
 local_transposeGetSendLayout(gridPointUint32_t dims,
                              gridPointInt_t    nProcs,
                              gridPointInt_t    pPos,
-                             int               dimA,
-                             int               dimB)
+                             int               t0,
+                             int               t1)
 {
 	gridPointUint32_t loMine, hiMine, lo, hi, loS, hiS;
 	gridPointInt_t    p;
-	varArr_t          layout = varArr_new(nProcs[0] * nProcs[1] / 20);
+	varArr_t          layout = varArr_new(nProcs[t0] * nProcs[t1] / 20);
 
-	getIdx(dims[1], nProcs[1], pPos[1], loMine + 1, hiMine + 1);
-	getIdx(dims[0], nProcs[0], pPos[0], loMine + 0, hiMine + 0);
-	for (p[1] = 0; p[1] < nProcs[1]; p[1]++) {
-		getIdx(dims[0], nProcs[1], p[1], lo + 1, hi + 1);
-		if (is(loMine[0], hiMine[0], lo[1], hi[1], loS, hiS)) {
-			for (p[0] = 0; p[0] < nProcs[0]; p[0]++) {
-				getIdx(dims[1], nProcs[0], p[0], lo + 0, hi + 0);
-				if (is(loMine[1], hiMine[1], lo[0], hi[0], loS + 1, hiS
-				       + 1)) {
+	for (int i = 0; i < NDIM; i++) {
+		getIdx(dims[i], nProcs[i], pPos[i], loMine + i, hiMine + i);
+		loS[i] = loMine[i];
+		hiS[i] = hiMine[i];
+		p[i]   = pPos[i];
+	}
+
+	for (p[t1] = 0; p[t1] < nProcs[t1]; p[t1]++) {
+		getIdx(dims[t0], nProcs[t1], p[t1], lo + t1, hi + t1);
+		if (is(loMine[t0], hiMine[t0], lo[t1], hi[t1], loS, hiS)) {
+			for (p[t0] = 0; p[t0] < nProcs[t0]; p[t0]++) {
+				getIdx(dims[t1], nProcs[t0], p[t0], lo + t0, hi + t0);
+				if (is(loMine[t1], hiMine[t1], lo[t0], hi[t0], loS + t1,
+				       hiS + t1)) {
 					// i, j is the process we need to send loS,hiS to
 					vAi(layout, local_layoutElement_new(loS, hiS, p));
 				}
@@ -476,21 +496,29 @@ static varArr_t
 local_transposeGetRecvLayout(gridPointUint32_t dims,
                              gridPointInt_t    nProcs,
                              gridPointInt_t    pPos,
-                             int               dimA,
-                             int               dimB)
+                             int               t0,
+                             int               t1)
 {
 	gridPointUint32_t loMine, hiMine, lo, hi, loS, hiS;
 	gridPointInt_t    p;
-	varArr_t          layout = varArr_new(nProcs[0] * nProcs[1] / 20);
+	varArr_t          layout = varArr_new(nProcs[t0] * nProcs[t1] / 20);
 
-	getIdx(dims[0], nProcs[1], pPos[1], loMine + 0, hiMine + 0);
-	getIdx(dims[1], nProcs[0], pPos[0], loMine + 1, hiMine + 1);
-	for (p[1] = 0; p[1] < nProcs[1]; p[1]++) {
-		getIdx(dims[1], nProcs[1], p[1], lo + 1, hi + 1);
-		if (is(loMine[1], hiMine[1], lo[1], hi[1], loS + 1, hiS + 1)) {
-			for (p[0] = 0; p[0] < nProcs[0]; p[0]++) {
-				getIdx(dims[0], nProcs[0], p[0], lo + 0, hi + 0);
-				if (is(loMine[0], hiMine[0], lo[0], hi[0], loS, hiS)) {
+	for (int i = 0; i < NDIM; i++) {
+		getIdx(dims[i], nProcs[i], pPos[i], loMine + i, hiMine + i);
+		loS[i] = loMine[i];
+		hiS[i] = hiMine[i];
+		p[i]   = pPos[i];
+	}
+
+	getIdx(dims[t0], nProcs[t1], pPos[t1], loMine + t0, hiMine + t0);
+	getIdx(dims[t1], nProcs[t0], pPos[t0], loMine + t1, hiMine + t1);
+	for (p[t1] = 0; p[t1] < nProcs[t1]; p[t1]++) {
+		getIdx(dims[t1], nProcs[t1], p[t1], lo + t1, hi + t1);
+		if (is(loMine[t1], hiMine[t1], lo[t1], hi[t1], loS + t1, hiS
+		       + t1)) {
+			for (p[t0] = 0; p[t0] < nProcs[t0]; p[t0]++) {
+				getIdx(dims[t0], nProcs[t0], p[t0], lo + t0, hi + t0);
+				if (is(loMine[t0], hiMine[t0], lo[t0], hi[t0], loS, hiS)) {
 					// i, j is the process we will receive loS,hiS from
 					vAi(layout, local_layoutElement_new(loS, hiS, p));
 				}
