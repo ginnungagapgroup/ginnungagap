@@ -444,17 +444,17 @@ local_getFakeDistribForTranspose(void)
 
 	origin[0] = 0.0;
 	extent[0] = 4.0;
-	dims[0]   = 4;
-	nProcs[0] = 2;
+	dims[0]   = 40;
+	nProcs[0] = 0;
 	origin[1] = 0.0;
 	extent[1] = 5.0;
-	dims[1]   = 5;
-	nProcs[1] = 3;
+	dims[1]   = 50;
+	nProcs[1] = 0;
 #if (NDIM > 2)
 	origin[2] = 0.0;
 	extent[2] = 6.0;
-	dims[2]   = 6;
-	nProcs[2] = 2;
+	dims[2]   = 60;
+	nProcs[2] = 0;
 #endif
 	grid      = gridRegular_new("bla", origin, extent, dims);
 	var       = gridVar_new("blaVar", GRIDVARTYPE_INT, 1);
@@ -490,6 +490,7 @@ local_fillFakeGridForTranspose(gridRegular_t grid)
 	data = gridPatch_getVarDataHandle(patch, 0);
 	gridRegular_getDims(grid, dimsGlobal);
 
+#if (NDIM == 2)
 	for (int j = 0; j < dims[1]; j++) {
 		for (int i = 0; i < dims[0]; i++) {
 			data[offset] = i + idxLo[0]
@@ -497,7 +498,20 @@ local_fillFakeGridForTranspose(gridRegular_t grid)
 			offset++;
 		}
 	}
-}
+#elif (NDIM == 3)
+	for (int k = 0; k < dims[2]; k++) {
+		for (int j = 0; j < dims[1]; j++) {
+			for (int i = 0; i < dims[0]; i++) {
+				data[offset] = i + idxLo[0]
+				               + (j + idxLo[1]) * dimsGlobal[0]
+				               + (k + idxLo[2]) * dimsGlobal[0]
+				               * dimsGlobal[1];
+				offset++;
+			}
+		}
+	}
+#endif
+} /* local_fillFakeGridForTranspose */
 
 static bool
 local_verifyFakeDistribForTranspose(gridRegularDistrib_t distrib)
@@ -515,6 +529,7 @@ local_verifyFakeDistribForTranspose(gridRegularDistrib_t distrib)
 	data = gridPatch_getVarDataHandle(patch, 0);
 	gridRegular_getDims(distrib->grid, dimsGlobal);
 
+#if (NDIM == 2)
 	for (int j = 0; j < dims[1]; j++) {
 		for (int i = 0; i < dims[0]; i++) {
 			int expected = j + idxLo[1]
@@ -525,6 +540,22 @@ local_verifyFakeDistribForTranspose(gridRegularDistrib_t distrib)
 			offset++;
 		}
 	}
+#elif (NDIM == 3)
+	for (int k = 0; k < dims[2]; k++) {
+		for (int j = 0; j < dims[1]; j++) {
+			for (int i = 0; i < dims[0]; i++) {
+				int expected = j + idxLo[1]
+				               + (i + idxLo[0]) * dimsGlobal[1]
+				               + (k + idxLo[2]) * dimsGlobal[0]
+				               * dimsGlobal[1];
+				if (data[offset] != expected)
+					return false;
+
+				offset++;
+			}
+		}
+	}
+#endif
 
 	return true;
-}
+} /* local_verifyFakeDistribForTranspose */

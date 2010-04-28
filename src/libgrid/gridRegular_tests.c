@@ -294,6 +294,82 @@ gridRegular_getDims_test(void)
 } /* gridRegular_getDims_test */
 
 extern bool
+gridRegular_getDimsComplex_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridRegular_t     grid;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+	gridPointUint32_t dimsTest;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid = local_getFakeGrid(origin, extent, dims);
+
+	gridRegular_getDimsComplex(grid, dimsTest);
+	if (dims[0]/2 + 1 != dimsTest[0])
+		hasPassed = false;
+	for (int i = 1; i < NDIM; i++) {
+		if (dims[i] != dimsTest[i])
+			hasPassed = false;
+	}
+
+	gridRegular_del(&grid);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridRegular_getPermute_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridRegular_t     grid;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+	gridPointInt_t permute;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid = local_getFakeGrid(origin, extent, dims);
+
+	gridRegular_getPermute(grid, permute);
+	for (int i = 0; i < NDIM; i++) {
+		if (permute[i] != grid->permute[i])
+			hasPassed = false;
+	}
+
+	gridRegular_del(&grid);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 gridRegular_getNumVars_test(void)
 {
 	bool              hasPassed = true;
@@ -498,7 +574,7 @@ gridRegular_attachPatch_test(void)
 	grid = local_getFakeGrid(origin, extent, dims);
 	patch = local_getFakePatch();
 
-	if (grid->patches == 0)
+	if (grid->patches == NULL)
 		hasPassed = false;
 	gridRegular_attachPatch(grid, patch);
 	if (varArr_getLength(grid->patches) != 1)
@@ -518,6 +594,11 @@ gridRegular_detachPatch_test(void)
 {
 	bool              hasPassed = true;
 	int               rank      = 0;
+	gridRegular_t     grid;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+	gridPatch_t       patch, patchTmp;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -528,9 +609,18 @@ gridRegular_detachPatch_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	// TODO Actually implement the test
-	hasPassed = false;
+	grid = local_getFakeGrid(origin, extent, dims);
+	patch = local_getFakePatch();
 
+	gridRegular_attachPatch(grid, patch);
+	patchTmp = gridRegular_detachPatch(grid, 0);
+	if (patch != patchTmp)
+		hasPassed = false;
+	if (varArr_getLength(grid->patches) != 0)
+		hasPassed = false;
+
+	gridRegular_del(&grid);
+	gridPatch_del(&patch);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -544,6 +634,11 @@ gridRegular_getPatchHandle_test(void)
 {
 	bool              hasPassed = true;
 	int               rank      = 0;
+	gridRegular_t     grid;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+	gridPatch_t       patch, patchTmp;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -554,9 +649,15 @@ gridRegular_getPatchHandle_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	// TODO Test the function!
-	hasPassed = false;
+	grid = local_getFakeGrid(origin, extent, dims);
+	patch = local_getFakePatch();
 
+	gridRegular_attachPatch(grid, patch);
+	patchTmp = gridRegular_getPatchHandle(grid, 0);
+	if (patchTmp != patch)
+		hasPassed = false;
+
+	gridRegular_del(&grid);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -570,6 +671,11 @@ gridRegular_replacePatch_test(void)
 {
 	bool              hasPassed = true;
 	int               rank      = 0;
+	gridRegular_t     grid;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+	gridPatch_t       patch, patch2, patchTmp;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -580,9 +686,20 @@ gridRegular_replacePatch_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	// TODO Actually implement the test
-	hasPassed = false;
+	grid = local_getFakeGrid(origin, extent, dims);
+	patch = local_getFakePatch();
+	patch2 = local_getFakePatch();
 
+	gridRegular_attachPatch(grid, patch);
+	patchTmp = gridRegular_getPatchHandle(grid, 0);
+	if (patchTmp != patch)
+		hasPassed = false;
+	gridRegular_replacePatch(grid, 0, patch2);
+	patchTmp = gridRegular_getPatchHandle(grid, 0);
+	if (patchTmp != patch2)
+		hasPassed = false;
+
+	gridRegular_del(&grid);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -596,6 +713,11 @@ gridRegular_transpose_test(void)
 {
 	bool              hasPassed = true;
 	int               rank      = 0;
+	gridRegular_t     grid;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+	gridPatch_t       patch;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -606,9 +728,23 @@ gridRegular_transpose_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	// TODO Actually implement the test
-	hasPassed = false;
+	grid = local_getFakeGrid(origin, extent, dims);
+	patch = local_getFakePatch();
+	gridRegular_attachPatch(grid, patch);
 
+	gridRegular_transpose(grid, 0, 1);
+	if (grid->dims[0] != dims[1])
+		hasPassed = false;
+	if (grid->dims[1] != dims[0])
+		hasPassed = false;
+	if (islessgreater(grid->extent[0], extent[1]))
+		hasPassed = false;
+	if (islessgreater(grid->origin[1], origin[0]))
+		hasPassed = false;
+	if (grid->permute[0] != 1 || grid->permute[1] != 0)
+		hasPassed = false;
+
+	gridRegular_del(&grid);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;

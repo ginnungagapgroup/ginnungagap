@@ -34,6 +34,12 @@ extern bool
 gridRegular_getDims_test(void);
 
 extern bool
+gridRegular_getDimsComplex_test(void);
+
+extern bool
+gridRegular_getPermute_test(void);
+
+extern bool
 gridRegular_getNumVars_test(void);
 
 extern bool

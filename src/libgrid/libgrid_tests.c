@@ -130,6 +130,8 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegular_getOrigin_test, hasFailed);
 	RUNTEST(&gridRegular_getDelta_test, hasFailed);
 	RUNTEST(&gridRegular_getDims_test, hasFailed);
+	RUNTEST(&gridRegular_getDimsComplex_test, hasFailed);
+	RUNTEST(&gridRegular_getPermute_test, hasFailed);
 	RUNTEST(&gridRegular_getNumVars_test, hasFailed);
 	RUNTEST(&gridRegular_attachVar_test, hasFailed);
 	RUNTEST(&gridRegular_detachVar_test, hasFailed);

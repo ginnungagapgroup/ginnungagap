@@ -42,6 +42,12 @@ gridRegular_getDelta(gridRegular_t grid, gridPointDbl_t delta);
 extern void
 gridRegular_getDims(gridRegular_t grid, gridPointUint32_t dims);
 
+extern void
+gridRegular_getDimsComplex(gridRegular_t grid, gridPointUint32_t dimsComplex);
+
+extern void
+gridRegular_getPermute(gridRegular_t grid, gridPointInt_t permute);
+
 extern int
 gridRegular_getNumVars(gridRegular_t grid);
 

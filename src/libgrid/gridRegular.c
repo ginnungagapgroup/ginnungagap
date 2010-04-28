@@ -60,13 +60,16 @@ gridRegular_new(const char        *name,
 
 	gridRegular->name = xstrdup(name);
 	for (int i = 0; i < NDIM; i++) {
-		gridRegular->origin[i] = origin[i];
-		gridRegular->extent[i] = extent[i];
-		gridRegular->dims[i]   = dims[i];
+		gridRegular->origin[i]      = origin[i];
+		gridRegular->extent[i]      = extent[i];
+		gridRegular->dims[i]        = dims[i];
+		gridRegular->dimsComplex[i] = dims[i];
+		gridRegular->permute[i]     = i;
 	}
+	gridRegular->dimsComplex[0] = (gridRegular->dimsComplex[0]) / 2 + 1;
 	local_resetDelta(gridRegular);
-	gridRegular->patches = varArr_new(0);
-	gridRegular->vars    = varArr_new(0);
+	gridRegular->patches        = varArr_new(0);
+	gridRegular->vars           = varArr_new(0);
 
 	refCounter_init(&(gridRegular->refCounter));
 
@@ -137,6 +140,27 @@ gridRegular_getDims(gridRegular_t grid, gridPointUint32_t dims)
 
 	for (int i = 0; i < NDIM; i++)
 		dims[i] = grid->dims[i];
+}
+
+extern void
+gridRegular_getDimsComplex(gridRegular_t     grid,
+                           gridPointUint32_t dimsComplex)
+{
+	assert(grid != NULL);
+	assert(dimsComplex != NULL);
+
+	for (int i = 0; i < NDIM; i++)
+		dimsComplex[i] = grid->dimsComplex[i];
+}
+
+extern void
+gridRegular_getPermute(gridRegular_t grid, gridPointInt_t permute)
+{
+	assert(grid != NULL);
+	assert(permute != NULL);
+
+	for (int i = 0; i < NDIM; i++)
+		permute[i] = grid->permute[i];
 }
 
 extern int
@@ -238,36 +262,38 @@ gridRegular_replacePatch(gridRegular_t grid,
 		gridPatch_del(&oldPatch);
 }
 
+#define SWAP(a, b, tmp) \
+	{                   \
+		tmp = a;        \
+		a   = b;        \
+		b   = tmp;      \
+	}
 extern void
 gridRegular_transpose(gridRegular_t grid, int dimA, int dimB)
 {
 	double   tmpDbl;
 	uint32_t tmpInt;
+	int      tmpIntSign;
 
 	assert(grid != 0);
 	assert(dimA >= 0 && dimA < NDIM);
 	assert(dimB >= 0 && dimB < NDIM);
 
-	tmpDbl             = grid->origin[dimA];
-	grid->origin[dimA] = grid->origin[dimB];
-	grid->origin[dimB] = tmpDbl;
+	SWAP(grid->origin[dimA], grid->origin[dimB], tmpDbl);
+	SWAP(grid->extent[dimA], grid->extent[dimB], tmpDbl);
+	SWAP(grid->delta[dimA], grid->delta[dimB], tmpDbl);
 
-	tmpDbl             = grid->extent[dimA];
-	grid->extent[dimA] = grid->extent[dimB];
-	grid->extent[dimB] = tmpDbl;
+	SWAP(grid->dims[dimA], grid->dims[dimB], tmpInt);
+	SWAP(grid->dimsComplex[dimA], grid->dimsComplex[dimB], tmpInt);
 
-	tmpDbl             = grid->delta[dimA];
-	grid->delta[dimA]  = grid->delta[dimB];
-	grid->delta[dimB]  = tmpDbl;
-
-	tmpInt             = grid->dims[dimA];
-	grid->dims[dimA]   = grid->dims[dimB];
-	grid->dims[dimB]   = tmpInt;
+	SWAP(grid->permute[dimA], grid->permute[dimB], tmpIntSign);
 
 	for (int i = 0; i < varArr_getLength(grid->patches); i++)
 		gridPatch_transpose(varArr_getElementHandle(grid->patches, i),
 		                    dimA, dimB);
 }
+
+#undef SWAP
 
 /*--- Implementations of local functions --------------------------------*/
 inline static void

@@ -21,6 +21,8 @@ struct gridRegular_struct {
 	gridPointDbl_t    extent;
 	gridPointDbl_t    delta;
 	gridPointUint32_t dims;
+	gridPointUint32_t dimsComplex;
+	gridPointInt_t    permute;
 	varArr_t          patches;
 	varArr_t          vars;
 };
