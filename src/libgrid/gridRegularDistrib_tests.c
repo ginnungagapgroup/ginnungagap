@@ -12,6 +12,10 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#ifdef WITH_SILO
+#  include "gridWriterSilo.h"
+#  include <silo.h>
+#endif
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
@@ -343,8 +347,11 @@ gridRegularDistrib_transpose_test(void)
 	bool                 hasPassed = true;
 	int                  rank      = 0;
 	gridRegularDistrib_t distrib;
+#ifdef WITH_SILO
+	gridWriterSilo_t     writer;
+#endif
 #ifdef XMEM_TRACK_MEM
-	size_t               allocatedBytes = global_allocated_bytes;
+	size_t allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -355,10 +362,30 @@ gridRegularDistrib_transpose_test(void)
 	}
 
 	distrib = local_getFakeDistribForTranspose();
+#ifdef WITH_SILO
+	writer  = gridWriterSilo_new("transposeTest-stage1", DB_HDF5);
+#  ifdef WITH_MPI
+	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+#  endif
+	gridWriterSilo_activate(writer);
+	gridWriterSilo_writeGridRegular(writer, distrib->grid);
+	gridWriterSilo_deactivate(writer);
+	gridWriterSilo_del(&writer);
+#endif
 
 	gridRegularDistrib_transpose(distrib, 0, 1);
+#ifdef WITH_SILO
+	writer = gridWriterSilo_new("transposeTest-stage2", DB_HDF5);
+#  ifdef WITH_MPI
+	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+#  endif
+	gridWriterSilo_activate(writer);
+	gridWriterSilo_writeGridRegular(writer, distrib->grid);
+	gridWriterSilo_deactivate(writer);
+	gridWriterSilo_del(&writer);
+#endif
 
-//	hasPassed = local_verifyFakeDistribForTranspose(distrib);
+	hasPassed = local_verifyFakeDistribForTranspose(distrib);
 
 	gridRegularDistrib_del(&distrib);
 
@@ -368,7 +395,7 @@ gridRegularDistrib_transpose_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegularDistrib_transpose_test */
 
 /*--- Implementations of local functions --------------------------------*/
 static gridRegular_t
@@ -440,6 +467,7 @@ local_getFakeDistribForTranspose(void)
 
 	patch = gridRegularDistrib_getPatchForRank(distrib, rank);
 	gridRegular_attachPatch(grid, patch);
+	local_fillFakeGridForTranspose(grid);
 
 	gridRegular_del(&grid);
 
@@ -465,7 +493,7 @@ local_fillFakeGridForTranspose(gridRegular_t grid)
 	for (int j = 0; j < dims[1]; j++) {
 		for (int i = 0; i < dims[0]; i++) {
 			data[offset] = i + idxLo[0]
-			                 + (j + idxLo[1]) * dimsGlobal[0];
+			               + (j + idxLo[1]) * dimsGlobal[0];
 			offset++;
 		}
 	}
@@ -490,9 +518,10 @@ local_verifyFakeDistribForTranspose(gridRegularDistrib_t distrib)
 	for (int j = 0; j < dims[1]; j++) {
 		for (int i = 0; i < dims[0]; i++) {
 			int expected = j + idxLo[1]
-			           +(i + idxLo[0])*dimsGlobal[1];
+			               + (i + idxLo[0]) * dimsGlobal[1];
 			if (data[offset] != expected)
 				return false;
+
 			offset++;
 		}
 	}
