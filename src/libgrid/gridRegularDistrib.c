@@ -341,10 +341,8 @@ local_transposeMPI(gridRegularDistrib_t distrib,
 			                                         &dataSize);
 			count      = gridVar_getMPICount(var, dataSize);
 			MPI_Cart_rank(distrib->commCart, le->processCoord, &rankSend);
-			le->buffer = commSchemeBuffer_new(dataSend,
-			                                  count,
-			                                  type,
-			                                  rankSend);
+			le->buffer = commSchemeBuffer_new(dataSend, count,
+			                                  type, rankSend);
 #  ifdef DEBUG2
 			printf("\nAm %i, send to %i: %u %u %u - %u %u %u\n",
 			       rank, rankSend, le->idxLo[0], le->idxLo[1],
