@@ -91,6 +91,10 @@ main(int argc, char **argv)
 	RUNTEST(&gridVar_getMPIDatatype_test, hasFailed);
 	RUNTEST(&gridVar_getMPICount_test, hasFailed);
 #endif
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridVarType:\n");
@@ -100,6 +104,10 @@ main(int argc, char **argv)
 	RUNTEST(&gridVarType_isInteger_test, hasFailed);
 	RUNTEST(&gridVarType_isNativeFloat_test, hasFailed);
 	RUNTEST(&gridVarType_isNativeDouble_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridPatch:\n");
@@ -120,6 +128,10 @@ main(int argc, char **argv)
 	RUNTEST(&gridPatch_transpose_test, hasFailed);
 	RUNTEST(&gridPatch_getWindowedDataCopy_test, hasFailed);
 	RUNTEST(&gridPatch_putWindowedData_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegular:\n");
@@ -143,6 +155,10 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegular_getPatchHandle_test, hasFailed);
 	RUNTEST(&gridRegular_replacePatch_test, hasFailed);
 	RUNTEST(&gridRegular_transpose_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegularDistrib:\n");
@@ -157,6 +173,10 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegularDistrib_getPatchForRank_test, hasFailed);
 	RUNTEST(&gridRegularDistrib_calcIdxsForRank1D_test, hasFailed);
 	RUNTEST(&gridRegularDistrib_transpose_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegularFFT:\n");
@@ -178,6 +198,10 @@ main(int argc, char **argv)
 	RUNTEST(&gridWriterSilo_deactivate_test, hasFailed);
 	RUNTEST(&gridWriterSilo_writeGridPatch_test, hasFailed);
 	RUNTEST(&gridWriterSilo_writeGridRegular_test, hasFailed);
+#  ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+#  endif
 #endif
 
 #ifdef WITH_MPI
@@ -185,8 +209,12 @@ main(int argc, char **argv)
 #endif
 
 	if (hasFailed) {
-		if (rank == 0)
+		if (rank == 0) {
 			fprintf(stderr, "\nSome tests failed!\n\n");
+#ifdef XMEM_TRACK_MEM
+			xmem_info(stdout);
+#endif
+		}
 		return EXIT_FAILURE;
 	}
 	if (rank == 0) {

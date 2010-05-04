@@ -176,7 +176,7 @@ gridPatch_getDimActual1D_test(void)
 
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 12;
-		idxHi[i] = 231;
+		idxHi[i] = 16;
 	}
 	var0  = gridVar_new("Var0", GRIDVARTYPE_INT, 1);
 	var1  = gridVar_new("Var1", GRIDVARTYPE_INT, 1);
@@ -263,7 +263,7 @@ gridPatch_getDimsActual_test(void)
 
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 12;
-		idxHi[i] = 231;
+		idxHi[i] = 16;
 	}
 	patch = gridPatch_new(idxLo, idxHi);
 	var = gridVar_new("basd", GRIDVARTYPE_INT, 1);
@@ -345,7 +345,7 @@ gridPatch_getNumCellsActual_test(void)
 
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i]      = 123;
-		idxHi[i]      = 203;
+		idxHi[i]      = 125;
 		numCellsVar0 *= (idxHi[i] - idxLo[i] + 1);
 		if (i < NDIM - 1)
 			numCellsVar1 *= (idxHi[i] - idxLo[i] + 1);
@@ -359,7 +359,7 @@ gridPatch_getNumCellsActual_test(void)
 	gridPatch_attachVarData(patch, var1);
 	if (gridPatch_getNumCellsActual(patch, 0) != numCellsVar0)
 		hasPassed = false;
-	if (gridPatch_getNumCellsActual(patch, 01) != numCellsVar1)
+	if (gridPatch_getNumCellsActual(patch, 1) != numCellsVar1)
 		hasPassed = false;
 	gridPatch_del(&patch);
 #ifdef XMEM_TRACK_MEM
@@ -430,7 +430,7 @@ gridPatch_attachVarData_test(void)
 	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 12;
-		idxHi[i] = 47;
+		idxHi[i] = 13;
 	}
 	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(gridPatch, var);
@@ -466,7 +466,7 @@ gridPatch_detachVarData_test(void)
 	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
-		idxHi[i] = 31;
+		idxHi[i] = 1;
 	}
 	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(gridPatch, var);
@@ -510,7 +510,7 @@ gridPatch_replaceVarData_test(void)
 	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, 1);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
-		idxHi[i] = 31;
+		idxHi[i] = 1;
 	}
 	gridPatch   = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(gridPatch, var);
@@ -550,7 +550,7 @@ gridPatch_getVarHandle_test(void)
 	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
-		idxHi[i] = 31;
+		idxHi[i] = 1;
 	}
 	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(gridPatch, var);
@@ -588,7 +588,7 @@ gridPatch_getVarDataHandle_test(void)
 	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
-		idxHi[i] = 31;
+		idxHi[i] = 1;
 	}
 	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVarData(gridPatch, var);
@@ -627,7 +627,7 @@ gridPatch_getNumVars_test(void)
 	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
-		idxHi[i] = 31;
+		idxHi[i] = 1;
 	}
 	gridPatch = gridPatch_new(idxLo, idxHi);
 	if (gridPatch_getNumVars(gridPatch) != 0)
