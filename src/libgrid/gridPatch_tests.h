@@ -63,5 +63,8 @@ gridPatch_transpose_test(void);
 extern bool
 gridPatch_getWindowedDataCopy_test(void);
 
+extern bool
+gridPatch_putWindowedData_test(void);
+
 
 #endif

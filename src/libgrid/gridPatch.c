@@ -59,6 +59,12 @@ local_transposeVar021_3d(const void              *data,
 
 #endif
 
+static inline void
+local_getWindowDims(gridPointUint32_t idxLo,
+                    gridPointUint32_t idxHi,
+                    gridPointUint32_t windowDims,
+                    uint64_t          *numCells);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern gridPatch_t
@@ -338,10 +344,7 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 	assert(idxHi[2] < patch->idxLo[2] + patch->dims[2]);
 #endif
 
-	for (int i = 0; i < NDIM; i++) {
-		dimsWindow[i] = idxHi[i] - idxLo[i] + 1;
-		num          *= dimsWindow[i];
-	}
+	local_getWindowDims(idxLo, idxHi, dimsWindow, &num);
 
 	var            = gridPatch_getVarHandle(patch, idxVar);
 	data           = gridPatch_getVarDataHandle(patch, idxVar);
@@ -379,6 +382,65 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 
 	return dataCopy;
 } /* gridPatch_getWindowedDataCopy */
+
+extern void
+gridPatch_putWindowedData(gridPatch_t       patch,
+                          int               idxVar,
+                          gridPointUint32_t idxLo,
+                          gridPointUint32_t idxHi,
+                          void              *data)
+{
+	void              *dataTarget;
+	gridPointUint32_t windowDims;
+	uint64_t numCells;
+	gridVar_t         var;
+	size_t            sizePerElement;
+	size_t            offsetTarget = 0;
+	size_t            offsetData = 0;
+
+	assert(patch != NULL);
+	assert(idxVar >= 0 && idxVar < gridPatch_getNumVars(patch));
+	assert(idxLo[0] >= patch->idxLo[0]);
+	assert(idxHi[0] < patch->idxLo[0] + patch->dims[0]);
+	assert(idxLo[1] >= patch->idxLo[1]);
+	assert(idxHi[1] < patch->idxLo[1] + patch->dims[1]);
+#if (NDIM > 2)
+	assert(idxLo[2] >= patch->idxLo[2]);
+	assert(idxHi[2] < patch->idxLo[2] + patch->dims[2]);
+#endif
+
+	local_getWindowDims(idxLo, idxHi, windowDims, &numCells);
+
+	var            = gridPatch_getVarHandle(patch, idxVar);
+	dataTarget     = gridPatch_getVarDataHandle(patch, idxVar);
+	sizePerElement = gridVar_getSizePerElement(var);
+
+#if (NDIM == 2)
+	offsetTarget = idxLo[0] - patch->idxLo[0]
+	               + (idxLo[1] - patch->idxLo[1]) * patch->dims[0];
+	for (int j = 0; j < windowDims[1]; j++) {
+		memcpy(((char *)dataTarget) + offsetTarget * sizePerElement,
+		       ((char *)data) + offsetData * sizePerElement,
+		       windowDims[0] * sizePerElement);
+		offsetData += windowDims[0];
+		offsetTarget += patch->dims[0];
+	}
+#elif (NDIM == 3)
+	for (int k = 0; k < windowDims[2]; k++) {
+		offsetTarget = idxLo[0] - patch->idxLo[0]
+		               + (idxLo[1] - patch->idxLo[1]) * patch->dims[0]
+		               + (idxLo[2] - patch->idxLo[2] + k)
+		               * patch->dims[0] * patch->dims[1];
+		for (int j = 0; j < windowDims[1]; j++) {
+			memcpy(((char *)dataTarget) + offsetTarget * sizePerElement,
+			       ((char *)data) + offsetData * sizePerElement,
+			       windowDims[0] * sizePerElement);
+			offsetData += windowDims[0];
+			offsetTarget += patch->dims[0];
+		}
+	}
+#endif
+}
 
 /*--- Implementations of local functions --------------------------------*/
 
@@ -507,3 +569,20 @@ local_transposeVar021_3d(const void              *data,
 }
 
 #endif
+
+static inline void
+local_getWindowDims(gridPointUint32_t idxLo,
+                    gridPointUint32_t idxHi,
+                    gridPointUint32_t windowDims,
+                    uint64_t          *numCells)
+{
+	uint64_t num = UINT64_C(1);
+
+	for (int i = 0; i < NDIM; i++) {
+		windowDims[i] = idxHi[i] - idxLo[i] + 1;
+		num    *= windowDims[i];
+	}
+
+	if (numCells != NULL)
+		*numCells = num;
+}

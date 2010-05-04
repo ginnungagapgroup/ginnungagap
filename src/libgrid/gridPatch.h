@@ -79,4 +79,11 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
                               gridPointUint32_t idxHi,
                               uint64_t          *numElements);
 
+extern void
+gridPatch_putWindowedData(gridPatch_t       patch,
+                          int               idxVar,
+                          gridPointUint32_t idxLo,
+                          gridPointUint32_t idxHi,
+                          void              *data);
+
 #endif

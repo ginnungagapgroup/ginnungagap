@@ -9,6 +9,7 @@
 #include "gridPatch.h"
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
@@ -737,7 +738,74 @@ gridPatch_getWindowedDataCopy_test(void)
 #endif
 
 	return hasPassed ? true : false;
-} /* gridPatch_getWindowedDataCopy_test */
+}
+
+extern bool
+gridPatch_putWindowedData_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridVar_t var;
+	gridPatch_t       patch;
+	gridPointUint32_t idxLoPatch, idxHiPatch;
+	gridPointUint32_t idxLoWindow, idxHiWindow;
+	double            *data, *dataWindow, *dataWindowCopy;
+	uint64_t numCellsPatch, numCellsWindow;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, 1);
+
+	for (int i = 0; i < NDIM; i++) {
+		idxLoPatch[i] = 0;
+		idxHiPatch[i] = 15;
+	}
+	patch = gridPatch_new(idxLoPatch, idxHiPatch);
+	gridPatch_attachVarData(patch, var);
+	data = (double *)gridPatch_getVarDataHandle(patch, 0);
+	numCellsPatch = gridPatch_getNumCells(patch);
+	for (uint64_t i=0; i<numCellsPatch; i++)
+		data[i] = 123.0;
+
+	numCellsWindow=1;
+	for (int i = 0; i < NDIM; i++) {
+		idxLoWindow[i] = 3;
+		idxHiWindow[i] = 5;
+		numCellsWindow *= 5-3+1;
+	}
+	dataWindow = gridVar_getMemory(var, numCellsWindow);
+	for (uint64_t i=0; i<numCellsWindow; i++)
+		dataWindow[i] = -12.0;
+
+	gridPatch_putWindowedData(patch, 0, idxLoWindow, idxHiWindow,
+	                          dataWindow);
+
+	dataWindowCopy = gridPatch_getWindowedDataCopy(patch, 0, idxLoWindow,
+	                                               idxHiWindow, NULL);
+
+	for (uint64_t i=0; i<numCellsWindow; i++) {
+		if (islessgreater(dataWindow[i], dataWindowCopy[i]))
+			hasPassed = false;
+	}
+
+	gridVar_freeMemory(var, dataWindowCopy);
+	gridVar_freeMemory(var, dataWindow);
+	gridPatch_del(&patch);
+	gridVar_del(&var);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
 
 /*--- Implementations of local functions --------------------------------*/
 #if (NDIM == 2)

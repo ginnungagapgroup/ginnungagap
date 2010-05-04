@@ -119,6 +119,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridPatch_getNumVars_test, hasFailed);
 	RUNTEST(&gridPatch_transpose_test, hasFailed);
 	RUNTEST(&gridPatch_getWindowedDataCopy_test, hasFailed);
+	RUNTEST(&gridPatch_putWindowedData_test, hasFailed);
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridRegular:\n");
