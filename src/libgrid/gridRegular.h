@@ -51,6 +51,12 @@ gridRegular_getPermute(gridRegular_t grid, gridPointInt_t permute);
 extern int
 gridRegular_getNumVars(gridRegular_t grid);
 
+extern void
+gridRegular_complexify(gridRegular_t grid, int idxOfVar);
+
+extern void
+gridRegular_uncomplexify(gridRegular_t grid, int idxOfVar);
+
 extern int
 gridRegular_attachVar(gridRegular_t grid, gridVar_t var);
 

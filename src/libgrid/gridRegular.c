@@ -68,8 +68,8 @@ gridRegular_new(const char        *name,
 	}
 	gridRegular->dimsComplex[0] = (gridRegular->dimsComplex[0]) / 2 + 1;
 	local_resetDelta(gridRegular);
-	gridRegular->patches        = varArr_new(0);
-	gridRegular->vars           = varArr_new(0);
+	gridRegular->patches        = varArr_new(1);
+	gridRegular->vars           = varArr_new(1);
 
 	refCounter_init(&(gridRegular->refCounter));
 
@@ -169,6 +169,42 @@ gridRegular_getNumVars(gridRegular_t grid)
 	assert(grid != NULL);
 
 	return varArr_getLength(grid->vars);
+}
+
+extern void
+gridRegular_setComplexified(gridRegular_t grid, int idxOfVar)
+{
+	gridVar_t var;
+
+	assert(grid != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(grid->vars));
+	
+	var = gridRegular_getVarHandle(grid, idxOfVar);
+	gridVar_setComplexified(var);
+}
+
+extern void
+gridRegular_unsetComplexified(gridRegular_t grid, int idxOfVar)
+{
+	gridVar_t var;
+
+	assert(grid != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(grid->vars));
+	
+	var = gridRegular_getVarHandle(grid, idxOfVar);
+	gridVar_unsetComplexified(var);
+}
+
+extern bool
+gridRegular_isComplexified(gridRegular_t grid, int idxOfVar)
+{
+	gridVar_t var;
+
+	assert(grid != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(grid->vars));
+	
+	var = gridRegular_getVarHandle(grid, idxOfVar);
+	return gridVar_isComplexified(var);
 }
 
 extern int
