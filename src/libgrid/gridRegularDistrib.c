@@ -223,7 +223,9 @@ gridRegularDistrib_getProcCoords(gridRegularDistrib_t distrib,
                                  gridPointInt_t       procCoords)
 {
 	int localRank;
+
 	assert(distrib != NULL);
+	assert(procCoords != NULL);
 
 	localRank = gridRegularDistrib_getLocalRank(distrib);
 	MPI_Cart_coords(distrib->commCart, localRank, NDIM, procCoords);
