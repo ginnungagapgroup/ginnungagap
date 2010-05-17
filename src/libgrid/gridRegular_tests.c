@@ -220,6 +220,43 @@ gridRegular_getOrigin_test(void)
 } /* gridRegular_getOrigin_test */
 
 extern bool
+gridRegular_getExtent_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridRegular_t     grid;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointDbl_t    extent2;
+	gridPointUint32_t dims;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid = local_getFakeGrid(origin, extent, dims);
+
+	gridRegular_getExtent(grid, extent2);
+	for (int i = 0; i < NDIM; i++) {
+		if (islessgreater(extent2[i], grid->extent[i]))
+			hasPassed = false;
+	}
+
+	gridRegular_del(&grid);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 gridRegular_getDelta_test(void)
 {
 	bool              hasPassed = true;

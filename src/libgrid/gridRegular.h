@@ -37,6 +37,9 @@ extern void
 gridRegular_getOrigin(gridRegular_t grid, gridPointDbl_t origin);
 
 extern void
+gridRegular_getExtent(gridRegular_t grid, gridPointDbl_t extent);
+
+extern void
 gridRegular_getDelta(gridRegular_t grid, gridPointDbl_t delta);
 
 extern void

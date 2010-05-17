@@ -141,6 +141,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegular_getRef_test, hasFailed);
 	RUNTEST(&gridRegular_getName_test, hasFailed);
 	RUNTEST(&gridRegular_getOrigin_test, hasFailed);
+	RUNTEST(&gridRegular_getExtent_test, hasFailed);
 	RUNTEST(&gridRegular_getDelta_test, hasFailed);
 	RUNTEST(&gridRegular_getDims_test, hasFailed);
 	RUNTEST(&gridRegular_getDimsComplex_test, hasFailed);

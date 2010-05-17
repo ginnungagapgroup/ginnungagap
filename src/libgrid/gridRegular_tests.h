@@ -28,6 +28,9 @@ extern bool
 gridRegular_getOrigin_test(void);
 
 extern bool
+gridRegular_getExtent_test(void);
+
+extern bool
 gridRegular_getDelta_test(void);
 
 extern bool

@@ -122,6 +122,17 @@ gridRegular_getOrigin(gridRegular_t grid, gridPointDbl_t origin)
 }
 
 extern void
+gridRegular_getExtent(gridRegular_t grid, gridPointDbl_t extent)
+{
+	assert(grid != NULL);
+	assert(extent != NULL);
+
+	for (int i = 0; i < NDIM; i++) {
+		extent[i] = grid->extent[i];
+	}
+}
+
+extern void
 gridRegular_getDelta(gridRegular_t grid, gridPointDbl_t delta)
 {
 	assert(grid != NULL);
