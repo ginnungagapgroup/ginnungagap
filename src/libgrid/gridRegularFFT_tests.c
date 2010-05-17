@@ -15,6 +15,10 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#ifdef WITH_SILO
+#  include "gridWriterSilo.h"
+#  include <silo.h>
+#endif
 #ifdef ENABLE_FFT_BACKEND_FFTW3
 #  include <fftw3.h>
 #endif
@@ -126,6 +130,9 @@ gridRegularFFT_execute_test(void)
 #ifdef XMEM_TRACK_MEM
 	size_t               allocatedBytes = global_allocated_bytes;
 #endif
+#ifdef WITH_SILO
+	gridWriterSilo_t     writer;
+#endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -142,11 +149,29 @@ gridRegularFFT_execute_test(void)
 	                  * gridPatch_getNumCellsActual(patch, 0));
 	memcpy(dataCpy, dataTmp,
 	       sizeof(fpv_t) * gridPatch_getNumCellsActual(patch, 0));
+#ifdef WITH_SILO
+	writer  = gridWriterSilo_new("fftTest-stage1", DB_HDF5);
+#  ifdef WITH_MPI
+	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+#  endif
+	gridWriterSilo_activate(writer);
+	gridWriterSilo_writeGridRegular(writer, grid);
+	gridWriterSilo_deactivate(writer);
+	gridWriterSilo_del(&writer);
+#endif
 	fft      = gridRegularFFT_new(grid, distrib, 0);
 	data     = (fpvComplex_t *)gridRegularFFT_execute(fft, 1);
 	dataBack = (fpv_t *)gridRegularFFT_execute(fft, -1);
-	if ((void *)data != (void *)dataBack)
-		hasPassed = false;
+#ifdef WITH_SILO
+	writer  = gridWriterSilo_new("fftTest-stage2", DB_HDF5);
+#  ifdef WITH_MPI
+	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+#  endif
+	gridWriterSilo_activate(writer);
+	gridWriterSilo_writeGridRegular(writer, grid);
+	gridWriterSilo_deactivate(writer);
+	gridWriterSilo_del(&writer);
+#endif
 	if (!local_testFFTResult(grid, dataCpy))
 		hasPassed = false;
 	gridRegular_del(&grid);
@@ -228,33 +253,38 @@ static void
 local_fillFakeGrid(gridRegular_t grid)
 {
 	gridPointUint32_t dims;
+	gridPointUint32_t idxLo;
 	gridPointUint32_t dimsActual;
 	uint64_t          offset = UINT64_C(0);
 	gridPatch_t       patch  = gridRegular_getPatchHandle(grid, 0);
 	fpv_t             *data  = gridPatch_getVarDataHandle(patch, 0);
 
-	gridPatch_getDims(patch, dims);
+	gridRegular_getDims(grid, dims);
+	gridPatch_getIdxLo(patch, idxLo);
 	gridPatch_getDimsActual(patch, 0, dimsActual);
 
 #if (NDIM == 3)
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			offset = dimsActual[0] * (j + k * dimsActual[1]);
-			for (int i = 0; i < dims[0]; i++) {
+	for (int k = 0; k < dimsActual[2]; k++) {
+		for (int j = 0; j < dimsActual[1]; j++) {
+			for (int i = 0; i < dimsActual[0]; i++) {
 				data[offset++] = (fpv_t)
-				                 (sin(4 * i / ((double)(dims[0])) * PI)
-				                  * sin(4 * j / ((double)(dims[1])) * PI)
-				                  * sin(4 * k / ((double)(dims[2])) * PI));
+				                 (sin(4 * (i+idxLo[0])
+				                  / ((double)(dims[0])) * PI)
+				                  * sin(4 * (j+idxLo[1])
+				                  / ((double)(dims[1])) * PI)
+				                  * sin(4 * (k + idxLo[2])
+				                  / ((double)(dims[2])) * PI));
 			}
 		}
 	}
 #elif (NDIM == 2)
-	for (int j = 0; j < dims[1]; j++) {
-		offset = dimsActual[0] * j;
-		for (int i = 0; i < dims[0]; i++) {
+	for (int j = idxLo[1]; j < dimsActual[1]; j++) {
+		for (int i = idxLo[0]; i < dimsActual[0]; i++) {
 			data[offset++] = (fpv_t)
-			                 (sin(4 * i / ((double)(dims[0])) * PI)
-			                  * sin(4 * j / ((double)(dims[1])) * PI));
+			                 (sin(4 * (i + idxLo[0])
+			                  / ((double)(dims[0])) * PI)
+			                  * sin(4 * (j + idxLo[1])
+			                  / ((double)(dims[1])) * PI));
 		}
 	}
 #endif
@@ -264,7 +294,7 @@ static bool
 local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
 {
 	gridPointUint32_t dims;
-	gridPointUint32_t dimsActual;
+	gridPointUint32_t dimsGlobal;
 	uint64_t          normFac = 1;
 	uint64_t          offset  = UINT64_C(0);
 	gridPatch_t       patch   = gridRegular_getPatchHandle(grid, 0);
@@ -274,15 +304,14 @@ local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
 	gridVarType_t     varType = gridVar_getType(var);
 
 	gridPatch_getDims(patch, dims);
-	gridPatch_getDimsActual(patch, 0, dimsActual);
+	gridRegular_getDims(grid, dimsGlobal);
 
 	for (int i = 0; i < NDIM; i++)
-		normFac *= dims[i];
+		normFac *= dimsGlobal[i];
 
 #if (NDIM == 3)
 	for (int k = 0; k < dims[2]; k++) {
 		for (int j = 0; j < dims[1]; j++) {
-			offset = dimsActual[0] * (j + k * dimsActual[1]);
 			for (int i = 0; i < dims[0]; i++) {
 				double tmp = data[offset] - dataCpy[offset] * normFac;
 				sumSqr += tmp * tmp;
@@ -292,7 +321,6 @@ local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
 	}
 #elif (NDIM == 2)
 	for (int j = 0; j < dims[1]; j++) {
-		offset = dimsActual[0] * j;
 		for (int i = 0; i < dims[0]; i++) {
 			double tmp = data[offset] - dataCpy[offset] * normFac;
 			sumSqr += tmp * tmp;
