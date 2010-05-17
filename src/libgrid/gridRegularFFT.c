@@ -83,6 +83,7 @@ gridRegularFFT_new(gridRegular_t        grid,
 	assert(gridVarType_isFloating(gridVar_getType(fft->var)));
 	fft->patch     = gridRegular_getPatchHandle(grid, 0);
 	gridRegularDistrib_getNProcs(fft->distrib, fft->nProcs);
+	assert(fft->nProcs[0] == 1);
 #if (defined WITH_MPI)
 	local_initMPIStuff(fft);
 #endif
