@@ -14,6 +14,7 @@
 #include <gsl/gsl_integration.h>
 #include "../libutil/xmem.h"
 #include "../libutil/xfile.h"
+#include "../libutil/diediedie.h"
 
 
 /*--- Implemention of the ADT structure ---------------------------------*/
@@ -26,25 +27,41 @@ local_new(void);
 
 
 /*--- Implementations of exported functios ------------------------------*/
+#define CHECK(got, expected)   \
+	{                          \
+		if (got != expected) { \
+			diediedie(2312);   \
+		}                      \
+	}
 extern cosmoModel_t
 cosmoModel_newFromFile(const char *fname)
 {
 	cosmoModel_t model;
 	FILE         *f;
+	int          rtn;
 
 	f     = xfopen(fname, "r");
 	model = local_new();
-	fscanf(f, "omegaRad0 = %lf \n", &(model->omegaRad0));
-	fscanf(f, "omegaLambda0 = %lf \n", &(model->omegaLambda0));
-	fscanf(f, "omegaMatter0 = %lf \n", &(model->omegaMatter0));
-	fscanf(f, "omegaBaryon0 = %lf \n", &(model->omegaBaryon0));
-	fscanf(f, "hubble = %lf \n", &(model->hubble));
-	fscanf(f, "sigma8 = %lf \n", &(model->sigma8));
-	fscanf(f, "ns = %lf \n", &(model->ns));
+	rtn   = fscanf(f, "omegaRad0 = %lf \n", &(model->omegaRad0));
+	CHECK(rtn, 1);
+	rtn   = fscanf(f, "omegaLambda0 = %lf \n", &(model->omegaLambda0));
+	CHECK(rtn, 1);
+	rtn   = fscanf(f, "omegaMatter0 = %lf \n", &(model->omegaMatter0));
+	CHECK(rtn, 1);
+	rtn   = fscanf(f, "omegaBaryon0 = %lf \n", &(model->omegaBaryon0));
+	CHECK(rtn, 1);
+	rtn   = fscanf(f, "hubble = %lf \n", &(model->hubble));
+	CHECK(rtn, 1);
+	rtn   = fscanf(f, "sigma8 = %lf \n", &(model->sigma8));
+	CHECK(rtn, 1);
+	rtn   = fscanf(f, "ns = %lf \n", &(model->ns));
+	CHECK(rtn, 1);
 	xfclose(&f);
 
 	return model;
 }
+
+#undef CHECK
 
 extern cosmoModel_t
 cosmoModel_newFromIni(parse_ini_t ini, const char *sectionName)
