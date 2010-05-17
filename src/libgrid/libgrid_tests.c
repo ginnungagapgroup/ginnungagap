@@ -186,6 +186,10 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegularFFT_new_test, hasFailed);
 	RUNTEST(&gridRegularFFT_del_test, hasFailed);
 	RUNTEST(&gridRegularFFT_execute_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+#endif
 
 #ifdef WITH_SILO
 	if (rank == 0) {
