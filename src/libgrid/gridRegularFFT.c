@@ -105,6 +105,14 @@ gridRegularFFT_del(gridRegularFFT_t *fft)
 	*fft = NULL;
 }
 
+extern gridRegular_t
+gridRegularFFT_getGridFFTed(const gridRegularFFT_t fft)
+{
+	assert(fft != NULL);
+
+	return fft->gridFFTed;
+}
+
 extern void *
 gridRegularFFT_execute(gridRegularFFT_t fft, int direction)
 {
@@ -392,7 +400,7 @@ local_doFFTParallelC2CPencil(gridRegularFFT_t fft, int phase, int sign)
 	sign = (sign == GRIDREGULARFFT_FORWARD) ? FFTW_FORWARD : FFTW_BACKWARD;
 
 	for (int i = 1; i < NDIM; i++)
-		howmany *= fft->localDims[0][i];
+		howmany *= fft->localDims[phase][i];
 
 	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
 		fftwf_plan plan;
