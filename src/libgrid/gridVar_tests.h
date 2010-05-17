@@ -16,6 +16,9 @@ extern bool
 gridVar_new_test(void);
 
 extern bool
+gridVar_clone_test(void);
+
+extern bool
 gridVar_del_test(void);
 
 extern bool

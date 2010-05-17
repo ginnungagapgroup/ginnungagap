@@ -66,6 +66,42 @@ gridVar_new_test(void)
 }
 
 extern bool
+gridVar_clone_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	gridVar_t gridVar, clone;
+#ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
+	clone   = gridVar_clone(gridVar);
+	if (strcmp(gridVar->name, clone->name) != 0)
+		hasPassed = false;
+	if (gridVar->type != clone->type)
+		hasPassed = false;
+	if (gridVar->numComponents != clone->numComponents)
+		hasPassed = false;
+	if (gridVar->isFFTWPadded != clone->isFFTWPadded)
+		hasPassed = false;
+	gridVar_del(&gridVar);
+	gridVar_del(&clone);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 gridVar_del_test(void)
 {
 	bool      hasPassed = true;

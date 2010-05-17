@@ -49,6 +49,22 @@ gridVar_new(const char *name, gridVarType_t type, int numComponents)
 	return gridVar_getRef(gridVar);
 }
 
+extern gridVar_t
+gridVar_clone(const gridVar_t var)
+{
+	gridVar_t clone;
+
+	assert(var != NULL);
+
+	clone = gridVar_new(var->name, var->type, var->numComponents);
+	clone->mallocFunc     = var->mallocFunc;
+	clone->freeFunc       = var->freeFunc;
+	clone->isFFTWPadded   = var->isFFTWPadded;
+	clone->isComplexified = var->isComplexified;
+
+	return clone;
+}
+
 extern void
 gridVar_del(gridVar_t *var)
 {

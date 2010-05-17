@@ -25,6 +25,9 @@ typedef struct gridVar_struct *gridVar_t;
 extern gridVar_t
 gridVar_new(const char *name, gridVarType_t type, int numComponents);
 
+extern gridVar_t
+gridVar_clone(const gridVar_t var);
+
 extern void
 gridVar_del(gridVar_t *var);
 

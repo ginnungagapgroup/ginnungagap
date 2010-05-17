@@ -72,6 +72,7 @@ main(int argc, char **argv)
 		printf("\nRunning tests for gridVar:\n");
 	}
 	RUNTEST(&gridVar_new_test, hasFailed);
+	RUNTEST(&gridVar_clone_test, hasFailed);
 	RUNTEST(&gridVar_del_test, hasFailed);
 	RUNTEST(&gridVar_getRef_test, hasFailed);
 	RUNTEST(&gridVar_getSizePerElement_test, hasFailed);
