@@ -285,6 +285,7 @@ gridWriterSilo_writeGridRegular_test(void)
 		printf("Testing %s... ", __func__);
 
 	grid   = local_getFakeGridRegular();
+	// TODO Initialize memory areas
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
 #  ifdef WITH_MPI
