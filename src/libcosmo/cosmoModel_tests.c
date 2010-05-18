@@ -60,31 +60,148 @@ extern bool
 cosmoModel_del_test(void)
 {
 	cosmoModel_t model;
-#ifdef WITH_PROC_DIR
-	char         buf[30];
-	FILE         *pf;
-	unsigned     sizeOld, sizeNew;
-#endif
 
 	printf("Testing %s... ", __func__);
-#ifdef WITH_PROC_DIR
-	snprintf(buf, 30, "/proc/%u/statm", (unsigned)getpid());
-	pf = fopen(buf, "r");
-	fscanf(pf, "%u", &sizeOld);
-	rewind(pf);
-#endif
 	model = cosmoModel_newFromFile("tests/model_EdS.dat");
 	cosmoModel_del(&model);
-#ifdef WITH_PROC_DIR
-	fscanf(pf, "%u", &sizeNew);
-	if (sizeOld != sizeNew)
-		return false;
-#endif
 
 	if (model != NULL)
 		return false;
 
 	return true;
+}
+
+extern bool
+cosmoModel_getOmegaRad0_test(void)
+{
+	cosmoModel_t model;
+	double val;
+	bool hasPassed = true;
+
+	printf("Testing %s... ", __func__);
+	model = cosmoModel_newFromFile("tests/model_EdS.dat");
+	val = cosmoModel_getOmegaRad0(model);
+
+	if (islessgreater(val, model->omegaRad0))
+		hasPassed = false;
+
+	cosmoModel_del(&model);
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+cosmoModel_getOmegaLambda0_test(void)
+{
+	cosmoModel_t model;
+	double val;
+	bool hasPassed = true;
+
+	printf("Testing %s... ", __func__);
+	model = cosmoModel_newFromFile("tests/model_EdS.dat");
+	val = cosmoModel_getOmegaLambda0(model);
+
+	if (islessgreater(val, model->omegaRad0))
+		hasPassed = false;
+
+	cosmoModel_del(&model);
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+cosmoModel_getOmegaMatter0_test(void)
+{
+	cosmoModel_t model;
+	double val;
+	bool hasPassed = true;
+
+	printf("Testing %s... ", __func__);
+	model = cosmoModel_newFromFile("tests/model_EdS.dat");
+	val = cosmoModel_getOmegaMatter0(model);
+
+	if (islessgreater(val, model->omegaMatter0))
+		hasPassed = false;
+
+	cosmoModel_del(&model);
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+cosmoModel_getOmegaBaryon0_test(void)
+{
+	cosmoModel_t model;
+	double val;
+	bool hasPassed = true;
+
+	printf("Testing %s... ", __func__);
+	model = cosmoModel_newFromFile("tests/model_EdS.dat");
+	val = cosmoModel_getOmegaBaryon0(model);
+
+	if (islessgreater(val, model->omegaBaryon0))
+		hasPassed = false;
+
+	cosmoModel_del(&model);
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+cosmoModel_getSmallH_test(void)
+{
+	cosmoModel_t model;
+	double val;
+	bool hasPassed = true;
+
+	printf("Testing %s... ", __func__);
+	model = cosmoModel_newFromFile("tests/model_EdS.dat");
+	val = cosmoModel_getSmallH(model);
+
+	if (islessgreater(val, model->hubble))
+		hasPassed = false;
+
+	cosmoModel_del(&model);
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+cosmoModel_getSigma8_test(void)
+{
+	cosmoModel_t model;
+	double val;
+	bool hasPassed = true;
+
+	printf("Testing %s... ", __func__);
+	model = cosmoModel_newFromFile("tests/model_EdS.dat");
+	val = cosmoModel_getSigma8(model);
+
+	if (islessgreater(val, model->sigma8))
+		hasPassed = false;
+
+	cosmoModel_del(&model);
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+cosmoModel_getNs_test(void)
+{
+	cosmoModel_t model;
+	double val;
+	bool hasPassed = true;
+
+	printf("Testing %s... ", __func__);
+	model = cosmoModel_newFromFile("tests/model_EdS.dat");
+	val = cosmoModel_getNs(model);
+
+	if (islessgreater(val, model->ns))
+		hasPassed = false;
+
+	cosmoModel_del(&model);
+
+	return hasPassed ? true : false;
 }
 
 extern bool

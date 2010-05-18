@@ -39,6 +39,13 @@ main(void)
 	printf("\nRunning tests for cosmoModel:\n");
 	RUNTEST(cosmoModel_newFromFile_test, hasFailed);
 	RUNTEST(cosmoModel_del_test, hasFailed);
+	RUNTEST(cosmoModel_getOmegaRad0_test, hasFailed);
+	RUNTEST(cosmoModel_getOmegaLambda0_test, hasFailed);
+	RUNTEST(cosmoModel_getOmegaMatter0_test, hasFailed);
+	RUNTEST(cosmoModel_getOmegaBaryon0_test, hasFailed);
+	RUNTEST(cosmoModel_getSmallH_test, hasFailed);
+	RUNTEST(cosmoModel_getSigma8_test, hasFailed);
+	RUNTEST(cosmoModel_getNs_test, hasFailed);
 	RUNTEST(cosmoModel_calcAgeFromExpansion_test, hasFailed);
 	RUNTEST(cosmoModel_calcExpansionFromAge_test, hasFailed);
 	RUNTEST(cosmoModel_calcADot_test, hasFailed);

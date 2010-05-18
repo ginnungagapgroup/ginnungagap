@@ -96,6 +96,62 @@ cosmoModel_del(cosmoModel_t *model)
 }
 
 extern double
+cosmoModel_getOmegaRad0(const cosmoModel_t model)
+{
+	assert(model != NULL);
+
+	return model->omegaRad0;
+}
+
+extern double
+cosmoModel_getOmegaLambda0(const cosmoModel_t model)
+{
+	assert(model != NULL);
+
+	return model->omegaLambda0;
+}
+
+extern double
+cosmoModel_getOmegaMatter0(const cosmoModel_t model)
+{
+	assert(model != NULL);
+
+	return model->omegaMatter0;
+}
+
+extern double
+cosmoModel_getOmegaBaryon0(const cosmoModel_t model)
+{
+	assert(model != NULL);
+
+	return model->omegaBaryon0;
+}
+
+extern double
+cosmoModel_getSmallH(const cosmoModel_t model)
+{
+	assert(model != NULL);
+
+	return model->hubble;
+}
+
+extern double
+cosmoModel_getSigma8(const cosmoModel_t model)
+{
+	assert(model != NULL);
+
+	return model->sigma8;
+}
+
+extern double
+cosmoModel_getNs(const cosmoModel_t model)
+{
+	assert(model != NULL);
+
+	return model->ns;
+}
+
+extern double
 cosmoModel_calcAgeFromExpansion(cosmoModel_t model,
                                 double       a,
                                 double       *error)

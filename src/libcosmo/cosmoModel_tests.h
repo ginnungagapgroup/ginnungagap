@@ -19,6 +19,27 @@ extern bool
 cosmoModel_del_test(void);
 
 extern bool
+cosmoModel_getOmegaRad0_test(void);
+
+extern bool
+cosmoModel_getOmegaLambda0_test(void);
+
+extern bool
+cosmoModel_getOmegaMatter0_test(void);
+
+extern bool
+cosmoModel_getOmegaBaryon0_test(void);
+
+extern bool
+cosmoModel_getSmallH_test(void);
+
+extern bool
+cosmoModel_getSigma8_test(void);
+
+extern bool
+cosmoModel_getNs_test(void);
+
+extern bool
 cosmoModel_calcAgeFromExpansion_test(void);
 
 extern bool
