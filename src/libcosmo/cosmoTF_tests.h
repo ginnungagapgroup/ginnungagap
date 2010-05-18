@@ -2,8 +2,8 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef COSMOPK_TESTS_H
-#define COSMOPK_TESTS_H
+#ifndef COSMOTF_TESTS_H
+#define COSMOTF_TESTS_H
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -13,22 +13,7 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-cosmoPk_newFromFile_test(void);
-
-extern bool
-cosmoPk_newFromModel_test(void);
-
-extern bool
-cosmoPk_newFromArrays_test(void);
-
-extern bool
-cosmoPk_del_test(void);
-
-extern bool
-cosmoPk_eval_test(void);
-
-extern bool
-cosmoPk_calcMomentFiltered_test(void);
+cosmoTF_eisensteinHu1998_test(void);
 
 
 #endif

@@ -8,6 +8,8 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "cosmo_config.h"
+#include "cosmoModel.h"
+#include "cosmoTF.h"
 #include <stdint.h>
 
 
@@ -18,6 +20,13 @@ typedef struct cosmoPk_struct *cosmoPk_t;
 /*--- Prototypes of exported functions ----------------------------------*/
 extern cosmoPk_t
 cosmoPk_newFromFile(const char *fname);
+
+extern cosmoPk_t
+cosmoPk_newFromModel(const cosmoModel_t model,
+                     double             kmin,
+                     double             kmax,
+                     uint32_t           numPoints,
+                     cosmoTF_t          transferFunctionType);
 
 extern cosmoPk_t
 cosmoPk_newFromArrays(uint32_t     numPoints,

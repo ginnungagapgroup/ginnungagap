@@ -47,6 +47,9 @@ extern double
 cosmoModel_getNs(const cosmoModel_t model);
 
 extern double
+cosmoModel_getTempCMB(const cosmoModel_t model);
+
+extern double
 cosmoModel_calcAgeFromExpansion(cosmoModel_t model,
                                 double       a,
                                 double       *error);

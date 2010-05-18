@@ -9,16 +9,13 @@
 #include "cosmoPk_adt.h"
 #include "cosmoPk_tests.h"
 #include "cosmoFunc.h"
+#include "cosmoModel.h"
 #include "../libutil/xmem.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-#ifdef WITH_PROC_DIR
-#  include <sys/types.h>
-#  include <unistd.h>
-#endif
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -55,6 +52,26 @@ cosmoPk_newFromFile_test(void)
 	cosmoPk_del(&pk);
 
 	return true;
+}
+
+extern bool
+cosmoPk_newFromModel_test(void)
+{
+	cosmoPk_t pk;
+	cosmoModel_t model;
+	bool hasPassed = true;
+
+	printf("Testing %s... ", __func__);
+	model = cosmoModel_newFromFile("tests/model_wmap7.dat");
+
+	pk = cosmoPk_newFromModel(model, 1e-2, 1e1, 450,
+	                          COSMOTF_TYPE_EISENSTEINHU1998);
+	cosmoPk_dumpToFile(pk, "pk_from_tf.dat", 10);
+	cosmoPk_del(&pk);
+
+	cosmoModel_del(&model);
+
+	return hasPassed ? true : false;
 }
 
 extern bool
@@ -95,26 +112,10 @@ extern bool
 cosmoPk_del_test(void)
 {
 	cosmoPk_t pk;
-#ifdef WITH_PROC_DIR
-	char      buf[30];
-	FILE      *pf;
-	unsigned  sizeOld, sizeNew;
-#endif
 
 	printf("Testing %s... ", __func__);
-#ifdef WITH_PROC_DIR
-	snprintf(buf, 30, "/proc/%u/statm", (unsigned)getpid());
-	pf = fopen(buf, "r");
-	fscanf(pf, "%u", &sizeOld);
-	rewind(pf);
-#endif
 	pk = cosmoPk_newFromFile("tests/pk.dat");
 	cosmoPk_del(&pk);
-#ifdef WITH_PROC_DIR
-	fscanf(pf, "%u", &sizeNew);
-	if (sizeOld != sizeNew)
-		return false;
-#endif
 
 	if (pk != NULL)
 		return false;

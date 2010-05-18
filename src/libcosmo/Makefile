@@ -8,11 +8,14 @@ include ../../Makefile.config
 
 .PHONY: all clean dist-clean tests
 
-sources = cosmoPk.c \
+sources = cosmoTF.c \
+          cosmoTFEisensteinHu.c \
+          cosmoPk.c \
           cosmoModel.c \
           cosmoFunc.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
+               cosmoTF_tests.c \
                cosmoPk_tests.c \
                cosmoModel_tests.c
 

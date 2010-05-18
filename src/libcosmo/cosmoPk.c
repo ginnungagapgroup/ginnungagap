@@ -34,6 +34,14 @@ local_getMem(cosmoPk_t pk, uint32_t numPoints);
 static void
 local_doInterpolation(cosmoPk_t pk);
 
+static void
+local_initKs(cosmoPk_t pk, double kmin, double kmax);
+
+static void
+local_calcPkFromTransferFunction(cosmoPk_t          pk,
+                                 cosmoTF_t          transferFunctionType,
+                                 const cosmoModel_t model);
+
 
 /*--- Local structures and typedefs -------------------------------------*/
 
@@ -62,6 +70,28 @@ cosmoPk_newFromFile(const char *fname)
 		}
 	}
 	xfclose(&f);
+	local_doInterpolation(pk);
+
+	return pk;
+}
+
+extern cosmoPk_t
+cosmoPk_newFromModel(const cosmoModel_t model,
+                     double             kmin,
+                     double             kmax,
+                     uint32_t           numPoints,
+                     cosmoTF_t          transferFunctionType)
+{
+	cosmoPk_t pk;
+
+	pk                  = local_new();
+	pk->numPoints       = numPoints;
+	pk->slopeBeforeKmin = cosmoModel_getNs(model);
+	pk->slopeBeyondKmax = -3;
+	local_getMem(pk, pk->numPoints);
+	local_initKs(pk, kmin, kmax);
+
+	local_calcPkFromTransferFunction(pk, transferFunctionType, model);
 	local_doInterpolation(pk);
 
 	return pk;
@@ -110,7 +140,9 @@ cosmoPk_dumpToFile(cosmoPk_t pk, const char *fname, uint32_t numSubSample)
 	assert(pk != NULL && fname != NULL);
 	double k, P;
 
-	f = xfopen(fname, "w");
+	numSubSample = (numSubSample == 0) ? 1 : numSubSample;
+
+	f            = xfopen(fname, "w");
 	for (uint32_t i = 0; i < pk->numPoints - 1; i++) {
 		for (uint32_t j = 0; j < numSubSample; j++) {
 			k = pk->k[i] + j * (pk->k[i + 1] - pk->k[i]) / numSubSample;
@@ -229,4 +261,41 @@ local_doInterpolation(cosmoPk_t pk)
 	pk->spline = gsl_spline_alloc(gsl_interp_cspline,
 	                              (int)(pk->numPoints));
 	gsl_spline_init(pk->spline, pk->k, pk->P, (int)(pk->numPoints));
+}
+
+static void
+local_initKs(cosmoPk_t pk, double kmin, double kmax)
+{
+	pk->k[0]                 = kmin;
+	pk->k[pk->numPoints - 1] = kmax;
+
+	if (pk->numPoints > 1) {
+		double logKmin = log(kmin);
+		double logdk
+		    = (log(kmax) - logKmin) / ((double)(pk->numPoints - 1));
+		for (uint32_t i = 1; i < pk->numPoints - 1; i++)
+			pk->k[i] = exp(logKmin + logdk * i);
+	}
+}
+
+static void
+local_calcPkFromTransferFunction(cosmoPk_t          pk,
+                                 cosmoTF_t          transferFunctionType,
+                                 const cosmoModel_t model)
+{
+	switch (transferFunctionType) {
+	case COSMOTF_TYPE_ANATOLY2000:
+	case COSMOTF_TYPE_EISENSTEINHU1998:
+	default:
+		cosmoTF_eisensteinHu1998(cosmoModel_getOmegaMatter0(model),
+		                         cosmoModel_getOmegaBaryon0(model),
+		                         cosmoModel_getSmallH(model),
+		                         cosmoModel_getTempCMB(model),
+		                         pk->numPoints, pk->k, pk->P);
+		break;
+	}
+
+	for (uint32_t i=0; i<pk->numPoints; i++) {
+		pk->P[i] *= pk->P[i] * pow(pk->k[i], cosmoModel_getNs(model));
+	}
 }

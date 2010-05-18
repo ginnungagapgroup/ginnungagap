@@ -20,6 +20,7 @@ struct cosmoModel_struct {
 	double hubble;
 	double sigma8;
 	double ns;
+	double tempCMB;
 };
 
 

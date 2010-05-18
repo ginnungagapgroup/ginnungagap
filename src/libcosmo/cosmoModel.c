@@ -56,6 +56,8 @@ cosmoModel_newFromFile(const char *fname)
 	CHECK(rtn, 1);
 	rtn   = fscanf(f, "ns = %lf \n", &(model->ns));
 	CHECK(rtn, 1);
+	rtn   = fscanf(f, "tempCMB = %lf \n", &(model->tempCMB));
+	CHECK(rtn, 1);
 	xfclose(&f);
 
 	return model;
@@ -83,6 +85,8 @@ cosmoModel_newFromIni(parse_ini_t ini, const char *sectionName)
 	           ini, "sigma8", sectionName);
 	getFromIni(&(model->ns), parse_ini_get_double,
 	           ini, "ns", sectionName);
+	getFromIni(&(model->tempCMB), parse_ini_get_double,
+	           ini, "tempCMB", sectionName);
 
 	return model;
 }
@@ -149,6 +153,14 @@ cosmoModel_getNs(const cosmoModel_t model)
 	assert(model != NULL);
 
 	return model->ns;
+}
+
+extern double
+cosmoModel_getTempCMB(const cosmoModel_t model)
+{
+	assert(model != NULL);
+
+	return model->tempCMB;
 }
 
 extern double

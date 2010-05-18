@@ -5,3 +5,4 @@ omegaBaryon0 = 0.0
 hubble = 0.5
 sigma8 = 1.0
 ns = 1.0
+tempCMB = 0.0

@@ -29,8 +29,12 @@ main(void)
 {
 	bool hasFailed = false;
 
-	printf("Running tests for cosmoPk:\n");
+	printf("Running tests for cosmoTF:\n");
+	RUNTEST(cosmoTF_eisensteinHu1998_test, hasFailed);
+
+	printf("\nRunning tests for cosmoPk:\n");
 	RUNTEST(cosmoPk_newFromFile_test, hasFailed);
+	RUNTEST(cosmoPk_newFromModel_test, hasFailed);
 	RUNTEST(cosmoPk_newFromArrays_test, hasFailed);
 	RUNTEST(cosmoPk_del_test, hasFailed);
 	RUNTEST(cosmoPk_eval_test, hasFailed);
