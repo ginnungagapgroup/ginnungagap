@@ -31,11 +31,13 @@ xmalloc(size_t size)
 	if (dummy == NULL) {
 		fprintf(stderr, "Could not allocate ");
 		if (size < 1024) {
-			fprintf(stderr, "%ib\n", (int)size);
+			fprintf(stderr, "%i b\n", (int)size);
 		} else if (size < 1048576) {
-			fprintf(stderr, "%fkb\n", size / 1024.);
+			fprintf(stderr, "%.2f Kib\n", size / 1024.);
+		} else if (size < 1073741824) {
+			fprintf(stderr, "%.2f Mib\n", size / 1048576.);
 		} else {
-			fprintf(stderr, "%fMb\n", size / 1048576.);
+			fprintf(stderr, "%.2f Gib\n", size / 1073741824.);
 		}
 #ifdef XMEM_TRACK_MEM
 		xmem_info(stderr);
@@ -100,11 +102,13 @@ xrealloc(void *ptr, size_t size)
 	if (dummy == NULL) {
 		fprintf(stderr, "Could not re-allocate ");
 		if (size < 1024) {
-			fprintf(stderr, "%ib\n", (int)size);
+			fprintf(stderr, "%i b\n", (int)size);
 		} else if (size < 1048576) {
-			fprintf(stderr, "%fkb\n", size / 1024.);
+			fprintf(stderr, "%f Kib\n", size / 1024.);
+		} else if (size < 1073741824) {
+			fprintf(stderr, "%f Mib\n", size / 1048576.);
 		} else {
-			fprintf(stderr, "%fMb\n", size / 1048576.);
+			fprintf(stderr, "%.2f Gib\n", size / 1073741824.);
 		}
 #ifdef XMEM_TRACK_MEM
 		xmem_info(stderr);
@@ -114,7 +118,7 @@ xrealloc(void *ptr, size_t size)
 	}
 
 #ifdef XMEM_TRACK_MEM
-	old_size = *((uint64_t *)dummy);
+	old_size                = *((uint64_t *)dummy);
 	global_allocated_bytes -= old_size;
 	global_allocated_bytes += size;
 	if (global_allocated_bytes > global_max_allocated_bytes) {
@@ -133,19 +137,25 @@ xmem_info(FILE *f)
 {
 	fprintf(f, "Currently holding: ");
 	if (global_allocated_bytes < 1024) {
-		fprintf(f, "%ib\n", (int)global_allocated_bytes);
+		fprintf(f, "%i B\n", (int)global_allocated_bytes);
 	} else if (global_allocated_bytes < 1048576) {
-		fprintf(f, "%fkb\n", global_allocated_bytes / 1024.);
+		fprintf(f, "%.2f KiB\n", global_allocated_bytes / 1024.);
+	} else if (global_allocated_bytes < 1073741824) {
+		fprintf(f, "%.2f MiB\n", global_allocated_bytes / 1048576.);
 	} else {
-		fprintf(f, "%fMb\n", global_allocated_bytes / 1048576.);
+		fprintf(stderr, "%.2f GiB\n",
+		        global_allocated_bytes / 1073741824.);
 	}
 	fprintf(f, "Peak usage: ");
 	if (global_max_allocated_bytes < 1024) {
-		fprintf(f, "%ib\n", (int)global_max_allocated_bytes);
+		fprintf(f, "%i B\n", (int)global_max_allocated_bytes);
 	} else if (global_max_allocated_bytes < 1048576) {
-		fprintf(f, "%fkb\n", global_max_allocated_bytes / 1024.);
+		fprintf(f, "%.2f kiB\n", global_max_allocated_bytes / 1024.);
+	} else if (global_max_allocated_bytes < 1073741824) {
+		fprintf(f, "%.2f MiB\n", global_max_allocated_bytes / 1048576.);
 	} else {
-		fprintf(f, "%fMb\n", global_max_allocated_bytes / 1048576.);
+		fprintf(stderr, "%.2f GiB\n",
+		        global_max_allocated_bytes / 1073741824.);
 	}
 	fprintf(f, "Malloc vs. free balance: %" PRIi64 "\n",
 	        global_malloc_vs_free);
