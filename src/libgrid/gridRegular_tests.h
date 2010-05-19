@@ -58,6 +58,9 @@ extern bool
 gridRegular_getNumPatches_test(void);
 
 extern bool
+gridRegular_getNumCellsTotal_test(void);
+
+extern bool
 gridRegular_attachPatch_test(void);
 
 extern bool

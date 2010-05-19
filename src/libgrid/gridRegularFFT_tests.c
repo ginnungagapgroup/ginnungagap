@@ -20,6 +20,7 @@
 #  include <silo.h>
 #endif
 #ifdef ENABLE_FFT_BACKEND_FFTW3
+#  include <complex.h>
 #  include <fftw3.h>
 #endif
 #include "../libutil/xmem.h"
@@ -102,6 +103,48 @@ gridRegularFFT_del_test(void)
 	grid    = local_getFakeGrid();
 	distrib = local_getFakeGridDistrib(grid);
 	fft     = gridRegularFFT_new(grid, distrib, 0);
+	gridRegular_del(&grid);
+	gridRegularDistrib_del(&distrib);
+	gridRegularFFT_del(&fft);
+	if (fft != NULL)
+		hasPassed = false;
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+gridRegularFFT_getNorm_test(void)
+{
+	bool                 hasPassed = true;
+	int                  rank      = 0;
+	gridRegularFFT_t     fft;
+	gridRegular_t        grid;
+	gridRegularDistrib_t distrib;
+	double               norm;
+#ifdef XMEM_TRACK_MEM
+	size_t               allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid    = local_getFakeGrid();
+	distrib = local_getFakeGridDistrib(grid);
+	fft     = gridRegularFFT_new(grid, distrib, 0);
+	norm = gridRegularFFT_getNorm(fft);
+#if (defined ENABLE_FFT_BACKEND_FFTW3)
+	uint64_t numCellsTotal = gridRegular_getNumCellsTotal(grid);
+	if (isgreater(fabs(numCellsTotal * norm - 1.0), 2e-16))
+		hasPassed = false;
+#endif
+
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
 	gridRegularFFT_del(&fft);

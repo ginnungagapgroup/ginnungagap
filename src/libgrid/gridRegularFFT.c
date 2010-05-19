@@ -27,6 +27,7 @@
 static void
 local_getFFTedThings(gridRegularFFT_t fft);
 
+
 #if (defined WITH_MPI)
 static void
 local_initMPIStuff(gridRegularFFT_t fft);
@@ -88,6 +89,9 @@ gridRegularFFT_new(gridRegular_t        grid,
 	local_initMPIStuff(fft);
 #endif
 	local_getFFTedThings(fft);
+#if (defined ENABLE_FFT_BACKEND_FFTW3)
+	fft->norm = 1. / ((double)gridRegular_getNumCellsTotal(grid));
+#endif
 
 	return fft;
 }
@@ -112,6 +116,14 @@ gridRegularFFT_getGridFFTed(const gridRegularFFT_t fft)
 	assert(fft != NULL);
 
 	return fft->gridFFTed;
+}
+
+extern double
+gridRegularFFT_getNorm(const gridRegularFFT_t fft)
+{
+	assert(fft != NULL);
+
+	return fft->norm;
 }
 
 extern void *
@@ -152,11 +164,11 @@ local_getFFTedThings(gridRegularFFT_t fft)
 #if (defined WITH_MPI)
 	gridRegularDistrib_initMPI(fft->distribFFTed, fft->nProcs,
 	                           MPI_COMM_WORLD);
-	rank = gridRegularDistrib_getLocalRank(fft->distribFFTed);
+	rank            = gridRegularDistrib_getLocalRank(fft->distribFFTed);
 #endif
-	fft->patchFFTed     = gridRegularDistrib_getPatchForRank(fft->distribFFTed,
-	                                                         rank);
-	fft->varFFTed = gridVar_clone(fft->var);
+	fft->patchFFTed = gridRegularDistrib_getPatchForRank(fft->distribFFTed,
+	                                                     rank);
+	fft->varFFTed   = gridVar_clone(fft->var);
 	gridVar_setComplexified(fft->varFFTed);
 	gridRegular_attachPatch(fft->gridFFTed, fft->patchFFTed);
 	fft->idxFFTVarFFTed = gridRegular_attachVar(fft->gridFFTed,
@@ -211,13 +223,13 @@ local_doFFTCompletelyLocal(gridRegularFFT_t fft, int direction)
 	void              *dataOut;
 
 	if (direction == GRIDREGULARFFT_FORWARD) {
-		*dataIn  = gridPatch_getVarDataHandle(fft->patch, fft->idxFFTVar);
-		*dataOut = gridPatch_getVarDataHandle(fft->patchFFTed,
-		                                      fft->idxFFTVarFFTed);
+		dataIn  = gridPatch_getVarDataHandle(fft->patch, fft->idxFFTVar);
+		dataOut = gridPatch_getVarDataHandle(fft->patchFFTed,
+		                                     fft->idxFFTVarFFTed);
 	} else {
-		*dataIn  = gridPatch_getVarDataHandle(fft->patchFFTed,
-		                                      fft->idxFFTVarFFTed);
-		*dataOut = gridPatch_getVarDataHandle(fft->patch, fft->idxFFTVar);
+		dataIn  = gridPatch_getVarDataHandle(fft->patchFFTed,
+		                                     fft->idxFFTVarFFTed);
+		dataOut = gridPatch_getVarDataHandle(fft->patch, fft->idxFFTVar);
 	}
 
 	// We always need the non-complex dimensions
@@ -281,13 +293,17 @@ local_doFFTParallelForward(gridRegularFFT_t fft)
 
 	gridRegularDistrib_transpose(fft->distribFFTed, 0, 1);
 	fft->patchFFTed = gridRegular_getPatchHandle(fft->gridFFTed, 0);
-	result = local_doFFTParallelC2CPencil(fft, 1, GRIDREGULARFFT_FORWARD);
+	result          = local_doFFTParallelC2CPencil(fft,
+	                                               1,
+	                                               GRIDREGULARFFT_FORWARD);
 	gridPatch_replaceVarData(fft->patchFFTed, fft->idxFFTVarFFTed, result);
 
 #  if (NDIM > 2)
 	gridRegularDistrib_transpose(fft->distribFFTed, 0, 2);
 	fft->patchFFTed = gridRegular_getPatchHandle(fft->gridFFTed, 0);
-	result = local_doFFTParallelC2CPencil(fft, 2, GRIDREGULARFFT_FORWARD);
+	result          = local_doFFTParallelC2CPencil(fft,
+	                                               2,
+	                                               GRIDREGULARFFT_FORWARD);
 	gridPatch_replaceVarData(fft->patchFFTed, fft->idxFFTVarFFTed, result);
 #  endif
 
@@ -306,12 +322,14 @@ local_doFFTParallelBackward(gridRegularFFT_t fft)
 	gridRegularDistrib_transpose(fft->distribFFTed, 0, 2);
 	fft->patchFFTed = gridRegular_getPatchHandle(fft->gridFFTed, 0);
 #  endif
-	result = local_doFFTParallelC2CPencil(fft, 1, GRIDREGULARFFT_BACKWARD);
+	result          = local_doFFTParallelC2CPencil(fft,
+	                                               1,
+	                                               GRIDREGULARFFT_BACKWARD);
 	gridPatch_replaceVarData(fft->patchFFTed, fft->idxFFTVarFFTed, result);
 
 	gridRegularDistrib_transpose(fft->distribFFTed, 0, 1);
 	fft->patchFFTed = gridRegular_getPatchHandle(fft->gridFFTed, 0);
-	result = local_doFFTParallelC2RPencil(fft);
+	result          = local_doFFTParallelC2RPencil(fft);
 
 	return result;
 }
@@ -330,22 +348,22 @@ local_doFFTParallelR2CPencil(gridRegularFFT_t fft)
 
 	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
 		fftwf_plan plan;
-		plan   = fftwf_plan_many_dft_r2c(1, &(fft->localNumRealElements),
-		                                 howmany, (float *)dataIn,
-		                                 NULL, 1, fft->localNumRealElements,
-		                                 (fftwf_complex *)dataOut,
-		                                 NULL, 1, fft->localDims[0][0],
-		                                 FFTW_ESTIMATE);
+		plan = fftwf_plan_many_dft_r2c(1, &(fft->localNumRealElements),
+		                               howmany, (float *)dataIn,
+		                               NULL, 1, fft->localNumRealElements,
+		                               (fftwf_complex *)dataOut,
+		                               NULL, 1, fft->localDims[0][0],
+		                               FFTW_ESTIMATE);
 		fftwf_execute(plan);
 		fftwf_destroy_plan(plan);
 	} else {
 		fftw_plan plan;
-		plan   = fftw_plan_many_dft_r2c(1, &(fft->localNumRealElements),
-		                                howmany, (double *)dataIn,
-		                                NULL, 1, fft->localNumRealElements,
-		                                (fftw_complex *)dataOut,
-		                                NULL, 1, fft->localDims[0][0],
-		                                FFTW_ESTIMATE);
+		plan = fftw_plan_many_dft_r2c(1, &(fft->localNumRealElements),
+		                              howmany, (double *)dataIn,
+		                              NULL, 1, fft->localNumRealElements,
+		                              (fftw_complex *)dataOut,
+		                              NULL, 1, fft->localDims[0][0],
+		                              FFTW_ESTIMATE);
 		fftw_execute(plan);
 		fftw_destroy_plan(plan);
 	}
@@ -367,22 +385,22 @@ local_doFFTParallelC2RPencil(gridRegularFFT_t fft)
 
 	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
 		fftwf_plan plan;
-		plan   = fftwf_plan_many_dft_c2r(1, fft->localDims[0],
-		                                 howmany, (fftwf_complex *)dataIn,
-		                                 NULL, 1, fft->localDims[0][0],
-		                                 (float *)dataOut,
-		                                 NULL, 1, fft->localNumRealElements,
-		                                 FFTW_ESTIMATE);
+		plan = fftwf_plan_many_dft_c2r(1, fft->localDims[0],
+		                               howmany, (fftwf_complex *)dataIn,
+		                               NULL, 1, fft->localDims[0][0],
+		                               (float *)dataOut,
+		                               NULL, 1, fft->localNumRealElements,
+		                               FFTW_ESTIMATE);
 		fftwf_execute(plan);
 		fftwf_destroy_plan(plan);
 	} else {
 		fftw_plan plan;
-		plan   = fftw_plan_many_dft_c2r(1, &(fft->localNumRealElements),
-		                                howmany, (fftw_complex *)dataIn,
-		                                NULL, 1, fft->localDims[0][0],
-		                                (double *)dataOut,
-		                                NULL, 1, fft->localNumRealElements,
-		                                FFTW_ESTIMATE);
+		plan = fftw_plan_many_dft_c2r(1, &(fft->localNumRealElements),
+		                              howmany, (fftw_complex *)dataIn,
+		                              NULL, 1, fft->localDims[0][0],
+		                              (double *)dataOut,
+		                              NULL, 1, fft->localNumRealElements,
+		                              FFTW_ESTIMATE);
 		fftw_execute(plan);
 		fftw_destroy_plan(plan);
 	}

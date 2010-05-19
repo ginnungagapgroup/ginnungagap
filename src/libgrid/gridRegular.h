@@ -54,6 +54,9 @@ gridRegular_getPermute(gridRegular_t grid, gridPointInt_t permute);
 extern int
 gridRegular_getNumVars(gridRegular_t grid);
 
+extern uint64_t
+gridRegular_getNumCellsTotal(gridRegular_t grid);
+
 extern void
 gridRegular_complexify(gridRegular_t grid, int idxOfVar);
 

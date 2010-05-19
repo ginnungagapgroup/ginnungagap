@@ -19,6 +19,9 @@ extern bool
 gridRegularFFT_del_test(void);
 
 extern bool
+gridRegularFFT_getNorm_test(void);
+
+extern bool
 gridRegularFFT_execute_test(void);
 
 

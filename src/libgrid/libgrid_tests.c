@@ -67,6 +67,11 @@ main(int argc, char **argv)
 		printf("\nRunning tests for gridUtil:\n");
 	}
 	RUNTEST(&gridUtil_intersection1D_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridVar:\n");
@@ -95,6 +100,7 @@ main(int argc, char **argv)
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
 #endif
 
 	if (rank == 0) {
@@ -108,6 +114,7 @@ main(int argc, char **argv)
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
 #endif
 
 	if (rank == 0) {
@@ -132,6 +139,7 @@ main(int argc, char **argv)
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
 #endif
 
 	if (rank == 0) {
@@ -152,6 +160,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegular_detachVar_test, hasFailed);
 	RUNTEST(&gridRegular_getVarHandle_test, hasFailed);
 	RUNTEST(&gridRegular_getNumPatches_test, hasFailed);
+	RUNTEST(&gridRegular_getNumCellsTotal_test, hasFailed);
 	RUNTEST(&gridRegular_attachPatch_test, hasFailed);
 	RUNTEST(&gridRegular_detachPatch_test, hasFailed);
 	RUNTEST(&gridRegular_getPatchHandle_test, hasFailed);
@@ -160,6 +169,7 @@ main(int argc, char **argv)
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
 #endif
 
 	if (rank == 0) {
@@ -178,6 +188,7 @@ main(int argc, char **argv)
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
 #endif
 
 	if (rank == 0) {
@@ -185,10 +196,12 @@ main(int argc, char **argv)
 	}
 	RUNTEST(&gridRegularFFT_new_test, hasFailed);
 	RUNTEST(&gridRegularFFT_del_test, hasFailed);
+	RUNTEST(&gridRegularFFT_getNorm_test, hasFailed);
 	RUNTEST(&gridRegularFFT_execute_test, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
 #endif
 
 #ifdef WITH_SILO
@@ -207,6 +220,7 @@ main(int argc, char **argv)
 #  ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
 #  endif
 #endif
 
@@ -215,20 +229,12 @@ main(int argc, char **argv)
 #endif
 
 	if (hasFailed) {
-		if (rank == 0) {
+		if (rank == 0)
 			fprintf(stderr, "\nSome tests failed!\n\n");
-#ifdef XMEM_TRACK_MEM
-			xmem_info(stdout);
-#endif
-		}
 		return EXIT_FAILURE;
 	}
-	if (rank == 0) {
+	if (rank == 0)
 		printf("\nAll tests passed successfully!\n\n");
-#ifdef XMEM_TRACK_MEM
-		xmem_info(stdout);
-#endif
-	}
 
 	return EXIT_SUCCESS;
 } /* main */

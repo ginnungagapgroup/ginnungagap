@@ -254,7 +254,7 @@ gridRegular_getExtent_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_getExtent_test */
 
 extern bool
 gridRegular_getDelta_test(void)
@@ -353,7 +353,7 @@ gridRegular_getDimsComplex_test(void)
 	grid = local_getFakeGrid(origin, extent, dims);
 
 	gridRegular_getDimsComplex(grid, dimsTest);
-	if (dims[0]/2 + 1 != dimsTest[0])
+	if (dims[0] / 2 + 1 != dimsTest[0])
 		hasPassed = false;
 	for (int i = 1; i < NDIM; i++) {
 		if (dims[i] != dimsTest[i])
@@ -367,7 +367,7 @@ gridRegular_getDimsComplex_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_getDimsComplex_test */
 
 extern bool
 gridRegular_getPermute_test(void)
@@ -378,7 +378,7 @@ gridRegular_getPermute_test(void)
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
-	gridPointInt_t permute;
+	gridPointInt_t    permute;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -404,7 +404,7 @@ gridRegular_getPermute_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_getPermute_test */
 
 extern bool
 gridRegular_getNumVars_test(void)
@@ -443,6 +443,48 @@ gridRegular_getNumVars_test(void)
 
 	return hasPassed ? true : false;
 } /* gridRegular_getNumVars_test */
+
+extern bool
+gridRegular_getNumCellsTotal_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridRegular_t     grid;
+	gridVar_t         var;
+	gridPointDbl_t    origin;
+	gridPointDbl_t    extent;
+	gridPointUint32_t dims;
+	uint64_t          numCellsTotal;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grid = local_getFakeGrid(origin, extent, dims);
+
+	if (gridRegular_getNumVars(grid) != 0)
+		hasPassed = false;
+	var           = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	gridRegular_attachVar(grid, var);
+	numCellsTotal = 1;
+	for (int i = 0; i < NDIM; i++)
+		numCellsTotal *= dims[i];
+	if (gridRegular_getNumCellsTotal(grid) != numCellsTotal)
+		hasPassed = false;
+
+	gridRegular_del(&grid);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* gridRegular_getNumCellsTotal_test */
 
 extern bool
 gridRegular_attachVar_test(void)
@@ -608,7 +650,7 @@ gridRegular_attachPatch_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid = local_getFakeGrid(origin, extent, dims);
+	grid  = local_getFakeGrid(origin, extent, dims);
 	patch = local_getFakePatch();
 
 	if (grid->patches == NULL)
@@ -624,7 +666,7 @@ gridRegular_attachPatch_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_attachPatch_test */
 
 extern bool
 gridRegular_detachPatch_test(void)
@@ -646,7 +688,7 @@ gridRegular_detachPatch_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid = local_getFakeGrid(origin, extent, dims);
+	grid  = local_getFakeGrid(origin, extent, dims);
 	patch = local_getFakePatch();
 
 	gridRegular_attachPatch(grid, patch);
@@ -664,7 +706,7 @@ gridRegular_detachPatch_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_detachPatch_test */
 
 extern bool
 gridRegular_getPatchHandle_test(void)
@@ -686,7 +728,7 @@ gridRegular_getPatchHandle_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid = local_getFakeGrid(origin, extent, dims);
+	grid  = local_getFakeGrid(origin, extent, dims);
 	patch = local_getFakePatch();
 
 	gridRegular_attachPatch(grid, patch);
@@ -701,7 +743,7 @@ gridRegular_getPatchHandle_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_getPatchHandle_test */
 
 extern bool
 gridRegular_replacePatch_test(void)
@@ -723,8 +765,8 @@ gridRegular_replacePatch_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid = local_getFakeGrid(origin, extent, dims);
-	patch = local_getFakePatch();
+	grid   = local_getFakeGrid(origin, extent, dims);
+	patch  = local_getFakePatch();
 	patch2 = local_getFakePatch();
 
 	gridRegular_attachPatch(grid, patch);
@@ -743,7 +785,7 @@ gridRegular_replacePatch_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_replacePatch_test */
 
 extern bool
 gridRegular_transpose_test(void)
@@ -765,7 +807,7 @@ gridRegular_transpose_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid = local_getFakeGrid(origin, extent, dims);
+	grid  = local_getFakeGrid(origin, extent, dims);
 	patch = local_getFakePatch();
 	gridRegular_attachPatch(grid, patch);
 
@@ -778,7 +820,7 @@ gridRegular_transpose_test(void)
 		hasPassed = false;
 	if (islessgreater(grid->origin[1], origin[0]))
 		hasPassed = false;
-	if (grid->permute[0] != 1 || grid->permute[1] != 0)
+	if ((grid->permute[0] != 1) || (grid->permute[1] != 0))
 		hasPassed = false;
 
 	gridRegular_del(&grid);
@@ -788,7 +830,7 @@ gridRegular_transpose_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridRegular_transpose_test */
 
 /*--- Implementations of local functions --------------------------------*/
 static gridRegular_t
@@ -808,13 +850,13 @@ local_getFakeGrid(gridPointDbl_t    origin,
 static gridPatch_t
 local_getFakePatch(void)
 {
-	gridPatch_t patch;
+	gridPatch_t       patch;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 
-	for (int i=0; i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
-		idxHi[i] = i+1;
+		idxHi[i] = i + 1;
 	}
 
 	patch = gridPatch_new(idxLo, idxHi);

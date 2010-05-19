@@ -33,6 +33,9 @@ gridRegularFFT_del(gridRegularFFT_t *fft);
 extern gridRegular_t
 gridRegularFFT_getGridFFTed(const gridRegularFFT_t fft);
 
+extern double
+gridRegularFFT_getNorm(const gridRegularFFT_t fft);
+
 extern void *
 gridRegularFFT_execute(gridRegularFFT_t fft, int direction);
 

@@ -182,6 +182,19 @@ gridRegular_getNumVars(gridRegular_t grid)
 	return varArr_getLength(grid->vars);
 }
 
+extern uint64_t
+gridRegular_getNumCellsTotal(gridRegular_t grid)
+{
+	uint64_t numCellsTotal = UINT64_C(1);
+
+	assert(grid != NULL);
+
+	for (int i=0; i<NDIM; i++)
+		numCellsTotal *= grid->dims[i];
+
+	return numCellsTotal;
+}
+
 extern void
 gridRegular_setComplexified(gridRegular_t grid, int idxOfVar)
 {
