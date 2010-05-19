@@ -354,7 +354,7 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 #if (NDIM == 2)
 	offsetData = idxLo[0] - patch->idxLo[0]
 	             + (idxLo[1] - patch->idxLo[1]) * patch->dims[0];
-	for (int j = 0; j < dimsWindow[1]; j++) {
+	for (uint32_t j = 0; j < dimsWindow[1]; j++) {
 		memcpy(((char *)dataCopy) + offsetCopy * sizePerElement,
 		       ((char *)data) + offsetData * sizePerElement,
 		       dimsWindow[0] * sizePerElement);
@@ -362,12 +362,12 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 		offsetData += patch->dims[0];
 	}
 #elif (NDIM == 3)
-	for (int k = 0; k < dimsWindow[2]; k++) {
+	for (uint32_t k = 0; k < dimsWindow[2]; k++) {
 		offsetData = idxLo[0] - patch->idxLo[0]
 		             + (idxLo[1] - patch->idxLo[1]) * patch->dims[0]
 		             + (idxLo[2] - patch->idxLo[2] + k)
 		             * patch->dims[0] * patch->dims[1];
-		for (int j = 0; j < dimsWindow[1]; j++) {
+		for (uint32_t j = 0; j < dimsWindow[1]; j++) {
 			memcpy(((char *)dataCopy) + offsetCopy * sizePerElement,
 			       ((char *)data) + offsetData * sizePerElement,
 			       dimsWindow[0] * sizePerElement);
@@ -418,7 +418,7 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 #if (NDIM == 2)
 	offsetTarget = idxLo[0] - patch->idxLo[0]
 	               + (idxLo[1] - patch->idxLo[1]) * patch->dims[0];
-	for (int j = 0; j < windowDims[1]; j++) {
+	for (uint32_t j = 0; j < windowDims[1]; j++) {
 		memcpy(((char *)dataTarget) + offsetTarget * sizePerElement,
 		       ((char *)data) + offsetData * sizePerElement,
 		       windowDims[0] * sizePerElement);
@@ -426,12 +426,12 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 		offsetTarget += patch->dims[0];
 	}
 #elif (NDIM == 3)
-	for (int k = 0; k < windowDims[2]; k++) {
+	for (uint32_t k = 0; k < windowDims[2]; k++) {
 		offsetTarget = idxLo[0] - patch->idxLo[0]
 		               + (idxLo[1] - patch->idxLo[1]) * patch->dims[0]
 		               + (idxLo[2] - patch->idxLo[2] + k)
 		               * patch->dims[0] * patch->dims[1];
-		for (int j = 0; j < windowDims[1]; j++) {
+		for (uint32_t j = 0; j < windowDims[1]; j++) {
 			memcpy(((char *)dataTarget) + offsetTarget * sizePerElement,
 			       ((char *)data) + offsetData * sizePerElement,
 			       windowDims[0] * sizePerElement);
@@ -517,9 +517,9 @@ local_transposeVar102_3d(const void              *data,
 #  ifdef _OPENMP
 #    pragma omp parallel for shared(data, dataT) private(pos, posT)
 #  endif
-	for (int k2 = 0; k2 < dimsT[2]; k2++) {
-		for (int k1 = 0; k1 < dimsT[1]; k1++) {
-			for (int k0 = 0; k0 < dimsT[0]; k0++) {
+	for (uint32_t k2 = 0; k2 < dimsT[2]; k2++) {
+		for (uint32_t k1 = 0; k1 < dimsT[1]; k1++) {
+			for (uint32_t k0 = 0; k0 < dimsT[0]; k0++) {
 				posT = (k0 + (k1 + k2 * dimsT[1]) * dimsT[0]) * size;
 				pos  = (k1 + (k0 + k2 * dimsT[0]) * dimsT[1]) * size;
 				memcpy(((char *)dataT) + posT,
@@ -541,9 +541,9 @@ local_transposeVar210_3d(const void              *data,
 #  ifdef _OPENMP
 #    pragma omp parallel for shared(data, dataT) private(pos, posT)
 #  endif
-	for (int k2 = 0; k2 < dimsT[2]; k2++) {
-		for (int k1 = 0; k1 < dimsT[1]; k1++) {
-			for (int k0 = 0; k0 < dimsT[0]; k0++) {
+	for (uint32_t k2 = 0; k2 < dimsT[2]; k2++) {
+		for (uint32_t k1 = 0; k1 < dimsT[1]; k1++) {
+			for (uint32_t k0 = 0; k0 < dimsT[0]; k0++) {
 				posT = (k0 + (k1 + k2 * dimsT[1]) * dimsT[0]) * size;
 				pos  = (k2 + (k1 + k0 * dimsT[1]) * dimsT[2]) * size;
 				memcpy(((char *)dataT) + posT,
@@ -565,8 +565,8 @@ local_transposeVar021_3d(const void              *data,
 #  ifdef _OPENMP
 #    pragma omp parallel for shared(data, dataT) private(pos, posT)
 #  endif
-	for (int k2 = 0; k2 < dimsT[2]; k2++) {
-		for (int k1 = 0; k1 < dimsT[1]; k1++) {
+	for (uint32_t k2 = 0; k2 < dimsT[2]; k2++) {
+		for (uint32_t k1 = 0; k1 < dimsT[1]; k1++) {
 			posT = ((k1 + k2 * dimsT[1]) * dimsT[0]) * size;
 			pos  = ((k2 + k1 * dimsT[2]) * dimsT[0]) * size;
 			memcpy(((char *)dataT) + posT,
