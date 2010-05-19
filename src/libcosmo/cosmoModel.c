@@ -72,21 +72,21 @@ cosmoModel_newFromIni(parse_ini_t ini, const char *sectionName)
 
 	model = local_new();
 	getFromIni(&(model->omegaRad0), parse_ini_get_double,
-	           ini, "omegaRad0", sectionName);
+	           ini, "modelOmegaRad0", sectionName);
 	getFromIni(&(model->omegaLambda0), parse_ini_get_double,
-	           ini, "omegaLambda0", sectionName);
+	           ini, "modelOmegaLambda0", sectionName);
 	getFromIni(&(model->omegaMatter0), parse_ini_get_double,
-	           ini, "omegaMatter0", sectionName);
+	           ini, "modelOmegaMatter0", sectionName);
 	getFromIni(&(model->omegaBaryon0), parse_ini_get_double,
-	           ini, "omegaBaryon0", sectionName);
+	           ini, "modelOmegaBaryon0", sectionName);
 	getFromIni(&(model->hubble), parse_ini_get_double,
-	           ini, "hubble", sectionName);
+	           ini, "modelOhubble", sectionName);
 	getFromIni(&(model->sigma8), parse_ini_get_double,
-	           ini, "sigma8", sectionName);
+	           ini, "modelSigma8", sectionName);
 	getFromIni(&(model->ns), parse_ini_get_double,
-	           ini, "ns", sectionName);
+	           ini, "modelNs", sectionName);
 	getFromIni(&(model->tempCMB), parse_ini_get_double,
-	           ini, "tempCMB", sectionName);
+	           ini, "modelTempCMB", sectionName);
 
 	return model;
 }

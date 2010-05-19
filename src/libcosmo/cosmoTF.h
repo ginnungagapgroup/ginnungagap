@@ -8,6 +8,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "cosmo_config.h"
+#include "../libutil/parse_ini.h"
 #include <stdint.h>
 
 
@@ -19,6 +20,9 @@ typedef enum {
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
+extern cosmoTF_t
+cosmoTF_getTypeFromIni(parse_ini_t ini, const char *sectionName);
+
 extern void
 cosmoTF_eisensteinHu1998(double   omegaMatter0,
                          double   omegaBaryon0,

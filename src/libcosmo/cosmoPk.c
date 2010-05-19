@@ -34,6 +34,9 @@ local_getMem(cosmoPk_t pk, uint32_t numPoints);
 static void
 local_doInterpolation(cosmoPk_t pk);
 
+static cosmoPk_t
+local_constructPkFromModel(parse_ini_t ini, const char *sectionName);
+
 static void
 local_initKs(cosmoPk_t pk, double kmin, double kmax);
 
@@ -71,6 +74,25 @@ cosmoPk_newFromFile(const char *fname)
 	}
 	xfclose(&f);
 	local_doInterpolation(pk);
+
+	return pk;
+}
+
+extern cosmoPk_t
+cosmoPk_newFromIni(parse_ini_t ini, const char *sectionName)
+{
+	cosmoPk_t pk;
+	bool      hasFName;
+	char      *fileNamePk = NULL;
+
+	hasFName = parse_ini_get_string(ini, "powerSpectrumFileName",
+	                                sectionName, &fileNamePk);
+	if (hasFName) {
+		pk = cosmoPk_newFromFile(fileNamePk);
+		xfree(fileNamePk);
+	} else {
+		pk = local_constructPkFromModel(ini, sectionName);
+	}
 
 	return pk;
 }
@@ -178,7 +200,8 @@ cosmoPk_evalGSL(double k, void *param)
 extern double
 cosmoPk_calcMomentFiltered(cosmoPk_t pk,
                            uint32_t moment,
-                           double (*windowFunc)(double, void *),
+                           double (*windowFunc
+                                   )(double, void *),
                            void *paramWindowFunc,
                            double kmin,
                            double kmax,
@@ -263,10 +286,33 @@ local_doInterpolation(cosmoPk_t pk)
 	gsl_spline_init(pk->spline, pk->k, pk->P, (int)(pk->numPoints));
 }
 
+static cosmoPk_t
+local_constructPkFromModel(parse_ini_t ini, const char *sectionName)
+{
+	cosmoPk_t    pk;
+	cosmoModel_t model       = cosmoModel_newFromIni(ini, sectionName);
+	double       kmin, kmax;
+	uint32_t     numPoints;
+
+	getFromIni(&kmin, parse_ini_get_double, ini,
+	           "powerSpectrumKmin", sectionName);
+	getFromIni(&kmax, parse_ini_get_double, ini,
+	           "powerSpectrumKmax", sectionName);
+	getFromIni(&numPoints, parse_ini_get_uint32, ini,
+	           "powerSpectrumNumPoints", sectionName);
+
+	pk = cosmoPk_newFromModel(model, kmin, kmax, numPoints,
+	                          cosmoTF_getTypeFromIni(ini, sectionName));
+	cosmoModel_del(&model);
+
+	return pk;
+}
+
 static void
 local_initKs(cosmoPk_t pk, double kmin, double kmax)
 {
 	pk->k[0]                 = kmin;
+
 	pk->k[pk->numPoints - 1] = kmax;
 
 	if (pk->numPoints > 1) {
@@ -295,7 +341,7 @@ local_calcPkFromTransferFunction(cosmoPk_t          pk,
 		break;
 	}
 
-	for (uint32_t i=0; i<pk->numPoints; i++) {
+	for (uint32_t i = 0; i < pk->numPoints; i++) {
 		pk->P[i] *= pk->P[i] * pow(pk->k[i], cosmoModel_getNs(model));
 	}
 }

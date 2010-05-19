@@ -15,6 +15,7 @@
 #include "../libutil/xmem.h"
 #include "../libutil/timer.h"
 #include "../libcosmo/cosmoModel.h"
+#include "../libcosmo/cosmoPk.h"
 #include "../libgrid/gridRegular.h"
 #include "../libgrid/gridRegularDistrib.h"
 #include "../libgrid/gridRegularFFT.h"
@@ -31,6 +32,7 @@
 struct ginnungagap_struct {
 	ginnungagapConfig_t  config;
 	cosmoModel_t         model;
+	cosmoPk_t            pk;
 	rng_t                rng;
 	gridRegular_t        grid;
 	gridRegularDistrib_t gridDistrib;
@@ -58,6 +60,10 @@ local_generateWhiteNoise(ginnungagap_t ginnungagap);
 static void
 local_realToFourier(ginnungagap_t ginnungagap);
 
+static void
+local_generateRhoK(ginnungagap_t ginnungagap);
+
+
 #ifdef WITH_SILO
 static void
 local_dumpGrid(ginnungagap_t ginnungagap);
@@ -73,11 +79,13 @@ extern ginnungagap_t
 ginnungagap_new(parse_ini_t ini)
 {
 	ginnungagap_t ginnungagap;
+
 	assert(ini != NULL);
 
 	ginnungagap              = xmalloc(sizeof(struct ginnungagap_struct));
 	ginnungagap->config      = ginnungagapConfig_new(ini);
-	ginnungagap->model       = cosmoModel_newFromIni(ini, "CosmoModel");
+	ginnungagap->model       = cosmoModel_newFromIni(ini, "Cosmology");
+	ginnungagap->pk          = cosmoPk_newFromIni(ini, "Cosmology");
 	ginnungagap->rng         = rng_newFromIni(ini, "rng");
 	ginnungagap->grid        = local_getGrid(ginnungagap);
 	ginnungagap->gridDistrib = local_getGridDistrib(ginnungagap);
@@ -105,6 +113,10 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 
 	timing = timer_start("Going to Fourier Space");
 	local_realToFourier(ginnungagap);
+	timing = timer_stop(timing);
+
+	timing = timer_start("Generating \\rho(k)");
+	local_generateRhoK(ginnungagap);
 	timing = timer_stop(timing);
 
 #ifdef WITH_SILO
@@ -192,8 +204,8 @@ local_initGrid(ginnungagap_t ginnungagap)
 #endif
 	ginnungagap->posOfDens = gridRegular_attachVar(ginnungagap->grid, dens);
 
-	data     = gridPatch_getVarDataHandle(patch, 0);
-	numCells = gridPatch_getNumCells(patch);
+	data                   = gridPatch_getVarDataHandle(patch, 0);
+	numCells               = gridPatch_getNumCells(patch);
 #ifdef _OPENMP
 #  pragma omp parallel for shared(data, numCells)
 #endif
@@ -244,6 +256,19 @@ static void
 local_realToFourier(ginnungagap_t ginnungagap)
 {
 	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_FORWARD);
+}
+
+static void
+local_generateRhoK(ginnungagap_t ginnungagap)
+{
+	gridRegular_t     grid;
+	gridPatch_t       patch;
+	gridPointUint32_t dimsPatch;
+
+	grid  = gridRegularFFT_getGridFFTed(ginnungagap->gridFFT);
+	patch = gridRegular_getPatchHandle(grid, 0);
+	gridPatch_getDims(patch, dimsPatch);
+
 }
 
 #ifdef WITH_SILO

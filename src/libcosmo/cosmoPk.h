@@ -10,6 +10,7 @@
 #include "cosmo_config.h"
 #include "cosmoModel.h"
 #include "cosmoTF.h"
+#include "../libutil/parse_ini.h"
 #include <stdint.h>
 
 
@@ -27,6 +28,9 @@ cosmoPk_newFromModel(const cosmoModel_t model,
                      double             kmax,
                      uint32_t           numPoints,
                      cosmoTF_t          transferFunctionType);
+
+extern cosmoPk_t
+cosmoPk_newFromIni(parse_ini_t ini, const char *sectionName);
 
 extern cosmoPk_t
 cosmoPk_newFromArrays(uint32_t     numPoints,

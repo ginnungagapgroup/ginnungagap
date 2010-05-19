@@ -9,8 +9,10 @@
 #include "cosmoTFEisensteinHu.h"
 #include <math.h>
 #include <assert.h>
+#include <string.h>
 #include <inttypes.h>
 #include "../libutil/xmem.h"
+#include "../libutil/parse_ini.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -20,6 +22,26 @@
 
 
 /*--- Implementations of exported functios ------------------------------*/
+extern cosmoTF_t
+cosmoTF_getTypeFromIni(parse_ini_t ini, const char *sectionName)
+{
+	char *tfTypeName = NULL;
+	cosmoTF_t tfType = COSMOTF_TYPE_EISENSTEINHU1998;
+
+	assert(ini != NULL);
+	assert(sectionName != NULL);
+
+	getFromIni(&tfTypeName, parse_ini_get_string, ini,
+	           "transferFunctionType", sectionName);
+
+	if (strncmp(tfTypeName, "EisensteinHu1998", 16) == 0)
+		tfType = COSMOTF_TYPE_EISENSTEINHU1998;
+
+	xfree(tfTypeName);
+
+	return tfType;
+}
+
 extern void
 cosmoTF_eisensteinHu1998(double   omegaMatter0,
                          double   omegaBaryon0,
