@@ -392,11 +392,11 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 {
 	void              *dataTarget;
 	gridPointUint32_t windowDims;
-	uint64_t numCells;
+	uint64_t          numCells;
 	gridVar_t         var;
 	size_t            sizePerElement;
 	size_t            offsetTarget = 0;
-	size_t            offsetData = 0;
+	size_t            offsetData   = 0;
 
 	assert(patch != NULL);
 	assert(idxVar >= 0 && idxVar < gridPatch_getNumVars(patch));
@@ -422,7 +422,7 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 		memcpy(((char *)dataTarget) + offsetTarget * sizePerElement,
 		       ((char *)data) + offsetData * sizePerElement,
 		       windowDims[0] * sizePerElement);
-		offsetData += windowDims[0];
+		offsetData   += windowDims[0];
 		offsetTarget += patch->dims[0];
 	}
 #elif (NDIM == 3)
@@ -435,12 +435,12 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 			memcpy(((char *)dataTarget) + offsetTarget * sizePerElement,
 			       ((char *)data) + offsetData * sizePerElement,
 			       windowDims[0] * sizePerElement);
-			offsetData += windowDims[0];
+			offsetData   += windowDims[0];
 			offsetTarget += patch->dims[0];
 		}
 	}
 #endif
-}
+} /* gridPatch_putWindowedData */
 
 /*--- Implementations of local functions --------------------------------*/
 
@@ -493,7 +493,9 @@ local_transposeVar_2d(const void              *data,
                       const gridPointUint32_t dimsT)
 {
 	// Write contiguous, read random
-#  pragma omp parallel for shared(data, dataT)
+#  ifdef _OPENMP
+#    pragma omp parallel for shared(data, dataT)
+#  endif
 	for (int k1 = 0; k1 < dimsT[1]; k1++) {
 		for (int k0 = 0; k0 < dimsT[0]; k0++) {
 			size_t posT = (k0 + k1 * dimsT[0]) * size;
@@ -512,7 +514,9 @@ local_transposeVar102_3d(const void              *data,
 {
 	size_t pos, posT;
 
-#  pragma omp parallel for shared(data, dataT) private(pos, posT)
+#  ifdef _OPENMP
+#    pragma omp parallel for shared(data, dataT) private(pos, posT)
+#  endif
 	for (int k2 = 0; k2 < dimsT[2]; k2++) {
 		for (int k1 = 0; k1 < dimsT[1]; k1++) {
 			for (int k0 = 0; k0 < dimsT[0]; k0++) {
@@ -534,7 +538,9 @@ local_transposeVar210_3d(const void              *data,
 {
 	size_t pos, posT;
 
-#  pragma omp parallel for shared(data, dataT) private(pos, posT)
+#  ifdef _OPENMP
+#    pragma omp parallel for shared(data, dataT) private(pos, posT)
+#  endif
 	for (int k2 = 0; k2 < dimsT[2]; k2++) {
 		for (int k1 = 0; k1 < dimsT[1]; k1++) {
 			for (int k0 = 0; k0 < dimsT[0]; k0++) {
@@ -556,7 +562,9 @@ local_transposeVar021_3d(const void              *data,
 {
 	size_t pos, posT;
 
-#  pragma omp parallel for shared(data, dataT) private(pos, posT)
+#  ifdef _OPENMP
+#    pragma omp parallel for shared(data, dataT) private(pos, posT)
+#  endif
 	for (int k2 = 0; k2 < dimsT[2]; k2++) {
 		for (int k1 = 0; k1 < dimsT[1]; k1++) {
 			posT = ((k1 + k2 * dimsT[1]) * dimsT[0]) * size;
@@ -580,7 +588,7 @@ local_getWindowDims(gridPointUint32_t idxLo,
 
 	for (int i = 0; i < NDIM; i++) {
 		windowDims[i] = idxHi[i] - idxLo[i] + 1;
-		num    *= windowDims[i];
+		num          *= windowDims[i];
 	}
 
 	if (numCells != NULL)
