@@ -40,5 +40,18 @@ xstrdup(const char *s);
 extern size_t
 xgetline(char **line, size_t *n, FILE *f);
 
+/**
+ * \brief  This takes two strings and generates a new one that consists
+ *         of the concatenation of the two.
+ *
+ * \param  *s1  The first string.
+ * \param  *s2  The second string.
+ *
+ * \return  Returns a new string that is equivalent to ("%s%s",s1, s2).
+ *          The user must free the string if now longer needed.
+ */
+extern char *
+xstrmerge(const char *s1, const char *s2);
+
 
 #endif

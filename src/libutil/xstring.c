@@ -69,3 +69,21 @@ xgetline(char **line, size_t *n, FILE *f)
 	/* And be done */
 	return num_chars;
 } /* xgetline */
+
+extern char *
+xstrmerge(const char *s1, const char *s2)
+{
+	char *s;
+	size_t numCharsInS1 = strlen(s1);
+	size_t numCharsInS2 = strlen(s2);
+
+	s = xmalloc(sizeof(char) * (numCharsInS1 + numCharsInS2 + 1));
+
+	memcpy(s, s1, numCharsInS1);
+	memcpy(s+numCharsInS1, s2, numCharsInS2);
+
+	s[numCharsInS1+numCharsInS2] = '\0';
+
+	return s;
+}
+
