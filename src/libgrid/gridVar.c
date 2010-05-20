@@ -233,7 +233,7 @@ gridVar_getMPIDatatype(gridVar_t var)
 #  ifdef ENABLE_DOUBLE
 			dt = MPI_DOUBLE;
 #  else
-			dt = MPI_FLOAT
+			dt = MPI_FLOAT;
 #  endif
 			break;
 		default:
