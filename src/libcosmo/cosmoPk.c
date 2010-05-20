@@ -178,7 +178,8 @@ cosmoPk_dumpToFile(cosmoPk_t pk, const char *fname, uint32_t numSubSample)
 extern double
 cosmoPk_eval(cosmoPk_t pk, double k)
 {
-	assert(pk != NULL && isgreater(k, 0.0));
+	assert(pk != NULL);
+	assert(isgreater(k, 0.0));
 
 	if (isless(k, pk->k[0]))
 		return pk->P[0] * pow(k / (pk->k[0]), pk->slopeBeforeKmin);

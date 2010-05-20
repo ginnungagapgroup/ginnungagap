@@ -80,7 +80,7 @@ cosmoModel_newFromIni(parse_ini_t ini, const char *sectionName)
 	getFromIni(&(model->omegaBaryon0), parse_ini_get_double,
 	           ini, "modelOmegaBaryon0", sectionName);
 	getFromIni(&(model->hubble), parse_ini_get_double,
-	           ini, "modelOhubble", sectionName);
+	           ini, "modelHubble", sectionName);
 	getFromIni(&(model->sigma8), parse_ini_get_double,
 	           ini, "modelSigma8", sectionName);
 	getFromIni(&(model->ns), parse_ini_get_double,
