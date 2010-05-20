@@ -382,7 +382,7 @@ local_doFFTParallelC2RPencil(gridRegularFFT_t fft)
 
 	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
 		fftwf_plan plan;
-		plan = fftwf_plan_many_dft_c2r(1, fft->localDims[0],
+		plan = fftwf_plan_many_dft_c2r(1, &(fft->localNumRealElements),
 		                               howmany, (fftwf_complex *)dataIn,
 		                               NULL, 1, fft->localDims[0][0],
 		                               (float *)dataOut,
