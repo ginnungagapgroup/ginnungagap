@@ -293,16 +293,14 @@ local_doFFTParallelForward(gridRegularFFT_t fft)
 
 	gridRegularDistrib_transpose(fft->distribFFTed, 0, 1);
 	fft->patchFFTed = gridRegular_getPatchHandle(fft->gridFFTed, 0);
-	result          = local_doFFTParallelC2CPencil(fft,
-	                                               1,
+	result          = local_doFFTParallelC2CPencil(fft, 1,
 	                                               GRIDREGULARFFT_FORWARD);
 	gridPatch_replaceVarData(fft->patchFFTed, fft->idxFFTVarFFTed, result);
 
 #  if (NDIM > 2)
 	gridRegularDistrib_transpose(fft->distribFFTed, 0, 2);
 	fft->patchFFTed = gridRegular_getPatchHandle(fft->gridFFTed, 0);
-	result          = local_doFFTParallelC2CPencil(fft,
-	                                               2,
+	result          = local_doFFTParallelC2CPencil(fft, 2,
 	                                               GRIDREGULARFFT_FORWARD);
 	gridPatch_replaceVarData(fft->patchFFTed, fft->idxFFTVarFFTed, result);
 #  endif
@@ -322,8 +320,7 @@ local_doFFTParallelBackward(gridRegularFFT_t fft)
 	gridRegularDistrib_transpose(fft->distribFFTed, 0, 2);
 	fft->patchFFTed = gridRegular_getPatchHandle(fft->gridFFTed, 0);
 #  endif
-	result          = local_doFFTParallelC2CPencil(fft,
-	                                               1,
+	result          = local_doFFTParallelC2CPencil(fft, 1,
 	                                               GRIDREGULARFFT_BACKWARD);
 	gridPatch_replaceVarData(fft->patchFFTed, fft->idxFFTVarFFTed, result);
 
