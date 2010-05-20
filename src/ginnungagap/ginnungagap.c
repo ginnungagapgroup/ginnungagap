@@ -8,12 +8,15 @@
 #include "ginnungagap.h"
 #include "ginnungagapConfig.h"
 #include <stdlib.h>
+#include <math.h>
 #include <stdio.h>
 #include <assert.h>
 #include <inttypes.h>
 #include "../libutil/rng.h"
 #include "../libutil/xmem.h"
+#include "../libutil/xstring.h"
 #include "../libutil/timer.h"
+#include "../libutil/utilMath.h"
 #include "../libcosmo/cosmoModel.h"
 #include "../libcosmo/cosmoPk.h"
 #include "../libgrid/gridRegular.h"
@@ -61,15 +64,15 @@ static void
 local_realToFourier(ginnungagap_t ginnungagap);
 
 static void
+local_fourierToReal(ginnungagap_t ginnungagap);
+
+static void
 local_generateRhoK(ginnungagap_t ginnungagap);
 
 
 #ifdef WITH_SILO
 static void
-local_dumpGrid(ginnungagap_t ginnungagap);
-
-static void
-local_dumpGridFourier(ginnungagap_t ginnungagap);
+local_dumpGrid(ginnungagap_t ginnungagap, const char *qualifier);
 
 #endif
 
@@ -104,10 +107,9 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	timing = timer_start("Generating white noise");
 	local_generateWhiteNoise(ginnungagap);
 	timing = timer_stop(timing);
-
 #ifdef WITH_SILO
-	timing = timer_start("Dumping grid to silo file");
-	local_dumpGrid(ginnungagap);
+	timing = timer_start("Writing white noise to silo file");
+	local_dumpGrid(ginnungagap, ".whiteNoise");
 	timing = timer_stop(timing);
 #endif
 
@@ -115,13 +117,17 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	local_realToFourier(ginnungagap);
 	timing = timer_stop(timing);
 
-	timing = timer_start("Generating \\rho(k)");
+	timing = timer_start("Generating rho(k)");
 	local_generateRhoK(ginnungagap);
 	timing = timer_stop(timing);
 
+	timing = timer_start("Going back to Real Space");
+	local_fourierToReal(ginnungagap);
+	timing = timer_stop(timing);
+
 #ifdef WITH_SILO
-	timing = timer_start("Dumping Fourier grid to silo file");
-	local_dumpGridFourier(ginnungagap);
+	timing = timer_start("Writing density field");
+	local_dumpGrid(ginnungagap, ".density");
 	timing = timer_stop(timing);
 #endif
 }
@@ -259,25 +265,68 @@ local_realToFourier(ginnungagap_t ginnungagap)
 }
 
 static void
+local_fourierToReal(ginnungagap_t ginnungagap)
+{
+	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_BACKWARD);
+}
+
+static void
 local_generateRhoK(ginnungagap_t ginnungagap)
 {
 	gridRegular_t     grid;
 	gridPatch_t       patch;
+	gridPointUint32_t dimsGrid;
 	gridPointUint32_t dimsPatch;
+	gridPointUint32_t idxLo;
+	fpvComplex_t      *data;
+	long double       boxInv;
+	uint32_t          kNyquistGrid = ginnungagap->config->dim1D / 2;
 
 	grid  = gridRegularFFT_getGridFFTed(ginnungagap->gridFFT);
+	gridRegular_getDims(grid, dimsGrid);
 	patch = gridRegular_getPatchHandle(grid, 0);
 	gridPatch_getDims(patch, dimsPatch);
+	gridPatch_getIdxLo(patch, idxLo);
+	data   = gridPatch_getVarDataHandle(patch, 0);
 
-}
+	boxInv = 1. / (ginnungagap->config->boxsizeInMpch);
+	for (uint32_t k = 0; k < dimsPatch[2]; k++) {
+		uint32_t k2 = k + idxLo[2];
+		k2 = (k2 >= kNyquistGrid) ? dimsGrid[2] - k2 : k2;
+		for (uint32_t j = 0; j < dimsPatch[1]; j++) {
+			uint32_t k1 = j + idxLo[1];
+			k1 = (k1 >= kNyquistGrid) ? dimsPatch[1] - k1 : k1;
+			for (uint32_t i = 0; i < dimsGrid[0]; i++) {
+				uint32_t k0 = i + idxLo[0];
+				double   kCell;
+				uint64_t idx;
+				fpv_t tmp;
+				k0     = (k0 >= kNyquistGrid) ? dimsGrid[0] - k0 : k0;
+				idx    = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCell  = sqrt(k0 * k0 + k1 * k1 + k2 * k2);
+				kCell *= 2. * M_PI * boxInv;
+
+				if (k0 == 0 && k1 == 0 && k0 ==0) {
+					data[idx] = 0.0;
+				} else {
+					tmp = sqrt(cosmoPk_eval(ginnungagap->pk, kCell));
+					data[idx] *= (tmp + tmp*I);
+				}
+			}
+		}
+	}
+} /* local_generateRhoK */
 
 #ifdef WITH_SILO
 static void
-local_dumpGrid(ginnungagap_t ginnungagap)
+local_dumpGrid(ginnungagap_t ginnungagap, const char *qualifier)
 {
-	char             *prefix = ginnungagap->config->filePrefix;
+	gridWriterSilo_t writer;
+	char             *prefix = NULL;
 	int              dbtype  = ginnungagap->config->dbtype;
-	gridWriterSilo_t writer  = gridWriterSilo_new(prefix, dbtype);
+
+	prefix = xstrmerge(ginnungagap->config->filePrefix, qualifier);
+	writer = gridWriterSilo_new(prefix, dbtype);
 
 #  ifdef WITH_MPI
 	gridWriterSilo_initParallel(writer, ginnungagap->config->numFiles,
@@ -288,27 +337,7 @@ local_dumpGrid(ginnungagap_t ginnungagap)
 	gridWriterSilo_deactivate(writer);
 
 	gridWriterSilo_del(&writer);
-}
-
-static void
-local_dumpGridFourier(ginnungagap_t ginnungagap)
-{
-	char             *prefix = ginnungagap->config->filePrefix;
-	int              dbtype  = ginnungagap->config->dbtype;
-	gridWriterSilo_t writer  = gridWriterSilo_new("ba.silo", dbtype);
-	gridRegular_t    grid;
-
-	grid = gridRegularFFT_getGridFFTed(ginnungagap->gridFFT);
-
-#  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, ginnungagap->config->numFiles,
-	                            MPI_COMM_WORLD, 987);
-#  endif
-	gridWriterSilo_activate(writer);
-	gridWriterSilo_writeGridRegular(writer, grid);
-	gridWriterSilo_deactivate(writer);
-
-	gridWriterSilo_del(&writer);
+	xfree(prefix);
 }
 
 #endif
