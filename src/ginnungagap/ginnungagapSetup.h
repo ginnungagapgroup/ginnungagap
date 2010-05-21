@@ -2,23 +2,23 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GINNUNGAGAPCONFIG_H
-#define GINNUNGAGAPCONFIG_H
+#ifndef GINNUNGAGAPSETUP_H
+#define GINNUNGAGAPSETUP_H
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "../libutil/parse_ini.h"
+#include "ginnungagapConfig.h"
 #include <stdint.h>
 #include <stdbool.h>
-#include "../libgrid/gridPoint.h"
+#include "../libutil/parse_ini.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
-typedef struct ginnungagapConfig_struct *ginnungagapConfig_t;
+typedef struct ginnungagapSetup_struct *ginnungagapSetup_t;
 
 
 /*--- Implemention of main structure ------------------------------------*/
-struct ginnungagapConfig_struct {
+struct ginnungagapSetup_struct {
 	uint32_t dim1D;
 	double   boxsizeInMpch;
 	char     *gridName;
@@ -39,11 +39,11 @@ struct ginnungagapConfig_struct {
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
-extern ginnungagapConfig_t
-ginnungagapConfig_new(parse_ini_t ini);
+extern ginnungagapSetup_t
+ginnungagapSetup_new(parse_ini_t ini);
 
 extern void
-ginnungagapConfig_del(ginnungagapConfig_t *config);
+ginnungagapSetup_del(ginnungagapSetup_t *setup);
 
 
 #endif

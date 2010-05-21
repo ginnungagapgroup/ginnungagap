@@ -7,12 +7,12 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "../../config.h"
+#include "ginnungagapConfig.h"
 #include "ginnungagap.h"
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
-static void
+extern void
 ginnungagapWhiteNoise_generate(ginnungagap_t ginnungagap);
 
 

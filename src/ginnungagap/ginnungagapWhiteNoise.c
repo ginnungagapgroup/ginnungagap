@@ -4,7 +4,7 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "../../config.h"
+#include "ginnungagapConfig.h"
 #include "ginnungagapWhiteNoise.h"
 #include <assert.h>
 #include "../libgrid/gridPatch.h"
@@ -21,7 +21,7 @@
 
 
 /*--- Implementations of exported functios ------------------------------*/
-static void
+extern void
 ginnungagapWhiteNoise_generate(ginnungagap_t ginnungagap)
 {
 	gridPatch_t patch;

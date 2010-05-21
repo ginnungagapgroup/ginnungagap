@@ -7,8 +7,8 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "../../config.h"
 #include "ginnungagapConfig.h"
+#include "ginnungagapSetup.h"
 #include "../libutil/rng.h"
 #include "../libcosmo/cosmoModel.h"
 #include "../libcosmo/cosmoPk.h"
@@ -19,7 +19,7 @@
 
 /*--- Implemention of main structure ------------------------------------*/
 struct ginnungagap_struct {
-	ginnungagapConfig_t  config;
+	ginnungagapSetup_t   setup;
 	cosmoModel_t         model;
 	cosmoPk_t            pk;
 	rng_t                rng;

@@ -7,7 +7,7 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "../../config.h"
+#include "ginnungagapConfig.h"
 #include "../libutil/parse_ini.h"
 
 

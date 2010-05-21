@@ -4,8 +4,8 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "../../config.h"
 #include "ginnungagapConfig.h"
+#include "ginnungagapSetup.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -21,73 +21,73 @@
 /*--- Prototypes of local functions -------------------------------------*/
 #ifdef WITH_MPI
 static void
-local_parseMPIStuff(ginnungagapConfig_t config, parse_ini_t ini);
+local_parseMPIStuff(ginnungagapSetup_t setup, parse_ini_t ini);
 
 #endif
 
 #ifdef WITH_SILO
 static void
-local_parseSiloStuff(ginnungagapConfig_t config, parse_ini_t ini);
+local_parseSiloStuff(ginnungagapSetup_t setup, parse_ini_t ini);
 
 #endif
 
 
 /*--- Implementations of exported functios ------------------------------*/
-extern ginnungagapConfig_t
-ginnungagapConfig_new(parse_ini_t ini)
+extern ginnungagapSetup_t
+ginnungagapSetup_new(parse_ini_t ini)
 {
-	ginnungagapConfig_t config;
+	ginnungagapSetup_t setup;
 
 	assert(ini != NULL);
 
-	config = xmalloc(sizeof(struct ginnungagapConfig_struct));
-	getFromIni(&(config->dim1D), parse_ini_get_uint32,
+	setup = xmalloc(sizeof(struct ginnungagapSetup_struct));
+	getFromIni(&(setup->dim1D), parse_ini_get_uint32,
 	           ini, "dim1D", "Ginnungagap");
-	getFromIni(&(config->boxsizeInMpch), parse_ini_get_double,
+	getFromIni(&(setup->boxsizeInMpch), parse_ini_get_double,
 	           ini, "boxsizeInMpch", "Ginnungagap");
-	getFromIni(&(config->gridName), parse_ini_get_string,
+	getFromIni(&(setup->gridName), parse_ini_get_string,
 	           ini, "gridName", "Ginnungagap");
-	getFromIni(&(config->useConstraints), parse_ini_get_bool,
+	getFromIni(&(setup->useConstraints), parse_ini_get_bool,
 	           ini, "useConstraints", "Ginnungagap");
-	if (config->useConstraints) {
-		getFromIni(&(config->fileNameConstraints), parse_ini_get_string,
+	if (setup->useConstraints) {
+		getFromIni(&(setup->fileNameConstraints), parse_ini_get_string,
 		           ini, "fileNameConstraints", "Ginnungagap");
-		getFromIni(&(config->dim1DConstraints), parse_ini_get_uint32,
+		getFromIni(&(setup->dim1DConstraints), parse_ini_get_uint32,
 		           ini, "dim1DConstraints", "Ginnungagap");
 	} else {
-		config->fileNameConstraints = NULL;
-		config->dim1DConstraints    = UINT32_C(0);
+		setup->fileNameConstraints = NULL;
+		setup->dim1DConstraints    = UINT32_C(0);
 	}
 #ifdef WITH_MPI
-	local_parseMPIStuff(config, ini);
+	local_parseMPIStuff(setup, ini);
 #endif
 #ifdef WITH_SILO
-	local_parseSiloStuff(config, ini);
+	local_parseSiloStuff(setup, ini);
 #endif
 
-	return config;
+	return setup;
 }
 
 extern void
-ginnungagapConfig_del(ginnungagapConfig_t *config)
+ginnungagapSetup_del(ginnungagapSetup_t *setup)
 {
-	assert(config != NULL && *config != NULL);
+	assert(setup != NULL && *setup != NULL);
 
-	if ((*config)->fileNameConstraints != NULL)
-		xfree((*config)->fileNameConstraints);
-	xfree((*config)->gridName);
+	if ((*setup)->fileNameConstraints != NULL)
+		xfree((*setup)->fileNameConstraints);
+	xfree((*setup)->gridName);
 #ifdef WITH_SILO
-	xfree((*config)->filePrefix);
+	xfree((*setup)->filePrefix);
 #endif
 
-	xfree(*config);
-	*config = NULL;
+	xfree(*setup);
+	*setup = NULL;
 }
 
 /*--- Implementations of local functions --------------------------------*/
 #ifdef WITH_MPI
 static void
-local_parseMPIStuff(ginnungagapConfig_t config, parse_ini_t ini)
+local_parseMPIStuff(ginnungagapSetup_t setup, parse_ini_t ini)
 {
 	int32_t *nProcs;
 	bool    rtn;
@@ -98,7 +98,7 @@ local_parseMPIStuff(ginnungagapConfig_t config, parse_ini_t ini)
 		exit(EXIT_FAILURE);
 	}
 	for (int i = 0; i < NDIM; i++)
-		config->nProcs[i] = (int)(nProcs[i]);
+		setup->nProcs[i] = (int)(nProcs[i]);
 	xfree(nProcs);
 }
 
@@ -106,26 +106,26 @@ local_parseMPIStuff(ginnungagapConfig_t config, parse_ini_t ini)
 
 #ifdef WITH_SILO
 static void
-local_parseSiloStuff(ginnungagapConfig_t config, parse_ini_t ini)
+local_parseSiloStuff(ginnungagapSetup_t setup, parse_ini_t ini)
 {
 	char     *dbtype;
 	uint32_t numFiles;
 
-	getFromIni(&(config->filePrefix), parse_ini_get_string,
+	getFromIni(&(setup->filePrefix), parse_ini_get_string,
 	           ini, "filePrefix", "Silo");
 	getFromIni(&(dbtype), parse_ini_get_string,
 	           ini, "dbType", "Silo");
 	if (strcmp(dbtype, "DB_HDF5") == 0) {
-		config->dbtype = DB_HDF5;
+		setup->dbtype = DB_HDF5;
 	} else if (strcmp(dbtype, "DB_PDB") == 0) {
-		config->dbtype = DB_PDB;
+		setup->dbtype = DB_PDB;
 	} else {
 		exit(EXIT_FAILURE);
 	}
 	xfree(dbtype);
 #  ifdef WITH_MPI
 	getFromIni(&numFiles, parse_ini_get_uint32, ini, "numFiles", "Silo");
-	config->numFiles = (int)numFiles;
+	setup->numFiles = (int)numFiles;
 #  endif
 }
 
