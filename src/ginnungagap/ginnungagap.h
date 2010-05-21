@@ -7,6 +7,7 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
+#include "../../config.h"
 #include "../libutil/parse_ini.h"
 
 

@@ -32,16 +32,7 @@
 
 
 /*--- Implemention of main structure ------------------------------------*/
-struct ginnungagap_struct {
-	ginnungagapConfig_t  config;
-	cosmoModel_t         model;
-	cosmoPk_t            pk;
-	rng_t                rng;
-	gridRegular_t        grid;
-	gridRegularDistrib_t gridDistrib;
-	gridRegularFFT_t     gridFFT;
-	int                  posOfDens;
-};
+#include <ginnungagap_adt.h>
 
 
 /*--- Prototypes of local functions -------------------------------------*/
