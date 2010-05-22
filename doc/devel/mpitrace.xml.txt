@@ -1,0 +1,2 @@
+This is a configuration file to use extrae to instrument the code and
+trace its run for further analysis in paraver.
