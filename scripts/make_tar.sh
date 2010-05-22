@@ -50,9 +50,9 @@ git ls-files | grep -v .gitignore > $MYTEMPDIR/$TMPNAME/files
 # And add the processed version.h
 echo "version.h" >> $MYTEMPDIR/$TMPNAME/files
 
-# Generate the ChangeLog file
-git log --stat > ChangeLog
-echo "ChangeLog" >> $MYTEMPDIR/$TMPNAME/files
+## Generate the ChangeLog file
+#git log --stat > ChangeLog
+#echo "ChangeLog" >> $MYTEMPDIR/$TMPNAME/files
 
 # Sync the repository to the temporary directory
 rsync -aq --files-from=$MYTEMPDIR/$TMPNAME/files . $MYTEMPDIR/$TMPNAME/$TARBALLNAME

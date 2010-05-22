@@ -41,7 +41,7 @@ endif
 tarball:
 	@scripts/insert_revision.sh
 	@scripts/make_tar.sh
-	@rm -f ChangeLog version.h
+	@rm -f version.h
 
 statistics:
 	@scripts/show-statistics.sh
