@@ -29,6 +29,8 @@ ginnungagapWhiteNoise_generate(ginnungagap_t ginnungagap)
 	uint64_t    numCells = 0;
 	int         numStreams;
 
+	assert(ginnungagap != NULL);
+
 	patch      = gridRegular_getPatchHandle(ginnungagap->grid, 0);
 	data       = gridPatch_getVarDataHandle(patch, 0);
 	numCells   = gridPatch_getNumCells(patch);
@@ -47,7 +49,5 @@ ginnungagapWhiteNoise_generate(ginnungagap_t ginnungagap)
 		}
 	}
 }
-
-
 
 /*--- Implementations of local functions --------------------------------*/

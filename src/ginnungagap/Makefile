@@ -14,7 +14,8 @@ progName = ginnungagap
 sources = main.c \
           $(progName).c \
           ginnungagapSetup.c \
-          ginnungagapWhiteNoise.c
+          ginnungagapWhiteNoise.c \
+          ginnungagapDeltaK.c
 
 include ../../Makefile.rules
 
