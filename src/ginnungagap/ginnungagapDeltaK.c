@@ -90,7 +90,7 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 				} else {
 					double tmp;
 					tmp = sqrt(cosmoPk_eval(ginnungagap->pk, kCell));
-					data[idx] *= tmp * norm;
+					data[idx] *= (fpv_t)(tmp * norm);
 				}
 			}
 		}
@@ -104,7 +104,7 @@ ginnungagapDeltaK_calcPowerSpectrum(ginnungagap_t ginnungagap)
 	gridPointUint32_t dimsPatch;
 	gridPointUint32_t idxLo;
 	fpvComplex_t      *data;
-	long double       wavenumToFreq;
+	double            wavenumToFreq;
 	gridPointUint32_t kNyquistGrid;
 	double            *P;
 	double            *freq;
