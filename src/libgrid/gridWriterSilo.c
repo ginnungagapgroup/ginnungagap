@@ -449,6 +449,8 @@ local_getVarType(gridVar_t var)
 inline static int
 local_getVarCentering(gridVar_t var)
 {
+	// Eventually we need to query var for its centering, but at the
+	// moment that is not needed and everything is zone centered.
 	return DB_ZONECENT;
 }
 
