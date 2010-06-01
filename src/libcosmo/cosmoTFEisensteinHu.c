@@ -33,6 +33,7 @@ static double TFfit_onek(double k, double *tf_baryon, double *tf_cdm);
 extern void TFfit_hmpc(double omega0, double f_baryon, double hubble, double Tcmb,
 	int numk, double *k, double *tf_full, double *tf_baryon, double *tf_cdm);
 #endif
+#include "cosmoTFEisensteinHu.h"
 
 #if 0
 static double TFsound_horizon_fit(double omega0, double f_baryon, double hubble);
