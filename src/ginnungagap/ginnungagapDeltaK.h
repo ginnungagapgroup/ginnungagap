@@ -15,5 +15,8 @@
 extern void
 ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap);
 
+extern void
+ginnungagapDeltaK_calcPowerSpectrum(ginnungagap_t ginnungagap);
+
 
 #endif

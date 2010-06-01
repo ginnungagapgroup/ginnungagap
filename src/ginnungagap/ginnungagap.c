@@ -102,6 +102,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 
 	timing = timer_start("Generating rho(k)");
 	ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap);
+	ginnungagapDeltaK_calcPowerSpectrum(ginnungagap);
 	timing = timer_stop(timing);
 
 	timing = timer_start("Going back to Real Space");
