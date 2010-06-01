@@ -26,17 +26,19 @@ calculate other quantities given in Section 4 of the paper. */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-void TFset_parameters(double omega0hh, double f_baryon, double Tcmb);
-double TFfit_onek(double k, double *tf_baryon, double *tf_cdm); 
+static void TFset_parameters(double omega0hh, double f_baryon, double Tcmb);
+static double TFfit_onek(double k, double *tf_baryon, double *tf_cdm); 
 
-void TFfit_hmpc(double omega0, double f_baryon, double hubble, double Tcmb,
+extern void TFfit_hmpc(double omega0, double f_baryon, double hubble, double Tcmb,
 	int numk, double *k, double *tf_full, double *tf_baryon, double *tf_cdm);
 
-double TFsound_horizon_fit(double omega0, double f_baryon, double hubble);
-double TFk_peak(double omega0, double f_baryon, double hubble);
-double TFnowiggles(double omega0, double f_baryon, double hubble, 
+#if 0
+static double TFsound_horizon_fit(double omega0, double f_baryon, double hubble);
+static double TFk_peak(double omega0, double f_baryon, double hubble);
+static double TFnowiggles(double omega0, double f_baryon, double hubble, 
 		double Tcmb, double k_hmpc);
-double TFzerobaryon(double omega0, double hubble, double Tcmb, double k_hmpc);
+static double TFzerobaryon(double omega0, double hubble, double Tcmb, double k_hmpc);
+#endif
 
 /* ------------------------ DRIVER ROUTINE --------------------------- */
 /* The following is an example of a driver routine you might use. */
@@ -79,7 +81,7 @@ extern declarations to access the intermediate quantities. */
 
 /* ----------------------------- DRIVER ------------------------------- */
 
-void TFfit_hmpc(double omega0, double f_baryon, double hubble, double Tcmb,
+extern void TFfit_hmpc(double omega0, double f_baryon, double hubble, double Tcmb,
 	int numk, double *k, double *tf_full, double *tf_baryon, double *tf_cdm)
 /* Remember: k[0..numk-1] is in units of h Mpc^-1. */
 {
@@ -137,7 +139,7 @@ static double pow4arg;
 #define POW4(a) ((pow4arg=(a)) == 0.0 ? 0.0 : pow4arg*pow4arg*pow4arg*pow4arg)
 	/* Yes, I know the last one isn't optimal; it doesn't appear much */
 
-void TFset_parameters(double omega0hh, double f_baryon, double Tcmb)
+static void TFset_parameters(double omega0hh, double f_baryon, double Tcmb)
 /* Set all the scalars quantities for Eisenstein & Hu 1997 fitting formula */
 /* Input: omega0hh -- The density of CDM and baryons, in units of critical dens,
 		multiplied by the square of the Hubble constant, in units
@@ -202,7 +204,7 @@ You can access them yourself, if you want. */
     return;
 }
 
-double TFfit_onek(double k, double *tf_baryon, double *tf_cdm)
+static double TFfit_onek(double k, double *tf_baryon, double *tf_cdm)
 /* Input: k -- Wavenumber at which to calculate transfer function, in Mpc^-1.
 	  *tf_baryon, *tf_cdm -- Input value not used; replaced on output if
 				the input was not NULL. */
@@ -263,7 +265,8 @@ double TFfit_onek(double k, double *tf_baryon, double *tf_cdm)
 
 /* ======================= Approximate forms =========================== */
 
-double TFsound_horizon_fit(double omega0, double f_baryon, double hubble)
+#if 0
+static double TFsound_horizon_fit(double omega0, double f_baryon, double hubble)
 /* Input: omega0 -- CDM density, in units of critical density
 	  f_baryon -- Baryon fraction, the ratio of baryon to CDM density.
 	  hubble -- Hubble constant, in units of 100 km/s/Mpc
@@ -277,8 +280,10 @@ and omega0 -> omega0*hubble^2. */
 	44.5*log(9.83/omhh)/sqrt(1+10.0*pow(omhh*f_baryon,0.75));
     return sound_horizon_fit_mpc*hubble;
 }
+#endif
 
-double TFk_peak(double omega0, double f_baryon, double hubble)
+#if 0
+static double TFk_peak(double omega0, double f_baryon, double hubble)
 /* Input: omega0 -- CDM density, in units of critical density
 	  f_baryon -- Baryon fraction, the ratio of baryon to CDM density.
 	  hubble -- Hubble constant, in units of 100 km/s/Mpc
@@ -291,8 +296,10 @@ and omega0 -> omega0*hubble^2. */
     k_peak_mpc = 2.5*3.14159*(1+0.217*omhh)/TFsound_horizon_fit(omhh,f_baryon,1.0);
     return k_peak_mpc/hubble;
 }
+#endif
 
-double TFnowiggles(double omega0, double f_baryon, double hubble, 
+#if 0
+static double TFnowiggles(double omega0, double f_baryon, double hubble, 
 		double Tcmb, double k_hmpc)
 /* Input: omega0 -- CDM density, in units of critical density
 	  f_baryon -- Baryon fraction, the ratio of baryon to CDM density.
@@ -328,10 +335,12 @@ and omega0 -> omega0*hubble^2. */
     T_nowiggles_C0 = 14.2 + 731.0/(1+62.5*q_eff);
     return T_nowiggles_L0/(T_nowiggles_L0+T_nowiggles_C0*SQR(q_eff));
 }
+#endif
 
 /* ======================= Zero Baryon Formula =========================== */
 
-double TFzerobaryon(double omega0, double hubble, double Tcmb, double k_hmpc)
+#if 0
+static double TFzerobaryon(double omega0, double hubble, double Tcmb, double k_hmpc)
 /* Input: omega0 -- CDM density, in units of critical density
 	  hubble -- Hubble constant, in units of 100 km/s/Mpc
 	  Tcmb -- Temperature of the CMB in Kelvin; Tcmb<=0 forces use of
@@ -355,3 +364,4 @@ and omega0 -> omega0*hubble^2. */
     T_0_C0 = 14.2 + 731.0/(1+62.5*q);
     return T_0_L0/(T_0_L0+T_0_C0*q*q);
 }
+#endif
