@@ -29,8 +29,10 @@ calculate other quantities given in Section 4 of the paper. */
 static void TFset_parameters(double omega0hh, double f_baryon, double Tcmb);
 static double TFfit_onek(double k, double *tf_baryon, double *tf_cdm); 
 
+#if 0
 extern void TFfit_hmpc(double omega0, double f_baryon, double hubble, double Tcmb,
 	int numk, double *k, double *tf_full, double *tf_baryon, double *tf_cdm);
+#endif
 
 #if 0
 static double TFsound_horizon_fit(double omega0, double f_baryon, double hubble);
