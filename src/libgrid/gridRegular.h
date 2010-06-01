@@ -58,10 +58,13 @@ extern uint64_t
 gridRegular_getNumCellsTotal(gridRegular_t grid);
 
 extern void
-gridRegular_complexify(gridRegular_t grid, int idxOfVar);
+gridRegular_setComplexified(gridRegular_t grid, int idxOfVar);
 
 extern void
-gridRegular_uncomplexify(gridRegular_t grid, int idxOfVar);
+gridRegular_unsetComplexified(gridRegular_t grid, int idxOfVar);
+
+extern bool
+gridRegular_isComplexified(gridRegular_t grid, int idxOfVar);
 
 extern int
 gridRegular_attachVar(gridRegular_t grid, gridVar_t var);

@@ -49,10 +49,6 @@ local_realToFourier(ginnungagap_t ginnungagap);
 static void
 local_fourierToReal(ginnungagap_t ginnungagap);
 
-static void
-local_generateRhoK(ginnungagap_t ginnungagap);
-
-
 #ifdef WITH_SILO
 static void
 local_dumpGrid(ginnungagap_t ginnungagap, const char *qualifier);
