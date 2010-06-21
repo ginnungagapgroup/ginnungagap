@@ -4,7 +4,7 @@
 
 include ../Makefile.config
 
-.PHONY: all clean dist-clean
+.PHONY: all clean tests dist-clean
 
 all:
 	$(MAKE) -C libutil all
