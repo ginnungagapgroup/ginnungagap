@@ -24,18 +24,22 @@ include Makefile.config
 all:
 	scripts/insert_revision.sh
 	$(MAKE) -C src
+	$(MAKE) -C tools
 
 clean:
 	touch version.h
 	$(MAKE) -C src clean
+	$(MAKE) -C tools clean
 
 dist-clean:
 	$(MAKE) -C src dist-clean
+	$(MAKE) -C tools dist-clean
 	find . -name *.d.[0-9]* -exec rm {} \;
 	@rm -f version.h Makefile.config config.h config.log
 
 tests:
 	$(MAKE) -C src tests
+	$(MAKE) -C tools tests
 endif
 
 tarball:
