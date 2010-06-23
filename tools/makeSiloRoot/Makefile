@@ -15,8 +15,16 @@ sources = main.c \
 
 include ../../Makefile.rules
 
+ifeq ($(WITH_SILO), "true")
 all:
 	$(MAKE) $(progName)
+else
+all:
+	@echo "To use \`$(progName)' --with-silo has to be defined."
+	@echo "See ./configure --help for details."
+	@echo ""
+	@echo "I will omit building it."
+endif
 
 clean:
 	rm -f $(progName) $(sources:.c=.o)
