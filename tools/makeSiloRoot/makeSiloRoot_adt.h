@@ -8,13 +8,14 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "makeSiloRootConfig.h"
+#include "siloRoot.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
 struct makeSiloRoot_struct {
 	int  numFiles;
 	char **fileNames;
-	char *outFileName;
+	siloRoot_t siloRoot;
 };
 
 

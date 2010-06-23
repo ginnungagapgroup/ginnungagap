@@ -10,7 +10,8 @@ include ../../Makefile.config
 progName = makeSiloRoot
 
 sources = main.c \
-          $(progName).c
+          $(progName).c \
+          siloRoot.c
 
 include ../../Makefile.rules
 

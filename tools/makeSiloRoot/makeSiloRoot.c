@@ -13,10 +13,10 @@
 #include <inttypes.h>
 #include <string.h>
 #include <stdbool.h>
-#include <silo.h>
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/xstring.h"
 #include "../../src/libutil/varArr.h"
+#include "siloRoot.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -24,36 +24,23 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+static void
+local_checkOutputName(const char *outName, bool force);
+
 static int
 local_getFileNames(const char *stem, const char *suffix, char ***target);
 
 static bool
 local_testForSingleFile(const char *stem, const char *suffix, char *tmp);
 
+static int
+local_getNumFiles(const char *stem, const char *suffix, char *tmp);
+
 static void
 local_getTestName(const char *stem,
                   const char *suffix,
                   int        numFiles,
                   char       *testName);
-
-static int
-local_getNumFiles(const char *stem, const char *suffix, char *tmp);
-
-static void
-local_checkOutputName(const char *outName, bool force);
-
-static void
-local_adjustCurrentPath(char       **path,
-                        const char *dirName,
-                        const char *fileName);
-
-static void
-local_addToMeshNames(varArr_t   meshes,
-                     const char *meshName,
-                     const char *path);
-
-static void
-local_output(makeSiloRoot_t msr, varArr_t meshNames);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -65,12 +52,12 @@ makeSiloRoot_new(const char *siloFileStem,
 {
 	makeSiloRoot_t msr;
 
-	msr              = xmalloc(sizeof(struct makeSiloRoot_struct));
+	msr           = xmalloc(sizeof(struct makeSiloRoot_struct));
 	local_checkOutputName(siloOutputFileName, force);
-	msr->outFileName = xstrdup(siloOutputFileName);
-	msr->numFiles    = local_getFileNames(siloFileStem,
-	                                      siloFileSuffix,
-	                                      &(msr->fileNames));
+	msr->siloRoot = siloRoot_new(siloOutputFileName);
+	msr->numFiles = local_getFileNames(siloFileStem,
+	                                   siloFileSuffix,
+	                                   &(msr->fileNames));
 
 	return msr;
 }
@@ -78,40 +65,12 @@ makeSiloRoot_new(const char *siloFileStem,
 extern void
 makeSiloRoot_run(makeSiloRoot_t msr)
 {
-	char     *path     = NULL;
-	varArr_t meshNames = NULL;
-	DBfile   *file     = NULL;
-	DBtoc    *toc      = NULL;
-
 	assert(msr != NULL);
 
-	meshNames = varArr_new(1);
-
-	fprintf(stdout, "\n");
-	for (int i = 0; i < msr->numFiles; i++) {
-		fprintf(stdout, "Checking %s\n", msr->fileNames[i]);
-		file = DBOpen(msr->fileNames[i], DB_HDF5, DB_READ);
-		if (file == NULL)
-			exit(EXIT_FAILURE);
-		toc = DBGetToc(file);
-		for (int j = 0; j < toc->ndir; j++) {
-			local_adjustCurrentPath(&path,
-			                        toc->dir_names[j],
-			                        msr->fileNames[i]);
-			DBSetDir(file, toc->dir_names[j]);
-			toc = DBGetToc(file);
-			for (int k = 0; k < toc->nqmesh; k++)
-				local_addToMeshNames(meshNames, toc->qmesh_names[k], path);
-			DBSetDir(file, "/");
-			toc = DBGetToc(file);
-		}
-		DBClose(file);
-	}
-
-	local_output(msr, meshNames);
-
-	varArr_del(&meshNames);
-} /* makeSiloRoot_run */
+	for (int i = 0; i < msr->numFiles; i++)
+		siloRoot_parseFile(msr->siloRoot, msr->fileNames[i]);
+	siloRoot_write(msr->siloRoot);
+}
 
 extern void
 makeSiloRoot_del(makeSiloRoot_t *msr)
@@ -123,12 +82,34 @@ makeSiloRoot_del(makeSiloRoot_t *msr)
 		xfree((*msr)->fileNames[i]);
 	}
 	xfree((*msr)->fileNames);
-	xfree((*msr)->outFileName);
+	siloRoot_del(&((*msr)->siloRoot));
 	xfree(*msr);
 	*msr = NULL;
 }
 
 /*--- Implementations of local functions --------------------------------*/
+static void
+local_checkOutputName(const char *outName, bool force)
+{
+	FILE *f;
+
+	f = fopen(outName, "r");
+
+	if (f != NULL) {
+		if (!force) {
+			fprintf(stderr,
+			        "Output file %s already exists.  "
+			        "Use --force to overwrite.\n",
+			        outName);
+			exit(EXIT_FAILURE);
+		}
+		fclose(f);
+		fprintf(stdout,
+		        "Warning:  Output file %s already will be overwritten.\n",
+		        outName);
+	}
+}
+
 static int
 local_getFileNames(const char *stem, const char *suffix, char ***target)
 {
@@ -209,85 +190,4 @@ local_getTestName(const char *stem,
                   char       *testName)
 {
 	sprintf(testName, "%s%03i%s", stem, numFiles, suffix);
-}
-
-static void
-local_checkOutputName(const char *outName, bool force)
-{
-	FILE *f;
-
-	f = fopen(outName, "r");
-
-	if (f != NULL) {
-		if (!force) {
-			fprintf(stderr,
-			        "Output file %s already exists.  "
-			        "Use --force to overwrite.\n",
-			        outName);
-			exit(EXIT_FAILURE);
-		}
-		fclose(f);
-		fprintf(stdout,
-		        "Warning:  Output file %s already will be overwritten.\n",
-		        outName);
-	}
-}
-
-static void
-local_adjustCurrentPath(char       **path,
-                        const char *dirName,
-                        const char *fileName)
-{
-	int bytesNeeded = strlen(dirName) + strlen(fileName) + 3;
-	int bytesAvail  = 0;
-
-	if (*path != NULL)
-		bytesAvail = strlen(*path) + 1;
-
-	if (bytesNeeded > bytesAvail)
-		*path = xrealloc(*path, sizeof(char) * bytesNeeded);
-
-	sprintf(*path, "%s:%s/", fileName, dirName);
-}
-
-static void
-local_addToMeshNames(varArr_t   meshes,
-                     const char *meshName,
-                     const char *path)
-{
-	char *completeName = NULL;
-	int  bytesNeeded   = strlen(path) + strlen(meshName) + 1;
-
-	completeName = xmalloc(sizeof(char) * bytesNeeded);
-	sprintf(completeName, "%s%s", path, meshName);
-
-	(void)varArr_insert(meshes, completeName);
-}
-
-static void
-local_output(makeSiloRoot_t msr, varArr_t meshNames)
-{
-	DBfile *file = NULL;
-	char **strList;
-	int *types;
-	int nMesh;
-
-	file = DBCreate(msr->outFileName, DB_CLOBBER, DB_LOCAL, NULL, DB_HDF5);
-
-	nMesh = varArr_getLength(meshNames);
-	strList = xmalloc(sizeof(char *) * nMesh);
-	types = xmalloc(sizeof(int) * nMesh);
-	for (int i=0 ;i<nMesh; i++) {
-		strList[i] = varArr_remove(meshNames, 0);
-		types[i] = DB_QUAD_RECT;
-	}
-
-	DBPutMultimesh(file, "mesh", nMesh, strList, types, NULL);
-
-	for (int i=0; i<nMesh; i++)
-		xfree(strList[i]);
-	xfree(types);
-	xfree(strList);
-
-	DBClose(file);
 }
