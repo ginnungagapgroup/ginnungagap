@@ -12,3 +12,4 @@ src/libgrid/libgrid_tests
 src/libgrid/*Test*.silo
 src/libutil/libutil_tests
 src/libcosmo/libcosmo_tests
+tools/makeSiloRoot/makeSiloRoot
