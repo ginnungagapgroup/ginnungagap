@@ -219,8 +219,10 @@ local_dumpPk(double *P, double *k, uint32_t kNyquist, cosmoPk_t orig)
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
-	pk = cosmoPk_newFromArrays(kNyquist, k, P, 0.0, 0.0);
-	cosmoPk_dumpToFile(orig, "Pk.orig.dat", 1);
-	cosmoPk_dumpToFile(pk, "Pk.calc.dat", 1);
-	cosmoPk_del(&pk);
+	if (rank == 0) {
+		pk = cosmoPk_newFromArrays(kNyquist, k, P, 0.0, 0.0);
+		cosmoPk_dumpToFile(orig, "Pk.orig.dat", 1);
+		cosmoPk_dumpToFile(pk, "Pk.calc.dat", 1);
+		cosmoPk_del(&pk);
+	}
 }
