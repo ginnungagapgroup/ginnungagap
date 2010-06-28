@@ -39,6 +39,9 @@ main(void)
 	RUNTEST(cosmoPk_del_test, hasFailed);
 	RUNTEST(cosmoPk_eval_test, hasFailed);
 	RUNTEST(cosmoPk_calcMomentFiltered_test, hasFailed);
+	RUNTEST(cosmoPk_calcSigma8_test, hasFailed);
+	RUNTEST(cosmoPk_scale_test, hasFailed);
+	RUNTEST(cosmoPk_forceSigma8_test, hasFailed);
 
 	printf("\nRunning tests for cosmoModel:\n");
 	RUNTEST(cosmoModel_newFromFile_test, hasFailed);

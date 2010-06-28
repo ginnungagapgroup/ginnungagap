@@ -24,6 +24,10 @@
 #include "cosmoPk_adt.h"
 
 
+/*--- Local defines -----------------------------------------------------*/
+#define LOCAL_MAX_FORCESIGMA8_ITERATIONS 42
+
+
 /*--- Prototypes of local functions -------------------------------------*/
 static cosmoPk_t
 local_new(void);
@@ -195,6 +199,7 @@ extern double
 cosmoPk_evalGSL(double k, void *param)
 {
 	assert(param != NULL);
+	assert(isgreater(k, 0.0));
 	return cosmoPk_eval((cosmoPk_t)param, k);
 }
 
@@ -226,8 +231,10 @@ cosmoPk_calcMomentFiltered(cosmoPk_t pk,
 	F.params      = (void *)&param;
 
 	w             = gsl_integration_workspace_alloc(1000);
-	gsl_integration_qags(&F, kmin, kmax, 0, 1e-10, 1000,
+
+	gsl_integration_qags(&F, kmin, kmax, 0, 9e-9, 1000,
 	                     w, &sigmaSqr, error);
+
 	gsl_integration_workspace_free(w);
 
 	return 1. / (TWOPI * PI) * sigmaSqr;
@@ -249,6 +256,50 @@ cosmoPk_calcSigma8(cosmoPk_t pk,
 	                                       &cosmoFunc_tophatSqr,
 	                                       &scale, kmin, kmax, error);
 	return sqrt(sigma8Sqr);
+}
+
+extern void
+cosmoPk_scale(cosmoPk_t pk, double factor)
+{
+	assert(pk != NULL);
+	assert(isgreater(factor, 0.0));
+
+	for (uint32_t i = 0; i < pk->numPoints; i++)
+		pk->P[i] *= factor;
+	local_doInterpolation(pk);
+}
+
+extern double
+cosmoPk_forceSigma8(cosmoPk_t pk,
+                    double    sigma8,
+                    double    kmin,
+                    double    kmax,
+                    double    *error)
+{
+	double sigma8Actual;
+	double sigma8First;
+	int    numIter    = 0;
+	int    numIterMax = LOCAL_MAX_FORCESIGMA8_ITERATIONS;
+
+	assert(pk != NULL);
+	assert(isgreater(sigma8, 0.0));
+	assert(isgreater(kmin, 0.0));
+	assert(isgreater(kmax, kmin));
+
+	sigma8Actual = cosmoPk_calcSigma8(pk, kmin, kmax, error);
+	sigma8First  = sigma8Actual;
+	do {
+		cosmoPk_scale(pk, sigma8 / sigma8Actual);
+		sigma8Actual = cosmoPk_calcSigma8(pk, kmin, kmax, error);
+		*error       = fabs(1. - sigma8 / sigma8Actual);
+		numIter++;
+	}while (numIter < numIterMax && isgreater(*error, 1e-10));
+	if (numIter >= numIterMax)
+		fprintf(stderr, "Exhausted iterations in %s: error %15.13e\n",
+		        __func__, *error);
+
+
+	return sigma8First / sigma8;
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -291,7 +342,7 @@ static cosmoPk_t
 local_constructPkFromModel(parse_ini_t ini, const char *sectionName)
 {
 	cosmoPk_t    pk;
-	cosmoModel_t model       = cosmoModel_newFromIni(ini, sectionName);
+	cosmoModel_t model = cosmoModel_newFromIni(ini, sectionName);
 	double       kmin, kmax;
 	uint32_t     numPoints;
 
@@ -313,13 +364,12 @@ static void
 local_initKs(cosmoPk_t pk, double kmin, double kmax)
 {
 	pk->k[0]                 = kmin;
-
 	pk->k[pk->numPoints - 1] = kmax;
 
 	if (pk->numPoints > 1) {
 		double logKmin = log(kmin);
-		double logdk
-		    = (log(kmax) - logKmin) / ((double)(pk->numPoints - 1));
+		double logdk   = (log(kmax) - logKmin)
+		                 / ((double)(pk->numPoints - 1));
 		for (uint32_t i = 1; i < pk->numPoints - 1; i++)
 			pk->k[i] = exp(logKmin + logdk * i);
 	}

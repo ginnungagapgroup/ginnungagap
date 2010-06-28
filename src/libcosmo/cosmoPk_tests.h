@@ -30,5 +30,14 @@ cosmoPk_eval_test(void);
 extern bool
 cosmoPk_calcMomentFiltered_test(void);
 
+extern bool
+cosmoPk_calcSigma8_test(void);
+
+extern bool
+cosmoPk_scale_test(void);
+
+extern bool
+cosmoPk_forceSigma8_test(void);
+
 
 #endif

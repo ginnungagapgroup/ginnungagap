@@ -64,7 +64,8 @@ cosmoPk_evalGSL(double k, void *param);
 extern double
 cosmoPk_calcMomentFiltered(cosmoPk_t pk,
                            uint32_t moment,
-                           double (*windowFunc)(double, void *),
+                           double (*windowFunc
+                                   )(double, void *),
                            void *paramWindowFunc,
                            double kmin,
                            double kmax,
@@ -77,6 +78,16 @@ cosmoPk_calcSigma8(cosmoPk_t pk,
                    double    kmin,
                    double    kmax,
                    double    *error);
+
+extern void
+cosmoPk_scale(cosmoPk_t pk, double factor);
+
+extern double
+cosmoPk_forceSigma8(cosmoPk_t pk,
+                    double    sigma8,
+                    double    kmin,
+                    double    kmax,
+                    double    *error);
 
 
 #endif
