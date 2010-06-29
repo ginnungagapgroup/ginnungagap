@@ -59,5 +59,13 @@ typedef float complex fpvComplex_t;
 #  define PRIfpv "g"
 #endif
 
+#if (NDIM == 2)
+#  define POW_NDIM(a) ((a) * (a))
+#elif (NDIM == 3)
+#  define POW_NDIM(a) ((a) * (a) * (a))
+#else
+#  error NDIM must be 2 or 3
+#endif
+
 
 #endif

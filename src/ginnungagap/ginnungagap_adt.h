@@ -27,6 +27,9 @@ struct ginnungagap_struct {
 	gridRegularDistrib_t gridDistrib;
 	gridRegularFFT_t     gridFFT;
 	int                  posOfDens;
+	int                  rank;
+	int                  size;
+	int                  numThreads;
 };
 
 

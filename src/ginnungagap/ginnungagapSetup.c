@@ -45,6 +45,8 @@ ginnungagapSetup_new(parse_ini_t ini)
 	           ini, "dim1D", "Ginnungagap");
 	getFromIni(&(setup->boxsizeInMpch), parse_ini_get_double,
 	           ini, "boxsizeInMpch", "Ginnungagap");
+	getFromIni(&(setup->zInit), parse_ini_get_double,
+	           ini, "zInit", "Ginnungagap");
 	getFromIni(&(setup->gridName), parse_ini_get_string,
 	           ini, "gridName", "Ginnungagap");
 	getFromIni(&(setup->useConstraints), parse_ini_get_bool,
@@ -58,6 +60,8 @@ ginnungagapSetup_new(parse_ini_t ini)
 		setup->fileNameConstraints = NULL;
 		setup->dim1DConstraints    = UINT32_C(0);
 	}
+	getFromIni(&(setup->forceSigma8InBox), parse_ini_get_bool,
+	           ini, "forceSigma8InBox", "Ginnungagap");
 #ifdef WITH_MPI
 	local_parseMPIStuff(setup, ini);
 #endif

@@ -6,8 +6,14 @@
 #define COSMO_H
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "cosmoModel.h"
 #include "cosmoPk.h"
+
+
+/*--- Exported defines --------------------------------------------------*/
+#define cosmo_z2a(z) (1./((z)+1.))
+#define cosmo_a2z(a) (1./(a) - 1.)
 
 
 #endif

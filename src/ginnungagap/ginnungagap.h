@@ -20,6 +20,9 @@ extern ginnungagap_t
 ginnungagap_new(parse_ini_t ini);
 
 extern void
+ginnungagap_init(ginnungagap_t ginnungagap);
+
+extern void
 ginnungagap_run(ginnungagap_t ginnungagap);
 
 extern void

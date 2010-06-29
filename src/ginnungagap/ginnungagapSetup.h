@@ -21,10 +21,12 @@ typedef struct ginnungagapSetup_struct *ginnungagapSetup_t;
 struct ginnungagapSetup_struct {
 	uint32_t dim1D;
 	double   boxsizeInMpch;
+	double   zInit;
 	char     *gridName;
 	bool     useConstraints;
 	char     *fileNameConstraints;
 	uint32_t dim1DConstraints;
+	bool     forceSigma8InBox;
 #ifdef WITH_MPI
 	int      nProcs[NDIM];
 #endif

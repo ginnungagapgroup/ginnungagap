@@ -13,10 +13,18 @@
 #include <stdio.h>
 #include <assert.h>
 #include <inttypes.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
+#ifdef WITH_OPENMP
+#  include <omp.h>
+#endif
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
 #include "../libutil/timer.h"
 #include "../libutil/utilMath.h"
+#include "../libcosmo/cosmo.h"
+#include "../libcosmo/cosmoFunc.h"
 #ifdef WITH_SILO
 #  include "../libgrid/gridWriterSilo.h"
 #endif
@@ -49,11 +57,15 @@ local_realToFourier(ginnungagap_t ginnungagap);
 static void
 local_fourierToReal(ginnungagap_t ginnungagap);
 
+
 #ifdef WITH_SILO
 static void
 local_dumpGrid(ginnungagap_t ginnungagap, const char *qualifier);
 
 #endif
+
+static void
+local_initPk(ginnungagap_t ginnungagap);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -73,8 +85,37 @@ ginnungagap_new(parse_ini_t ini)
 	ginnungagap->gridDistrib = local_getGridDistrib(ginnungagap);
 	local_initGrid(ginnungagap);
 	ginnungagap->gridFFT     = local_getFFT(ginnungagap);
+	ginnungagap->rank        = 0;
+	ginnungagap->size        = 1;
+	ginnungagap->numThreads  = 1;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &(ginnungagap->rank));
+	MPI_Comm_rank(MPI_COMM_WORLD, &(ginnungagap->size));
+#endif
+#ifdef WITH_OPENMP
+	ginnungagap->numThreads = omp_get_num_threads();
+#endif
 
 	return ginnungagap;
+}
+
+extern void
+ginnungagap_init(ginnungagap_t ginnungagap)
+{
+	if (ginnungagap->rank == 0) {
+		printf("Initializing the run\n--------------------\n");
+		printf("Box size:         %f [Mpc/h]\n",
+		       ginnungagap->setup->boxsizeInMpch);
+		printf("Grid resolution:  %"PRIu32"^%i = %"PRIu64" cells\n",
+		       ginnungagap->setup->dim1D, NDIM,
+		       (uint64_t)(POW_NDIM(ginnungagap->setup->dim1D)));
+	}
+
+	local_initPk(ginnungagap);
+
+	if (ginnungagap->rank == 0) {
+		printf("\n\n");
+	}
 }
 
 extern void
@@ -82,6 +123,10 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 {
 	double timing;
 	assert(ginnungagap != NULL);
+
+	if (ginnungagap->rank == 0) {
+		printf("Starting the work\n-----------------\n");
+	}
 
 	timing = timer_start("Generating white noise");
 	ginnungagapWhiteNoise_generate(ginnungagap);
@@ -248,3 +293,70 @@ local_dumpGrid(ginnungagap_t ginnungagap, const char *qualifier)
 }
 
 #endif
+
+static void
+local_initPk(ginnungagap_t ginnungagap)
+{
+	double kmin, kmax, sigma8, error;
+
+	kmin  = kmax = M_PI / ginnungagap->setup->boxsizeInMpch;
+	kmin *= 2.;
+	kmax *= ginnungagap->setup->dim1D;
+
+	if (ginnungagap->rank == 0) {
+		printf("Getting P(k) at z = 0.0:\n");
+		printf("  k_min = %e [h/Mpc]\n", kmin);
+		printf("  k_max = %e [h/Mpc]\n", kmax);
+	}
+	if (ginnungagap->setup->forceSigma8InBox) {
+		double correction, errorRenorm;
+		sigma8     = cosmoModel_getSigma8(ginnungagap->model);
+		correction = cosmoPk_forceSigma8(ginnungagap->pk, sigma8,
+		                                 kmin, kmax, &errorRenorm);
+		if (ginnungagap->rank == 0) {
+			printf("  Renormalizing the power spectrum:\n");
+			printf("    Scaled the initial power spectrum by %e\n",
+			       correction);
+			printf("    sigma8 achieved with a relative error of %e\n",
+			       errorRenorm);
+		}
+	} else {
+		if (ginnungagap->rank == 0) {
+			printf("  Trusting the input power spectrum to be correct\n");
+		}
+	}
+	sigma8 = cosmoPk_calcSigma8(ginnungagap->pk, kmin, kmax, &error);
+	if (ginnungagap->rank == 0) {
+		printf("  In [k_min,k_max]: sigma8 = %e +- %e\n", sigma8, error);
+		cosmoPk_dumpToFile(ginnungagap->pk, "Pk.final.dat", 5);
+	}
+
+	double growth0, growth1, scale, sigma;
+	double one = 1.0;
+	if (ginnungagap->rank == 0) {
+		printf("Getting P(k) at z = %.1f:\n", ginnungagap->setup->zInit);
+	}
+	growth0 = cosmoModel_calcGrowth(ginnungagap->model, 1.0, &error);
+	growth1 = cosmoModel_calcGrowth(ginnungagap->model,
+	                                cosmo_z2a(ginnungagap->setup->zInit),
+	                                &error);
+	scale = growth1/growth0;
+	scale *= scale;
+	if (ginnungagap->rank == 0) {
+		printf("  D0 = D(z=  0.0) = %e\n", growth0);
+		printf("  D1 = D(z=%5.1f) = %e\n",
+		       ginnungagap->setup->zInit, growth1);
+		printf("  Scaling by (D1/D0)^2 = %e\n",
+		       scale);
+	}
+	cosmoPk_scale(ginnungagap->pk, scale);
+	sigma = cosmoPk_calcMomentFiltered(ginnungagap->pk,
+	                                   0, &cosmoFunc_const,
+	                                   &one, kmin, kmax, &error);
+	if (ginnungagap->rank == 0) {
+		printf("  sigma = %e\n", sqrt(sigma));
+		cosmoPk_dumpToFile(ginnungagap->pk, "Pk.initial.dat", 5);
+	}
+	
+	
+}

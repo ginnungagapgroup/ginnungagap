@@ -56,6 +56,7 @@ main(int argc, char **argv)
 	local_registerCleanUpFunctions();
 
 	ginnungagap = local_getGinnungagap();
+	ginnungagap_init(ginnungagap);
 	ginnungagap_run(ginnungagap);
 	ginnungagap_del(&ginnungagap);
 
