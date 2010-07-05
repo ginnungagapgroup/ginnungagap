@@ -9,7 +9,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "ginnungagapConfig.h"
 #include "ginnungagapSetup.h"
-#include "../libutil/rng.h"
+#include "ginnungagapWN.h"
 #include "../libcosmo/cosmoModel.h"
 #include "../libcosmo/cosmoPk.h"
 #include "../libgrid/gridRegular.h"
@@ -22,7 +22,7 @@ struct ginnungagap_struct {
 	ginnungagapSetup_t   setup;
 	cosmoModel_t         model;
 	cosmoPk_t            pk;
-	rng_t                rng;
+	ginnungagapWN_t      whiteNoise;
 	gridRegular_t        grid;
 	gridRegularDistrib_t gridDistrib;
 	gridRegularFFT_t     gridFFT;

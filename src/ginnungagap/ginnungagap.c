@@ -80,7 +80,8 @@ ginnungagap_new(parse_ini_t ini)
 	ginnungagap->setup       = ginnungagapSetup_new(ini);
 	ginnungagap->model       = cosmoModel_newFromIni(ini, "Cosmology");
 	ginnungagap->pk          = cosmoPk_newFromIni(ini, "Cosmology");
-	ginnungagap->rng         = rng_newFromIni(ini, "rng");
+	ginnungagap->whiteNoise  = ginnungagapWN_newFromIni(ini,
+	                                                    "WhiteNoise");
 	ginnungagap->grid        = local_getGrid(ginnungagap);
 	ginnungagap->gridDistrib = local_getGridDistrib(ginnungagap);
 	local_initGrid(ginnungagap);
@@ -106,7 +107,7 @@ ginnungagap_init(ginnungagap_t ginnungagap)
 		printf("Initializing the run\n--------------------\n");
 		printf("Box size:         %f [Mpc/h]\n",
 		       ginnungagap->setup->boxsizeInMpch);
-		printf("Grid resolution:  %"PRIu32"^%i = %"PRIu64" cells\n",
+		printf("Grid resolution:  %" PRIu32 "^%i = %" PRIu64 " cells\n",
 		       ginnungagap->setup->dim1D, NDIM,
 		       (uint64_t)(POW_NDIM(ginnungagap->setup->dim1D)));
 	}
@@ -128,8 +129,8 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 		printf("Starting the work\n-----------------\n");
 	}
 
-	timing = timer_start("Generating white noise");
-	ginnungagapWhiteNoise_generate(ginnungagap);
+	timing = timer_start("Setting up white noise");
+	ginnungagapWN_setup(ginnungagap->whiteNoise);
 	timing = timer_stop(timing);
 #ifdef WITH_SILO
 	timing = timer_start("Writing white noise to silo file");
@@ -155,7 +156,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	local_dumpGrid(ginnungagap, ".density");
 	timing = timer_stop(timing);
 #endif
-}
+} /* ginnungagap_run */
 
 extern void
 ginnungagap_del(ginnungagap_t *ginnungagap)
@@ -165,7 +166,7 @@ ginnungagap_del(ginnungagap_t *ginnungagap)
 
 	cosmoPk_del(&((*ginnungagap)->pk));
 	cosmoModel_del(&((*ginnungagap)->model));
-	rng_del(&((*ginnungagap)->rng));
+	ginnungagapWN_del(&((*ginnungagap)->whiteNoise));
 	gridRegularFFT_del(&((*ginnungagap)->gridFFT));
 	gridRegularDistrib_del(&((*ginnungagap)->gridDistrib));
 	gridRegular_del(&((*ginnungagap)->grid));
@@ -340,7 +341,7 @@ local_initPk(ginnungagap_t ginnungagap)
 	growth1 = cosmoModel_calcGrowth(ginnungagap->model,
 	                                cosmo_z2a(ginnungagap->setup->zInit),
 	                                &error);
-	scale = growth1/growth0;
+	scale  = growth1 / growth0;
 	scale *= scale;
 	if (ginnungagap->rank == 0) {
 		printf("  D0 = D(z=  0.0) = %e\n", growth0);
@@ -350,13 +351,11 @@ local_initPk(ginnungagap_t ginnungagap)
 		       scale);
 	}
 	cosmoPk_scale(ginnungagap->pk, scale);
-	sigma = cosmoPk_calcMomentFiltered(ginnungagap->pk,
-	                                   0, &cosmoFunc_const,
-	                                   &one, kmin, kmax, &error);
+	sigma = sqrt(cosmoPk_calcMomentFiltered(ginnungagap->pk,
+	                                        0, &cosmoFunc_const,
+	                                        &one, kmin, kmax, &error));
 	if (ginnungagap->rank == 0) {
-		printf("  sigma = %e\n", sqrt(sigma));
+		printf("  sigma = %.4f\n", sigma);
 		cosmoPk_dumpToFile(ginnungagap->pk, "Pk.initial.dat", 5);
 	}
-	
-	
-}
+} /* local_initPk */

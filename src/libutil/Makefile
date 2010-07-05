@@ -16,12 +16,15 @@ sources = xmem.c \
           cmdline.c \
           timer.c \
           refCounter.c \
-          varArr.c \
-          rng.c
+          varArr.c
 
 ifeq ($(WITH_MPI), "true")
 sources += commScheme.c \
            commSchemeBuffer.c
+endif
+
+ifeq ($(WITH_SPRNG), "true")
+sources += rng.c
 endif
 
 sourcesTests = lib${LIBNAME}_tests.c \

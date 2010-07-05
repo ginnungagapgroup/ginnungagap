@@ -4,6 +4,7 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
+#include "util_config.h"
 #include "rng.h"
 #include "xmem.h"
 #ifdef WITH_MPI
@@ -115,7 +116,7 @@ rng_getGauss(const rng_t  rng,
 		x  = -1.0 + 2.0 * sprng(rng->streams[streamNumber]);
 		y  = -1.0 + 2.0 * sprng(rng->streams[streamNumber]);
 		r2 = x * x + y * y;
-	} while (r2 > 1.0 || r2 < DBL_EPSILON);
+	} while ((r2 > 1.0) || (r2 < DBL_EPSILON));
 
 	return sigma * y * sqrt(-2.0 * log(r2) / r2) + mean;
 }
