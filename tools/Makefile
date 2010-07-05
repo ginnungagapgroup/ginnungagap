@@ -7,7 +7,19 @@ include ../Makefile.config
 .PHONY: all clean tests dist-clean
 
 all:
+	@echo ""
+	@echo ""
+	@echo "+-------------------------------+"
+	@echo "|   Working on the tools        |"
+	@echo "+-------------------------------+"
+	@echo ""
 	$(MAKE) -C makeSiloRoot all
+	@echo ""
+	@echo "+-------------------------------+"
+	@echo "|   Done with the tools         |"
+	@echo "+-------------------------------+"
+	@echo ""
+	@echo ""
 
 clean:
 	$(MAKE) -C makeSiloRoot clean

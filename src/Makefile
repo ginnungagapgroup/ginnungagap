@@ -7,10 +7,22 @@ include ../Makefile.config
 .PHONY: all clean tests dist-clean
 
 all:
+	@echo ""
+	@echo ""
+	@echo "+-------------------------------+"
+	@echo "|   Working on the main code    |"
+	@echo "+-------------------------------+"
+	@echo ""
 	$(MAKE) -C libutil all
 	$(MAKE) -C libcosmo all
 	$(MAKE) -C libgrid all
 	$(MAKE) -C ginnungagap all
+	@echo ""
+	@echo "+-------------------------------+"
+	@echo "|   Done with the main code     |"
+	@echo "+-------------------------------+"
+	@echo ""
+	@echo ""
 
 clean:
 	$(MAKE) -C ginnungagap clean
