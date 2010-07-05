@@ -30,17 +30,25 @@ PACKAGE_VERSION_MICRO=`  grep 'define PACKAGE_VERSION_MICRO' $VERSIONFILE \
 TOOLCHAIN=gnu
 WITH_OPENMP=false
 WITH_MPI=false
-ENABLE_FFT_BACKEND=fftw3
+WITH_SPRNG=true
+WITH_SPRNG_DIR=auto
+WITH_SPRNG_LIBS=auto
+WITH_FFT=fftw3
+WITH_FFT_DIR=auto
+WITH_FFT_LIBS=auto
 WITH_SILO=false
+WITH_SILO_DIR=auto
 WITH_SILO_LIBS=auto
+WITH_HDF5_DIR=auto
+WITH_GSL_DIR=auto
+WITH_GSL_LIBS=auto
 WITH_PROC_DIR=false
-ENABLE_DOUBLE=true
+ENABLE_DOUBLE=false
 ENABLE_DEBUG=false
 ENABLE_PROFILE=false
 SHOW_HELP=false
 SHOW_VERSION=false
 NDIM_VALUE=3
-WITH_GSL_LIBS=auto
 
 # Parse the options
 for ac_option
@@ -87,13 +95,67 @@ do
 		--without-mpi | --without-mpi=*)
 			WITH_MPI=false
 			;;
-		--with-gsl-libs)
-			echo "Error:  --with-gsl-libs requires an argument."
+		# SPRNG stuff
+		--with-sprng | --with-sprng=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				WITH_SPRNG=true
+			elif test "x$ac_optarg" = "xno"
+			then
+				WITH_SPRNG=false
+			else
+				WITH_SILO=true
+			fi
+			;;
+		--without-sprng | --without-sprng=*)
+			WITH_SPRNG=false
+			;;
+		--with-sprng-dir)
+			echo "Error:  --with-sprng-dir requires an argument."
 			exit 1
 			;;
-		--with-gsl-libs=*)
-			WITH_GSL_LIBS="$ac_optarg"
+		--with-sprng-dir=*)
+			WITH_SPRNG_DIR="$ac_optarg"
 			;;
+		--with-sprng-libs)
+			echo "Error:  --with-sprng-libs requires an argument."
+			exit 1
+			;;
+		--with-sprng-libs=*)
+			WITH_SPRNG_LIBS="$ac_optarg"
+			;;
+		# FFT stuff
+		--with-fft)
+			echo "Error:  --with-fft requires an argument."
+			exit 1
+			;;
+		--with-fft=*)
+			if test "x$ac_optarg" = "xfftw3"
+			then
+				WHT_FFT=fftw3
+			elif test "x$ac_optarg" = "xfftw2"
+			then
+				WITH_FFT=fftw2
+			else
+				echo "Error:  Unkown argument for --with-fft."
+				exit 1
+			fi
+			;;
+		--with-fft-dir)
+			echo "Error:  --with-fft-dir requires an argument."
+			exit 1
+			;;
+		--with-fft-dir=*)
+			WITH_FFT_DIR="$ac_optarg"
+			;;
+		--with-fft-libs)
+			echo "Error:  --with-fft-libs requires an argument."
+			exit 1
+			;;
+		--with-fft-libs=*)
+			WITH_FFT_LIBS="$ac_optarg"
+			;;
+		# SILO stuff
 		--with-silo | --with-silo=*)
 			if test "x$ac_optarg" = "xyes"
 			then
@@ -108,12 +170,41 @@ do
 		--without-silo | --without-silo=*)
 			WITH_SILO=false
 			;;
+		--with-silo-dir)
+			echo "Error:  --with-silo-dir requires an argument."
+			exit 1
+			;;
+		--with-silo-dir=*)
+			WITH_SILO_DIR="$ac_optarg"
+			;;
 		--with-silo-libs)
 			echo "Error:  --with-silo-libs requires an argument."
 			exit 1
 			;;
 		--with-silo-libs=*)
 			WITH_SILO_LIBS="$ac_optarg"
+			;;
+		--with-hdf5-dir)
+			echo "Error:  --with-hdf5-dir requires an argument."
+			exit 1
+			;;
+		--with-hdf5-dir=*)
+			WITH_HDF5_DIR="$ac_optarg"
+			;;
+		# GSL stuff
+		--with-gsl-dir)
+			echo Error:  --with-gsl-dir requires an argument.""
+			exit 1
+			;;
+		--with-gsl-dir=*)
+			WITH_GSL_DIR="$ac_optarg"
+			;;
+		--with-gsl-libs)
+			echo "Error:  --with-gsl-libs requires an argument."
+			exit 1
+			;;
+		--with-gsl-libs=*)
+			WITH_GSL_LIBS="$ac_optarg"
 			;;
 		--with-proc-dir | --with-proc-dir=*)
 			if test "x$ac_optarg" = "xyes"
@@ -128,22 +219,6 @@ do
 			;;
 		--without-proc-dir | --without-proc-dir=*)
 			WITH_PROC_DIR=false
-			;;
-		--enable-fft-backend)
-			echo "Error:  --enable-fft-backend requires an argument."
-			exit 1
-			;;
-		--enable-fft-backend=*)
-			if test "x$ac_optarg" = "xfftw3"
-			then
-				FFT_BACKEND=fftw3
-			elif test "x$ac_optarg" = "xfftw2"
-			then
-				FFT_BACKEND=fftw2
-			else
-				echo "Error:  Unkown argument for --enable-fft-backend."
-				exit 1
-			fi
 			;;
 		--enable-double | --enable-double=*)
 			if test "x$ac_optarg" = "xyes"
@@ -250,17 +325,47 @@ Optional features:
   --with-FEATURE[=ARG]     Use FEATURE. [ARG=yes]
   --without-FEATURE        Do not use FEATURE.  This is the same as
                            --with-FEATURE=no.
+  --with-openmp            Uses the OpenMP directives.  Default: no.
   --with-mpi[=COMPILER]    Use MPI [COMPILER=mpicc].  Note that if you
                            use MPI, it is your duty to make sure that
                            mpicc uses a C compiler that fits to your
                            selected toolchain.  Default: no.
-  --with-openmp            Uses the OpenMP directives.  Default: no.
+  --with-sprng             This can be used to toggle the usage of SPRNG
+                           to generate random numbers.  Note that if
+                           SPRNG is not used, than random numbers have
+                           to be provided by means of a white noise
+                           file.  Default: yes.
+  --with-sprng-dir=DIR     Use this to direct to the directory where
+                           SPRNG is installed on your system.  This
+                           assumes that header files are in DIR/include
+                           and libraries are in DIR/lib.  You can
+                           specify the special value 'auto', it is
+                           then presumed that everything can be found
+                           using the CPPFLAGS/LDFLAGS environment
+                           variables.  Default: auto.
+  --with-sprng-libs=LIBS   Can be used to specify the SPRNG libraries,
+                           it should normally not be required and
+                           defaults to:
+                             -lsprng
+  --with-fft-backend=ARG   This selects the FFT backend that will be
+                           used.  Possible options are (note that single
+                           and double precision versions are required):
+                             fftw2       Version 2 of FFTW
+                             fftw3  (*)  Version 3 of FFTW
+                           The default choice is marked.
+  --with-fft-dir=DIR       See description of --with-sprng-dir.
+                           Default: auto.
+  --with-fft-libs=LIBS     See description of --with-sprng-libs.
+                           Default: auto.
   --with-gsl-libs=LIBS     This may be used to set specific libraries of
                            GSL, normally it should not be neccessary to
                            use this, as by default the right libraries
                            will be queried with gsl-config.
   --with-silo              Use the SILO library to write visualisation
                            outputs.  Default: no.
+  --with-silo-dir=DIR      See description of --with-sprng-dir.  This is
+                           the same for the SILO directory.
+                           Default: auto.
   --with-silo-libs=LIBS    This can be used to specify the required
                            libraries for using Silo.  If Silo is
                            actually used, it defaults to:
@@ -270,23 +375,22 @@ Optional features:
                            recommended to use the HDF5 version of Silo
                            anyways, so this option should not be needed
                            in most situations.
+  --with-hdf5-dir=DIR      If you are using the HDF5 version of SILO
+                           then you may want to specify the directory
+                           where the HDF5 that SILO was built against is
+                           installed.  As in --with-sprng-dir this can
+                           be 'auto'.
+                           Default: auto.
   --with-proc-dir          If the code can use /proc/self/statm to query
                            its memory usage (true at least on Linux),
                            the you may use this option to allow the code
                            to retrieve memory information at runtime.
                            Default: no.
 
-
 Code properties:
   --enable-FEATURE[=ARG]   Switch on a feature. [ARG=YES]
   --disable-FEATURE        Do not use FEATURE.  This is the same as
                            --enable-FEATURE=no.
-  --enable-fft-backend=ARG This selects the FFT backend that will be
-                           used.  Possible options are (note that single
-                           and double precision versions are required):
-                             fftw2       Version 2 of FFTW
-                             fftw3  (*)  Version 3 of FFTW
-                           The default choice is marked.
   --enable-double          This switches on the usage of double
                            precision floating point variables instead of
                            single precision for fields and particle
@@ -343,14 +447,33 @@ _VERSION_EOF
 	exit 0
 fi
 
-# Now set all the deferred libaries
-if test "x$WITH_GSL_LIBS" = "xauto"
+# Now set all the (possibly) deferred libaries
+if test "x$WITH_SPRNG_LIBS" = "xauto"
 then
-	WITH_GSL_LIBS=`gsl-config --libs`
+	WITH_SPRNG_LIBS="-lsprng"
+fi
+if test "x$WITH_FFT_LIBS" = "xauto"
+then
+	case $WITH_FFT in
+		fftw3)
+			WITH_FFT_LIBS="-lfftw3 -lfftw3f"
+			;;
+		fftw2)
+			WITH_FFT_LIBS="-ldrfftw -ldfftw -lsrfftw -lsfftw"
+	esac
 fi
 if test "x$WITH_SILO_LIBS" = "xauto"
 then
 	WITH_SILO_LIBS="-lsiloh5 -lhdf5 -lstdc++ -lz"
+fi
+if test "x$WITH_GSL_LIBS" = "xauto"
+then
+	if test "x$WITH_GSL_DIR" = "xauto"
+	then
+		WITH_GSL_LIBS=`gsl-config --libs`
+	else
+		WITH_GSL_LIBS=`$WITH_GSL_DIR/bin/gsl-config --libs`
+	fi
 fi
 
 # Now lets actually do something.
@@ -378,6 +501,12 @@ else
 	sed -i s/__WITH_MPI__/false/ Makefile.config
 	sed -i s/__MPICC__// Makefile.config
 fi
+if test "x$WITH_SPRNG" = "xtrue"
+then
+	sed -i s/__WITH_SPRNG__/true/ Makefile.config
+else
+	sed -i s/__WITH_SPRNG__/false/ Makefile.config
+fi
 if test "x$WITH_SILO" = "xtrue"
 then
 	sed -i s/__WITH_SILO__/true/ Makefile.config
@@ -402,7 +531,7 @@ then
 else
 	sed -i s/__ENABLE_PROFILE__/false/ Makefile.config
 fi
-sed -i -e "s@__ENABLE_FFT_BACKEND__@$ENABLE_FFT_BACKEND@" Makefile.config
+sed -i -e "s@__WITH_FFT__@$WITH_FFT@" Makefile.config
 sed -i -e "s@__CC__@$CC@" Makefile.config
 sed -i -e "s@__CFLAGS__@$CFLAGS@" Makefile.config
 sed -i -e "s@__CPPFLAGS__@$CPPFLAGS@" Makefile.config
@@ -411,8 +540,15 @@ sed -i -e "s@__LD__@$LD@" Makefile.config
 sed -i -e "s@__LDFLAGS__@$LDFLAGS@" Makefile.config
 sed -i -e "s@__AR__@$AR@" Makefile.config
 sed -i -e "s@__MAKE__@$MAKE@" Makefile.config
-sed -i -e "s@__WITH_GSL_LIBS__@$WITH_GSL_LIBS@" Makefile.config
+sed -i -e "s@__WITH_SPRNG_DIR__@$WITH_SPRNG_DIR@" Makefile.config
+sed -i -e "s@__WITH_SPRNG_LIBS__@$WITH_SPRNG_LIBS@" Makefile.config
+sed -i -e "s@__WITH_FFT_DIR__@$WITH_FFT_DIR@" Makefile.config
+sed -i -e "s@__WITH_FFT_LIBS__@$WITH_FFT_LIBS@" Makefile.config
+sed -i -e "s@__WITH_SILO_DIR__@$WITH_SILO_DIR@" Makefile.config
 sed -i -e "s@__WITH_SILO_LIBS__@$WITH_SILO_LIBS@" Makefile.config
+sed -i -e "s@__WITH_HDF5_DIR__@$WITH_HDF5_DIR@" Makefile.config
+sed -i -e "s@__WITH_GSL_DIR__@$WITH_GSL_DIR@" Makefile.config
+sed -i -e "s@__WITH_GSL_LIBS__@$WITH_GSL_LIBS@" Makefile.config
 echo "done" | tee -a config.log
 
 
@@ -429,6 +565,17 @@ if test "x$WITH_MPI" = "xtrue"
 then
 	sed -i -e 's/undef WITH_MPI/define WITH_MPI 1/' config.h
 fi
+if test "x$WITH_SPRNG" = "xtrue"
+then
+	sed -i -e 's/undef WITH_SPRNG/define WITH_SPRNG 1/' config.h
+fi
+if test "x$WITH_FFT" = "xfftw2"
+then
+	sed -i -e 's/undef WITH_FFT_FFTW2/define WITH_FFT_FFTW2 1/' config.h
+elif test "x$WITH_FFT" = "xfftw3"
+then
+	sed -i -e 's/undef WITH_FFT_FFTW3/define WITH_FFT_FFTW3 1/' config.h
+fi
 if test "x$WITH_SILO" = "xtrue"
 then
 	sed -i -e 's/undef WITH_SILO/define WITH_SILO 1/' config.h
@@ -444,13 +591,6 @@ fi
 if test "x$ENABLE_DOUBLE" = "xtrue"
 then
 	sed -i -e 's/undef ENABLE_DOUBLE/define ENABLE_DOUBLE 1/' config.h
-fi
-if test "x$ENABLE_FFT_BACKEND" = "xfftw2"
-then
-	sed -i -e 's/undef ENABLE_FFT_BACKEND_FFTW2/define ENABLE_FFT_BACKEND_FFTW2 1/' config.h
-elif test "x$ENABLE_FFT_BACKEND" = "xfftw3"
-then
-	sed -i -e 's/undef ENABLE_FFT_BACKEND_FFTW3/define ENABLE_FFT_BACKEND_FFTW3 1/' config.h
 fi
 sed -i -e "s@__NDIM_VALUE__@$NDIM_VALUE@" config.h
 echo "done" | tee -a config.log

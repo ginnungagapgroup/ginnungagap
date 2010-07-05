@@ -7,12 +7,13 @@
 
 
 /*--- Code Features (to be adjusted by the configure script) ------------*/
-#undef WITH_MPI
 #undef WITH_OPENMP
+#undef WITH_MPI
+#undef WITH_SPRNG
 #undef WITH_SILO
 #undef WITH_PROC_DIR
-#undef ENABLE_FFT_BACKEND_FFTW2
-#undef ENABLE_FFT_BACKEND_FFTW3
+#undef WITH_FFT_FFTW2
+#undef WITH_FFT_FFTW3
 #undef ENABLE_DOUBLE
 #undef ENABLE_DEBUG
 #define NDIM __NDIM_VALUE__

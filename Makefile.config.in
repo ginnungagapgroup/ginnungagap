@@ -40,9 +40,15 @@ TOOLCHAIN = "__TOOLCHAIN__"
 # Features that influence the choices need to be made in the toolchains
 WITH_OPENMP = "__WITH_OPENMP__"
 WITH_MPI = "__WITH_MPI__"
-WITH_SILO = "__WITH_SILO__"
 MPICC = __MPICC__
-ENABLE_FFT_BACKEND = "__ENABLE_FFT_BACKEND__"
+WITH_SPRNG = "__WITH_SPRNG__"
+WITH_SPRNG_DIR = "__WITH_SPRNG_DIR__"
+WITH_FFT = "__WITH_FFT__"
+WITH_FFT_DIR = "__WITH_FFT_DIR__"
+WITH_SILO = "__WITH_SILO__"
+WITH_SILO_DIR = "__WITH_SILO_DIR__"
+WITH_HDF5_DIR = "__WITH_HDF5_DIR__"
+WITH_GSL_DIR = "__WITH_GSL_DIR__"
 ENABLE_DEBUG = "__ENABLE_DEBUG__"
 ENABLE_DOUBLE = "__ENABLE_DOUBLE__"
 ENABLE_PROFILE = "__ENABLE_PROFILE__"
@@ -50,7 +56,9 @@ ENABLE_PROFILE = "__ENABLE_PROFILE__"
 # Set the important variables to what the user wishes.  If any of these
 # is set, the toolchain segment will not touch its value.  The exception
 # is CFLAGS, here the toolchain will append the toolchain-specifc values
-# to the ones the user specified.
+# to the ones the user specified.  Also, if the user specified any
+# directory for the libraries then the according things are added to
+# CPPFLAGS and LDFLAGS.
 CC = __CC__
 CFLAGS = __CFLAGS__
 CPPFLAGS = __CPPFLAGS__
@@ -60,20 +68,39 @@ LDFLAGS = __LDFLAGS__
 AR = __AR__
 MAKE = __MAKE__
 
+ifneq ($(WITH_SPRNG_DIR), "auto")
+	CPPFLAGS += -I$(WITH_SPRNG_DIR)/include
+	LDFLAGS += -L$(WITH_SPRNG_DIR)/lib
+endif
+ifneq ($(WITH_FFT_DIR), "auto")
+	CPPFLAGS += -I$(WITH_FFT_DIR)/include
+	LDFLAGS += -L$(WITH_FFT_DIR)/lib
+endif
+ifneq ($(WITH_SILO_DIR), "auto")
+	CPPFLAGS += -I$(WITH_SILO_DIR)/include
+	LDFLAGS += -L$(WITH_SILO_DIR)/lib
+endif
+ifneq ($(WITH_HDF5_DIR), "auto")
+	CPPFLAGS += -I$(WITH_HDF5_DIR)/include
+	LDFLAGS += -L$(WITH_HDF5_DIR)/lib
+endif
+ifneq ($(WITH_GSL_DIR), "auto")
+	CPPFLAGS += -I$(WITH_GSL_DIR)/include
+	LDFLAGS += -L$(WITH_GSL_DIR)/lib
+endif
+
 # Do all the libraries
 LIBS =
+ifeq ($(WITH_SPRNG), "true")
+  LIBS += __WITH_SPRNG_LIBS__
+endif
 ifeq ($(WITH_SILO), "true")
   LIBS += __WITH_SILO_LIBS__
 endif
-ifeq ($(ENABLE_FFT_BACKEND), "fftw3")
-  LIBS += -lfftw3 -lfftw3f
-endif
-ifeq ($(ENABLE_FFT_BACKEND), "fftw2")
-  LIBS += -ldrfftw -ldfftw -lsrfftw -lsfftw
-endif
-LIBS += -lsprng
+LIBS += __WITH_FFT_LIBS__
 LIBS += __WITH_GSL_LIBS__
 LIBS += -lm
+
 
 # The actual definitions depending on the chosen toolchain
 ifeq ($(TOOLCHAIN), "gnu")

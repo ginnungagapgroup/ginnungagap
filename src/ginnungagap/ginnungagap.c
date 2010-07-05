@@ -28,7 +28,7 @@
 #ifdef WITH_SILO
 #  include "../libgrid/gridWriterSilo.h"
 #endif
-#ifdef ENABLE_FFT_BACKEND_FFTW3
+#ifdef WITH_FFT_FFTW3
 #  include <complex.h>
 #  include <fftw3.h>
 #endif
@@ -227,7 +227,7 @@ local_initGrid(ginnungagap_t ginnungagap)
 	gridRegular_attachPatch(ginnungagap->grid, patch);
 
 	dens = gridVar_new("density", GRIDVARTYPE_FPV, 1);
-#ifdef ENABLE_FFT_BACKEND_FFTW3
+#ifdef WITH_FFT_FFTW3
 #  ifdef ENABLE_DOUBLE
 	gridVar_setMemFuncs(dens, &fftw_malloc, &fftw_free);
 #  else

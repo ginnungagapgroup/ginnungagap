@@ -10,7 +10,7 @@
 #include <assert.h>
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
-#ifdef ENABLE_FFT_BACKEND_FFTW3
+#ifdef WITH_FFT_FFTW3
 #  include <complex.h>
 #  include <fftw3.h>
 #endif
@@ -89,7 +89,7 @@ gridRegularFFT_new(gridRegular_t        grid,
 	local_initMPIStuff(fft);
 #endif
 	local_getFFTedThings(fft);
-#if (defined ENABLE_FFT_BACKEND_FFTW3)
+#if (defined WITH_FFT_FFTW3)
 	fft->norm = 1. / ((double)gridRegular_getNumCellsTotal(grid));
 #endif
 
@@ -216,7 +216,7 @@ local_initMPIStuff(gridRegularFFT_t fft)
 static void *
 local_doFFTCompletelyLocal(gridRegularFFT_t fft, int direction)
 {
-#  if (defined ENABLE_FFT_BACKEND_FFTW3)
+#  if (defined WITH_FFT_FFTW3)
 	gridPointUint32_t dims;
 	int               n[NDIM];
 	void              *dataIn;

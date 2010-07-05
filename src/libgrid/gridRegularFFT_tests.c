@@ -19,7 +19,7 @@
 #  include "gridWriterSilo.h"
 #  include <silo.h>
 #endif
-#ifdef ENABLE_FFT_BACKEND_FFTW3
+#ifdef WITH_FFT_FFTW3
 #  include <complex.h>
 #  include <fftw3.h>
 #endif
@@ -139,7 +139,7 @@ gridRegularFFT_getNorm_test(void)
 	distrib = local_getFakeGridDistrib(grid);
 	fft     = gridRegularFFT_new(grid, distrib, 0);
 	norm = gridRegularFFT_getNorm(fft);
-#if (defined ENABLE_FFT_BACKEND_FFTW3)
+#if (defined WITH_FFT_FFTW3)
 	uint64_t numCellsTotal = gridRegular_getNumCellsTotal(grid);
 	if (isgreater(fabs(numCellsTotal * norm - 1.0), 2e-16))
 		hasPassed = false;
@@ -221,7 +221,7 @@ gridRegularFFT_execute_test(void)
 	gridRegularDistrib_del(&distrib);
 	gridRegularFFT_del(&fft);
 	xfree(dataCpy);
-#ifdef ENABLE_FFT_BACKEND_FFTW3
+#ifdef WITH_FFT_FFTW3
 	fftw_cleanup();
 	fftwf_cleanup();
 #endif
@@ -252,7 +252,7 @@ local_getFakeGrid(void)
 #ifndef WITH_MPI
 	gridVar_setFFTWPadded(var);
 #endif
-#ifdef ENABLE_FFT_BACKEND_FFTW3
+#ifdef WITH_FFT_FFTW3
 #  ifdef ENABLE_DOUBLE
 	gridVar_setMemFuncs(var, &fftw_malloc, &fftw_free);
 #  else
