@@ -16,6 +16,7 @@ sources = xmem.c \
           cmdline.c \
           timer.c \
           refCounter.c \
+          bov.c \
           varArr.c
 
 ifeq ($(WITH_MPI), "true")
@@ -29,6 +30,8 @@ endif
 
 sourcesTests = lib${LIBNAME}_tests.c \
                refCounter_tests.c \
+               xstring_tests.c \
+               bov_tests.c \
                varArr_tests.c
 
 ifeq ($(WITH_MPI), "true")

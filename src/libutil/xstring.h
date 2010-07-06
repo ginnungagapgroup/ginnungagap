@@ -54,4 +54,10 @@ extern char *
 xstrmerge(const char *s1, const char *s2);
 
 
+extern char *
+xdirname(const char *path);
+
+extern char *
+xbasename(const char *path);
+
 #endif

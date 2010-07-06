@@ -5,7 +5,9 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include "refCounter_tests.h"
+#include "xstring_tests.h"
 #include "varArr_tests.h"
+#include "bov_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,6 +85,12 @@ main(int argc, char **argv)
 	}
 
 	if (rank == 0) {
+		printf("\nRunning tests for xstring:\n");
+		RUNTEST(&xstring_xdirname_test, hasFailed);
+		RUNTEST(&xstring_xbasename_test, hasFailed);
+	}
+
+	if (rank == 0) {
 		printf("\nRunning tests for varArr:\n");
 		RUNTEST(&varArr_new_test, hasFailed);
 		RUNTEST(&varArr_del_test, hasFailed);
@@ -92,6 +100,14 @@ main(int argc, char **argv)
 		RUNTEST(&varArr_replace_test, hasFailed);
 		RUNTEST(&varArr_getElementHandle_test, hasFailed);
 	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for bov:\n");
+		RUNTEST(&bov_new_test, hasFailed);
+		RUNTEST(&bov_newFromFile_test, hasFailed);
+		RUNTEST(&bov_del_test, hasFailed);
+	}
+
 
 #ifdef WITH_MPI
 	if (rank == 0) {

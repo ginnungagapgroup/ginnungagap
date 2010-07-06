@@ -73,17 +73,82 @@ xgetline(char **line, size_t *n, FILE *f)
 extern char *
 xstrmerge(const char *s1, const char *s2)
 {
-	char *s;
+	char   *s;
 	size_t numCharsInS1 = strlen(s1);
 	size_t numCharsInS2 = strlen(s2);
 
 	s = xmalloc(sizeof(char) * (numCharsInS1 + numCharsInS2 + 1));
 
 	memcpy(s, s1, numCharsInS1);
-	memcpy(s+numCharsInS1, s2, numCharsInS2);
+	memcpy(s + numCharsInS1, s2, numCharsInS2);
 
-	s[numCharsInS1+numCharsInS2] = '\0';
+	s[numCharsInS1 + numCharsInS2] = '\0';
 
 	return s;
 }
 
+extern char *
+xdirname(const char *path)
+{
+	int  len  = 0;
+	char *rtn = NULL;
+
+	if (path != NULL)
+		len = strlen(path);
+
+	if (len == 0) {
+		rtn = xstrdup(".");
+	} else if (len == 1 && path[0] == '/') {
+		rtn = xstrdup("/");
+	} else {
+		int i = len - 1;
+		while (i >= 0 && path[i] == '/')
+			i--;
+		while (i >= 0 && path[i] != '/')
+			i--;
+		if (i <= 0) {
+			rtn = i < 0 ? xstrdup(".") : xstrdup("/");
+		} else {
+			rtn    = xmalloc(sizeof(char) * (i + 1));
+			memcpy(rtn, path, i);
+			rtn[i] = '\0';
+		}
+	}
+
+	return rtn;
+}
+
+extern char *
+xbasename(const char *path)
+{
+	int  len  = 0;
+	char *rtn = NULL;
+
+	if (path != NULL)
+		len = strlen(path);
+
+	if (len == 0) {
+		rtn = xstrdup(".");
+	} else if (len == 1 && path[0] == '/') {
+		rtn = xstrdup("/");
+	} else {
+		int i         = len - 1;
+		int endIgnore = 0;
+		while (i >= 0 && path[i] == '/') {
+			i--;
+			endIgnore++;
+		}
+		while (i >= 0 && path[i] != '/')
+			i--;
+		if (i <= 0)
+			i = 0;
+		if (path[i] == '/')
+			i++;
+		rtn = xmalloc(sizeof(char)
+		              * (len - endIgnore - i + 1));
+		memcpy(rtn, path + i, (len - endIgnore - i));
+		rtn[len - endIgnore - i] = '\0';
+	}
+
+	return rtn;
+}
