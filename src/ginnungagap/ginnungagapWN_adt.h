@@ -9,18 +9,14 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "ginnungagapConfig.h"
 #include <stdbool.h>
-#ifdef WITH_SPRNG
-#  include "../libutil/rng.h"
-#endif
+#include "../libutil/rng.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct ginnungagapWN_struct {
 	bool  useFile;
-#ifdef WITH_SPRNG
+	// gridReader_t reader;
 	rng_t rng;
-#endif
-	char *whiteNoiseFileName;
 };
 
 

@@ -10,6 +10,8 @@
 #include "../libutil/parse_ini.h"
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
+#include "../libgrid/gridRegular.h"
+#include "../libgrid/gridPatch.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -20,6 +22,10 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+static void
+local_setupFromFile(ginnungagapWN_t wn, gridPatch_t patch);
+static void
+local_setupFromRNG(ginnungagapWN_t wn, gridPatch_t patch);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -35,21 +41,22 @@ ginnungagapWN_newFromIni(parse_ini_t ini, const char *sectionName)
 	getFromIni(&(wn->useFile), parse_ini_get_bool,
 	           ini, "useFile", sectionName);
 
-	wn->whiteNoiseFileName = NULL;
-#ifdef WITH_SPRNG
-	wn->rng = NULL;
-#endif
+//	wn->reader = NULL;
+	wn->rng    = NULL;
 
 	if (wn->useFile) {
-		getFromIni(&(wn->whiteNoiseFileName), parse_ini_get_string,
-		           ini, "whiteNoiseFileName", sectionName);
+//		wn->reader = gridReader_newFromIni(ini, sectionName);
 	} else {
+		char *rngSectionName;
 #ifndef WITH_SPRNG
-		fprintf(stderr, "No file and no RNG.. hence no white noise :(\n");
+		fprintf(stderr,
+		        "WITH_SPRNG must be defined to use random numbers.\n");
 		diediedie(EXIT_FAILURE);
-#else
-		wn->rng = rng_newFromIni(ini, "rng");
 #endif
+		getFromIni(&rngSectionName, parse_ini_get_string,
+		           ini, "rngSectionName", sectionName);
+		wn->rng = rng_newFromIni(ini, rngSectionName);
+		xfree(rngSectionName);
 	}
 
 	return wn;
@@ -60,21 +67,58 @@ ginnungagapWN_del(ginnungagapWN_t *wn)
 {
 	assert(wn != NULL && *wn != NULL);
 
-	if ((*wn)->whiteNoiseFileName != NULL)
-		xfree((*wn)->whiteNoiseFileName);
-#ifdef WITH_SPRNG
 	if ((*wn)->rng != NULL)
 		rng_del(&((*wn)->rng));
-#endif
 	xfree(*wn);
 
 	*wn = NULL;
 }
 
 extern void
-ginnungagapWN_setup(ginnungagapWN_t wn)
+ginnungagapWN_setup(ginnungagapWN_t wn, gridRegular_t grid)
 {
-	;
+	gridPatch_t patch;
+
+	assert(wn != NULL);
+
+	patch = gridRegular_getPatchHandle(grid, 0);
+
+	if (wn->useFile)
+		local_setupFromFile(wn, patch);
+	else
+		local_setupFromRNG(wn, patch);
 }
 
 /*--- Implementations of local functions --------------------------------*/
+static void
+local_setupFromFile(ginnungagapWN_t wn, gridPatch_t patch)
+{
+}
+
+static void
+local_setupFromRNG(ginnungagapWN_t wn, gridPatch_t patch)
+{
+#if 0
+	int      numStreams;
+	fpv_t    *data;
+	uint64_t numCells = 0;
+
+	data       = gridPatch_getVarDataHandle(patch, 0);
+	numCells   = gridPatch_getNumCells(patch);
+	numStreams = rng_getNumStreamsLocal(wn->rng);
+
+#ifdef _OPENMP
+#  pragma omp parallel for shared(data, numStreams, numCells)
+#endif
+	for (int i = 0; i < numStreams; i++) {
+		uint64_t cps   = numCells / numStreams;
+		uint64_t start = i * cps;
+		uint64_t stop  = (i == numStreams - 1) ? numCells : (start
+		                                                     + cps);
+		for (uint64_t j = start; j < stop; j++) {
+			assert(j < numCells);
+			data[j] = (fpv_t)rng_getGaussUnit(ginnungagap->rng, i);
+		}
+	}
+#endif
+}

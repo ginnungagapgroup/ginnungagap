@@ -9,6 +9,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "ginnungagapConfig.h"
 #include "../libutil/parse_ini.h"
+#include "../libgrid/gridRegular.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -23,7 +24,7 @@ extern void
 ginnungagapWN_del(ginnungagapWN_t *wn);
 
 extern void
-ginnungagapWN_setup(ginnungagapWN_t wn);
+ginnungagapWN_setup(ginnungagapWN_t wn, gridRegular_t grid);
 
 
 #endif

@@ -130,7 +130,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	}
 
 	timing = timer_start("Setting up white noise");
-	ginnungagapWN_setup(ginnungagap->whiteNoise);
+	ginnungagapWN_setup(ginnungagap->whiteNoise, ginnungagap->grid);
 	timing = timer_stop(timing);
 #ifdef WITH_SILO
 	timing = timer_start("Writing white noise to silo file");
