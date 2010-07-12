@@ -206,7 +206,8 @@ cosmoPk_evalGSL(double k, void *param)
 extern double
 cosmoPk_calcMomentFiltered(cosmoPk_t pk,
                            uint32_t moment,
-                           double (*windowFunc)(double, void *),
+                           double (*windowFunc
+                                   )(double, void *),
                            void *paramWindowFunc,
                            double kmin,
                            double kmax,
@@ -292,7 +293,7 @@ cosmoPk_forceSigma8(cosmoPk_t pk,
 		sigma8Actual = cosmoPk_calcSigma8(pk, kmin, kmax, error);
 		*error       = fabs(1. - sigma8 / sigma8Actual);
 		numIter++;
-	}while (numIter < numIterMax && isgreater(*error, 1e-10));
+	} while (numIter < numIterMax && isgreater(*error, 1e-10));
 	if (numIter >= numIterMax)
 		fprintf(stderr, "Exhausted iterations in %s: error %15.13e\n",
 		        __func__, *error);
