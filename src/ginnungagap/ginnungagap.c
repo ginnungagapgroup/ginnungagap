@@ -6,7 +6,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "ginnungagapConfig.h"
 #include "ginnungagap.h"
-#include "ginnungagapWhiteNoise.h"
+#include "ginnungagapWN.h"
 #include "ginnungagapDeltaK.h"
 #include <stdlib.h>
 #include <math.h>
