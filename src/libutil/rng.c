@@ -7,14 +7,16 @@
 #include "util_config.h"
 #include "rng.h"
 #include "xmem.h"
+#include "diediedie.h"
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
-#ifdef DEBUG
-// SPRNG internal thing
-#  define CHECK_POINTERS
+#ifdef WITH_SPRNG
+#  ifdef DEBUG
+#    define CHECK_POINTERS
+#  endif
+#  include <sprng.h>
 #endif
-#include <sprng.h>
 #include <math.h>
 #include <float.h>
 #include <assert.h>
@@ -64,11 +66,15 @@ rng_new(int generatorType, int numStreamsTotal, int randomSeed)
 
 	rng->streams = xmalloc(sizeof(int *) * rng->numStreamsLocal);
 	for (int i = 0; i < rng->numStreamsLocal; i++) {
+#ifdef WITH_SPRNG
 		rng->streams[i] = init_sprng(rng->generatorType,
 		                             rng->baseStreamId + i,
 		                             rng->numStreamsTotal,
 		                             rng->randomSeed,
 		                             SPRNG_DEFAULT);
+#else
+		rng->streams[i] = NULL;
+#endif
 	}
 
 	return rng;
@@ -90,8 +96,10 @@ rng_del(rng_t *rng)
 	assert(rng != NULL);
 	assert(*rng != NULL);
 
+#ifdef WITH_SPRNG
 	for (int i = 0; i < (*rng)->numStreamsLocal; i++)
 		free_rng((*rng)->streams[i]);
+#endif
 	xfree((*rng)->streams);
 	xfree(*rng);
 	*rng = NULL;
@@ -110,6 +118,7 @@ rng_getGauss(const rng_t  rng,
              const double mean,
              const double sigma)
 {
+#ifdef WITH_SPRNG
 	double x, y, r2;
 
 	do {
@@ -119,6 +128,11 @@ rng_getGauss(const rng_t  rng,
 	} while ((r2 > 1.0) || (r2 < DBL_EPSILON));
 
 	return sigma * y * sqrt(-2.0 * log(r2) / r2) + mean;
+
+#else
+	diediedie(EXIT_FAILURE);
+	return 0.0;
+#endif
 }
 
 extern double
