@@ -206,7 +206,7 @@ cosmoPk_evalGSL(double k, void *param)
 extern double
 cosmoPk_calcMomentFiltered(cosmoPk_t pk,
                            uint32_t moment,
-                           double *windowFunc(double, void *),
+                           double (*windowFunc)(double, void *),
                            void *paramWindowFunc,
                            double kmin,
                            double kmax,
