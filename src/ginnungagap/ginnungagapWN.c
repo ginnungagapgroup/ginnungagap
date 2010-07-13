@@ -11,6 +11,7 @@
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
 #include "../libgrid/gridRegular.h"
+#include "../libgrid/gridReader.h"
 #include "../libgrid/gridPatch.h"
 
 
@@ -41,11 +42,11 @@ ginnungagapWN_newFromIni(parse_ini_t ini, const char *sectionName)
 	getFromIni(&(wn->useFile), parse_ini_get_bool,
 	           ini, "useFile", sectionName);
 
-//	wn->reader = NULL;
+	wn->reader = NULL;
 	wn->rng    = NULL;
 
 	if (wn->useFile) {
-//		wn->reader = gridReader_newFromIni(ini, sectionName);
+		wn->reader = gridReader_newFromIni(ini, sectionName);
 	} else {
 		char *rngSectionName;
 #ifndef WITH_SPRNG

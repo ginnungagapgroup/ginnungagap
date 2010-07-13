@@ -9,13 +9,14 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "ginnungagapConfig.h"
 #include <stdbool.h>
+#include "../libgrid/gridReader.h"
 #include "../libutil/rng.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct ginnungagapWN_struct {
 	bool  useFile;
-	// gridReader_t reader;
+	gridReader_t reader;
 	rng_t rng;
 };
 
