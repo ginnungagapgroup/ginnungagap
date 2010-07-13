@@ -1,28 +1,43 @@
+This file lists the external dependencies that ginnungagap uses and
+provides some information about them (like: why? which version?).
+
+
+
 External Dependencies:
+
+
+Required:
+
+FFTW:   - fftw3-3.2.2 (or any other FFTW3 version, FFTW2 is not yet
+          supported)
+        - No need for the MPI parallel version, however, OpenMP or
+          threaded version is advised.  Ginnungagap does nothing to
+          parallelize local transforms --- only global transforms are
+          MPI parallel --- and hence relies on FFTW to do what it deems
+          suitable.
+
+GSL:    - nothing special here, GSL is needed for integration routines
+          and spline fitting
+
+
+Optional:
 
 SPRNG:  - sprng-2.0b
         - Built serial version, ginnungagap uses an explicit method of
           setting the streams and the seeds, no MPI collective calls are
           needed from sprng itself
+        - SPRNG is optional, iff the white noise field is read from a
+          file instead of being generated on the fly.
 
-FFTW:   - fftw3-3.2.2
-        - No need for the MPI parallel version, however, OpenMP or
-          threaded version is advised.  Ginnungagap does nothing to
-          parallelize local transforms --- only global transforms are
-          MPI parallel --- and hence relies and FFTW to do what it deems
-          suitable.
-
-MPI:    - openmpi-1.2(?)
+MPI:    - openmpi-1.2
         - nothing special
+        - any MPI-2 library will do, actually, testing is done with
+          OpenMPI though
 
-GSL:    - nothing special here, GSL is needed for integration routines
-          and spline fitting
+SILO:   - silo-4.7.2 (this is the version testing is done with, older
+          and newer ones might work as well)
+        - Make sure that silo uses HDF5
 
-The following two libraries are required for IO:
-
-HDF5:   - hdf5-1.8.4p1
+HDF5:   - hdf5-1.8.4p1 (or any version that Silo supports)
         - It is possible to use the PDB backend of silo, however, HDF5
           is strongly recommended.
-
-SILO:   - silo-4.7.2
-        - Make sure that silo uses HDF5
