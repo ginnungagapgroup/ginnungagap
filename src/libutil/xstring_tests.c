@@ -8,9 +8,8 @@
 #include "xstring_tests.h"
 #include "xstring.h"
 #include <stdio.h>
-#ifdef XMEM_TRACK_MEM
-#  include "xmem.h"
-#endif
+#include <string.h>
+#include "xmem.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
