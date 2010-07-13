@@ -27,9 +27,9 @@ gridIO_getTypeFromName(const char *name)
 
 	assert(name != NULL);
 
-	if (strcmp(name, localBovStr) == 0)
+	if (strcmp(name, local_typeBovStr) == 0)
 		rtn = IO_TYPE_BOV;
-	else if (strcmp(name, localSiloStr) == 0)
+	else if (strcmp(name, local_typeSiloStr) == 0)
 		rtn = IO_TYPE_SILO;
 	else
 		rtn = IO_TYPE_UNKNOWN;
@@ -37,10 +37,10 @@ gridIO_getTypeFromName(const char *name)
 	return rtn;
 }
 
-extern char *
+extern const char *
 gridIO_getNameFromType(gridIO_type_t type)
 {
-	char *rtn;
+	const char *rtn;
 
 	if (type == IO_TYPE_BOV)
 		rtn = local_typeBovStr;

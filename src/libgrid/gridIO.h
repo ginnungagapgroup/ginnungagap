@@ -21,7 +21,7 @@ typedef enum {
 extern gridIO_type_t
 gridIO_getTypeFromName(const char *name);
 
-extern char *
+extern const char *
 gridIO_getNameFromType(gridIO_type_t type);
 
 #endif

@@ -13,7 +13,10 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-gridIO_EXAMPLE_test(void);
+gridIO_getTypeFromName_test(void);
+
+extern bool
+gridIO_getNameFromType_test(void);
 
 
 #endif
