@@ -25,7 +25,7 @@ extern bool
 cosmoTF_eisensteinHu1998_test(void)
 {
 	bool      hasPassed = true;
-	cosmoTF_t cosmoTF;
+	//cosmoTF_t cosmoTF;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif

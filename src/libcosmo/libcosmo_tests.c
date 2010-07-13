@@ -5,6 +5,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "cosmo_config.h"
+#include "cosmoTF_tests.h"
 #include "cosmoPk_tests.h"
 #include "cosmoModel_tests.h"
 #include <stdio.h>
