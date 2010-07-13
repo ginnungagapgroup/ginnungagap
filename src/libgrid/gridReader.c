@@ -7,6 +7,8 @@
 #include "gridConfig.h"
 #include "gridReader.h"
 #include <assert.h>
+#include <stdio.h>
+#include "gridReaderBov.h"
 #include "../libutil/parse_ini.h"
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
@@ -23,7 +25,7 @@
 static gridReader_t
 local_newFromIniWrapper(parse_ini_t   ini,
                         gridIO_type_t type,
-                        const char    *readerSection);
+                        const char    *readerSectionName);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -53,18 +55,18 @@ gridReader_newFromIni(parse_ini_t ini, const char *sectionName)
 }
 
 extern void
-gridReader_del(gridReader_t *gridReader)
+gridReader_del(gridReader_t *reader)
 {
-	assert(gridReader != NULL && *gridReader != NULL);
+	assert(reader != NULL && *reader != NULL);
 
-	*gridReader->func->(*del)(gridReader);
+	(*reader)->func->del(reader);
 }
 
 /*--- Implementations of local functions --------------------------------*/
 static gridReader_t
 local_newFromIniWrapper(parse_ini_t   ini,
                         gridIO_type_t type,
-                        const char    *readerSection)
+                        const char    *readerSectionName)
 {
 	gridReader_t reader;
 
@@ -72,7 +74,8 @@ local_newFromIniWrapper(parse_ini_t   ini,
 		reader = (gridReader_t)gridReaderBov_newFromIni(ini,
 		                                                readerSectionName);
 	} else {
-		fprintf(stderr, "Cannot create reader for %s\n", readerTypeName);
+		fprintf(stderr, "Cannot create reader for %s\n",
+		        gridIO_getNameFromType(type));
 		diediedie(EXIT_FAILURE);
 	}
 

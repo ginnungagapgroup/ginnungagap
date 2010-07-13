@@ -27,10 +27,10 @@
 extern bool
 gridIO_getTypeFromName_test(void)
 {
-	bool     hasPassed = true;
-	int      rank      = 0;
+	bool   hasPassed      = true;
+	int    rank           = 0;
 #ifdef XMEM_TRACK_MEM
-	size_t   allocatedBytes = global_allocated_bytes;
+	size_t allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -56,11 +56,10 @@ gridIO_getTypeFromName_test(void)
 extern bool
 gridIO_getNameFromType_test(void)
 {
-	bool     hasPassed = true;
-	int      rank      = 0;
-	char     *rtn = NULL;
+	bool   hasPassed      = true;
+	int    rank           = 0;
 #ifdef XMEM_TRACK_MEM
-	size_t   allocatedBytes = global_allocated_bytes;
+	size_t allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -69,17 +68,14 @@ gridIO_getNameFromType_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	rtn = gridIO_getNameFromType(IO_TYPE_BOV);
-	if (strcmp("bov", rtn) != 0)
+	if (strcmp("bov", gridIO_getNameFromType(IO_TYPE_BOV)) != 0)
 		hasPassed = false;
-	rtn = gridIO_getNameFromType(IO_TYPE_SILO);
-	if (strcmp("silo", rtn) != 0)
+	if (strcmp("silo", gridIO_getNameFromType(IO_TYPE_SILO)) != 0)
 		hasPassed = false;
-	rtn = gridIO_getNameFromType(IO_TYPE_UNKNOWN);
-	if (strcmp("unknown", rtn) != 0)
+	if (strcmp("unknown", gridIO_getNameFromType(IO_TYPE_UNKNOWN)) != 0)
 		hasPassed = false;
-	rtn = gridIO_getNameFromType(IO_TYPE_UNKNOWN*14);
-	if (strcmp("unknown", rtn) != 0)
+	if (strcmp("unknown",
+	           gridIO_getNameFromType(IO_TYPE_UNKNOWN * 14)) != 0)
 		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -87,6 +83,6 @@ gridIO_getNameFromType_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridIO_getNameFromType_test */
 
 /*--- Implementations of local functions --------------------------------*/

@@ -8,22 +8,26 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
+#include "gridReader.h"
 #include "gridIO.h"
 #include "../libutil/parse_ini.h"
 
 
 /*--- Internal structures -----------------------------------------------*/
 struct gridReader_func_struct {
-	void         (*del)(gridReader_t *gridReader);
+	void         (*del)(gridReader_t *reader);
 };
 
 typedef struct gridReader_func_struct *gridReader_func_t;
 
 
 /*--- ADT implementation ------------------------------------------------*/
-struct gridReader_struct {
-	gridIO_type_t     type;
+#define GRIDREADER_T_CONTENT \
+	gridIO_type_t     type; \
 	gridReader_func_t func;
+
+struct gridReader_struct {
+	GRIDREADER_T_CONTENT;
 };
 
 

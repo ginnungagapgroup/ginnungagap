@@ -2,25 +2,26 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GRIDREADER_H
-#define GRIDREADER_H
+#ifndef GRIDREADERBOV_H
+#define GRIDREADERBOV_H
 
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
+#include "gridReader.h"
 #include "../libutil/parse_ini.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
-typedef struct gridReader_struct *gridReader_t;
+typedef struct gridReaderBov_struct *gridReaderBov_t;
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
-extern gridReader_t
-gridReader_newFromIni(parse_ini_t ini, const char *sectionName);
+extern gridReaderBov_t
+gridReaderBov_newFromIni(parse_ini_t ini, const char *sectionName);
 
 extern void
-gridReader_del(gridReader_t *reader);
+gridReaderBov_del(gridReader_t *reader);
 
 
 #endif

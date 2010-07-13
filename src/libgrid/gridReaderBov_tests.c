@@ -5,8 +5,8 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#include "gridReader_tests.h"
-#include "gridReader.h"
+#include "gridReaderBov_tests.h"
+#include "gridReaderBov.h"
 #include <stdio.h>
 #include <string.h>
 #ifdef WITH_MPI
@@ -18,7 +18,7 @@
 
 
 /*--- Implemention of main structure ------------------------------------*/
-#include "gridReader_adt.h"
+#include "gridReaderBov_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -29,14 +29,14 @@
 
 /*--- Implementations of exported functios ------------------------------*/
 extern bool
-gridReader_newFromIni_test(void)
+gridReaderBov_newFromIni_test(void)
 {
-	bool         hasPassed = true;
-	int          rank      = 0;
-	parse_ini_t  ini;
-	gridReader_t reader;
+	bool            hasPassed = true;
+	int             rank      = 0;
+	parse_ini_t     ini;
+	gridReaderBov_t reader;
 #ifdef XMEM_TRACK_MEM
-	size_t       allocatedBytes = global_allocated_bytes;
+	size_t          allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -45,10 +45,10 @@ gridReader_newFromIni_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	ini = parse_ini_open("tests/reading.ini");
+	ini    = parse_ini_open("tests/reading.ini");
 
-	reader = gridReader_newFromIni(ini, "ReaderPlain");
-	gridReader_del(&reader);
+	reader = gridReaderBov_newFromIni(ini, "BovDetails");
+	gridReaderBov_del((gridReader_t *)&reader);
 	parse_ini_close(&ini);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -59,14 +59,14 @@ gridReader_newFromIni_test(void)
 }
 
 extern bool
-gridReader_del_test(void)
+gridReaderBov_del_test(void)
 {
-	bool         hasPassed = true;
-	int          rank      = 0;
-	parse_ini_t  ini;
-	gridReader_t reader;
+	bool            hasPassed = true;
+	int             rank      = 0;
+	parse_ini_t     ini;
+	gridReaderBov_t reader;
 #ifdef XMEM_TRACK_MEM
-	size_t       allocatedBytes = global_allocated_bytes;
+	size_t          allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -75,10 +75,10 @@ gridReader_del_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	ini = parse_ini_open("tests/reading.ini");
+	ini    = parse_ini_open("tests/reading.ini");
 
-	reader = gridReader_newFromIni(ini, "ReaderPlain");
-	gridReader_del(&reader);
+	reader = gridReaderBov_newFromIni(ini, "BovDetails");
+	gridReaderBov_del((gridReader_t *)&reader);
 	if (reader != NULL)
 		hasPassed = false;
 	parse_ini_close(&ini);

@@ -2,8 +2,8 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GRIDREADER_TESTS_H
-#define GRIDREADER_TESTS_H
+#ifndef GRIDREADERBOV_TESTS_H
+#define GRIDREADERBOV_TESTS_H
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -13,10 +13,10 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-gridReader_newFromIni_test(void);
+gridReaderBov_newFromIni_test(void);
 
 extern bool
-gridReader_del_test(void);
+gridReaderBov_del_test(void);
 
 
 #endif
