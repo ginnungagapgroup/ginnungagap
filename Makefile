@@ -16,13 +16,21 @@ else
 CONFIG_AVAILABLE=false
 endif
 
+ifeq ($(shell if test -d .git ; then echo "true" ; fi),true)
+GITDIR_AVAILABLE=true
+else
+GITDIR_AVAILABLE=false
+endif
+
 .PHONY: all clean dist-clean doc tarball statistics tests
 
 ifeq ($(CONFIG_AVAILABLE),true)
 include Makefile.config
 
 all:
+ifeq ($(GITDIR_AVAILABLE),true)
 	scripts/insert_revision.sh
+endif
 	$(MAKE) -C src
 	$(MAKE) -C tools
 
@@ -35,17 +43,26 @@ dist-clean:
 	$(MAKE) -C src dist-clean
 	$(MAKE) -C tools dist-clean
 	find . -name *.d.[0-9]* -exec rm {} \;
-	@rm -f version.h Makefile.config config.h config.log
+ifeq ($(GITDIR_AVAILABLE),true)
+	rm -f version.h
+endif
+	rm -f Makefile.config config.h config.log
 
 tests:
 	$(MAKE) -C src tests
 	$(MAKE) -C tools tests
+else
+all:
+	@echo -n "Please run ./configure first "
+	@echo "(check ./configure --help for options)"
 endif
 
+ifeq ($(GITDIR_AVAILABLE),true)
 tarball:
 	@scripts/insert_revision.sh
 	@scripts/make_tar.sh
 	@rm -f version.h
+endif
 
 statistics:
-	@scripts/show-statistics.sh
+	scripts/show-statistics.sh
