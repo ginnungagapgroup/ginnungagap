@@ -8,6 +8,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
+#include "gridPatch.h"
 #include "../libutil/parse_ini.h"
 
 
@@ -22,5 +23,12 @@ gridReader_newFromIni(parse_ini_t ini, const char *sectionName);
 extern void
 gridReader_del(gridReader_t *reader);
 
+extern void
+gridReader_readIntoPatch(gridReader_t reader, gridPatch_t patch);
+
+extern void
+gridReader_readIntoPatchForVar(gridReader_t reader,
+                               gridPatch_t  patch,
+                               int          idxOfVar);
 
 #endif

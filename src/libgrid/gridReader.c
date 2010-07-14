@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "gridReaderBov.h"
+#include "gridPatch.h"
 #include "../libutil/parse_ini.h"
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
@@ -60,6 +61,28 @@ gridReader_del(gridReader_t *reader)
 	assert(reader != NULL && *reader != NULL);
 
 	(*reader)->func->del(reader);
+}
+
+extern void
+gridReader_readIntoPatch(gridReader_t reader, gridPatch_t patch)
+{
+	assert(reader != NULL);
+	assert(patch != NULL);
+	assert(reader->func->readIntoPatch != NULL);
+
+	reader->func->readIntoPatch(reader, patch);
+}
+
+extern void
+gridReader_readIntoPatchForVar(gridReader_t reader,
+                               gridPatch_t  patch,
+                               int          idxOfVar)
+{
+	assert(reader != NULL);
+	assert(patch != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < gridPatch_getNumVars(patch));
+
+	reader->func->readIntoPatchForVar(reader, patch, idxOfVar);
 }
 
 /*--- Implementations of local functions --------------------------------*/
