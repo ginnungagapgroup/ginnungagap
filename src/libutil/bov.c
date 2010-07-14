@@ -136,6 +136,186 @@ bov_del(bov_t *bov)
 	*bov = NULL;
 }
 
+extern double
+bov_getTime(const bov_t bov)
+{
+	assert(bov != NULL);
+
+	return bov->time;
+}
+
+extern char *
+bov_getDataFileName(const bov_t bov)
+{
+	char *rtn;
+
+	assert(bov != NULL);
+
+	if (bov->data_file[0] == '/')
+		rtn = xstrdup(bov->data_file);
+	else {
+		char *tmp = xstrmerge(bov->bovFilePath, "/");
+		rtn = xstrmerge(tmp, bov->data_file);
+		xfree(tmp);
+	}
+
+	return rtn;
+}
+
+extern void
+bov_getDataSize(const bov_t bov, uint32_t *dataSize)
+{
+	assert(bov != NULL);
+	assert(dataSize != NULL);
+
+	dataSize[0] = bov->data_size[0];
+	dataSize[1] = bov->data_size[1];
+	dataSize[2] = bov->data_size[2];
+}
+
+extern bovFormat_t
+bov_getDataFormat(const bov_t bov)
+{
+	assert(bov != NULL);
+
+	return bov->data_format;
+}
+
+extern char *
+bov_getVarName(const bov_t bov)
+{
+	assert(bov != NULL);
+
+	return xstrdup(bov->variable);
+}
+
+extern bovEndian_t
+bov_getDataEndian(const bov_t bov)
+{
+	assert(bov != NULL);
+
+	return bov->data_endian;
+}
+
+extern bovCentering_t
+bov_getCentering(const bov_t bov)
+{
+	assert(bov != NULL);
+
+	return bov->centering;
+}
+
+extern void
+bov_getBrickOrigin(const bov_t bov, double *brickOrigin)
+{
+	assert(bov != NULL);
+	assert(brickOrigin != NULL);
+
+	brickOrigin[0] = bov->brick_origin[0];
+	brickOrigin[1] = bov->brick_origin[1];
+	brickOrigin[2] = bov->brick_origin[2];
+}
+
+extern void
+bov_getBrickSize(const bov_t bov, double *brickSize)
+{
+	assert(bov != NULL);
+	assert(brickSize != NULL);
+
+	brickSize[0] = bov->brick_size[0];
+	brickSize[1] = bov->brick_size[1];
+	brickSize[2] = bov->brick_size[2];
+}
+
+extern void
+bov_setTime(bov_t bov, const double time)
+{
+	assert(bov != NULL);
+
+	bov->time = time;
+}
+
+extern void
+bov_setDataFileName(bov_t bov, const char *dataFileName)
+{
+	assert(bov != NULL);
+	assert(dataFileName != NULL);
+
+	if (bov->data_file != NULL)
+		xfree(bov->data_file);
+
+	bov->data_file = xstrdup(dataFileName);
+}
+
+extern void
+bov_setDataSize(bov_t bov, const uint32_t *dataSize)
+{
+	assert(bov != NULL);
+	assert(dataSize != NULL);
+
+	bov->data_size[0] = dataSize[0];
+	bov->data_size[1] = dataSize[1];
+	bov->data_size[2] = dataSize[2];
+}
+
+extern void
+bov_setDataFormat(bov_t bov, const bovFormat_t format)
+{
+	assert(bov != NULL);
+
+	bov->data_format = format;
+}
+
+extern void
+bov_setVarName(bov_t bov, const char *varName)
+{
+	assert(bov != NULL);
+	assert(varName != NULL);
+
+	if (bov->variable != NULL)
+		xfree(bov->variable);
+
+	bov->variable = xstrdup(varName);
+}
+
+extern void
+bov_setDataEndian(bov_t bov, const bovEndian_t endian)
+{
+	assert(bov != NULL);
+
+	bov->data_endian = endian;
+}
+
+extern void
+bov_setCentering(bov_t bov, const bovCentering_t centering)
+{
+	assert(bov != NULL);
+
+	bov->centering = centering;
+}
+
+extern void
+bov_setBrickOrigin(bov_t bov, const double *brickOrigin)
+{
+	assert(bov != NULL);
+	assert(brickOrigin != NULL);
+
+	bov->brick_origin[0] = brickOrigin[0];
+	bov->brick_origin[1] = brickOrigin[1];
+	bov->brick_origin[2] = brickOrigin[2];
+}
+
+extern void
+bov_setBrickSize(bov_t bov, const double *brickSize)
+{
+	assert(bov != NULL);
+	assert(brickSize != NULL);
+
+	bov->brick_size[0] = brickSize[0];
+	bov->brick_size[1] = brickSize[1];
+	bov->brick_size[2] = brickSize[2];
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static bovEndian_t
 local_getMachineEndianess(void)

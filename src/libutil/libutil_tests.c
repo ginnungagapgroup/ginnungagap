@@ -106,10 +106,29 @@ main(int argc, char **argv)
 		RUNTEST(&bov_new_test, hasFailed);
 		RUNTEST(&bov_newFromFile_test, hasFailed);
 		RUNTEST(&bov_del_test, hasFailed);
+		RUNTEST(&bov_getTime_test, hasFailed);
+		RUNTEST(&bov_getDataFileName_test, hasFailed);
+		RUNTEST(&bov_getDataSize_test, hasFailed);
+		RUNTEST(&bov_getDataFormat_test, hasFailed);
+		RUNTEST(&bov_getVarName_test, hasFailed);
+		RUNTEST(&bov_getDataEndian_test, hasFailed);
+		RUNTEST(&bov_getCentering_test, hasFailed);
+		RUNTEST(&bov_getBrickOrigin_test, hasFailed);
+		RUNTEST(&bov_getBrickSize_test, hasFailed);
+		RUNTEST(&bov_setTime_test, hasFailed);
+		RUNTEST(&bov_setDataFileName_test, hasFailed);
+		RUNTEST(&bov_setDataSize_test, hasFailed);
+		RUNTEST(&bov_setDataFormat_test, hasFailed);
+		RUNTEST(&bov_setVarName_test, hasFailed);
+		RUNTEST(&bov_setDataEndian_test, hasFailed);
+		RUNTEST(&bov_setCentering_test, hasFailed);
+		RUNTEST(&bov_setBrickOrigin_test, hasFailed);
+		RUNTEST(&bov_setBrickSize_test, hasFailed);
 	}
 
 
 #ifdef WITH_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
 	if (rank == 0) {
 		printf("\nRunning tests for commSchemeBuffer:\n");
 	}

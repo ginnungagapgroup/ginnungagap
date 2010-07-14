@@ -21,5 +21,59 @@ bov_newFromFile_test(void);
 extern bool
 bov_del_test(void);
 
+extern bool
+bov_getTime_test(void);
+
+extern bool
+bov_getDataFileName_test(void);
+
+extern bool
+bov_getDataSize_test(void);
+
+extern bool
+bov_getDataFormat_test(void);
+
+extern bool
+bov_getVarName_test(void);
+
+extern bool
+bov_getDataEndian_test(void);
+
+extern bool
+bov_getCentering_test(void);
+
+extern bool
+bov_getBrickOrigin_test(void);
+
+extern bool
+bov_getBrickSize_test(void);
+
+extern bool
+bov_setTime_test(void);
+
+extern bool
+bov_setDataFileName_test(void);
+
+extern bool
+bov_setDataSize_test(void);
+
+extern bool
+bov_setDataFormat_test(void);
+
+extern bool
+bov_setVarName_test(void);
+
+extern bool
+bov_setDataEndian_test(void);
+
+extern bool
+bov_setCentering_test(void);
+
+extern bool
+bov_setBrickOrigin_test(void);
+
+extern bool
+bov_setBrickSize_test(void);
+
 
 #endif
