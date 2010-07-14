@@ -6,9 +6,12 @@
 #define XSTRING_H
 
 
+/*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include <stdio.h>
 
+
+/*--- Prototypes of exported functions ----------------------------------*/
 
 /**
  * \brief  Clone of the GNU strdup() function
@@ -39,6 +42,7 @@ xstrdup(const char *s);
  */
 extern size_t
 xgetline(char **line, size_t *n, FILE *f);
+
 
 /**
  * \brief  This takes two strings and generates a new one that consists
