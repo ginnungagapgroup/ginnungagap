@@ -124,6 +124,8 @@ main(int argc, char **argv)
 		RUNTEST(&bov_setCentering_test, hasFailed);
 		RUNTEST(&bov_setBrickOrigin_test, hasFailed);
 		RUNTEST(&bov_setBrickSize_test, hasFailed);
+		RUNTEST(&bov_read_test, hasFailed);
+		RUNTEST(&bov_readWindowed_test, hasFailed);
 	}
 
 

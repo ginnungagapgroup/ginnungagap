@@ -173,12 +173,12 @@ bov_getDataFileName_test(void)
 extern bool
 bov_getDataSize_test(void)
 {
-	bool   hasPassed = true;
-	int    rank      = 0;
-	bov_t  bov;
+	bool     hasPassed = true;
+	int      rank      = 0;
+	bov_t    bov;
 	uint32_t dataSize[3];
 #ifdef XMEM_TRACK_MEM
-	size_t allocatedBytes = global_allocated_bytes;
+	size_t   allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -238,7 +238,7 @@ bov_getVarName_test(void)
 	bool   hasPassed = true;
 	int    rank      = 0;
 	bov_t  bov;
-	char *varName;
+	char   *varName;
 #ifdef XMEM_TRACK_MEM
 	size_t allocatedBytes = global_allocated_bytes;
 #endif
@@ -249,7 +249,7 @@ bov_getVarName_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov = bov_newFromFile("tests/test_1.bov");
+	bov     = bov_newFromFile("tests/test_1.bov");
 	varName = bov_getVarName(bov);
 	if (strcmp(varName, "testVar") != 0)
 		hasPassed = false;
@@ -448,12 +448,12 @@ bov_setDataFileName_test(void)
 extern bool
 bov_setDataSize_test(void)
 {
-	bool   hasPassed = true;
-	int    rank      = 0;
-	bov_t  bov;
-	uint32_t dataSize[3] = {45, 45, 45};
+	bool     hasPassed      = true;
+	int      rank           = 0;
+	bov_t    bov;
+	uint32_t dataSize[3]    = { 45, 45, 45 };
 #ifdef XMEM_TRACK_MEM
-	size_t allocatedBytes = global_allocated_bytes;
+	size_t   allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -598,10 +598,10 @@ bov_setCentering_test(void)
 extern bool
 bov_setBrickOrigin_test(void)
 {
-	bool   hasPassed = true;
-	int    rank      = 0;
+	bool   hasPassed      = true;
+	int    rank           = 0;
 	bov_t  bov;
-	double origin[3] = {-1.1, -3.1, -2.1};
+	double origin[3]      = { -1.1, -3.1, -2.1 };
 #ifdef XMEM_TRACK_MEM
 	size_t allocatedBytes = global_allocated_bytes;
 #endif
@@ -632,10 +632,10 @@ bov_setBrickOrigin_test(void)
 extern bool
 bov_setBrickSize_test(void)
 {
-	bool   hasPassed = true;
-	int    rank      = 0;
+	bool   hasPassed      = true;
+	int    rank           = 0;
 	bov_t  bov;
-	double size[3] = {1.1, 3.1, 2.1};
+	double size[3]        = { 1.1, 3.1, 2.1 };
 #ifdef XMEM_TRACK_MEM
 	size_t allocatedBytes = global_allocated_bytes;
 #endif
@@ -663,5 +663,183 @@ bov_setBrickSize_test(void)
 	return hasPassed ? true : false;
 }
 
+extern bool
+bov_read_test(void)
+{
+	bool     hasPassed = true;
+	int      rank      = 0;
+	bov_t    bov;
+	uint32_t size[3];
+	size_t   numElements;
+	double   *data;
+	float    *dataFloat;
+#ifdef XMEM_TRACK_MEM
+	size_t   allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	bov         = bov_newFromFile("tests/test_1.bov");
+	bov_getDataSize(bov, size);
+	numElements = size[0] * size[1] * size[2];
+
+	data        = xmalloc(sizeof(double) * 2 * numElements);
+	bov_read(bov, data, BOV_FORMAT_DOUBLE, 2);
+	for (int i = 0; i < numElements; i++) {
+		if (islessgreater(data[i * 2], (double)i))
+			hasPassed = false;
+		if (isless(data[i * 2 + 1], 0.0) || isgreater(data[i * 2 + 1], 1.0))
+			hasPassed = false;
+	}
+	xfree(data);
+
+	data = xmalloc(sizeof(double) * numElements);
+	bov_read(bov, data, BOV_FORMAT_DOUBLE, 1);
+	for (int i = 0; i < numElements; i++) {
+		if (islessgreater(data[i], (double)i))
+			hasPassed = false;
+	}
+	xfree(data);
+
+	dataFloat = xmalloc(sizeof(float) * 2 * numElements);
+	bov_read(bov, dataFloat, BOV_FORMAT_FLOAT, 2);
+	for (int i = 0; i < numElements; i++) {
+		if (islessgreater(dataFloat[i * 2], (float)i))
+			hasPassed = false;
+		if (isless(dataFloat[i * 2 + 1], 0.0)
+		    || isgreater(dataFloat[i * 2 + 1], 1.0))
+			hasPassed = false;
+	}
+	xfree(dataFloat);
+
+	dataFloat = xmalloc(sizeof(float) * numElements);
+	bov_read(bov, dataFloat, BOV_FORMAT_FLOAT, 1);
+	for (int i = 0; i < numElements; i++) {
+		if (islessgreater(dataFloat[i], (float)i))
+			hasPassed = false;
+	}
+	xfree(dataFloat);
+
+	bov_del(&bov);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* bov_read_test */
+
+extern bool
+bov_readWindowed_test(void)
+{
+	bool     hasPassed = true;
+	int      rank      = 0;
+	bov_t    bov;
+	uint32_t idxLo[3]  = { 1, 1, 1 };
+	uint32_t dims[3]   = { 3, 2, 1 };
+	uint32_t size[3];
+	size_t   numElements;
+	double   *data;
+	float    *dataFloat;
+#ifdef XMEM_TRACK_MEM
+	size_t   allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	bov         = bov_newFromFile("tests/test_1.bov");
+	bov_getDataSize(bov, size);
+	numElements = dims[0] * dims[1] * dims[2];
+
+	data        = xmalloc(sizeof(double) * 2 * numElements);
+	bov_readWindowed(bov, data, BOV_FORMAT_DOUBLE, 2, idxLo, dims);
+	for (int k = 0; k < dims[2]; k++) {
+		for (int j = 0; j < dims[1]; j++) {
+			for (int i = 0; i < dims[0]; i++) {
+				int    pos    = i + (j + k * dims[1]) * dims[0];
+				double bovPos = (double)((i + idxLo[0])
+				                         + ((j + idxLo[1])
+				                            + (k + idxLo[2]) * size[1])
+				                         * size[0]);
+				if (islessgreater(data[pos * 2], bovPos))
+					hasPassed = false;
+				if (isless(data[pos * 2 + 1], 0.0)
+				    || isgreater(data[pos * 2 + 1], 1.0))
+					hasPassed = false;
+			}
+		}
+	}
+	xfree(data);
+
+	data = xmalloc(sizeof(double) * numElements);
+	bov_readWindowed(bov, data, BOV_FORMAT_DOUBLE, 1, idxLo, dims);
+	for (int k = 0; k < dims[2]; k++) {
+		for (int j = 0; j < dims[1]; j++) {
+			for (int i = 0; i < dims[0]; i++) {
+				int    pos    = i + (j + k * dims[1]) * dims[0];
+				double bovPos = (double)((i + idxLo[0])
+				                         + ((j + idxLo[1])
+				                            + (k + idxLo[2]) * size[1])
+				                         * size[0]);
+				if (islessgreater(data[pos], bovPos))
+					hasPassed = false;
+			}
+		}
+	}
+	xfree(data);
+
+	dataFloat = xmalloc(sizeof(float) * 2 * numElements);
+	bov_readWindowed(bov, dataFloat, BOV_FORMAT_FLOAT, 2, idxLo, dims);
+	for (int k = 0; k < dims[2]; k++) {
+		for (int j = 0; j < dims[1]; j++) {
+			for (int i = 0; i < dims[0]; i++) {
+				int   pos    = i + (j + k * dims[1]) * dims[0];
+				float bovPos = (float)((i + idxLo[0])
+				                       + ((j + idxLo[1])
+				                          + (k + idxLo[2]) * size[1])
+				                       * size[0]);
+				if (islessgreater(dataFloat[pos * 2], bovPos))
+					hasPassed = false;
+				if (isless(dataFloat[pos * 2 + 1], 0.0)
+				    || isgreater(dataFloat[pos * 2 + 1], 1.0))
+					hasPassed = false;
+			}
+		}
+	}
+	xfree(dataFloat);
+
+	dataFloat = xmalloc(sizeof(float) * numElements);
+	bov_readWindowed(bov, dataFloat, BOV_FORMAT_FLOAT, 1, idxLo, dims);
+	for (int k = 0; k < dims[2]; k++) {
+		for (int j = 0; j < dims[1]; j++) {
+			for (int i = 0; i < dims[0]; i++) {
+				int   pos    = i + (j + k * dims[1]) * dims[0];
+				float bovPos = (float)((i + idxLo[0])
+				                       + ((j + idxLo[1])
+				                          + (k + idxLo[2]) * size[1])
+				                       * size[0]);
+				if (islessgreater(dataFloat[pos], bovPos))
+					hasPassed = false;
+			}
+		}
+	}
+	xfree(dataFloat);
+
+	bov_del(&bov);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* bov_readWindowed_test */
 
 /*--- Implementations of local functions --------------------------------*/

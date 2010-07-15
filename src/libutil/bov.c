@@ -70,15 +70,48 @@ local_readBool(const char *line);
 static int
 local_readDataComponent(const char *line);
 
+static void
+local_readBuffered(bov_t       bov,
+                   void        *data,
+                   bovFormat_t dataFormat,
+                   int         numComponents,
+                   size_t      numElements,
+                   FILE        *f);
+
+static void
+local_readWindowedActualRead(bov_t       bov,
+                             void        *data,
+                             bovFormat_t dataFormat,
+                             int         numComponents,
+                             uint32_t    *idxLo,
+                             uint32_t    *dims);
+
 static size_t
 local_getSizeForFormat(bovFormat_t format);
 
 static void
 local_readPencil(bov_t  bov,
                  void   *buffer,
-                 FILE   *f,
-                 size_t sizePerEle,
-                 size_t numElements);
+                 size_t numElements,
+                 FILE   *f);
+
+static void
+local_mvBufferToData(bov_t       bov,
+                     void        *buffer,
+                     size_t      numElements,
+                     void        *data,
+                     size_t      dataOffset,
+                     bovFormat_t dataFormat,
+                     int         numComponents);
+
+static void
+local_cpBufferToData(bov_t       bov,
+                     void        *buffer,
+                     size_t      numElements,
+                     void        *data,
+                     size_t      dataOffset,
+                     bovFormat_t dataFormat,
+                     int         numComponents);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -328,6 +361,37 @@ bov_setBrickSize(bov_t bov, const double *brickSize)
 }
 
 extern void
+bov_read(bov_t       bov,
+         void        *data,
+         bovFormat_t dataFormat,
+         int         numComponents)
+{
+	FILE   *f;
+	char   *fileName;
+	size_t numElements;
+
+	assert(bov != NULL);
+	assert(data != NULL);
+	assert(numComponents > 0);
+
+	numElements = bov->data_size[0] * bov->data_size[1] * bov->data_size[2];
+	fileName    = bov_getDataFileName(bov);
+	f           = xfopen(fileName, "rb");
+	xfseek(f, bov->byte_offset, SEEK_SET);
+
+	if ((bov->data_format == dataFormat)
+	    && (bov->data_components == numComponents)) {
+		local_readPencil(bov, data, numElements, f);
+	} else {
+		local_readBuffered(bov, data, dataFormat, numComponents,
+		                   numElements, f);
+	}
+
+	xfclose(&f);
+	xfree(fileName);
+}
+
+extern void
 bov_readWindowed(bov_t       bov,
                  void        *data,
                  bovFormat_t dataFormat,
@@ -349,27 +413,9 @@ bov_readWindowed(bov_t       bov,
 		diediedie(EXIT_FAILURE);
 	}
 
-	char   *dataFileName = bov_getDataFileName(bov);
-	FILE   *f            = xfopen(dataFileName, "rb");
-	size_t sizePerEle    = local_getSizeForFormat(bov->data_format);
-	void   *buffer       = xmalloc(
-	    sizePerEle * bov->data_components * dims[0]);
-
-	for (uint32_t k = idxLo[2]; k - idxLo[2] < dims[2]; k++) {
-		for (uint32_t j = idxLo[1]; j - idxLo[1] < dims[1]; j++) {
-			long offset;
-			offset = idxLo[0]
-			         + (j + k * bov->data_size[1]) * bov->data_size[0]
-			         + bov->byte_offset;
-			xfseek(f, offset, SEEK_SET);
-			local_readPencil(bov, buffer, f, sizePerEle, (size_t)(dims[0]));
-		}
-	}
-
-	xfclose(&f);
-	xfree(dataFileName);
-	xfree(buffer);
-} /* bov_readWindowed */
+	local_readWindowedActualRead(bov, data, dataFormat, numComponents,
+	                             idxLo, dims);
+}
 
 /*--- Implementations of local functions --------------------------------*/
 static bovEndian_t
@@ -651,6 +697,72 @@ local_readDataComponent(const char *line)
 	return val;
 }
 
+static void
+local_readBuffered(bov_t       bov,
+                   void        *data,
+                   bovFormat_t dataFormat,
+                   int         numComponents,
+                   size_t      numElements,
+                   FILE        *f)
+{
+	int  sizeBufferEle = local_getSizeForFormat(bov->data_format);
+	void *buffer       = xmalloc(sizeBufferEle * bov->data_components
+	                             * numElements);
+
+	local_readPencil(bov, buffer, numElements, f);
+
+	if (bov->data_format == dataFormat)
+		local_mvBufferToData(bov, buffer, numElements,
+		                     data, 0, dataFormat, numComponents);
+	else
+		local_cpBufferToData(bov, buffer, numElements,
+		                     data, 0, dataFormat, numComponents);
+
+	xfree(buffer);
+}
+
+static void
+local_readWindowedActualRead(bov_t       bov,
+                             void        *data,
+                             bovFormat_t dataFormat,
+                             int         numComponents,
+                             uint32_t    *idxLo,
+                             uint32_t    *dims)
+{
+	char   *dataFileName = bov_getDataFileName(bov);
+	FILE   *f            = xfopen(dataFileName, "rb");
+	size_t sizePerEle    = local_getSizeForFormat(bov->data_format);
+	void   *buffer       = xmalloc(sizePerEle * bov->data_components
+	                               * dims[0]);
+
+	for (uint32_t k = idxLo[2]; k - idxLo[2] < dims[2]; k++) {
+		for (uint32_t j = idxLo[1]; j - idxLo[1] < dims[1]; j++) {
+			long   offset;
+			size_t dataOffset;
+			offset     = idxLo[0]
+			             + (j + k * bov->data_size[1]) * bov->data_size[0];
+			offset    *= sizePerEle * bov->data_components;
+			offset    += bov->byte_offset;
+			dataOffset = (j - idxLo[1] + (k - idxLo[2]) * dims[1])
+			             * dims[0];
+			xfseek(f, offset, SEEK_SET);
+			local_readPencil(bov, buffer, (size_t)(dims[0]), f);
+			if (dataFormat == bov->data_format)
+				local_mvBufferToData(bov, buffer, (size_t)(dims[0]),
+				                     data, dataOffset, dataFormat,
+				                     numComponents);
+			else
+				local_cpBufferToData(bov, buffer, (size_t)(dims[0]),
+				                     data, dataOffset, dataFormat,
+				                     numComponents);
+		}
+	}
+
+	xfree(buffer);
+	xfclose(&f);
+	xfree(dataFileName);
+} /* local_readWindowedActualRead */
+
 static size_t
 local_getSizeForFormat(bovFormat_t format)
 {
@@ -671,10 +783,11 @@ local_getSizeForFormat(bovFormat_t format)
 static void
 local_readPencil(bov_t  bov,
                  void   *buffer,
-                 FILE   *f,
-                 size_t sizePerEle,
-                 size_t numElements)
+                 size_t numElements,
+                 FILE   *f)
 {
+	size_t sizePerEle = local_getSizeForFormat(bov->data_format);
+
 	xfread(buffer, sizePerEle * bov->data_components, numElements, f);
 
 	if (bov->machineEndianess != bov->data_endian) {
@@ -682,3 +795,92 @@ local_readPencil(bov_t  bov,
 			byteswap(((char *)buffer) + (i * sizePerEle), sizePerEle);
 	}
 }
+
+static void
+local_mvBufferToData(bov_t       bov,
+                     void        *buffer,
+                     size_t      numElements,
+                     void        *data,
+                     size_t      dataOffset,
+                     bovFormat_t dataFormat,
+                     int         numComponents)
+{
+	int sizeBufferEle = local_getSizeForFormat(bov->data_format);
+	int sizeDataEle   = local_getSizeForFormat(dataFormat);
+	int recData       = sizeDataEle * numComponents;
+	int recBuffer     = sizeBufferEle * bov->data_components;
+
+	if (recData == recBuffer)
+		memcpy((char *)data + recData * dataOffset, buffer,
+		       recData * numElements);
+	else {
+		for (size_t i = 0; i < numElements; i++)
+			memcpy((char *)data + recData * (dataOffset + i),
+			       (char *)buffer + recBuffer * i,
+			       recData);
+	}
+}
+
+#define cpy(trgt)                                                        \
+	{                                                                    \
+		if (dataFormat == BOV_FORMAT_INT) {                              \
+			for (int j = 0; j < numComponents; j++)                      \
+				dat.i[i * numComponents                                  \
+				      + j] = (int)trgt[i * bov->data_components + j];    \
+		} else if (dataFormat == BOV_FORMAT_FLOAT) {                     \
+			for (int j = 0; j < numComponents; j++)                      \
+				dat.f[i * numComponents                                  \
+				      + j] = (float)trgt[i * bov->data_components + j];  \
+		} else if (dataFormat == BOV_FORMAT_DOUBLE) {                    \
+			for (int j = 0; j < numComponents; j++)                      \
+				dat.d[i * numComponents                                  \
+				      + j] = (double)trgt[i * bov->data_components + j]; \
+		} else {                                                         \
+			for (int j = 0; j < numComponents; j++)                      \
+				dat.b[i * numComponents                                  \
+				      + j] = (char)trgt[i * bov->data_components + j];   \
+		}                                                                \
+	}
+#define recsize (local_getSizeForFormat(dataFormat) * numComponents)
+static void
+local_cpBufferToData(bov_t       bov,
+                     void        *buffer,
+                     size_t      numElements,
+                     void        *data,
+                     size_t      dataOffset,
+                     bovFormat_t dataFormat,
+                     int         numComponents)
+{
+	union { int    *i;
+		    double *d;
+		    float  *f;
+		    char   *b;
+	} dat, buf;
+
+	dat.b = (char *)data + dataOffset * recsize;
+	buf.b = (char *)buffer;
+
+	switch (bov->data_format) {
+	case BOV_FORMAT_INT:
+		for (size_t i = 0; i < numElements; i++)
+			cpy(buf.i);
+		break;
+	case BOV_FORMAT_FLOAT:
+		for (size_t i = 0; i < numElements; i++)
+			cpy(buf.f);
+		break;
+	case BOV_FORMAT_DOUBLE:
+		for (size_t i = 0; i < numElements; i++)
+			cpy(buf.d);
+		break;
+	case BOV_FORMAT_BYTE:
+		for (size_t i = 0; i < numElements; i++)
+			cpy(buf.b);
+		break;
+	default:
+		break;
+	}
+}
+
+#undef cpy
+#undef recsize

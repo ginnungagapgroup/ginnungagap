@@ -75,5 +75,11 @@ bov_setBrickOrigin_test(void);
 extern bool
 bov_setBrickSize_test(void);
 
+extern bool
+bov_read_test(void);
+
+extern bool
+bov_readWindowed_test(void);
+
 
 #endif

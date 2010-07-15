@@ -99,6 +99,12 @@ extern void
 bov_setBrickSize(bov_t bov, const double *brickSize);
 
 extern void
+bov_read(bov_t       bov,
+         void        *data,
+         bovFormat_t dataFormat,
+         int         numComponents);
+
+extern void
 bov_readWindowed(bov_t       bov,
                  void        *data,
                  bovFormat_t dataFormat,
