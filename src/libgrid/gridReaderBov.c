@@ -26,9 +26,9 @@
 
 /*--- Local variables ---------------------------------------------------*/
 static struct gridReader_func_struct local_func
-    = {&gridReaderBov_del,
-	   &gridReaderBov_readIntoPatch,
-	   &gridReaderBov_readIntoPatchForVar};
+    = { &gridReaderBov_del,
+	    &gridReaderBov_readIntoPatch,
+	    &gridReaderBov_readIntoPatchForVar };
 
 /*--- Prototypes of local functions -------------------------------------*/
 static gridVar_t
@@ -66,9 +66,9 @@ gridReaderBov_del(gridReader_t *reader)
 	gridReaderBov_t tmp;
 
 	assert(reader != NULL && *reader != NULL);
-	assert(*reader->type == IO_TYPE_BOV);
-
 	tmp = (gridReaderBov_t)*reader;
+	assert(tmp->type == IO_TYPE_BOV);
+
 	bov_del(&(tmp->bov));
 
 	xfree(*reader);
@@ -77,40 +77,39 @@ gridReaderBov_del(gridReader_t *reader)
 }
 
 extern void
-gridReader_readIntoPatch(gridReader_t reader, gridPatch_t patch)
+gridReaderBov_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 {
-	gridReaderBov_t readerBov;
 	gridVar_t       var;
 	int             idxOfVar;
 
 	assert(reader->type == IO_TYPE_BOV);
 	assert(patch != NULL);
 
-	var      = local_getNewVar(reader->bov);
+	var      = local_getNewVar(((gridReaderBov_t)reader)->bov);
 	idxOfVar = gridPatch_attachVarData(patch, var);
 
-	gridReader_redIntoPatchForVar(reader, patch, idxOfVar);
+	gridReader_readIntoPatchForVar(reader, patch, idxOfVar);
 
 	gridVar_del(&var);
 }
 
 extern void
-gridReader_readIntoPatchForVar(gridReader_t reader,
-                               gridPatch_t  patch,
-                               int          idxOfVar)
+gridReaderBov_readIntoPatchForVar(gridReader_t reader,
+                                  gridPatch_t  patch,
+                                  int          idxOfVar)
 {
-	gridReaderBov_t readerBov;
-	gridVar_t       var;
-	gridVarType_t   type;
-	void            *data;
-	bovFormat_t     typeAsBovType;
-	int             numComponents;
+	gridVar_t     var;
+	gridVarType_t type;
+	void          *data;
+	bovFormat_t   typeAsBovType;
+	int           numComponents;
+	uint32_t      dims[3];
+	uint32_t      idxLo[3];
 
 	assert(reader->type == IO_TYPE_BOV);
 	assert(patch != NULL);
 	assert(idxOfVar >= 0 && idxOfVar < gridPatch_getNumVars(patch));
 
-	readerBov     = (gridReaderBov_t)reader;
 	var           = gridPatch_getVarHandle(patch, idxOfVar);
 	data          = gridPatch_getVarDataHandle(patch, idxOfVar);
 
@@ -118,7 +117,15 @@ gridReader_readIntoPatchForVar(gridReader_t reader,
 	typeAsBovType = local_translateGridTypeToBovType(type);
 	numComponents = gridVar_getNumComponents(var);
 
-//	bov_readInto
+	gridPatch_getIdxLo(patch, idxLo);
+	gridPatch_getDims(patch, dims);
+#if (NDIM == 2)
+	idxLo[2] = 0;
+	dims[0]  = 1;
+#endif
+
+	bov_readWindowed(((gridReaderBov_t)reader)->bov, data, typeAsBovType,
+	                 numComponents, idxLo, dims);
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -129,14 +136,18 @@ local_getNewVar(bov_t bov)
 	gridVarType_t type;
 	bovFormat_t   typeInBov;
 	int           numComponents;
+	gridVar_t     var;
 
-	name          = boc_getVarName(bov);
+	name          = bov_getVarName(bov);
 	typeInBov     = bov_getDataFormat(bov);
 	numComponents = bov_getDataComponents(bov);
-
 	type          = local_translateBovTypeToGridType(typeInBov);
 
-	return gridVar_new(name, type, numComponents);
+	var = gridVar_new(name, type, numComponents);
+
+	xfree(name);
+
+	return var;
 }
 
 static gridVarType_t
@@ -174,9 +185,9 @@ local_translateGridTypeToBovType(gridVarType_t type)
 		typeAsBovType = BOV_FORMAT_DOUBLE;
 	} else if (type == GRIDVARTYPE_FPV) {
 		if (gridVarType_isNativeFloat(type))
-			typeAsBovType == BOV_FORMAT_FLOAT;
+			typeAsBovType = BOV_FORMAT_FLOAT;
 		else
-			typeAsBovType == BOV_FORMAT_DOUBLE;
+			typeAsBovType = BOV_FORMAT_DOUBLE;
 	} else {
 		fprintf(stderr, "Grid type not compatible with bov type.");
 		diediedie(EXIT_FAILURE);

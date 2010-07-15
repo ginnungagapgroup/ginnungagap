@@ -18,5 +18,11 @@ gridReader_newFromIni_test(void);
 extern bool
 gridReader_del_test(void);
 
+extern bool
+gridReader_readIntoPatch_test(void);
+
+extern bool
+gridReader_readIntoPatchForVar_test(void);
+
 
 #endif

@@ -223,6 +223,8 @@ main(int argc, char **argv)
 	}
 	RUNTEST(&gridReader_newFromIni_test, hasFailed);
 	RUNTEST(&gridReader_del_test, hasFailed);
+	RUNTEST(&gridReader_readIntoPatch_test, hasFailed);
+	RUNTEST(&gridReader_readIntoPatchForVar_test, hasFailed);
 #  ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
@@ -234,6 +236,8 @@ main(int argc, char **argv)
 	}
 	RUNTEST(&gridReaderBov_newFromIni_test, hasFailed);
 	RUNTEST(&gridReaderBov_del_test, hasFailed);
+	RUNTEST(&gridReaderBov_readIntoPatch_test, hasFailed);
+	RUNTEST(&gridReaderBov_readIntoPatchForVar_test, hasFailed);
 #  ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);

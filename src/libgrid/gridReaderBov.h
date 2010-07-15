@@ -23,5 +23,13 @@ gridReaderBov_newFromIni(parse_ini_t ini, const char *sectionName);
 extern void
 gridReaderBov_del(gridReader_t *reader);
 
+extern void
+gridReaderBov_readIntoPatch(gridReader_t reader, gridPatch_t patch);
+
+extern void
+gridReaderBov_readIntoPatchForVar(gridReader_t reader,
+                                  gridPatch_t  patch,
+                                  int          idxOfVar);
+
 
 #endif
