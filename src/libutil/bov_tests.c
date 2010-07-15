@@ -388,6 +388,34 @@ bov_getBrickSize_test(void)
 }
 
 extern bool
+bov_getDataComponents_test(void)
+{
+	bool   hasPassed = true;
+	int    rank      = 0;
+	bov_t  bov;
+#ifdef XMEM_TRACK_MEM
+	size_t allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	bov = bov_newFromFile("tests/test_1.bov");
+	if (bov_getDataComponents(bov) != 2)
+		hasPassed = false;
+	bov_del(&bov);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 bov_setTime_test(void)
 {
 	bool   hasPassed = true;
@@ -653,6 +681,35 @@ bov_setBrickSize_test(void)
 	if (islessgreater(bov->brick_size[1], size[1]))
 		hasPassed = false;
 	if (islessgreater(bov->brick_size[2], size[2]))
+		hasPassed = false;
+	bov_del(&bov);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+bov_setDataComponents_test(void)
+{
+	bool   hasPassed = true;
+	int    rank      = 0;
+	bov_t  bov;
+#ifdef XMEM_TRACK_MEM
+	size_t allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	bov = bov_new();
+	bov_setDataComponents(bov, 4);
+	if (bov->data_components != 4)
 		hasPassed = false;
 	bov_del(&bov);
 #ifdef XMEM_TRACK_MEM

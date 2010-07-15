@@ -115,6 +115,7 @@ main(int argc, char **argv)
 		RUNTEST(&bov_getCentering_test, hasFailed);
 		RUNTEST(&bov_getBrickOrigin_test, hasFailed);
 		RUNTEST(&bov_getBrickSize_test, hasFailed);
+		RUNTEST(&bov_getDataComponents_test, hasFailed);
 		RUNTEST(&bov_setTime_test, hasFailed);
 		RUNTEST(&bov_setDataFileName_test, hasFailed);
 		RUNTEST(&bov_setDataSize_test, hasFailed);
@@ -124,6 +125,7 @@ main(int argc, char **argv)
 		RUNTEST(&bov_setCentering_test, hasFailed);
 		RUNTEST(&bov_setBrickOrigin_test, hasFailed);
 		RUNTEST(&bov_setBrickSize_test, hasFailed);
+		RUNTEST(&bov_setDataComponents_test, hasFailed);
 		RUNTEST(&bov_read_test, hasFailed);
 		RUNTEST(&bov_readWindowed_test, hasFailed);
 	}

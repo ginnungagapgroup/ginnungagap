@@ -71,6 +71,9 @@ bov_getBrickOrigin(const bov_t bov, double *brickOrigin);
 extern void
 bov_getBrickSize(const bov_t bov, double *brickSize);
 
+extern int
+bov_getDataComponents(const bov_t bov);
+
 extern void
 bov_setTime(bov_t bov, const double time);
 
@@ -97,6 +100,9 @@ bov_setBrickOrigin(bov_t bov, const double *brickOrigin);
 
 extern void
 bov_setBrickSize(bov_t bov, const double *brickSize);
+
+extern void
+bov_setDataComponents(bov_t bov, const int numComponents);
 
 extern void
 bov_read(bov_t       bov,

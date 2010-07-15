@@ -49,6 +49,9 @@ extern bool
 bov_getBrickSize_test(void);
 
 extern bool
+bov_getDataComponents_test(void);
+
+extern bool
 bov_setTime_test(void);
 
 extern bool
@@ -74,6 +77,9 @@ bov_setBrickOrigin_test(void);
 
 extern bool
 bov_setBrickSize_test(void);
+
+extern bool
+bov_setDataComponents_test(void);
 
 extern bool
 bov_read_test(void);

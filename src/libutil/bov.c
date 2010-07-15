@@ -271,6 +271,14 @@ bov_getBrickSize(const bov_t bov, double *brickSize)
 	brickSize[2] = bov->brick_size[2];
 }
 
+extern int
+bov_getDataComponents(const bov_t bov)
+{
+	assert(bov != NULL);
+
+	return bov->data_components;
+}
+
 extern void
 bov_setTime(bov_t bov, const double time)
 {
@@ -358,6 +366,15 @@ bov_setBrickSize(bov_t bov, const double *brickSize)
 	bov->brick_size[0] = brickSize[0];
 	bov->brick_size[1] = brickSize[1];
 	bov->brick_size[2] = brickSize[2];
+}
+
+extern void
+bov_setDataComponents(bov_t bov, const int numComponents)
+{
+	assert(bov != NULL);
+	assert(numComponents > 0);
+
+	bov->data_components = numComponents;
 }
 
 extern void
