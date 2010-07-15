@@ -24,9 +24,9 @@
 
 /*--- Prototypes of local functions -------------------------------------*/
 static void
-local_setupFromFile(ginnungagapWN_t wn, gridPatch_t patch);
-static void
-local_setupFromRNG(ginnungagapWN_t wn, gridPatch_t patch);
+local_setupFromRNG(ginnungagapWN_t wn,
+                   gridPatch_t     patch,
+                   int             idxOfDensVar);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -76,7 +76,9 @@ ginnungagapWN_del(ginnungagapWN_t *wn)
 }
 
 extern void
-ginnungagapWN_setup(ginnungagapWN_t wn, gridRegular_t grid)
+ginnungagapWN_setup(ginnungagapWN_t wn,
+                    gridRegular_t   grid,
+                    int             idxOfDensVar)
 {
 	gridPatch_t patch;
 
@@ -85,21 +87,17 @@ ginnungagapWN_setup(ginnungagapWN_t wn, gridRegular_t grid)
 	patch = gridRegular_getPatchHandle(grid, 0);
 
 	if (wn->useFile)
-		local_setupFromFile(wn, patch);
+		gridReader_readIntoPatchForVar(wn->reader, patch, idxOfDensVar);
 	else
-		local_setupFromRNG(wn, patch);
+		local_setupFromRNG(wn, patch, idxOfDensVar);
 }
 
 /*--- Implementations of local functions --------------------------------*/
 static void
-local_setupFromFile(ginnungagapWN_t wn, gridPatch_t patch)
+local_setupFromRNG(ginnungagapWN_t wn,
+                   gridPatch_t     patch,
+                   int             idxOfDensVar)
 {
-}
-
-static void
-local_setupFromRNG(ginnungagapWN_t wn, gridPatch_t patch)
-{
-#if 0
 	int      numStreams;
 	fpv_t    *data;
 	uint64_t numCells = 0;
@@ -108,9 +106,9 @@ local_setupFromRNG(ginnungagapWN_t wn, gridPatch_t patch)
 	numCells   = gridPatch_getNumCells(patch);
 	numStreams = rng_getNumStreamsLocal(wn->rng);
 
-#ifdef _OPENMP
-#  pragma omp parallel for shared(data, numStreams, numCells)
-#endif
+#  ifdef _OPENMP
+#    pragma omp parallel for shared(data, numStreams, numCells)
+#  endif
 	for (int i = 0; i < numStreams; i++) {
 		uint64_t cps   = numCells / numStreams;
 		uint64_t start = i * cps;
@@ -118,8 +116,7 @@ local_setupFromRNG(ginnungagapWN_t wn, gridPatch_t patch)
 		                                                     + cps);
 		for (uint64_t j = start; j < stop; j++) {
 			assert(j < numCells);
-			data[j] = (fpv_t)rng_getGaussUnit(ginnungagap->rng, i);
+			data[j] = (fpv_t)rng_getGaussUnit(wn->rng, i);
 		}
 	}
-#endif
 }

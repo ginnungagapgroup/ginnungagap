@@ -24,7 +24,9 @@ extern void
 ginnungagapWN_del(ginnungagapWN_t *wn);
 
 extern void
-ginnungagapWN_setup(ginnungagapWN_t wn, gridRegular_t grid);
+ginnungagapWN_setup(ginnungagapWN_t wn,
+                    gridRegular_t   grid,
+                    int             idxOfDensVar);
 
 
 #endif
