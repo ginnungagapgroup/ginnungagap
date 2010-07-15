@@ -7,6 +7,8 @@
 #include "xfile.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+#include <string.h>
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -68,9 +70,8 @@ xfwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
 extern int
 xfseek(FILE *stream, long offset, int whence)
 {
-	if (!fseek(stream, offset, whence)) {
-		fprintf(stderr,
-		        "Seeking did not yield in the anticipated result.\n");
+	if (fseek(stream, offset, whence) != 0) {
+		fprintf(stderr, "%s\n", strerror(errno));
 		fprintf(stderr, "Exiting... :-(\n");
 		exit(EXIT_FAILURE);
 	}
