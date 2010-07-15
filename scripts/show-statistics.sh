@@ -54,6 +54,10 @@ function showForDir ()
 }
 
 echo ""
+echo "This looks (recursively) into the directories and parses all"
+echo "files ending on .h and .c to derive some statistical information"
+echo "on the size of this project."
+echo ""
 showForDir src/ginnungagap
 showForDir src/libgrid
 showForDir src/libcosmo
