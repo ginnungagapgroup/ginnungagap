@@ -98,4 +98,12 @@ bov_setBrickOrigin(bov_t bov, const double *brickOrigin);
 extern void
 bov_setBrickSize(bov_t bov, const double *brickSize);
 
+extern void
+bov_readWindowed(bov_t       bov,
+                 void        *data,
+                 bovFormat_t dataFormat,
+                 int         numComponents,
+                 uint32_t    *idxLo,
+                 uint32_t    *dims);
+
 #endif

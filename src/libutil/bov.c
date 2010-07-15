@@ -10,10 +10,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
-#include "../libutil/xmem.h"
-#include "../libutil/xstring.h"
-#include "../libutil/xfile.h"
-#include "../libutil/diediedie.h"
+#include "xmem.h"
+#include "xstring.h"
+#include "xfile.h"
+#include "diediedie.h"
+#include "byteswap.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -68,6 +69,16 @@ local_readBool(const char *line);
 
 static int
 local_readDataComponent(const char *line);
+
+static size_t
+local_getSizeForFormat(bovFormat_t format);
+
+static void
+local_readPencil(bov_t  bov,
+                 void   *buffer,
+                 FILE   *f,
+                 size_t sizePerEle,
+                 size_t numElements);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -315,6 +326,50 @@ bov_setBrickSize(bov_t bov, const double *brickSize)
 	bov->brick_size[1] = brickSize[1];
 	bov->brick_size[2] = brickSize[2];
 }
+
+extern void
+bov_readWindowed(bov_t       bov,
+                 void        *data,
+                 bovFormat_t dataFormat,
+                 int         numComponents,
+                 uint32_t    *idxLo,
+                 uint32_t    *dims)
+{
+	assert(bov != NULL);
+	assert(data != NULL);
+	assert(numComponents > 0);
+	assert(idxLo != NULL);
+	assert(dims != NULL);
+	assert(dims[0] > 0 && dims[1] > 0 && dims[2] > 0);
+
+	if ((idxLo[0] + dims[0] > bov->data_size[0])
+	    || (idxLo[1] + dims[1] > bov->data_size[1])
+	    || (idxLo[2] + dims[2] > bov->data_size[2])) {
+		fprintf(stderr, "Window too large for data in bov :(\n");
+		diediedie(EXIT_FAILURE);
+	}
+
+	char   *dataFileName = bov_getDataFileName(bov);
+	FILE   *f            = xfopen(dataFileName, "rb");
+	size_t sizePerEle    = local_getSizeForFormat(bov->data_format);
+	void   *buffer       = xmalloc(
+	    sizePerEle * bov->data_components * dims[0]);
+
+	for (uint32_t k = idxLo[2]; k - idxLo[2] < dims[2]; k++) {
+		for (uint32_t j = idxLo[1]; j - idxLo[1] < dims[1]; j++) {
+			long offset;
+			offset = idxLo[0]
+			         + (j + k * bov->data_size[1]) * bov->data_size[0]
+			         + bov->byte_offset;
+			xfseek(f, offset, SEEK_SET);
+			local_readPencil(bov, buffer, f, sizePerEle, (size_t)(dims[0]));
+		}
+	}
+
+	xfclose(&f);
+	xfree(dataFileName);
+	xfree(buffer);
+} /* bov_readWindowed */
 
 /*--- Implementations of local functions --------------------------------*/
 static bovEndian_t
@@ -594,4 +649,36 @@ local_readDataComponent(const char *line)
 	}
 
 	return val;
+}
+
+static size_t
+local_getSizeForFormat(bovFormat_t format)
+{
+	size_t size;
+
+	if (format == BOV_FORMAT_DOUBLE)
+		size = sizeof(double);
+	else if (format == BOV_FORMAT_FLOAT)
+		size = sizeof(float);
+	else if (format == BOV_FORMAT_INT)
+		size = sizeof(int);
+	else
+		size = sizeof(char);
+
+	return size;
+}
+
+static void
+local_readPencil(bov_t  bov,
+                 void   *buffer,
+                 FILE   *f,
+                 size_t sizePerEle,
+                 size_t numElements)
+{
+	xfread(buffer, sizePerEle * bov->data_components, numElements, f);
+
+	if (bov->machineEndianess != bov->data_endian) {
+		for (size_t i = 0; i < bov->data_components * numElements; i++)
+			byteswap(((char *)buffer) + (i * sizePerEle), sizePerEle);
+	}
 }

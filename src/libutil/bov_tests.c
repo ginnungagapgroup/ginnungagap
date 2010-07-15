@@ -71,7 +71,7 @@ bov_newFromFile_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov = bov_newFromFile("tests/test.bov");
+	bov = bov_newFromFile("tests/test_1.bov");
 	bov_del(&bov);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -126,9 +126,9 @@ bov_getTime_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov  = bov_newFromFile("tests/test.bov");
+	bov  = bov_newFromFile("tests/test_1.bov");
 	time = bov_getTime(bov);
-	if (islessgreater(time, 1.2))
+	if (islessgreater(time, 2.2))
 		hasPassed = false;
 	bov_del(&bov);
 #ifdef XMEM_TRACK_MEM
@@ -156,7 +156,7 @@ bov_getDataFileName_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov          = bov_newFromFile("tests/test.bov");
+	bov          = bov_newFromFile("tests/test_1.bov");
 	dataFileName = bov_getDataFileName(bov);
 	if (strcmp(dataFileName, "tests/data.dat") != 0)
 		hasPassed = false;
@@ -187,13 +187,13 @@ bov_getDataSize_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov = bov_newFromFile("tests/test.bov");
+	bov = bov_newFromFile("tests/test_1.bov");
 	bov_getDataSize(bov, dataSize);
-	if (dataSize[0] != 16)
+	if (dataSize[0] != 8)
 		hasPassed = false;
-	if (dataSize[1] != 16)
+	if (dataSize[1] != 8)
 		hasPassed = false;
-	if (dataSize[2] != 16)
+	if (dataSize[2] != 8)
 		hasPassed = false;
 	bov_del(&bov);
 #ifdef XMEM_TRACK_MEM
@@ -220,7 +220,7 @@ bov_getDataFormat_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov = bov_newFromFile("tests/test.bov");
+	bov = bov_newFromFile("tests/test_1.bov");
 	if (bov_getDataFormat(bov) != BOV_FORMAT_DOUBLE)
 		hasPassed = false;
 	bov_del(&bov);
@@ -249,7 +249,7 @@ bov_getVarName_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov = bov_newFromFile("tests/test.bov");
+	bov = bov_newFromFile("tests/test_1.bov");
 	varName = bov_getVarName(bov);
 	if (strcmp(varName, "testVar") != 0)
 		hasPassed = false;
@@ -279,8 +279,8 @@ bov_getDataEndian_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov = bov_newFromFile("tests/test.bov");
-	if (bov_getDataEndian(bov) != BOV_ENDIAN_LITTLE)
+	bov = bov_newFromFile("tests/test_1.bov");
+	if (bov_getDataEndian(bov) != BOV_ENDIAN_BIG)
 		hasPassed = false;
 	bov_del(&bov);
 #ifdef XMEM_TRACK_MEM
@@ -307,7 +307,7 @@ bov_getCentering_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov = bov_newFromFile("tests/test.bov");
+	bov = bov_newFromFile("tests/test_1.bov");
 	if (bov_getCentering(bov) != BOV_CENTERING_ZONAL)
 		hasPassed = false;
 	bov_del(&bov);
@@ -336,13 +336,13 @@ bov_getBrickOrigin_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov = bov_newFromFile("tests/test.bov");
+	bov = bov_newFromFile("tests/test_1.bov");
 	bov_getBrickOrigin(bov, origin);
-	if (islessgreater(origin[0], -1.))
+	if (islessgreater(origin[0], -4.))
 		hasPassed = false;
-	if (islessgreater(origin[1], -1.))
+	if (islessgreater(origin[1], -4.))
 		hasPassed = false;
-	if (islessgreater(origin[2], -1.))
+	if (islessgreater(origin[2], -4.))
 		hasPassed = false;
 	bov_del(&bov);
 #ifdef XMEM_TRACK_MEM
@@ -370,13 +370,13 @@ bov_getBrickSize_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	bov = bov_newFromFile("tests/test.bov");
+	bov = bov_newFromFile("tests/test_1.bov");
 	bov_getBrickSize(bov, size);
-	if (islessgreater(size[0], 2.))
+	if (islessgreater(size[0], 8.))
 		hasPassed = false;
-	if (islessgreater(size[1], 2.))
+	if (islessgreater(size[1], 8.))
 		hasPassed = false;
-	if (islessgreater(size[2], 2.))
+	if (islessgreater(size[2], 8.))
 		hasPassed = false;
 	bov_del(&bov);
 #ifdef XMEM_TRACK_MEM
