@@ -348,7 +348,7 @@ gridRegularDistrib_transpose_test(void)
 	int                  rank      = 0;
 	gridRegularDistrib_t distrib;
 #ifdef WITH_SILO
-	gridWriterSilo_t     writer;
+	gridWriter_t         writer;
 #endif
 #ifdef XMEM_TRACK_MEM
 	size_t allocatedBytes = global_allocated_bytes;
@@ -363,9 +363,10 @@ gridRegularDistrib_transpose_test(void)
 
 	distrib = local_getFakeDistribForTranspose();
 #ifdef WITH_SILO
-	writer  = gridWriterSilo_new("transposeTest-stage1", DB_HDF5);
+	writer  = (gridWriter_t)gridWriterSilo_new("transposeTest-stage1",
+	                                           DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif
 	gridWriterSilo_activate(writer);
 	gridWriterSilo_writeGridRegular(writer, distrib->grid);
@@ -375,9 +376,10 @@ gridRegularDistrib_transpose_test(void)
 
 	gridRegularDistrib_transpose(distrib, 0, 1);
 #ifdef WITH_SILO
-	writer = gridWriterSilo_new("transposeTest-stage2", DB_HDF5);
+	writer = (gridWriter_t)gridWriterSilo_new("transposeTest-stage2",
+	                                          DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif
 	gridWriterSilo_activate(writer);
 	gridWriterSilo_writeGridRegular(writer, distrib->grid);
@@ -389,9 +391,10 @@ gridRegularDistrib_transpose_test(void)
 
 	gridRegularDistrib_transpose(distrib, 0, 1);
 #ifdef WITH_SILO
-	writer = gridWriterSilo_new("transposeTest-stage3", DB_HDF5);
+	writer = (gridWriter_t)gridWriterSilo_new("transposeTest-stage3",
+	                                          DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif
 	gridWriterSilo_activate(writer);
 	gridWriterSilo_writeGridRegular(writer, distrib->grid);
@@ -401,9 +404,10 @@ gridRegularDistrib_transpose_test(void)
 
 	gridRegularDistrib_transpose(distrib, 0, 2);
 #ifdef WITH_SILO
-	writer = gridWriterSilo_new("transposeTest-stage4", DB_HDF5);
+	writer = (gridWriter_t)gridWriterSilo_new("transposeTest-stage4",
+	                                          DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif
 	gridWriterSilo_activate(writer);
 	gridWriterSilo_writeGridRegular(writer, distrib->grid);
@@ -413,9 +417,10 @@ gridRegularDistrib_transpose_test(void)
 
 	gridRegularDistrib_transpose(distrib, 0, 2);
 #ifdef WITH_SILO
-	writer = gridWriterSilo_new("transposeTest-stage5", DB_HDF5);
+	writer = (gridWriter_t)gridWriterSilo_new("transposeTest-stage5",
+	                                          DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif
 	gridWriterSilo_activate(writer);
 	gridWriterSilo_writeGridRegular(writer, distrib->grid);

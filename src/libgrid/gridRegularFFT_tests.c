@@ -174,7 +174,7 @@ gridRegularFFT_execute_test(void)
 	size_t               allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_SILO
-	gridWriterSilo_t     writer;
+	gridWriter_t     writer;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -193,9 +193,9 @@ gridRegularFFT_execute_test(void)
 	memcpy(dataCpy, dataTmp,
 	       sizeof(fpv_t) * gridPatch_getNumCellsActual(patch, 0));
 #ifdef WITH_SILO
-	writer  = gridWriterSilo_new("fftTest-stage1", DB_HDF5);
+	writer  = (gridWriter_t)gridWriterSilo_new("fftTest-stage1", DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif
 	gridWriterSilo_activate(writer);
 	gridWriterSilo_writeGridRegular(writer, grid);
@@ -206,9 +206,9 @@ gridRegularFFT_execute_test(void)
 	data     = (fpvComplex_t *)gridRegularFFT_execute(fft, 1);
 	dataBack = (fpv_t *)gridRegularFFT_execute(fft, -1);
 #ifdef WITH_SILO
-	writer  = gridWriterSilo_new("fftTest-stage2", DB_HDF5);
+	writer  = (gridWriter_t)gridWriterSilo_new("fftTest-stage2", DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif
 	gridWriterSilo_activate(writer);
 	gridWriterSilo_writeGridRegular(writer, grid);

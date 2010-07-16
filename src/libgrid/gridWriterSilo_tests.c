@@ -55,7 +55,7 @@ gridWriterSilo_new_test(void)
 		hasPassed = false;
 	if (writer->dbType != DB_HDF5)
 		hasPassed = false;
-	gridWriterSilo_del(&writer);
+	gridWriterSilo_del((gridWriter_t *)&writer);
 #  ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -69,7 +69,7 @@ gridWriterSilo_del_test(void)
 {
 	bool             hasPassed = true;
 	int              rank      = 0;
-	gridWriterSilo_t writer;
+	gridWriter_t writer;
 #  ifdef XMEM_TRACK_MEM
 	size_t           allocatedBytes = global_allocated_bytes;
 #  endif
@@ -80,9 +80,9 @@ gridWriterSilo_del_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
+	writer = (gridWriter_t)gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 2, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif
 	gridWriterSilo_del(&writer);
 	if (writer != NULL)
@@ -113,24 +113,25 @@ gridWriterSilo_initParallel_test(void)
 		printf("Testing %s... ", __func__);
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
-	gridWriterSilo_initParallel(writer, 1, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 	if (writer->baton == NULL)
 		hasPassed = false;
 	if (writer->groupRank != 0)
 		hasPassed = false;
 	if (writer->rankInGroup != rank)
 		hasPassed = false;
-	gridWriterSilo_del(&writer);
+	gridWriterSilo_del((gridWriter_t *)&writer);
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
-	gridWriterSilo_initParallel(writer, size, MPI_COMM_WORLD, 987);
+	writer->numFiles = size;
+	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 	if (writer->baton == NULL)
 		hasPassed = false;
 	if (writer->groupRank != rank)
 		hasPassed = false;
 	if (writer->rankInGroup != 0)
 		hasPassed = false;
-	gridWriterSilo_del(&writer);
+	gridWriterSilo_del((gridWriter_t *)&writer);
 
 #    ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -160,15 +161,15 @@ gridWriterSilo_activate_test(void)
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 2, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 #  endif
-	gridWriterSilo_activate(writer);
+	gridWriterSilo_activate((gridWriter_t)writer);
 	if (writer->isActive != true)
 		hasPassed = false;
 	if (writer->f == NULL)
 		hasPassed = false;
-	gridWriterSilo_deactivate(writer);
-	gridWriterSilo_del(&writer);
+	gridWriterSilo_deactivate((gridWriter_t)writer);
+	gridWriterSilo_del((gridWriter_t *)&writer);
 #  ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -195,15 +196,15 @@ gridWriterSilo_deactivate_test(void)
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 2, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 #  endif
-	gridWriterSilo_activate(writer);
-	gridWriterSilo_deactivate(writer);
+	gridWriterSilo_activate((gridWriter_t)writer);
+	gridWriterSilo_deactivate((gridWriter_t)writer);
 	if (writer->isActive != false)
 		hasPassed = false;
 	if (writer->f != NULL)
 		hasPassed = false;
-	gridWriterSilo_del(&writer);
+	gridWriterSilo_del((gridWriter_t *)&writer);
 #  ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -249,13 +250,15 @@ gridWriterSilo_writeGridPatch_test(void)
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX_PATCH, DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 2, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 #  endif
-	gridWriterSilo_activate(writer);
-	gridWriterSilo_writeGridPatch(writer, patch, "patch_00", origin, delta);
-	gridWriterSilo_writeGridPatch(writer, patch2, "patch_01", origin, delta);
-	gridWriterSilo_deactivate(writer);
-	gridWriterSilo_del(&writer);
+	gridWriterSilo_activate((gridWriter_t)writer);
+	gridWriterSilo_writeGridPatch((gridWriter_t)writer, patch,
+	                              "patch_00", origin, delta);
+	gridWriterSilo_writeGridPatch((gridWriter_t)writer, patch2,
+	                              "patch_01", origin, delta);
+	gridWriterSilo_deactivate((gridWriter_t)writer);
+	gridWriterSilo_del((gridWriter_t *)&writer);
 
 	gridPatch_del(&patch2);
 	gridPatch_del(&patch);
@@ -289,12 +292,12 @@ gridWriterSilo_writeGridRegular_test(void)
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
 #  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, 2, MPI_COMM_WORLD, 987);
+	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 #  endif
-	gridWriterSilo_activate(writer);
-	gridWriterSilo_writeGridRegular(writer, grid);
-	gridWriterSilo_deactivate(writer);
-	gridWriterSilo_del(&writer);
+	gridWriterSilo_activate((gridWriter_t)writer);
+	gridWriterSilo_writeGridRegular((gridWriter_t)writer, grid);
+	gridWriterSilo_deactivate((gridWriter_t)writer);
+	gridWriterSilo_del((gridWriter_t *)&writer);
 	if (writer != NULL)
 		hasPassed = false;
 

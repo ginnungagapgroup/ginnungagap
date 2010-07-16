@@ -24,6 +24,9 @@ typedef struct gridWriterSilo_struct *gridWriterSilo_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern gridWriterSilo_t
+gridWriterSilo_new(const char *prefix, int dbType);
+
+extern gridWriterSilo_t
 gridWriterSilo_newFromIni(parse_ini_t ini, const char *sectionName);
 
 extern void
