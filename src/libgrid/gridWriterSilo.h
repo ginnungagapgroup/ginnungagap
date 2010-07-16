@@ -9,6 +9,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #ifdef WITH_SILO
+#  include "gridWriter.h"
 #  include "gridRegular.h"
 #  include "gridPatch.h"
 #  include "gridPoint.h"
@@ -23,35 +24,32 @@ typedef struct gridWriterSilo_struct *gridWriterSilo_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern gridWriterSilo_t
-gridWriterSilo_new(const char *prefix, int dbType);
+gridWriterSilo_newFromIni(parse_ini_t ini, const char *sectionName);
 
 extern void
-gridWriterSilo_del(gridWriterSilo_t *writer);
+gridWriterSilo_del(gridWriter_t *writer);
 
 extern void
-gridWriterSilo_activate(gridWriterSilo_t writer);
+gridWriterSilo_activate(gridWriter_t writer);
 
 extern void
-gridWriterSilo_deactivate(gridWriterSilo_t writer);
+gridWriterSilo_deactivate(gridWriter_t writer);
 
 extern void
-gridWriterSilo_writeGridPatch(gridWriterSilo_t writer,
-                              gridPatch_t      patch,
-                              const char       *patchName,
-                              gridPointDbl_t   origin,
-                              gridPointDbl_t   delta);
+gridWriterSilo_writeGridPatch(gridWriter_t   writer,
+                              gridPatch_t    patch,
+                              const char     *patchName,
+                              gridPointDbl_t origin,
+                              gridPointDbl_t delta);
 
 extern void
-gridWriterSilo_writeGridRegular(gridWriterSilo_t writer,
-                                gridRegular_t    grid);
+gridWriterSilo_writeGridRegular(gridWriter_t  writer,
+                                gridRegular_t grid);
 
 
 #  ifdef WITH_MPI
 extern void
-gridWriterSilo_initParallel(gridWriterSilo_t writer,
-                            int              numFiles,
-                            MPI_Comm         mpiComm,
-                            int              mpiTag);
+gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
 
 #  endif
 

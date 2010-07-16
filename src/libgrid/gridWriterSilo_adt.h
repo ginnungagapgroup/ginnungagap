@@ -8,18 +8,19 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #ifdef WITH_SILO
-#  include <stdbool.h>
+#  include "gridWriter_adt.h"
+#  include <silo.h>
 #  ifdef WITH_MPI
-#    include <mpi.h>
 #    include <pmpio.h>
 #  endif
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridWriterSilo_struct {
+	GRIDWRITER_T_CONTENT;
 	char          *prefix;
 	int           dbType;
-	bool          isActive;
+	int           numFiles;
 	DBfile        *f;
 	char          *fileName;
 	char          *dirName;

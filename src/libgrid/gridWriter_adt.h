@@ -12,7 +12,6 @@
 #include <stdbool.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
-#  include <pmpio.h>
 #endif
 #include "gridIO.h"
 #include "gridPatch.h"
@@ -34,10 +33,7 @@ struct gridWriter_func_struct {
 	void (*writeGridRegular)(gridWriter_t  writer,
 	                         gridRegular_t grid);
 #ifdef WITH_MPI
-	void (*initParallel)(gridWriter_t writer,
-	                     int          numFiles,
-	                     MPI_Comm     mpiComm,
-	                     int          mpiTag);
+	void (*initParallel)(gridWriter_t writer, MPI_Comm mpiComm);
 #endif
 };
 
@@ -45,21 +41,10 @@ typedef struct gridWriter_func_struct *gridWriter_func_t;
 
 
 /*--- ADT implementation ------------------------------------------------*/
-#ifdef WITH_MPI
-#  define GRIDWRITER_T_CONTENT     \
-    gridIO_type_t type;            \
-    gridWriter_func_t func;        \
-    bool              isActive;    \
-    PMPIO_baton_t     *baton;      \
-    int               groupRank;   \
-    int               rankInGroup; \
-    int               globalRank;
-#else
-#  define GRIDWRITER_T_CONTENT \
+#define GRIDWRITER_T_CONTENT \
     gridIO_type_t type;        \
     gridWriter_func_t func;    \
     bool              isActive;
-#endif
 
 struct gridWriter_struct {
 	GRIDWRITER_T_CONTENT;

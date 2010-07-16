@@ -48,10 +48,7 @@ gridWriter_writeGridRegular(gridWriter_t  writer,
 
 #ifdef WITH_MPI
 extern void
-gridWriter_initParallel(gridWriter_t writer,
-                        int          numFiles,
-                        MPI_Comm     mpiComm,
-                        int          mpiTag);
+gridWriter_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
 
 #endif
 

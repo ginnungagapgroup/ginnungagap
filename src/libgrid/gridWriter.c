@@ -8,7 +8,9 @@
 #include "gridWriter.h"
 #include <assert.h>
 #include <stdio.h>
-#include "gridWriterSilo.h"
+#ifdef WITH_SILO
+#  include "gridWriterSilo.h"
+#endif
 #include "gridPatch.h"
 #include "gridRegular.h"
 #include "gridPoint.h"
@@ -35,7 +37,7 @@ local_newFromIniWrapper(parse_ini_t   ini,
 extern gridWriter_t
 gridWriter_newFromIni(parse_ini_t ini, const char *sectionName)
 {
-	gridWriter_t  reader;
+	gridWriter_t  writer;
 	char          *writerTypeName;
 	gridIO_type_t type;
 	char          *writerSectionName;
@@ -71,7 +73,7 @@ gridWriter_activate(gridWriter_t writer)
 	assert(writer != NULL);
 	assert(writer->func->activate != NULL);
 
-	writer->func->activate();
+	writer->func->activate(writer);
 }
 
 extern void
@@ -80,7 +82,7 @@ gridWriter_deactivate(gridWriter_t writer)
 	assert(writer != NULL);
 	assert(writer->func->deactivate != NULL);
 
-	writer->func->deactivate();
+	writer->func->deactivate(writer);
 }
 
 extern void
@@ -113,16 +115,13 @@ gridWriter_writeGridRegular(gridWriter_t  writer,
 
 #ifdef WITH_MPI
 extern void
-gridWriter_initParallel(gridWriter_t writer,
-                        int          numFiles,
-                        MPI_Comm     mpiComm,
-                        int          mpiTag)
+gridWriter_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 {
 	assert(writer != NULL);
 	assert(numFiles > 0);
 	assert(writer->func->initParallel != NULL);
 
-	writer->func->initParallel(writer, numFile, mpiComm, mpiTag);
+	writer->func->initParallel(writer, mpiComm);
 }
 
 #endif
@@ -137,8 +136,14 @@ local_newFromIniWrapper(parse_ini_t   ini,
 	gridWriter_t writer;
 
 	if (type == IO_TYPE_SILO) {
-		writer = (gridReader_t)gridWriterSilo_newFromIni(ini,
+#ifdef WITH_SILO
+		writer = (gridWriter_t)gridWriterSilo_newFromIni(ini,
 		                                                 writerSectionName);
+#else
+		fprintf(stderr,
+		        "To use Silo output, run configure using --with-silo\n");
+		diediedie(EXIT_FAILURE);
+#endif
 	} else {
 		fprintf(stderr, "Cannot create writer for %s\n",
 		        gridIO_getNameFromType(type));

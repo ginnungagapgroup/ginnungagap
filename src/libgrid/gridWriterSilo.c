@@ -29,7 +29,20 @@
 #    define LOCAL_DIRPREFIX     "domain_"
 #    define LOCAL_NUMFILEDIGITS 3
 #    define LOCAL_NUMDIRDIGITS  5
+#    define LOCAL_MPI_TAG       987
 #  endif
+
+/*--- Local variables ---------------------------------------------------*/
+static struct gridWriter_func_struct local_func
+    = { &gridWriterSilo_del,
+	    &gridWriterSilo_activate,
+	    &gridWriterSilo_deactivate,
+	    &gridWriterSilo_writeGridPatch,
+	    &gridWriterSilo_writeGridRegular,
+#  ifdef WITH_MPI
+	    &gridWriterSilo_initParallel
+#  endif
+	};
 
 /*--- Prototypes of local functions -------------------------------------*/
 static void *
@@ -88,38 +101,78 @@ gridWriterSilo_new(const char *prefix, int dbType)
 	assert(dbType == DB_HDF5 || dbType == DB_PDB);
 
 	writer              = xmalloc(sizeof(struct gridWriterSilo_struct));
-	writer->prefix      = xstrdup(prefix);
-	writer->dbType      = dbType;
+	writer->type        = IO_TYPE_SILO;
+	writer->func        = (gridWriter_func_t)&local_func;
 	writer->isActive    = false;
-	writer->f           = NULL;
-	writer->fileName    = NULL;
-	writer->dirName     = NULL;
 #  ifdef WITH_MPI
 	writer->baton       = NULL;
 	writer->groupRank   = -1;
 	writer->rankInGroup = -1;
 	writer->globalRank  = -1;
 #  endif
+	writer->prefix      = xstrdup(prefix);
+	writer->dbType      = dbType;
+	writer->numFiles    = 1;
+	writer->f           = NULL;
+	writer->fileName    = NULL;
+	writer->dirName     = NULL;
+}
+
+extern gridWriterSilo_t
+gridWriterSilo_newFromIni(parse_ini_t ini, const char *sectionName)
+{
+	gridWriterSilo_t writer;
+	char             *dbTypeStr;
+	char             *prefix;
+	int              dbType;
+
+	assert(ini != NULL);
+	assert(sectionName != NULL);
+
+	getFromIni(&dbTypeStr, parse_ini_get_string,
+	           ini, "dbType", sectionName);
+	getFromIni(&prefix, parse_ini_get_string,
+	           ini, "prefix", sectionName);
+
+	if (strcmp(dbTypeStr, "DB_HDF5") == 0)
+		dbType = DB_HDF5;
+	else if (strcmp(dbTypeStr, "DB_PDB") == 0)
+		dbType = DB_PDB;
+	else {
+		fprintf(stderr, "Unknown Silo DB type: %s\n", dbTypeStr);
+		diediedie(EXIT_FAILURE);
+	}
+
+	writer = gridWriterSilo_new(prefix, dbType);
+	getFromIni(&(writer->numFiles), parse_ini_get_int32,
+	           ini, "numFiles", sectionName);
+
+	xfree(prefix);
+	xfree(dbTypeStr);
 
 	return writer;
 }
 
 extern void
-gridWriterSilo_del(gridWriterSilo_t *writer)
+gridWriterSilo_del(gridWriter_t *writer)
 {
-	assert(writer != NULL && *writer != NULL);
+	gridWriterSilo_t tmp;
 
-	if ((*writer)->isActive)
+	assert(writer != NULL && *writer != NULL);
+	tmp = (gridWriterSilo_t)*writer;
+	assert(tmp->type == IO_TYPE_SILO);
+
+	if (tmp->isActive)
 		gridWriterSilo_deactivate(*writer);
 
-	if ((*writer)->fileName != NULL)
-		xfree((*writer)->fileName);
-	if ((*writer)->dirName != NULL)
-		xfree((*writer)->dirName);
-	xfree((*writer)->prefix);
+	if (tmp->fileName != NULL)
+		xfree(tmp->fileName);
+	if (tmp->dirName != NULL)
+		xfree(tmp->dirName);
+	xfree(tmp->prefix);
 #  ifdef WITH_MPI
-	if ((*writer)->baton != NULL)
-		PMPIO_Finish((*writer)->baton);
+	if (tmp->baton != NULL)
+		PMPIO_Finish(tmp->baton);
 #  endif
 	xfree(*writer);
 
@@ -127,57 +180,66 @@ gridWriterSilo_del(gridWriterSilo_t *writer)
 }
 
 extern void
-gridWriterSilo_activate(gridWriterSilo_t writer)
+gridWriterSilo_activate(gridWriter_t writer)
 {
-	assert(writer != NULL);
+	gridWriterSilo_t tmp = (gridWriterSilo_t)writer;
+
+	assert(tmp != NULL);
+	assert(tmp->type == IO_TYPE_SILO);
 #  ifdef WITH_MPI
-	assert(writer->baton != NULL);
+	assert(tmp->baton != NULL);
 #  endif
 
-	if (!writer->isActive) {
-		local_createFileName(writer);
-		local_createDirName(writer);
+	if (!tmp->isActive) {
+		local_createFileName(tmp);
+		local_createDirName(tmp);
 #  ifdef WITH_MPI
-		writer->f = PMPIO_WaitForBaton(writer->baton, writer->fileName,
-		                               writer->dirName);
+		tmp->f = PMPIO_WaitForBaton(tmp->baton, tmp->fileName,
+		                            tmp->dirName);
 #  else
-		writer->f = local_createDB(writer->fileName, writer->dirName,
-		                           writer);
+		tmp->f = local_createDB(tmp->fileName, tmp->dirName,
+		                        tmp);
 #  endif
-		writer->isActive = true;
+		tmp->isActive = true;
 	}
 }
 
 extern void
-gridWriterSilo_deactivate(gridWriterSilo_t writer)
+gridWriterSilo_deactivate(gridWriter_t writer)
 {
-	assert(writer != NULL);
+	gridWriterSilo_t tmp = (gridWriterSilo_t)writer;
+
+	assert(tmp != NULL);
+	assert(tmp->type == IO_TYPE_SILO);
 #  ifdef WITH_MPI
-	assert(writer->baton != NULL);
+	assert(tmp->baton != NULL);
 #  endif
 
-	if (writer->isActive) {
+	if (tmp->isActive) {
 #  ifdef WITH_MPI
-		PMPIO_HandOffBaton(writer->baton, writer->f);
+		PMPIO_HandOffBaton(tmp->baton, tmp->f);
 #  else
-		local_closeDB(writer->f, writer);
+		local_closeDB(tmp->f, tmp);
 #  endif
-		writer->isActive = false;
+		tmp->isActive = false;
 	}
 }
 
 extern void
-gridWriterSilo_writeGridPatch(gridWriterSilo_t writer,
-                              gridPatch_t      patch,
-                              const char       *patchName,
-                              gridPointDbl_t   origin,
-                              gridPointDbl_t   delta)
+gridWriterSilo_writeGridPatch(gridWriter_t   writer,
+                              gridPatch_t    patch,
+                              const char     *patchName,
+                              gridPointDbl_t origin,
+                              gridPointDbl_t delta)
 {
+	gridWriterSilo_t  tmp = (gridWriterSilo_t)writer;
 	double            *coords[NDIM];
 	gridPointInt_t    dims;
 	gridPointUint32_t idxLo;
 
-	assert(writer != NULL && writer->isActive);
+	assert(tmp != NULL);
+	assert(tmp->type == IO_TYPE_SILO);
+	assert(tmp->isActive);
 	assert(patch != NULL);
 	assert(patchName != NULL);
 
@@ -191,30 +253,32 @@ gridWriterSilo_writeGridPatch(gridWriterSilo_t writer,
 			coords[i][j] = origin[i] + (j + idxLo[i]) * delta[i];
 	}
 
-	DBPutQuadmesh(writer->f, patchName, NULL, coords, dims, NDIM,
+	DBPutQuadmesh(tmp->f, patchName, NULL, coords, dims, NDIM,
 	              DB_DOUBLE, DB_COLLINEAR, NULL);
 
 	for (int i = 0; i < NDIM; i++)
 		xfree(coords[i]);
 
-	local_writePatchData(writer, patch, patchName);
+	local_writePatchData(tmp, patch, patchName);
 }
 
 extern void
-gridWriterSilo_writeGridRegular(gridWriterSilo_t writer,
-                                gridRegular_t    grid)
+gridWriterSilo_writeGridRegular(gridWriter_t  writer,
+                                gridRegular_t grid)
 {
-	int            numPatches;
-	gridPointDbl_t origin;
-	gridPointDbl_t delta;
-	char           **patchNames;
-	char           *gridName;
-	int            *meshTypes;
+	gridWriterSilo_t tmp = (gridWriterSilo_t)writer;
+	int              numPatches;
+	gridPointDbl_t   origin, delta;
+	char             **patchNames;
+	char             *gridName;
+	int              *meshTypes;
 
-	assert(writer != NULL && writer->isActive);
+	assert(tmp != NULL);
+	assert(tmp->type == IO_TYPE_SILO);
+	assert(tmp->isActive);
 	assert(grid != NULL);
 
-	gridName   = local_getGridName(writer, gridRegular_getName(grid));
+	gridName   = local_getGridName(tmp, gridRegular_getName(grid));
 	numPatches = gridRegular_getNumPatches(grid);
 	meshTypes  = xmalloc(sizeof(int) * numPatches);
 	patchNames = local_getPatchNames(gridName, numPatches);
@@ -226,7 +290,7 @@ gridWriterSilo_writeGridRegular(gridWriterSilo_t writer,
 		                              origin, delta);
 		meshTypes[i] = DB_QUAD_RECT;
 	}
-	DBPutMultimesh(writer->f, gridName, numPatches, patchNames,
+	DBPutMultimesh(tmp->f, gridName, numPatches, patchNames,
 	               meshTypes, NULL);
 
 	xfree(meshTypes);
@@ -236,24 +300,25 @@ gridWriterSilo_writeGridRegular(gridWriterSilo_t writer,
 
 #  ifdef WITH_MPI
 extern void
-gridWriterSilo_initParallel(gridWriterSilo_t writer,
-                            int              numFiles,
-                            MPI_Comm         mpiComm,
-                            int              mpiTag)
+gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 {
-	int rank;
+	gridWriterSilo_t tmp = (gridWriterSilo_t)writer;
+	int              rank;
 
+	assert(tmp != NULL);
+	assert(tmp->type == IO_TYPE_SILO);
 	assert(numFiles > 0);
 
 	MPI_Comm_rank(mpiComm, &rank);
 
-	writer->baton = PMPIO_Init(numFiles, PMPIO_WRITE, mpiComm, mpiTag,
-	                           &local_createDB, &local_openDB,
-	                           &local_closeDB, (void *)writer);
+	tmp->baton = PMPIO_Init(tmp->numFiles, PMPIO_WRITE, mpiComm,
+	                        LOCAL_MPI_TAG,
+	                        &local_createDB, &local_openDB,
+	                        &local_closeDB, (void *)tmp);
 
-	writer->groupRank   = PMPIO_GroupRank(writer->baton, rank);
-	writer->rankInGroup = PMPIO_RankInGroup(writer->baton, rank);
-	writer->globalRank  = rank;
+	tmp->groupRank   = PMPIO_GroupRank(tmp->baton, rank);
+	tmp->rankInGroup = PMPIO_RankInGroup(tmp->baton, rank);
+	tmp->globalRank  = rank;
 }
 
 #  endif
@@ -317,6 +382,9 @@ local_createFileName(gridWriterSilo_t writer)
 {
 	size_t charsToAlloc = 1;
 
+	if (writer->fileName != NULL)
+		xfree(writer->fileName);
+
 	charsToAlloc    += strlen(writer->prefix);
 	charsToAlloc    += strlen(LOCAL_FILESUFFIX);
 #  ifdef WITH_MPI
@@ -336,6 +404,9 @@ static void
 local_createDirName(gridWriterSilo_t writer)
 {
 	size_t charsToAlloc = 0;
+
+	if (writer->dirName != NULL)
+		xfree(writer->dirName);
 
 	charsToAlloc    = 1;
 #  ifdef WITH_MPI
