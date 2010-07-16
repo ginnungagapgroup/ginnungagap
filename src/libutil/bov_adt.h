@@ -11,6 +11,7 @@
 #include "bov.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "endian.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -18,14 +19,14 @@ struct bov_struct {
 	// Handling information
 	char           *bovFileName;
 	char           *bovFilePath;
-	bovEndian_t    machineEndianess;
+	endian_t       machineEndianess;
 	// Required BOV entries
 	double         time;
 	char           *data_file;
 	uint32_t       data_size[3];
 	bovFormat_t    data_format;
 	char           *variable;
-	bovEndian_t    data_endian;
+	endian_t       data_endian;
 	bovCentering_t centering;
 	double         brick_origin[3];
 	double         brick_size[3];

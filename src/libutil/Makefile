@@ -19,6 +19,7 @@ sources = xmem.c \
           refCounter.c \
           rng.c \
           bov.c \
+          grafic.c \
           varArr.c
 
 ifeq ($(WITH_MPI), "true")

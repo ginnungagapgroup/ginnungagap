@@ -280,7 +280,7 @@ bov_getDataEndian_test(void)
 		printf("Testing %s... ", __func__);
 
 	bov = bov_newFromFile("tests/test_1.bov");
-	if (bov_getDataEndian(bov) != BOV_ENDIAN_BIG)
+	if (bov_getDataEndian(bov) != ENDIAN_BIG)
 		hasPassed = false;
 	bov_del(&bov);
 #ifdef XMEM_TRACK_MEM
@@ -582,8 +582,8 @@ bov_setDataEndian_test(void)
 		printf("Testing %s... ", __func__);
 
 	bov = bov_new();
-	bov_setDataEndian(bov, BOV_ENDIAN_BIG);
-	if (bov->data_endian != BOV_ENDIAN_BIG)
+	bov_setDataEndian(bov, ENDIAN_BIG);
+	if (bov->data_endian != ENDIAN_BIG)
 		hasPassed = false;
 	bov_del(&bov);
 #ifdef XMEM_TRACK_MEM

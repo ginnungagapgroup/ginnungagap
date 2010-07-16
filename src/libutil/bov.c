@@ -10,6 +10,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include "endian.h"
 #include "xmem.h"
 #include "xstring.h"
 #include "xfile.h"
@@ -25,9 +26,6 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
-static bovEndian_t
-local_getMachineEndianess(void);
-
 static void
 local_readBov(bov_t bov, FILE *f);
 
@@ -52,7 +50,7 @@ local_readInt3(const char *line, int *vals);
 static bovFormat_t
 local_readDataFormat(const char *line);
 
-static bovEndian_t
+static endian_t
 local_readEndian(const char *line);
 
 static bovCentering_t
@@ -123,7 +121,7 @@ bov_new(void)
 	bov                   = xmalloc(sizeof(struct bov_struct));
 	bov->bovFileName      = NULL;
 	bov->bovFilePath      = NULL;
-	bov->machineEndianess = local_getMachineEndianess();
+	bov->machineEndianess = endian_getSystemEndianess();
 	bov->time             = 0.0;
 	bov->data_file        = NULL;
 	bov->data_format      = BOV_FORMAT_BYTE;
@@ -233,7 +231,7 @@ bov_getVarName(const bov_t bov)
 	return xstrdup(bov->variable);
 }
 
-extern bovEndian_t
+extern endian_t
 bov_getDataEndian(const bov_t bov)
 {
 	assert(bov != NULL);
@@ -331,7 +329,7 @@ bov_setVarName(bov_t bov, const char *varName)
 }
 
 extern void
-bov_setDataEndian(bov_t bov, const bovEndian_t endian)
+bov_setDataEndian(bov_t bov, const endian_t endian)
 {
 	assert(bov != NULL);
 
@@ -435,18 +433,6 @@ bov_readWindowed(bov_t       bov,
 }
 
 /*--- Implementations of local functions --------------------------------*/
-static bovEndian_t
-local_getMachineEndianess(void)
-{
-	const static int temp = 1;
-	unsigned char    *p   = (unsigned char *)&temp;
-
-	// Otherwise the magic might not work as intended
-	assert(4 * sizeof(unsigned char) == sizeof(int));
-
-	return *p == 0 ? BOV_ENDIAN_BIG : BOV_ENDIAN_LITTLE;
-}
-
 static void
 local_readBov(bov_t bov, FILE *f)
 {
@@ -608,16 +594,16 @@ local_readDataFormat(const char *line)
 	return rtn;
 }
 
-static bovEndian_t
+static endian_t
 local_readEndian(const char *line)
 {
-	char        *endian = local_readString(line);
-	bovEndian_t rtn;
+	char     *endian = local_readString(line);
+	endian_t rtn;
 
 	if (strcmp(endian, "LITTLE") == 0)
-		rtn = BOV_ENDIAN_LITTLE;
+		rtn = ENDIAN_LITTLE;
 	else if (strcmp(endian, "BIG") == 0)
-		rtn = BOV_ENDIAN_BIG;
+		rtn = ENDIAN_BIG;
 	else {
 		fprintf(stderr, "Parse Error in line\n --> '%s'\n", line);
 		diediedie(EXIT_FAILURE);

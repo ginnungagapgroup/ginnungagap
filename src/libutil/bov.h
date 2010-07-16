@@ -9,6 +9,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include <stdint.h>
+#include "endian.h"
 
 
 /*--- Typedefs ----------------------------------------------------------*/
@@ -18,11 +19,6 @@ typedef enum {
 	BOV_FORMAT_FLOAT,
 	BOV_FORMAT_DOUBLE
 } bovFormat_t;
-
-typedef enum {
-	BOV_ENDIAN_LITTLE,
-	BOV_ENDIAN_BIG
-} bovEndian_t;
 
 typedef enum {
 	BOV_CENTERING_ZONAL,
@@ -59,7 +55,7 @@ bov_getDataFormat(const bov_t bov);
 extern char *
 bov_getVarName(const bov_t bov);
 
-extern bovEndian_t
+extern endian_t
 bov_getDataEndian(const bov_t bov);
 
 extern bovCentering_t
@@ -90,7 +86,7 @@ extern void
 bov_setVarName(bov_t bov, const char *varName);
 
 extern void
-bov_setDataEndian(bov_t bov, const bovEndian_t endian);
+bov_setDataEndian(bov_t bov, const endian_t endian);
 
 extern void
 bov_setCentering(bov_t bov, const bovCentering_t centering);

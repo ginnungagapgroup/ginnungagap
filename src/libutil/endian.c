@@ -50,6 +50,12 @@ endian_systemIsBig(void)
 	       ? true : false;
 }
 
+extern endian_t
+endian_getSystemEndianess(void)
+{
+	return endian_systemIsBig() ? ENDIAN_BIG : ENDIAN_LITTLE;
+}
+
 extern bool
 endian_fileIsLittleByBlock(const char *fname)
 {
@@ -61,7 +67,6 @@ endian_fileIsBigByBlock(const char *fname)
 {
 	FILE *f;
 	bool systemIsBig = endian_systemIsBig();
-	bool fileIsBig   = false;
 	int  b1, b2, b1Swapped;
 
 	assert(fname != NULL);
@@ -74,6 +79,14 @@ endian_fileIsBigByBlock(const char *fname)
 	xfclose(&f);
 
 	return local_decideOnFileEndian(b1, b1Swapped, b2, systemIsBig);
+}
+
+extern endian_t
+endian_getFileEndianessByBlock(const char *fname)
+{
+	assert(fname != NULL);
+
+	return endian_fileIsBigByBlock(fname) ? ENDIAN_BIG : ENDIAN_LITTLE;
 }
 
 /*--- Implementations of local functions --------------------------------*/
