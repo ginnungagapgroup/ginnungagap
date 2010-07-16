@@ -24,6 +24,16 @@
 
 /*--- Prototypes of local functions -------------------------------------*/
 static void
+local_newGetInput(ginnungagapWN_t wn,
+                  parse_ini_t     ini,
+                  const char      *sectionName);
+
+static void
+local_newGetOutput(ginnungagapWN_t wn,
+                   parse_ini_t     ini,
+                   const char      *sectionName);
+
+static void
 local_setupFromRNG(ginnungagapWN_t wn,
                    gridPatch_t     patch,
                    int             idxOfDensVar);
@@ -41,24 +51,15 @@ ginnungagapWN_newFromIni(parse_ini_t ini, const char *sectionName)
 	wn = xmalloc(sizeof(struct ginnungagapWN_struct));
 	getFromIni(&(wn->useFile), parse_ini_get_bool,
 	           ini, "useFile", sectionName);
+	getFromIni(&(wn->dumpWhiteNoise), parse_ini_get_bool,
+	           ini, "dumpWhiteNoise", sectionName);
 
 	wn->reader = NULL;
 	wn->rng    = NULL;
+	wn->writer = NULL;
 
-	if (wn->useFile) {
-		wn->reader = gridReader_newFromIni(ini, sectionName);
-	} else {
-		char *rngSectionName;
-#ifndef WITH_SPRNG
-		fprintf(stderr,
-		        "WITH_SPRNG must be defined to use random numbers.\n");
-		diediedie(EXIT_FAILURE);
-#endif
-		getFromIni(&rngSectionName, parse_ini_get_string,
-		           ini, "rngSectionName", sectionName);
-		wn->rng = rng_newFromIni(ini, rngSectionName);
-		xfree(rngSectionName);
-	}
+	local_newGetInput(wn, ini, sectionName);
+	local_newGetOutput(wn, ini, sectionName);
 
 	return wn;
 }
@@ -70,6 +71,10 @@ ginnungagapWN_del(ginnungagapWN_t *wn)
 
 	if ((*wn)->rng != NULL)
 		rng_del(&((*wn)->rng));
+	if ((*wn)->reader != NULL)
+		gridReader_del(&((*wn)->reader));
+	if ((*wn)->writer != NULL)
+		gridWriter_del(&((*wn)->writer));
 	xfree(*wn);
 
 	*wn = NULL;
@@ -92,7 +97,49 @@ ginnungagapWN_setup(ginnungagapWN_t wn,
 		local_setupFromRNG(wn, patch, idxOfDensVar);
 }
 
+extern void
+ginnungagapWN_dump(ginnungagapWN_t wn, gridRegular_t grid)
+{
+	if (wn->dumpWhiteNoise) {
+		gridWriter_activate(wn->writer);
+		gridWriter_writeGridRegular(wn->writer, grid);
+		gridWriter_deactivate(wn->writer);
+	}
+}
+
 /*--- Implementations of local functions --------------------------------*/
+static void
+local_newGetInput(ginnungagapWN_t wn,
+                  parse_ini_t     ini,
+                  const char      *sectionName)
+{
+	if (wn->useFile) {
+		wn->reader = gridReader_newFromIni(ini, sectionName);
+	} else {
+		char *rngSectionName;
+#ifndef WITH_SPRNG
+		fprintf(stderr,
+		        "WITH_SPRNG must be defined to use random numbers.\n");
+		diediedie(EXIT_FAILURE);
+#endif
+		getFromIni(&rngSectionName, parse_ini_get_string,
+		           ini, "rngSectionName", sectionName);
+		wn->rng = rng_newFromIni(ini, rngSectionName);
+		xfree(rngSectionName);
+	}
+}
+
+static void
+local_newGetOutput(ginnungagapWN_t wn,
+                   parse_ini_t     ini,
+                   const char      *sectionName)
+{
+	wn->writer = gridWriter_newFromIni(ini, sectionName);
+#ifdef WITH_MPI
+	gridWriter_initParallel(wn->writer, MPI_COMM_WORLD);
+#endif
+}
+
 static void
 local_setupFromRNG(ginnungagapWN_t wn,
                    gridPatch_t     patch,
@@ -106,9 +153,9 @@ local_setupFromRNG(ginnungagapWN_t wn,
 	numCells   = gridPatch_getNumCells(patch);
 	numStreams = rng_getNumStreamsLocal(wn->rng);
 
-#  ifdef _OPENMP
-#    pragma omp parallel for shared(data, numStreams, numCells)
-#  endif
+#ifdef _OPENMP
+#  pragma omp parallel for shared(data, numStreams, numCells)
+#endif
 	for (int i = 0; i < numStreams; i++) {
 		uint64_t cps   = numCells / numStreams;
 		uint64_t start = i * cps;

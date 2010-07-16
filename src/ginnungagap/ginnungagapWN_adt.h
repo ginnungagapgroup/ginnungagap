@@ -10,14 +10,17 @@
 #include "ginnungagapConfig.h"
 #include <stdbool.h>
 #include "../libgrid/gridReader.h"
+#include "../libgrid/gridWriter.h"
 #include "../libutil/rng.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct ginnungagapWN_struct {
-	bool  useFile;
+	bool         useFile;
 	gridReader_t reader;
-	rng_t rng;
+	rng_t        rng;
+	bool         dumpWhiteNoise;
+	gridWriter_t writer;
 };
 
 

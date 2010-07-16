@@ -13,9 +13,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include "../libutil/xmem.h"
-#ifdef WITH_SILO
-#  include <silo.h>
-#endif
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -24,13 +21,6 @@ static void
 local_parseMPIStuff(ginnungagapSetup_t setup, parse_ini_t ini);
 
 #endif
-
-#ifdef WITH_SILO
-static void
-local_parseSiloStuff(ginnungagapSetup_t setup, parse_ini_t ini);
-
-#endif
-
 
 /*--- Implementations of exported functios ------------------------------*/
 extern ginnungagapSetup_t
@@ -65,12 +55,9 @@ ginnungagapSetup_new(parse_ini_t ini)
 #ifdef WITH_MPI
 	local_parseMPIStuff(setup, ini);
 #endif
-#ifdef WITH_SILO
-	local_parseSiloStuff(setup, ini);
-#endif
 
 	return setup;
-}
+} /* ginnungagapSetup_new */
 
 extern void
 ginnungagapSetup_del(ginnungagapSetup_t *setup)
@@ -80,9 +67,6 @@ ginnungagapSetup_del(ginnungagapSetup_t *setup)
 	if ((*setup)->fileNameConstraints != NULL)
 		xfree((*setup)->fileNameConstraints);
 	xfree((*setup)->gridName);
-#ifdef WITH_SILO
-	xfree((*setup)->filePrefix);
-#endif
 
 	xfree(*setup);
 	*setup = NULL;
@@ -104,33 +88,6 @@ local_parseMPIStuff(ginnungagapSetup_t setup, parse_ini_t ini)
 	for (int i = 0; i < NDIM; i++)
 		setup->nProcs[i] = (int)(nProcs[i]);
 	xfree(nProcs);
-}
-
-#endif
-
-#ifdef WITH_SILO
-static void
-local_parseSiloStuff(ginnungagapSetup_t setup, parse_ini_t ini)
-{
-	char     *dbtype;
-	uint32_t numFiles;
-
-	getFromIni(&(setup->filePrefix), parse_ini_get_string,
-	           ini, "filePrefix", "Silo");
-	getFromIni(&(dbtype), parse_ini_get_string,
-	           ini, "dbType", "Silo");
-	if (strcmp(dbtype, "DB_HDF5") == 0) {
-		setup->dbtype = DB_HDF5;
-	} else if (strcmp(dbtype, "DB_PDB") == 0) {
-		setup->dbtype = DB_PDB;
-	} else {
-		exit(EXIT_FAILURE);
-	}
-	xfree(dbtype);
-#  ifdef WITH_MPI
-	getFromIni(&numFiles, parse_ini_get_uint32, ini, "numFiles", "Silo");
-	setup->numFiles = (int)numFiles;
-#  endif
 }
 
 #endif

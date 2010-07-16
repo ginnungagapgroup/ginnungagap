@@ -15,6 +15,7 @@
 #include "../libgrid/gridRegular.h"
 #include "../libgrid/gridRegularDistrib.h"
 #include "../libgrid/gridRegularFFT.h"
+#include "../libgrid/gridWriter.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -26,6 +27,7 @@ struct ginnungagap_struct {
 	gridRegular_t        grid;
 	gridRegularDistrib_t gridDistrib;
 	gridRegularFFT_t     gridFFT;
+	gridWriter_t         finalWriter;
 	int                  posOfDens;
 	int                  rank;
 	int                  size;

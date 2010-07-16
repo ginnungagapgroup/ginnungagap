@@ -30,13 +30,6 @@ struct ginnungagapSetup_struct {
 #ifdef WITH_MPI
 	int      nProcs[NDIM];
 #endif
-#ifdef WITH_SILO
-	char *filePrefix;
-	int  dbtype;
-#  ifdef WITH_MPI
-	int  numFiles;
-#  endif
-#endif
 };
 
 

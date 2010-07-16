@@ -28,5 +28,8 @@ ginnungagapWN_setup(ginnungagapWN_t wn,
                     gridRegular_t   grid,
                     int             idxOfDensVar);
 
+extern void
+ginnungagapWN_dump(ginnungagapWN_t wn, gridRegular_t grid);
+
 
 #endif
