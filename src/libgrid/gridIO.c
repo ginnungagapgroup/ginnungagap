@@ -62,43 +62,5 @@ gridIO_getNameFromType(gridIO_type_t type)
 	return rtn;
 }
 
-extern bool
-gridIO_detectSwappingByFortranBlock(const char *fname)
-{
-	FILE *f;
-	bool isSwapped = false;
-	int  b1, b2, b1Swapped;
-
-	assert(fname != NULL);
-
-	f = xfopen(fname, "rb");
-
-	xfread(&b1, sizeof(int), 1, f);
-	b1Swapped = b1;
-	byteswap(&b1Swapped, sizeof(int));
-	if (b1Swapped < b1) {
-		xfseek(f, (long)b1Swapped, SEEK_CUR);
-		xfread(&b2, sizeof(int), 1, f);
-	}
-	if (b1 == b2) {
-		// comparing unswapped values here to not have to swap b2
-		isSwapped = true;
-	} else {
-		xfseek(f, 4L + b1, SEEK_SET);
-		xfread(&b2, sizeof(int), 1, f);
-		if (b1 == b2) {
-			isSwapped = false;
-		} else {
-			fprintf(stderr,
-			        "Cannot detect swapping, neither swapped nor "
-			        "unswapped finds the end of the block :(\n");
-			diediedie(EXIT_FAILURE);
-		}
-	}
-
-	xfclose(&f);
-
-	return isSwapped ? true : false;
-} /* gridIO_detectSwappingByFortranBlock */
 
 /*--- Implementations of local functions --------------------------------*/

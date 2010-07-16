@@ -8,12 +8,21 @@
 #include "endian.h"
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include "xfile.h"
+#include "diediedie.h"
+#include "byteswap.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+static int
+local_findBlockEnd(int b1, int b1Swapped, FILE *f);
+
+static bool
+local_decideOnFileEndian(int b1, int b1Swapped, int b2, bool systemIsBig);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -41,4 +50,71 @@ endian_systemIsBig(void)
 	       ? true : false;
 }
 
+extern bool
+endian_fileIsLittleByBlock(const char *fname)
+{
+	return (endian_fileIsBigByBlock(fname)) ? false : true;
+}
+
+extern bool
+endian_fileIsBigByBlock(const char *fname)
+{
+	FILE *f;
+	bool systemIsBig = endian_systemIsBig();
+	bool fileIsBig   = false;
+	int  b1, b2, b1Swapped;
+
+	assert(fname != NULL);
+
+	f = xfopen(fname, "rb");
+	xfread(&b1, sizeof(int), 1, f);
+	b1Swapped = b1;
+	byteswap(&b1Swapped, sizeof(int));
+	b2 = local_findBlockEnd(b1, b1Swapped, f);
+	xfclose(&f);
+
+	return local_decideOnFileEndian(b1, b1Swapped, b2, systemIsBig);
+}
+
 /*--- Implementations of local functions --------------------------------*/
+static int
+local_findBlockEnd(int b1, int b1Swapped, FILE *f)
+{
+	int  b2;
+	long pos = ftell(f);
+
+	if (b1 < b1Swapped) {
+		xfseek(f, (long)b1, SEEK_CUR);
+		xfread(&b2, sizeof(int), 1, f);
+		if (b1 != b2) {
+			xfseek(f, pos + (long)b1Swapped, SEEK_SET);
+			xfread(&b2, sizeof(int), 1, f);
+			byteswap(&b2, sizeof(int));
+		}
+	} else {
+		xfseek(f, (long)b1Swapped, SEEK_CUR);
+		xfread(&b2, sizeof(int), 1, f);
+		byteswap(&b2, sizeof(int));
+		if (b1Swapped != b2) {
+			xfseek(f, pos + (long)b1, SEEK_SET);
+			xfread(&b2, sizeof(int), 1, f);
+		}
+	}
+
+	return b2;
+}
+
+static bool
+local_decideOnFileEndian(int b1, int b1Swapped, int b2, bool systemIsBig)
+{
+	bool fileIsBig;
+
+	if (b1 == b2)
+		fileIsBig = systemIsBig;
+	else if (b1Swapped == b2)
+		fileIsBig = !systemIsBig;
+	else
+		diediedie(EXIT_FAILURE);
+
+	return fileIsBig;
+}

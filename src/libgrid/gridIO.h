@@ -26,7 +26,4 @@ gridIO_getTypeFromName(const char *name);
 extern const char *
 gridIO_getNameFromType(gridIO_type_t type);
 
-extern bool
-gridIO_detectSwappingByFortranBlock(const char *fname);
-
 #endif

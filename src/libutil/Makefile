@@ -29,6 +29,7 @@ endif
 sourcesTests = lib${LIBNAME}_tests.c \
                refCounter_tests.c \
                xstring_tests.c \
+               endian_tests.c \
                bov_tests.c \
                varArr_tests.c
 

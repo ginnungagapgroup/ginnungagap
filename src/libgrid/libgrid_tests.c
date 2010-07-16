@@ -212,7 +212,6 @@ main(int argc, char **argv)
 	}
 	RUNTEST(&gridIO_getTypeFromName_test, hasFailed);
 	RUNTEST(&gridIO_getNameFromType_test, hasFailed);
-	RUNTEST(&gridIO_detectSwappingByFortranBlock_test, hasFailed);
 #  ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);

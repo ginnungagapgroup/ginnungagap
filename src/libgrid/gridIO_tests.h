@@ -18,7 +18,4 @@ gridIO_getTypeFromName_test(void);
 extern bool
 gridIO_getNameFromType_test(void);
 
-extern bool
-gridIO_detectSwappingByFortranBlock_test(void);
-
 #endif

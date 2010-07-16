@@ -2,8 +2,8 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef ENDIAN_H
-#define ENDIAN_H
+#ifndef ENDIAN_TESTS_H
+#define ENDIAN_TESTS_H
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -13,16 +13,9 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-endian_systemIsLittle(void);
+endian_fileIsLittleByBlock_test(void);
 
 extern bool
-endian_systemIsBig(void);
-
-extern bool
-endian_fileIsLittleByBlock(const char *fname);
-
-extern bool
-endian_fileIsBigByBlock(const char *fname);
-
+endian_fileIsBigByBlock_test(void);
 
 #endif

@@ -7,6 +7,7 @@
 #include "refCounter_tests.h"
 #include "xstring_tests.h"
 #include "varArr_tests.h"
+#include "endian_tests.h"
 #include "bov_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -88,6 +89,12 @@ main(int argc, char **argv)
 		printf("\nRunning tests for xstring:\n");
 		RUNTEST(&xstring_xdirname_test, hasFailed);
 		RUNTEST(&xstring_xbasename_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for endian:\n");
+		RUNTEST(&endian_fileIsLittleByBlock_test, hasFailed);
+		RUNTEST(&endian_fileIsBigByBlock_test, hasFailed);
 	}
 
 	if (rank == 0) {
