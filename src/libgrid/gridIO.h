@@ -8,12 +8,14 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
+#include <stdbool.h>
 
 
 /*--- Exported types ----------------------------------------------------*/
 typedef enum {
 	IO_TYPE_BOV,
 	IO_TYPE_SILO,
+	IO_TYPE_GRAFIC,
 	IO_TYPE_UNKNOWN
 } gridIO_type_t;
 
@@ -23,5 +25,8 @@ gridIO_getTypeFromName(const char *name);
 
 extern const char *
 gridIO_getNameFromType(gridIO_type_t type);
+
+extern bool
+gridIO_detectSwappingByFortranBlock(const char *fname);
 
 #endif

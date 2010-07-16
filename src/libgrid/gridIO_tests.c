@@ -12,6 +12,7 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#include "../libutil/endian.h"
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
@@ -77,6 +78,41 @@ gridIO_getNameFromType_test(void)
 	if (strcmp("unknown",
 	           gridIO_getNameFromType(IO_TYPE_UNKNOWN * 14)) != 0)
 		hasPassed = false;
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* gridIO_getNameFromType_test */
+
+extern bool
+gridIO_detectSwappingByFortranBlock_test(void)
+{
+	bool   hasPassed      = true;
+	int    rank           = 0;
+#ifdef XMEM_TRACK_MEM
+	size_t allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	if (endian_systemIsLittle()) {
+		if (!gridIO_detectSwappingByFortranBlock("tests/bigEndian.dat"))
+			hasPassed = false;
+		if (gridIO_detectSwappingByFortranBlock("tests/littleEndian.dat"))
+			hasPassed = false;
+	} else {
+		if (gridIO_detectSwappingByFortranBlock("tests/bigEndian.dat"))
+			hasPassed = false;
+		if (!gridIO_detectSwappingByFortranBlock("tests/littleEndian.dat"))
+			hasPassed = false;
+	}
+
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;

@@ -13,6 +13,7 @@ sources = xmem.c \
           xfile.c \
           parse_ini.c \
           byteswap.c \
+          endian.c \
           cmdline.c \
           timer.c \
           refCounter.c \

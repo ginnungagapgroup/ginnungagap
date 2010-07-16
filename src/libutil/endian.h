@@ -2,23 +2,21 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GRIDIO_TESTS_H
-#define GRIDIO_TESTS_H
+#ifndef ENDIAN_H
+#define ENDIAN_H
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "gridConfig.h"
+#include "util_config.h"
 #include <stdbool.h>
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-gridIO_getTypeFromName_test(void);
+endian_systemIsLittle(void);
 
 extern bool
-gridIO_getNameFromType_test(void);
+endian_systemIsBig(void);
 
-extern bool
-gridIO_detectSwappingByFortranBlock_test(void);
 
 #endif
