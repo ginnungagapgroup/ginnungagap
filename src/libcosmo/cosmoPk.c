@@ -332,7 +332,12 @@ local_getMem(cosmoPk_t pk, uint32_t numPoints)
 static void
 local_doInterpolation(cosmoPk_t pk)
 {
-	pk->acc    = gsl_interp_accel_alloc();
+	if (pk->acc != NULL)
+		gsl_interp_accel_free(pk->acc);
+	if (pk->spline != NULL)
+		gsl_spline_free(pk->spline);
+
+	pk->acc = gsl_interp_accel_alloc();
 	pk->spline = gsl_spline_alloc(gsl_interp_cspline,
 	                              (int)(pk->numPoints));
 	gsl_spline_init(pk->spline, pk->k, pk->P, (int)(pk->numPoints));
