@@ -32,6 +32,7 @@ sourcesTests = lib${LIBNAME}_tests.c \
                xstring_tests.c \
                endian_tests.c \
                bov_tests.c \
+               grafic_tests.c \
                varArr_tests.c
 
 ifeq ($(WITH_MPI), "true")

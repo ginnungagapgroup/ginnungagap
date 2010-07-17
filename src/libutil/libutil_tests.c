@@ -9,6 +9,7 @@
 #include "varArr_tests.h"
 #include "endian_tests.h"
 #include "bov_tests.h"
+#include "grafic_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -137,6 +138,32 @@ main(int argc, char **argv)
 		RUNTEST(&bov_readWindowed_test, hasFailed);
 	}
 
+	if (rank == 0) {
+		printf("\nRunning tests for grafic:\n");
+		RUNTEST(&grafic_new_test, hasFailed);
+		RUNTEST(&grafic_newFromFile_test, hasFailed);
+		RUNTEST(&grafic_del_test, hasFailed);
+		RUNTEST(&grafic_getFileName_test, hasFailed);
+		RUNTEST(&grafic_getSize_test, hasFailed);
+		RUNTEST(&grafic_getDx_test, hasFailed);
+		RUNTEST(&grafic_getXoff_test, hasFailed);
+		RUNTEST(&grafic_getAstart_test, hasFailed);
+		RUNTEST(&grafic_getOmegam_test, hasFailed);
+		RUNTEST(&grafic_getOmegav_test, hasFailed);
+		RUNTEST(&grafic_getH0_test, hasFailed);
+		RUNTEST(&grafic_getIseed_test, hasFailed);
+		RUNTEST(&grafic_setFileName_test, hasFailed);
+		RUNTEST(&grafic_setSize_test, hasFailed);
+		RUNTEST(&grafic_setDx_test, hasFailed);
+		RUNTEST(&grafic_setXoff_test, hasFailed);
+		RUNTEST(&grafic_setAstart_test, hasFailed);
+		RUNTEST(&grafic_setOmegam_test, hasFailed);
+		RUNTEST(&grafic_setOmegav_test, hasFailed);
+		RUNTEST(&grafic_setH0_test, hasFailed);
+		RUNTEST(&grafic_setIseed_test, hasFailed);
+		RUNTEST(&grafic_read_test, hasFailed);
+		RUNTEST(&grafic_readWindowed_test, hasFailed);
+	}
 
 #ifdef WITH_MPI
 	MPI_Barrier(MPI_COMM_WORLD);

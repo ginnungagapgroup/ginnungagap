@@ -67,6 +67,9 @@ static void
 local_skipPlane(FILE *f, long numInPlane);
 
 static void
+local_skipRow(FILE *f, long numInRow);
+
+static void
 local_writeHeader(grafic_t grafic, FILE *f);
 
 static void
@@ -381,11 +384,12 @@ grafic_write(grafic_t       grafic,
 	local_writeHeader(grafic, f);
 
 	for (uint32_t k = 0; k < grafic->np3; k++) {
-		xfwrite(&numPlane, sizeof(int), 1, f);
+		int b = numPlane * sizeof(float);
+		xfwrite(&b, sizeof(int), 1, f);
 		local_writePlane(f, data, dataFormat, numComponents, dataOffset,
 		                 numPlane);
 		dataOffset += numPlane;
-		xfwrite(&numPlane, sizeof(int), 1, f);
+		xfwrite(&b, sizeof(int), 1, f);
 	}
 
 	xfclose(&f);
@@ -536,15 +540,21 @@ local_readWindowedActualRead(grafic_t       grafic,
 	for (uint32_t k = 0; k < dims[2]; k++) {
 		int b1, b2;
 		xfread(&b1, sizeof(int), 1, f);
+		for (uint32_t j = 0; j < idxLo[1]; j++)
+			local_skipRow(f, grafic->np1);
 		for (uint32_t j = 0; j < dims[1]; j++) {
-			xfseek(f, sizeof(float) * idxLo[1], SEEK_CUR);
-			xfread(buffer, sizeof(float), dims[1], f);
-			xfseek(f, sizeof(float) * (grafic->np2 - dims[1] - idxLo[1]),
-			       SEEK_CUR);
+			if (idxLo[0] > 0)
+				xfseek(f, sizeof(float) * idxLo[0], SEEK_CUR);
+			xfread(buffer, sizeof(float), dims[0], f);
+			if (grafic->np1 - dims[0] - idxLo[0] > 0)
+				xfseek(f, sizeof(float) * (grafic->np1 - dims[0] - idxLo[0]),
+				       SEEK_CUR);
 			local_cpBufferToData(buffer, dims[0], data, dataFormat,
 			                     numComponents, dataOffset, doByteswap);
 			dataOffset += dims[0];
 		}
+		for (uint32_t j = 0; j < grafic->np2 - dims[1] - idxLo[1]; j++)
+			local_skipRow(f, grafic->np1);
 		xfread(&b2, sizeof(int), 1, f);
 		if (b1 != b2)
 			diediedie(EXIT_FAILURE);
@@ -552,7 +562,7 @@ local_readWindowedActualRead(grafic_t       grafic,
 
 	xfclose(&f);
 	xfree(buffer);
-}
+} /* local_readWindowedActualRead */
 
 static void
 local_cpBufferToData(float          *buffer,
@@ -582,13 +592,19 @@ local_cpBufferToData(float          *buffer,
 }
 
 static void
+local_skipRow(FILE *f, long numInRow)
+{
+	xfseek(f, numInRow * sizeof(float), SEEK_CUR);
+}
+
+static void
 local_skipPlane(FILE *f, long numInPlane)
 {
 	int b1, b2;
 
 	xfread(&b1, sizeof(int), 1, f);
 
-	xfseek(f, numInPlane, SEEK_CUR);
+	xfseek(f, numInPlane * sizeof(float), SEEK_CUR);
 
 	xfread(&b2, sizeof(int), 1, f);
 	if (b1 != b2)
