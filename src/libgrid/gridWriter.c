@@ -118,7 +118,6 @@ extern void
 gridWriter_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 {
 	assert(writer != NULL);
-	assert(numFiles > 0);
 	assert(writer->func->initParallel != NULL);
 
 	writer->func->initParallel(writer, mpiComm);

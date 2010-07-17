@@ -307,7 +307,6 @@ gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 
 	assert(tmp != NULL);
 	assert(tmp->type == IO_TYPE_SILO);
-	assert(numFiles > 0);
 
 	MPI_Comm_rank(mpiComm, &rank);
 

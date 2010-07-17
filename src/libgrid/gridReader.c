@@ -96,6 +96,10 @@ local_newFromIniWrapper(parse_ini_t   ini,
 	if (type == IO_TYPE_BOV) {
 		reader = (gridReader_t)gridReaderBov_newFromIni(ini,
 		                                                readerSectionName);
+	} else if (type == IO_TYPE_GRAFIC) {
+		reader
+		    = (gridReader_t)gridReaderGrafic_newFromIni(ini,
+		                                                readerSectionName);
 	} else {
 		fprintf(stderr, "Cannot create reader for %s\n",
 		        gridIO_getNameFromType(type));
