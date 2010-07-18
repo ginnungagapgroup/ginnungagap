@@ -303,19 +303,30 @@ local_dumpGrid(ginnungagap_t ginnungagap, const char *qualifier)
 static void
 local_initPk(ginnungagap_t ginnungagap)
 {
-	double kmin, kmax, sigma8, error;
+	double kmin, kmax, kminBox, kmaxBox, sigma8, error;
 
 	kmin  = kmax = M_PI / ginnungagap->setup->boxsizeInMpch;
 	kmin *= 2.;
 	kmax *= ginnungagap->setup->dim1D;
+	kminBox = kmin;
+	kmaxBox = kmax;
+	cosmoPk_findKWindowForSigma8(ginnungagap->pk, &kmin, &kmax);
 
 	if (ginnungagap->rank == 0) {
 		printf("Getting P(k) at z = 0.0:\n");
+		printf("  k_min_box = %e [h/Mpc]\n", kminBox);
+		printf("  k_max_box = %e [h/Mpc]\n", kmaxBox);
 		printf("  k_min = %e [h/Mpc]\n", kmin);
 		printf("  k_max = %e [h/Mpc]\n", kmax);
 	}
+
 	if (ginnungagap->setup->forceSigma8InBox) {
 		double correction, errorRenorm;
+		sigma8     = cosmoPk_calcSigma8(ginnungagap->pk, kmin, kmax, &error);
+		if (ginnungagap->rank == 0) {
+			printf("  sigma8 of input P(k) = %e (sigma8^2 = %e)\n",
+			       sigma8, sigma8*sigma8);
+		}
 		sigma8     = cosmoModel_getSigma8(ginnungagap->model);
 		correction = cosmoPk_forceSigma8(ginnungagap->pk, sigma8,
 		                                 kmin, kmax, &errorRenorm);
@@ -358,9 +369,11 @@ local_initPk(ginnungagap_t ginnungagap)
 	cosmoPk_scale(ginnungagap->pk, scale);
 	sigma = sqrt(cosmoPk_calcMomentFiltered(ginnungagap->pk,
 	                                        0, &cosmoFunc_const,
-	                                        &one, kmin, kmax, &error));
+	                                        &one, M_SQRT1_2 * kminBox,
+	                                        kmaxBox, &error));
 	if (ginnungagap->rank == 0) {
-		printf("  sigma = %.4f\n", sigma);
+		printf("  sigma in [k_min_box/sqrt(2),k_max_box] = %.4f\n",
+		       sigma);
 		cosmoPk_dumpToFile(ginnungagap->pk, "Pk.initial.dat", 5);
 	}
 } /* local_initPk */
