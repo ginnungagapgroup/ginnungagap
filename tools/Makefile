@@ -14,6 +14,7 @@ all:
 	@echo "+-------------------------------+"
 	@echo ""
 	$(MAKE) -C makeSiloRoot all
+	$(MAKE) -C grafic2bov all
 	@echo ""
 	@echo "+-------------------------------+"
 	@echo "|   Done with the tools         |"
@@ -22,10 +23,13 @@ all:
 	@echo ""
 
 clean:
+	$(MAKE) -C grafic2bov clean
 	$(MAKE) -C makeSiloRoot clean
 
 tests:
+	$(MAKE) -C grafic2bov tests
 	$(MAKE) -C makeSiloRoot tests
 
 dist-clean:
+	$(MAKE) -C grafic2bov dist-clean
 	$(MAKE) -C makeSiloRoot dist-clean
