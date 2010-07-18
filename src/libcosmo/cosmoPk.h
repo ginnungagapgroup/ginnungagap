@@ -57,7 +57,7 @@ cosmoPk_evalGSL(double k, void *param);
 //! (cf. Peacock 2007, 8th edition, eq. (16.22), p. 500):
 //!
 //! \sigma_n^2 / V
-//!     =    1/(2 \pi^2)
+//!     =    1/(8 \pi^3)
 //!         \int_{k_{\mathrm{min}}}^{k_{\mathrm{max}}}
 //!             k^(2n + 2) P(k) W_k^2(k)
 //!         dk
@@ -88,6 +88,9 @@ cosmoPk_forceSigma8(cosmoPk_t pk,
                     double    kmin,
                     double    kmax,
                     double    *error);
+
+extern void
+cosmoPk_findKWindowForSigma8(cosmoPk_t pk, double *kmin, double *kmax);
 
 
 #endif

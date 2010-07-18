@@ -26,6 +26,8 @@
 
 /*--- Local defines -----------------------------------------------------*/
 #define LOCAL_MAX_FORCESIGMA8_ITERATIONS 42
+#define LOCAL_LIMIT 2048
+#define LOCAL_EPSREL 1e-7
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -230,14 +232,14 @@ cosmoPk_calcMomentFiltered(cosmoPk_t pk,
 	F.function    = &cosmoFunc_product3;
 	F.params      = (void *)&param;
 
-	w             = gsl_integration_workspace_alloc(1000);
+	w             = gsl_integration_workspace_alloc(LOCAL_LIMIT);
 
-	gsl_integration_qags(&F, kmin, kmax, 0, 9e-9, 1000,
-	                     w, &sigmaSqr, error);
+	gsl_integration_qag(&F, kmin, kmax, 0, LOCAL_EPSREL, LOCAL_LIMIT,
+	                    GSL_INTEG_GAUSS61, w, &sigmaSqr, error);
 
 	gsl_integration_workspace_free(w);
 
-	return 1. / (TWOPI * PI) * sigmaSqr;
+	return 1. / (2 * POW2(M_PI)) * sigmaSqr;
 }
 
 extern double
@@ -285,11 +287,12 @@ cosmoPk_forceSigma8(cosmoPk_t pk,
 	assert(isgreater(sigma8, 0.0));
 	assert(isgreater(kmin, 0.0));
 	assert(isgreater(kmax, kmin));
+	assert(errot != NULL);
 
 	sigma8Actual = cosmoPk_calcSigma8(pk, kmin, kmax, error);
 	sigma8First  = sigma8Actual;
 	do {
-		cosmoPk_scale(pk, sigma8 / sigma8Actual);
+		cosmoPk_scale(pk, POW2(sigma8 / sigma8Actual));
 		sigma8Actual = cosmoPk_calcSigma8(pk, kmin, kmax, error);
 		*error       = fabs(1. - sigma8 / sigma8Actual);
 		numIter++;
@@ -298,8 +301,30 @@ cosmoPk_forceSigma8(cosmoPk_t pk,
 		fprintf(stderr, "Exhausted iterations in %s: error %15.13e\n",
 		        __func__, *error);
 
+	return POW2(sigma8 / sigma8First);
+}
 
-	return sigma8First / sigma8;
+extern void
+cosmoPk_findKWindowForSigma8(cosmoPk_t pk, double *kmin, double *kmax)
+{
+	double error;
+	double sigma8;
+	double sigma8Old;
+	double pkKmin = pk->k[0];
+	double pkKmax = pk->k[pk->numPoints - 1];
+
+	sigma8 = cosmoPk_calcSigma8(pk, *kmin, *kmax, &error);
+	do {
+		sigma8Old = sigma8;
+		*kmin *= 0.9;
+		if (*kmin < pkKmin)
+			*kmin = pkKmin;
+		*kmax *= 1.1;
+		if (*kmax > pkKmax)
+			*kmax = pkKmax;
+		sigma8 = cosmoPk_calcSigma8(pk, *kmin, *kmax, &error);
+	} while (isgreater(fabs(1. - sigma8/sigma8Old), 1e-6)
+	         && (*kmin > pkKmin || *kmax < pkKmax));
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -337,7 +362,7 @@ local_doInterpolation(cosmoPk_t pk)
 	if (pk->spline != NULL)
 		gsl_spline_free(pk->spline);
 
-	pk->acc = gsl_interp_accel_alloc();
+	pk->acc    = gsl_interp_accel_alloc();
 	pk->spline = gsl_spline_alloc(gsl_interp_cspline,
 	                              (int)(pk->numPoints));
 	gsl_spline_init(pk->spline, pk->k, pk->P, (int)(pk->numPoints));

@@ -8,14 +8,12 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "../../config.h"
+#include "../libutil/utilMath.h"
 
 
 /*--- Defines for the library --------------------------------------------*/
-#ifndef PI
-#  define PI 3.14159265359
-#endif
-#ifndef TWOPI
-#  define TWOPI 6.28318530718
+#ifndef M_PI
+#  define M_PI 3.14159265358979323846
 #endif
 #ifndef POW2
 #  define POW2(x) ((x) * (x))

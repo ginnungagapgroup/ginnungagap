@@ -163,7 +163,7 @@ cosmoPk_calcMomentFiltered_test(void)
 	}
 	pk           = cosmoPk_newFromArrays(100, k, P, -1.0, -1.0);
 
-	sigmaSqrTheo = 1. / ((2. * 0. + 1.) * TWOPI * PI)
+	sigmaSqrTheo = 1. / ((2. * 0. + 1.) * 2 * POW2(M_PI))
 	               * (pow(k[99], 2. * 0. + 1.)
 	                  - pow(k[10], 2. * 0. + 1.));
 	sigmaSqr = cosmoPk_calcMomentFiltered(pk, UINT32_C(0),
@@ -173,7 +173,7 @@ cosmoPk_calcMomentFiltered_test(void)
 	                                      &error);
 	if (isgreater(fabs(sigmaSqr / sigmaSqrTheo - 1.0), 4e-5))
 		hasSucceeded = false;
-	sigmaSqrTheo = 1. / ((2. * 1. + 1.) * TWOPI * PI)
+	sigmaSqrTheo = 1. / ((2. * 1. + 1.) * 2 * POW2(M_PI))
 	               * (pow(k[99], 2. * 1. + 1.)
 	                  - pow(k[10], 2. * 1. + 1.));
 	sigmaSqr = cosmoPk_calcMomentFiltered(pk, UINT32_C(1),
