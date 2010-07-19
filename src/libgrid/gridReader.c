@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "gridReaderBov.h"
+#include "gridReaderGrafic.h"
 #include "gridPatch.h"
 #include "../libutil/parse_ini.h"
 #include "../libutil/xmem.h"

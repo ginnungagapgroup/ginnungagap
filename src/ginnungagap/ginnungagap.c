@@ -265,42 +265,6 @@ local_fourierToReal(ginnungagap_t ginnungagap)
 }
 
 static void
-local_dumpGrid(ginnungagap_t ginnungagap, const char *qualifier)
-{
-	char        *prefix = NULL;
-	FILE        *f;
-	gridPatch_t patch   = gridRegular_getPatchHandle(ginnungagap->grid, 0);
-	fpv_t       *data   = gridPatch_getVarDataHandle(patch,
-	                                                 ginnungagap->posOfDens);
-	uint64_t    num     = gridPatch_getNumCells(patch);
-
-	prefix = xstrmerge("otto", qualifier);
-	f      = xfopen(prefix, "wb");
-
-	xfwrite(data, sizeof(fpv_t), num, f);
-
-	xfclose(&f);
-	xfree(prefix);
-#if 0
-	gridWriterSilo_t writer;
-	int              dbtype = ginnungagap->setup->dbtype;
-
-	prefix = xstrmerge(ginnungagap->setup->filePrefix, qualifier);
-
-	writer = gridWriterSilo_new(prefix, dbtype);
-#  ifdef WITH_MPI
-	gridWriterSilo_initParallel(writer, ginnungagap->setup->numFiles,
-	                            MPI_COMM_WORLD, 987);
-#  endif
-	gridWriterSilo_activate(writer);
-	gridWriterSilo_writeGridRegular(writer, ginnungagap->grid);
-	gridWriterSilo_deactivate(writer);
-
-	gridWriterSilo_del(&writer);
-#endif
-} /* local_dumpGrid */
-
-static void
 local_initPk(ginnungagap_t ginnungagap)
 {
 	double kmin, kmax, kminBox, kmaxBox, sigma8, error;

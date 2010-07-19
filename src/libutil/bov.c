@@ -30,7 +30,7 @@ static void
 local_readBov(bov_t bov, FILE *f);
 
 static char *
-local_getFieldName(const char *line, bov_t bov);
+local_getFieldName(const char *line);
 
 static void
 local_parseLine(const char *fieldName, const char *line, bov_t bov);
@@ -443,7 +443,7 @@ local_readBov(bov_t bov, FILE *f)
 		char *fieldName = NULL;
 		if (line[0] == '#')
 			continue;
-		fieldName = local_getFieldName(line, bov);
+		fieldName = local_getFieldName(line);
 		local_parseLine(fieldName, line, bov);
 		xfree(fieldName);
 	}
@@ -451,7 +451,7 @@ local_readBov(bov_t bov, FILE *f)
 }
 
 static char *
-local_getFieldName(const char *line, bov_t bov)
+local_getFieldName(const char *line)
 {
 	int  startField = 0;
 	int  endField   = 0;

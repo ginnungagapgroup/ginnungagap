@@ -47,7 +47,7 @@ typedef struct gridWriter_func_struct *gridWriter_func_t;
     bool              isActive;
 
 struct gridWriter_struct {
-	GRIDWRITER_T_CONTENT;
+	GRIDWRITER_T_CONTENT
 };
 
 

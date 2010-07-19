@@ -14,7 +14,7 @@
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridReaderBov_struct {
-	GRIDREADER_T_CONTENT;
+	GRIDREADER_T_CONTENT
 	bov_t bov;
 };
 

@@ -68,7 +68,7 @@ static void
 local_createDirName(gridWriterSilo_t writer);
 
 static char *
-local_getGridName(gridWriterSilo_t writer, const char *base);
+local_getGridName(int rankInGroup, const char *base);
 
 static char **
 local_getPatchNames(const char *base, int numPatches);
@@ -83,9 +83,6 @@ local_writePatchData(gridWriterSilo_t writer,
 
 inline static int
 local_getVarType(gridVar_t var);
-
-inline static int
-local_getVarCentering(gridVar_t var);
 
 static void *
 local_getPatchVarName(gridVar_t var, const char *patchName, char *varName);
@@ -116,6 +113,8 @@ gridWriterSilo_new(const char *prefix, int dbType)
 	writer->f           = NULL;
 	writer->fileName    = NULL;
 	writer->dirName     = NULL;
+
+	return writer;
 }
 
 extern gridWriterSilo_t
@@ -278,7 +277,12 @@ gridWriterSilo_writeGridRegular(gridWriter_t  writer,
 	assert(tmp->isActive);
 	assert(grid != NULL);
 
-	gridName   = local_getGridName(tmp, gridRegular_getName(grid));
+#  ifdef WITH_MPI
+	gridName = local_getGridName(writer->rankInGroup,
+	                             gridRegular_getName(grid));
+#  else
+	gridName   = local_getGridName(0, gridRegular_getName(grid));
+#  endif
 	numPatches = gridRegular_getNumPatches(grid);
 	meshTypes  = xmalloc(sizeof(int) * numPatches);
 	patchNames = local_getPatchNames(gridName, numPatches);
@@ -296,7 +300,7 @@ gridWriterSilo_writeGridRegular(gridWriter_t  writer,
 	xfree(meshTypes);
 	local_delPatchNames(patchNames, numPatches);
 	xfree(gridName);
-}
+} /* gridWriterSilo_writeGridRegular */
 
 #  ifdef WITH_MPI
 extern void
@@ -421,20 +425,13 @@ local_createDirName(gridWriterSilo_t writer)
 }
 
 static char *
-local_getGridName(gridWriterSilo_t writer, const char *base)
+local_getGridName(int rankInGroup, const char *base)
 {
 	char *name;
-	int  charsToAlloc = strlen(base) + 1;
-#  ifdef WITH_MPI
-	charsToAlloc += 1 + 3;
-#  endif
+	int  charsToAlloc = strlen(base) + 1 + 1 + 3;
 
 	name = xmalloc(sizeof(char) * charsToAlloc);
-#  ifdef WITH_MPI
-	sprintf(name, "%s_%03i", base, writer->rankInGroup);
-#  else
-	sprintf(name, "%s", base);
-#  endif
+	sprintf(name, "%s_%03i", base, rankInGroup);
 
 	return name;
 }
@@ -476,7 +473,7 @@ local_writePatchData(gridWriterSilo_t writer,
 		gridVar_t var          = gridPatch_getVarHandle(patch, i);
 		void      *data        = gridPatch_getVarDataHandle(patch, i);
 		int       varType      = local_getVarType(var);
-		int       varCentering = local_getVarCentering(var);
+		int       varCentering = DB_ZONECENT;
 
 		for (int j = 0; j < NDIM; j++) {
 			dims[j] = (int)(gridPatch_getOneDim(patch, j));
@@ -514,14 +511,6 @@ local_getVarType(gridVar_t var)
 	}
 
 	return varType;
-}
-
-inline static int
-local_getVarCentering(gridVar_t var)
-{
-	// Eventually we need to query var for its centering, but at the
-	// moment that is not needed and everything is zone centered.
-	return DB_ZONECENT;
 }
 
 static void *

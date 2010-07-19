@@ -651,7 +651,7 @@ local_writePlane(FILE           *f,
 	} else {
 		float tmp;
 		for (int i = 0; i < numPlane; i++) {
-			tmp = ((double *)data)[(dataOffset + i) * numComponents];
+			tmp = (float)((double *)data)[(dataOffset + i) * numComponents];
 			xfwrite(&tmp, sizeof(float), 1, f);
 		}
 	}

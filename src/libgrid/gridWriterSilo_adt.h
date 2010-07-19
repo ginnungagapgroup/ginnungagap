@@ -17,7 +17,7 @@
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridWriterSilo_struct {
-	GRIDWRITER_T_CONTENT;
+	GRIDWRITER_T_CONTENT
 	char          *prefix;
 	int           dbType;
 	int           numFiles;

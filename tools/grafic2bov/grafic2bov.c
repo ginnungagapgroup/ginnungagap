@@ -165,7 +165,7 @@ local_doHeader(FILE *f, int np[3], float *dx, float *astart)
 	if (bSize1 != bSize2)
 		diediedie(EXIT_FAILURE);
 
-	*dx *= .01 * h0;
+	*dx *= .01f * h0;
 
 	fprintf(stdout,
 	        "np     =  (%i, %i, %i)\n"

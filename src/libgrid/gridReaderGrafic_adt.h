@@ -14,7 +14,7 @@
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridReaderGrafic_struct {
-	GRIDREADER_T_CONTENT;
+	GRIDREADER_T_CONTENT
 	grafic_t grafic;
 };
 

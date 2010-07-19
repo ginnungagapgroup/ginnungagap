@@ -32,7 +32,7 @@ typedef struct gridReader_func_struct *gridReader_func_t;
     gridReader_func_t func;
 
 struct gridReader_struct {
-	GRIDREADER_T_CONTENT;
+	GRIDREADER_T_CONTENT
 };
 
 

@@ -149,7 +149,7 @@ local_setupFromRNG(ginnungagapWN_t wn,
 	fpv_t    *data;
 	uint64_t numCells = 0;
 
-	data       = gridPatch_getVarDataHandle(patch, 0);
+	data       = gridPatch_getVarDataHandle(patch, idxOfDensVar);
 	numCells   = gridPatch_getNumCells(patch);
 	numStreams = rng_getNumStreamsLocal(wn->rng);
 

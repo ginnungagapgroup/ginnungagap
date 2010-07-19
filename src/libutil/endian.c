@@ -35,7 +35,7 @@ endian_systemIsLittle(void)
 extern bool
 endian_systemIsBig(void)
 {
-	const static int temp = 1;
+	static const int temp = 1;
 	unsigned char    *p   = (unsigned char *)&temp;
 
 	// This verifies that the in-memory representation of 1 is
