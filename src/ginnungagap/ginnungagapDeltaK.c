@@ -35,7 +35,7 @@ local_init(ginnungagap_t     ginnungagap,
            gridPointUint32_t dimsGrid,
            gridPointUint32_t dimsPatch,
            gridPointUint32_t idxLo,
-           gridPointUint32_t kNyquistGrid);
+           gridPointUint32_t kMaxGrid);
 
 
 #ifdef WITH_MPI
@@ -58,39 +58,52 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 	fpvComplex_t      *data;
 	double            wavenumToFreq;
 	double            norm;
-	gridPointUint32_t kNyquistGrid;
+	double            maxFreq;
+	gridPointUint32_t kMaxGrid;
 
 	assert(ginnungagap != NULL);
 
-	local_init(ginnungagap, &data, dimsGrid, dimsPatch, idxLo, kNyquistGrid);
-	norm = gridRegularFFT_getNorm(ginnungagap->gridFFT);
-	wavenumToFreq = 2. * M_PI * 1. / (ginnungagap->setup->boxsizeInMpch);
+	local_init(ginnungagap, &data, dimsGrid, dimsPatch, idxLo, kMaxGrid);
+	wavenumToFreq = 2. * M_PI / (ginnungagap->setup->boxsizeInMpch);
+	norm          = sqrt(gridRegularFFT_getNorm(ginnungagap->gridFFT));
+	norm         *= pow(1. / (ginnungagap->setup->boxsizeInMpch), 1.5);
+	maxFreq       = 0.5 * ginnungagap->setup->dim1D * wavenumToFreq;
 
 #ifdef _OPENMP
-#  pragma omp parallel for shared(dimsPatch, idxLo, kNyquistGrid, \
+#  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
 	dimsGrid, data, ginnungagap, norm)
 #endif
 	for (uint32_t k = 0; k < dimsPatch[2]; k++) {
 		uint32_t k2 = k + idxLo[2];
-		k2 = (k2 >= kNyquistGrid[2]) ? dimsGrid[2] - k2 : k2;
+		int8_t   modes2;
+		k2     = (k2 > kMaxGrid[2]) ? dimsGrid[2] - k2 : k2;
+		modes2 = (int8_t)(k2 == kMaxGrid[2] ? 2 : 1);
 		for (uint32_t j = 0; j < dimsPatch[1]; j++) {
 			uint32_t k1 = j + idxLo[1];
-			k1 = (k1 >= kNyquistGrid[1]) ? dimsPatch[1] - k1 : k1;
-			for (uint32_t i = 0; i < dimsGrid[0]; i++) {
+			int8_t   modes1;
+			k1     = (k1 > kMaxGrid[1]) ? dimsGrid[1] - k1 : k1;
+			modes1 = (int8_t)(k1 == kMaxGrid[1] ? 2 : 1);
+			for (uint32_t i = 0; i < dimsPatch[0]; i++) {
 				uint32_t k0 = i + idxLo[0];
 				double   kCell;
 				uint64_t idx;
+				int8_t   modes0;
 
-				k0    = (k0 >= kNyquistGrid[0]) ? dimsGrid[0] - k0 : k0;
-				idx   = i + (j + k * dimsPatch[1]) * dimsPatch[0];
-				kCell = sqrt(k0 * k0 + k1 * k1 + k2 * k2) * wavenumToFreq;
+				k0     = (k0 > kMaxGrid[0]) ? dimsGrid[0] - k0 : k0;
+				modes0 = (int8_t)(k0 == kMaxGrid[0] ? 2 : 1);
+				idx    = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCell  = sqrt(k0 * k0 + k1 * k1 + k2 * k2) * wavenumToFreq;
 
 				if ((k0 == 0) && (k1 == 0) && (k2 == 0)) {
 					data[idx] = 0.0;
+				} else if (kCell > maxFreq) {
+					data[idx] = 0.0 + 0.0I;
 				} else {
 					double tmp;
-					tmp = sqrt(cosmoPk_eval(ginnungagap->pk, kCell));
+					tmp        = sqrt(cosmoPk_eval(ginnungagap->pk, kCell));
+					tmp       *= cos(0.5 * M_PI * kCell / maxFreq);
 					data[idx] *= (fpv_t)(tmp * norm);
+					data[idx] *= (fpv_t)(modes0 * modes1 * modes2);
 				}
 			}
 		}
@@ -105,19 +118,19 @@ ginnungagapDeltaK_calcPowerSpectrum(ginnungagap_t ginnungagap)
 	gridPointUint32_t idxLo;
 	fpvComplex_t      *data;
 	double            wavenumToFreq;
-	gridPointUint32_t kNyquistGrid;
+	gridPointUint32_t kMaxGrid;
 	double            *P;
 	double            *freq;
 	uint32_t          *numFreqHits;
 
 	assert(ginnungagap != NULL);
 
-	local_init(ginnungagap, &data, dimsGrid, dimsPatch, idxLo, kNyquistGrid);
+	local_init(ginnungagap, &data, dimsGrid, dimsPatch, idxLo, kMaxGrid);
 	wavenumToFreq = 2. * M_PI * 1. / (ginnungagap->setup->boxsizeInMpch);
-	P             = xmalloc(sizeof(double) * kNyquistGrid[0]);
-	freq          = xmalloc(sizeof(double) * kNyquistGrid[0]);
-	numFreqHits   = xmalloc(sizeof(uint32_t) * kNyquistGrid[0]);
-	for (int i = 0; i < kNyquistGrid[0]; i++) {
+	P             = xmalloc(sizeof(double) * kMaxGrid[0]);
+	freq          = xmalloc(sizeof(double) * kMaxGrid[0]);
+	numFreqHits   = xmalloc(sizeof(uint32_t) * kMaxGrid[0]);
+	for (int i = 0; i < kMaxGrid[0]; i++) {
 		P[i]           = 0.0;
 		freq[i]        = -1.0;
 		numFreqHits[i] = 0;
@@ -125,36 +138,35 @@ ginnungagapDeltaK_calcPowerSpectrum(ginnungagap_t ginnungagap)
 
 	for (uint32_t k = 0; k < dimsPatch[2]; k++) {
 		uint32_t k2 = k + idxLo[2];
-		k2 = (k2 >= kNyquistGrid[2]) ? dimsGrid[2] - k2 : k2;
+		k2 = (k2 > kMaxGrid[2]) ? dimsGrid[2] - k2 : k2;
 		for (uint32_t j = 0; j < dimsPatch[1]; j++) {
 			uint32_t k1 = j + idxLo[1];
-			k1 = (k1 >= kNyquistGrid[1]) ? dimsPatch[1] - k1 : k1;
-			for (uint32_t i = 0; i < dimsGrid[0]; i++) {
+			k1 = (k1 > kMaxGrid[1]) ? dimsGrid[1] - k1 : k1;
+			for (uint32_t i = 0; i < dimsPatch[0]; i++) {
 				uint32_t k0 = i + idxLo[0];
-				int      kCell;
+				int   kCell;
 				uint64_t idx;
 
-				k0    = (k0 >= kNyquistGrid[0]) ?
-				        dimsGrid[0] - k0 : k0;
+				k0     = (k0 > kMaxGrid[0]) ? dimsGrid[0] - k0 : k0;
 				idx   = i + (j + k * dimsPatch[1]) * dimsPatch[0];
 				kCell = (int)floor(sqrt(k0 * k0 + k1 * k1 + k2 * k2));
 
-				if (kCell < kNyquistGrid[0]) {
+				if (kCell < kMaxGrid[0]) {
 					P[kCell]   += creal(data[idx]) * creal(data[idx])
 					              + cimag(data[idx]) * cimag(data[idx]);
-					freq[kCell] = (kCell+1) * wavenumToFreq;
+					freq[kCell] = kCell * wavenumToFreq;
 					numFreqHits[kCell]++;
 				}
 			}
 		}
 	}
 #ifdef WITH_MPI
-	local_reducePk(P, freq, numFreqHits, kNyquistGrid[0]);
+	local_reducePk(P, freq, numFreqHits, kMaxGrid[0]);
 #endif
-	for (uint32_t i = 0; i<kNyquistGrid[0]; i++)
+	for (uint32_t i = 0; i < kMaxGrid[0]; i++)
 		P[i] /= numFreqHits[i];
 
-	local_dumpPk(P, freq, kNyquistGrid[0], ginnungagap->pk);
+	local_dumpPk(P, freq, kMaxGrid[0], ginnungagap->pk);
 
 	xfree(numFreqHits);
 	xfree(freq);
@@ -168,7 +180,7 @@ local_init(ginnungagap_t     ginnungagap,
            gridPointUint32_t dimsGrid,
            gridPointUint32_t dimsPatch,
            gridPointUint32_t idxLo,
-           gridPointUint32_t kNyquistGrid)
+           gridPointUint32_t kMaxGrid)
 {
 	gridRegular_t grid;
 	gridPatch_t   patch;
@@ -181,29 +193,30 @@ local_init(ginnungagap_t     ginnungagap,
 	*data = gridPatch_getVarDataHandle(patch, 0);
 
 	for (int i = 0; i < NDIM; i++) {
-		kNyquistGrid[i] = ginnungagap->setup->dim1D / 2;
+		kMaxGrid[i] = ginnungagap->setup->dim1D / 2;
 	}
+	kMaxGrid[1]++; // This is the r2c FFT dimension
 }
 
 #ifdef WITH_MPI
 static void
-local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kNyquistGrid)
+local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kMaxGrid)
 {
-	double *tmp;
+	double   *tmp;
 	uint32_t *tmpInt;
 
-	tmp    = xmalloc(sizeof(double) * kNyquistGrid);
-	memcpy(tmp, pK, kNyquistGrid * sizeof(double));
-	MPI_Allreduce(tmp, pK, (int)kNyquistGrid, MPI_DOUBLE, MPI_SUM,
+	tmp = xmalloc(sizeof(double) * kMaxGrid);
+	memcpy(tmp, pK, kMaxGrid * sizeof(double));
+	MPI_Allreduce(tmp, pK, (int)kMaxGrid, MPI_DOUBLE, MPI_SUM,
 	              MPI_COMM_WORLD);
-	memcpy(tmp, k, kNyquistGrid * sizeof(double));
-	MPI_Allreduce(tmp, k, (int)kNyquistGrid, MPI_DOUBLE, MPI_MAX,
+	memcpy(tmp, k, kMaxGrid * sizeof(double));
+	MPI_Allreduce(tmp, k, (int)kMaxGrid, MPI_DOUBLE, MPI_MAX,
 	              MPI_COMM_WORLD);
 	xfree(tmp);
 
-	tmpInt = xmalloc(sizeof(uint32_t) * kNyquistGrid);
-	memcpy(tmpInt, nums, kNyquistGrid * sizeof(uint32_t));
-	MPI_Allreduce(tmpInt, nums, (int)kNyquistGrid, MPI_UNSIGNED,
+	tmpInt = xmalloc(sizeof(uint32_t) * kMaxGrid);
+	memcpy(tmpInt, nums, kMaxGrid * sizeof(uint32_t));
+	MPI_Allreduce(tmpInt, nums, (int)kMaxGrid, MPI_UNSIGNED,
 	              MPI_SUM, MPI_COMM_WORLD);
 	xfree(tmpInt);
 }
@@ -213,7 +226,7 @@ local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kNyquistGrid)
 static void
 local_dumpPk(double *P, double *k, uint32_t kNyquist, cosmoPk_t orig)
 {
-	int rank = 0;
+	int       rank = 0;
 	cosmoPk_t pk;
 
 #ifdef WITH_MPI
