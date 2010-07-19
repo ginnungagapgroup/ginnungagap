@@ -78,7 +78,7 @@ siloRoot_new(const char *outFileName)
 	siloRoot->meshMasterName = NULL;
 	siloRoot->meshNames      = NULL;
 	siloRoot->numVars        = 0;
-	siloRoot->varMasterNames = 0;
+	siloRoot->varMasterNames = NULL;
 	siloRoot->varNames       = NULL;
 	siloRoot->initialized    = false;
 	siloRoot->logOut         = stdout;
@@ -352,8 +352,10 @@ local_findVar(char **varMasterNames, const char *varName, int numVars)
 		if ((len0 == len1)
 		    && (strncmp(varMasterNames[i], varName, len0) == 0))
 			found = true;
-		else
+		else {
 			i++;
+			len0  = strlen(varMasterNames[i]);
+		}
 	}
 	if (!found) {
 		fprintf(stderr, "Could not find %s\n", varName);
