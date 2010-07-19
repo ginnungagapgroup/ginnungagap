@@ -278,7 +278,7 @@ gridWriterSilo_writeGridRegular(gridWriter_t  writer,
 	assert(grid != NULL);
 
 #  ifdef WITH_MPI
-	gridName = local_getGridName(writer->rankInGroup,
+	gridName = local_getGridName(tmp->rankInGroup,
 	                             gridRegular_getName(grid));
 #  else
 	gridName   = local_getGridName(0, gridRegular_getName(grid));
