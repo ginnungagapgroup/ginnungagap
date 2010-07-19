@@ -69,7 +69,6 @@ extern int
 varArr_insert(varArr_t arr, void *element)
 {
 	assert(arr != NULL);
-	assert(element != NULL);
 
 	if (arr->numUsed == arr->numAllocated) {
 		arr->numAllocated = arr->numUsed + arr->increment;

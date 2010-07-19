@@ -100,8 +100,7 @@ gridPatch_del(gridPatch_t *gridPatch)
 	if ((*gridPatch)->varData != NULL) {
 		numVarData = varArr_getLength((*gridPatch)->varData);
 		for (int i = 0; i < numVarData; i++) {
-			var = varArr_remove((*gridPatch)->vars, 0);
-			gridVar_freeMemory(var, varArr_remove((*gridPatch)->varData, 0));
+			var = gridPatch_detachVar(*gridPatch, 0);
 			gridVar_del(&var);
 		}
 		varArr_del(&((*gridPatch)->varData));
@@ -262,8 +261,8 @@ gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData)
 
 	var  = varArr_getElementHandle(patch->vars, idxOfVarData);
 	data = varArr_replace(patch->varData, idxOfVarData, NULL);
-
-	gridVar_freeMemory(var, data);
+	if (data != NULL)
+		gridVar_freeMemory(var, data);
 }
 
 extern void
