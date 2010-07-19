@@ -26,6 +26,12 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+typedef enum {
+	DO_VX,
+	DO_VY,
+	DO_VZ,
+	DO_DELTA
+} local_mode_t;
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -60,6 +66,7 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 	double            norm;
 	double            maxFreq;
 	gridPointUint32_t kMaxGrid;
+	local_mode_t      mode = DO_VY;
 
 	assert(ginnungagap != NULL);
 
@@ -74,25 +81,19 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 	dimsGrid, data, ginnungagap, norm)
 #endif
 	for (uint32_t k = 0; k < dimsPatch[2]; k++) {
-		uint32_t k2 = k + idxLo[2];
-		int8_t   modes2;
-		k2     = (k2 > kMaxGrid[2]) ? dimsGrid[2] - k2 : k2;
-		modes2 = (int8_t)(k2 == kMaxGrid[2] ? 2 : 1);
+		int32_t k2 = k + idxLo[2];
+		k2 = (k2 > kMaxGrid[2]) ? k2 - dimsGrid[2] : k2;
 		for (uint32_t j = 0; j < dimsPatch[1]; j++) {
-			uint32_t k1 = j + idxLo[1];
-			int8_t   modes1;
-			k1     = (k1 > kMaxGrid[1]) ? dimsGrid[1] - k1 : k1;
-			modes1 = (int8_t)(k1 == kMaxGrid[1] ? 2 : 1);
+			int32_t k1 = j + idxLo[1];
+			k1 = (k1 > kMaxGrid[1]) ? k1 - dimsGrid[1] : k1;
 			for (uint32_t i = 0; i < dimsPatch[0]; i++) {
-				uint32_t k0 = i + idxLo[0];
+				int32_t k0 = i + idxLo[0];
 				double   kCell;
 				uint64_t idx;
-				int8_t   modes0;
 
-				k0     = (k0 > kMaxGrid[0]) ? dimsGrid[0] - k0 : k0;
-				modes0 = (int8_t)(k0 == kMaxGrid[0] ? 2 : 1);
-				idx    = i + (j + k * dimsPatch[1]) * dimsPatch[0];
-				kCell  = sqrt(k0 * k0 + k1 * k1 + k2 * k2) * wavenumToFreq;
+				k0    = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
+				idx   = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCell = sqrt(k0 * k0 + k1 * k1 + k2 * k2) * wavenumToFreq;
 
 				if ((k0 == 0) && (k1 == 0) && (k2 == 0)) {
 					data[idx] = 0.0;
@@ -103,7 +104,22 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 					tmp        = sqrt(cosmoPk_eval(ginnungagap->pk, kCell));
 					tmp       *= cos(0.5 * M_PI * kCell / maxFreq);
 					data[idx] *= (fpv_t)(tmp * norm);
-					data[idx] *= (fpv_t)(modes0 * modes1 * modes2);
+					if (mode == DO_VX) {
+						data[idx] *= k1 * wavenumToFreq * I
+						             / (kCell * kCell);
+						if (k1 == kMaxGrid[1])
+							data[idx] = 0.0;
+					} else if (mode == DO_VY) {
+						data[idx] *= k2 * wavenumToFreq * I
+						             / (kCell * kCell);
+						if (k2 == kMaxGrid[2])
+							data[idx] = 0.0;
+					} else if (mode == DO_VZ) {
+						data[idx] *= k0 * wavenumToFreq * I
+						             / (kCell * kCell);
+						if (k0 == kMaxGrid[0])
+							data[idx] = 0.0;
+					}
 				}
 			}
 		}
@@ -144,17 +160,17 @@ ginnungagapDeltaK_calcPowerSpectrum(ginnungagap_t ginnungagap)
 			k1 = (k1 > kMaxGrid[1]) ? dimsGrid[1] - k1 : k1;
 			for (uint32_t i = 0; i < dimsPatch[0]; i++) {
 				uint32_t k0 = i + idxLo[0];
-				int   kCell;
+				int      kCell;
 				uint64_t idx;
 
-				k0     = (k0 > kMaxGrid[0]) ? dimsGrid[0] - k0 : k0;
+				k0    = (k0 > kMaxGrid[0]) ? dimsGrid[0] - k0 : k0;
 				idx   = i + (j + k * dimsPatch[1]) * dimsPatch[0];
 				kCell = (int)floor(sqrt(k0 * k0 + k1 * k1 + k2 * k2));
 
 				if (kCell < kMaxGrid[0]) {
 					P[kCell]   += creal(data[idx]) * creal(data[idx])
 					              + cimag(data[idx]) * cimag(data[idx]);
-					freq[kCell] = kCell * wavenumToFreq;
+					freq[kCell] = (kCell + 1) * wavenumToFreq;
 					numFreqHits[kCell]++;
 				}
 			}
