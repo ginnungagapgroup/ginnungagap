@@ -307,6 +307,36 @@ cosmoModel_calcGrowth(cosmoModel_t model, double a, double *error)
 	       * tmp1 / a;
 }
 
+extern double
+cosmoModel_calcDlnGrowthDlna(cosmoModel_t model, double a, double *error)
+{
+	double growth;
+	double fupper;
+	double flower;
+	double ainv;
+	double tmp;
+
+	assert(model != NULL);
+	assert(error != NULL);
+	assert(isgreater(1, 0.0));
+
+	growth = cosmoModel_calcGrowth(model, a, error);
+	ainv   = 1. / a;
+
+	tmp    = 1. - (model->omegaRad0) - (model->omegaMatter0)
+	         - (model->omegaLambda0);
+	fupper = 2.5 * (model->omegaMatter0) / growth
+	         - 2. * (model->omegaRad0) * ainv * ainv
+	         - 1.5 *  (model->omegaMatter0) * ainv
+	         - tmp;
+	flower = (model->omegaRad0) * ainv * ainv
+	         + (model->omegaMatter0) * ainv
+	         + (model->omegaLambda0) * a * a
+	         + tmp;
+
+	return fupper / flower;
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static cosmoModel_t
 local_new(void)

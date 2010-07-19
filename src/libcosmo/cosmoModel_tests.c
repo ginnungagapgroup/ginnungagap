@@ -325,4 +325,29 @@ cosmoModel_calcGrowth_test(void)
 	return hasSucceeded;
 }
 
+extern bool
+cosmoModel_calcDlnGrowthDlna_test(void)
+{
+	cosmoModel_t model;
+	bool         hasSucceeded = true;
+	double       a, error;
+	double       f, fEdS = 1.0;
+
+	printf("Testing %s... ", __func__);
+	model = cosmoModel_newFromFile("tests/model_EdS.dat");
+	for (int i = 0; i < 20; i++) {
+		a    = 1.0 - i * 0.05;
+		f    = cosmoModel_calcDlnGrowthDlna(model, a, &error);
+		if (isgreater(fabs(f - fEdS), 1e-10))
+			hasSucceeded = false;
+	}
+	a = 1e-4;
+	f    = cosmoModel_calcDlnGrowthDlna(model, a, &error);
+	if (isgreater(fabs(f - fEdS), 1e-10))
+		hasSucceeded = false;
+	cosmoModel_del(&model);
+
+	return hasSucceeded;
+}
+
 /*--- Implementations of local functions --------------------------------*/

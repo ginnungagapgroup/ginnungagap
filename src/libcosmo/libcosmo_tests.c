@@ -59,6 +59,7 @@ main(void)
 	RUNTEST(cosmoModel_calcADot_test, hasFailed);
 	RUNTEST(cosmoModel_calcOmegas_test, hasFailed);
 	RUNTEST(cosmoModel_calcGrowth_test, hasFailed);
+	RUNTEST(cosmoModel_calcDlnGrowthDlna_test, hasFailed);
 
 	if (hasFailed) {
 		fprintf(stderr, "\nSome tests failed!\n\n");

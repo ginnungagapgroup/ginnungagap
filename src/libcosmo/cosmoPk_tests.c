@@ -207,7 +207,7 @@ cosmoPk_calcSigma8_test(void)
 	                             COSMOTF_TYPE_EISENSTEINHU1998);
 
 	sigma8 = cosmoPk_calcSigma8(pk, 2e-2, 9e0, &error);
-	if (isgreater(fabs(sigma8 - 4.0239589333153e-04), error))
+	if (isgreater(fabs(sigma8 - 4.0239589333153e-04), sqrt(error)))
 		hasPassed = false;
 
 	cosmoPk_del(&pk);

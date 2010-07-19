@@ -54,5 +54,7 @@ cosmoModel_calcOmegas_test(void);
 extern bool
 cosmoModel_calcGrowth_test(void);
 
+extern bool
+cosmoModel_calcDlnGrowthDlna_test(void);
 
 #endif

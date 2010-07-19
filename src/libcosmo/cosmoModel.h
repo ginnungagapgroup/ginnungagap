@@ -80,5 +80,8 @@ cosmoModel_calcOmegaLambda(cosmoModel_t model, double a);
 extern double
 cosmoModel_calcGrowth(cosmoModel_t model, double a, double *error);
 
+extern double
+cosmoModel_calcDlnGrowthDlna(cosmoModel_t model, double a, double *error);
+
 
 #endif
