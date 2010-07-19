@@ -71,7 +71,7 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 	double            norm;
 	double            maxFreq;
 	gridPointUint32_t kMaxGrid;
-	local_mode_t      mode = DO_VY;
+	local_mode_t      mode = DO_VZ;
 	double            scaleVelocity;
 
 	assert(ginnungagap != NULL);
@@ -83,7 +83,6 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 	maxFreq       = 0.5 * ginnungagap->setup->dim1D * wavenumToFreq;
 
 	scaleVelocity = local_getDisplacementToVelocityFactor(ginnungagap);
-	printf("Velocity scale: %e\n", scaleVelocity);
 
 #ifdef _OPENMP
 #  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
