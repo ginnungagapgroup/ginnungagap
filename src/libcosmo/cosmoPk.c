@@ -287,7 +287,7 @@ cosmoPk_forceSigma8(cosmoPk_t pk,
 	assert(isgreater(sigma8, 0.0));
 	assert(isgreater(kmin, 0.0));
 	assert(isgreater(kmax, kmin));
-	assert(errot != NULL);
+	assert(error != NULL);
 
 	sigma8Actual = cosmoPk_calcSigma8(pk, kmin, kmax, error);
 	sigma8First  = sigma8Actual;

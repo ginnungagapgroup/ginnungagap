@@ -218,10 +218,8 @@ gridPatch_attachVar(gridPatch_t patch, gridVar_t var)
 extern gridVar_t
 gridPatch_detachVar(gridPatch_t patch, int idxOfVar)
 {
-	gridVar_t tmp;
-
 	assert(idxOfVar >= 0
-	       && idxOfVar < varArr_getLength(patch->var));
+	       && idxOfVar < varArr_getLength(patch->vars));
 
 	gridPatch_freeVarData(patch, idxOfVar);
 	(void)varArr_remove(patch->varData, idxOfVar);
