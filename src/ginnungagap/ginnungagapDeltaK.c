@@ -19,6 +19,8 @@
 #include "../libgrid/gridRegular.h"
 #include "../libgrid/gridPatch.h"
 #include "../libcosmo/cosmoPk.h"
+#include "../libcosmo/cosmoModel.h"
+#include "../libcosmo/cosmo.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -53,6 +55,9 @@ local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kNyquistGrid);
 static void
 local_dumpPk(double *P, double *k, uint32_t kNyquist, cosmoPk_t orig);
 
+static double
+local_getDisplacementToVelocityFactor(ginnungagap_t ginnungagap);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern void
@@ -67,6 +72,7 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 	double            maxFreq;
 	gridPointUint32_t kMaxGrid;
 	local_mode_t      mode = DO_VY;
+	double            scaleVelocity;
 
 	assert(ginnungagap != NULL);
 
@@ -75,6 +81,9 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 	norm          = sqrt(gridRegularFFT_getNorm(ginnungagap->gridFFT));
 	norm         *= pow(1. / (ginnungagap->setup->boxsizeInMpch), 1.5);
 	maxFreq       = 0.5 * ginnungagap->setup->dim1D * wavenumToFreq;
+
+	scaleVelocity = local_getDisplacementToVelocityFactor(ginnungagap);
+	printf("Velocity scale: %e\n", scaleVelocity);
 
 #ifdef _OPENMP
 #  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
@@ -107,16 +116,19 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 					if (mode == DO_VX) {
 						data[idx] *= k1 * wavenumToFreq * I
 						             / (kCell * kCell);
+						data[idx] *= scaleVelocity;
 						if (k1 == kMaxGrid[1])
 							data[idx] = 0.0;
 					} else if (mode == DO_VY) {
 						data[idx] *= k2 * wavenumToFreq * I
 						             / (kCell * kCell);
+						data[idx] *= scaleVelocity;
 						if (k2 == kMaxGrid[2])
 							data[idx] = 0.0;
 					} else if (mode == DO_VZ) {
 						data[idx] *= k0 * wavenumToFreq * I
 						             / (kCell * kCell);
+						data[idx] *= scaleVelocity;
 						if (k0 == kMaxGrid[0])
 							data[idx] = 0.0;
 					}
@@ -254,4 +266,16 @@ local_dumpPk(double *P, double *k, uint32_t kNyquist, cosmoPk_t orig)
 		cosmoPk_dumpToFile(pk, "Pk.calc.dat", 1);
 		cosmoPk_del(&pk);
 	}
+}
+
+static double
+local_getDisplacementToVelocityFactor(ginnungagap_t ginnungagap)
+{
+	double a = cosmo_z2a(ginnungagap->setup->zInit);
+	double error;
+	double adot = cosmoModel_calcADot(ginnungagap->model, a);
+	double growthVel = cosmoModel_calcDlnGrowthDlna(ginnungagap->model,
+	                                                a, &error);
+
+	return adot * 100. * growthVel;
 }
