@@ -90,7 +90,7 @@ gridReaderGrafic_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 	assert(patch != NULL);
 
 	var      = local_getNewVar((gridReaderGrafic_t)reader);
-	idxOfVar = gridPatch_attachVarData(patch, var);
+	idxOfVar = gridPatch_attachVar(patch, var);
 
 	gridReader_readIntoPatchForVar(reader, patch, idxOfVar);
 

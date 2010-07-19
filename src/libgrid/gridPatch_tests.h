@@ -40,10 +40,16 @@ extern bool
 gridPatch_getIdxLo_test(void);
 
 extern bool
-gridPatch_attachVarData_test(void);
+gridPatch_attachVar_test(void);
 
 extern bool
-gridPatch_detachVarData_test(void);
+gridPatch_detachVar_test(void);
+
+extern bool
+gridPatch_allocateVarData_test(void);
+
+extern bool
+gridPatch_freeVarData_test(void);
 
 extern bool
 gridPatch_replaceVarData_test(void);

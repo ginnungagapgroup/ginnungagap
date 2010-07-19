@@ -47,13 +47,16 @@ extern void
 gridPatch_getIdxLo(gridPatch_t patch, gridPointUint32_t idxLo);
 
 extern int
-gridPatch_attachVarData(gridPatch_t patch, gridVar_t var);
+gridPatch_attachVar(gridPatch_t patch, gridVar_t var);
+
+extern gridVar_t
+gridPatch_detachVar(gridPatch_t patch, int idxOfVar);
 
 extern void *
-gridPatch_detachVarData(gridPatch_t patch, int idxOfVarData);
+gridPatch_allocateVarData(gridPatch_t patch, int idxOfVarData);
 
 extern void
-gridPatch_wipeVarData(gridPatch_t patch, int idxOfVarData);
+gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData);
 
 extern void
 gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);

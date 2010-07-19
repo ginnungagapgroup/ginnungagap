@@ -266,6 +266,12 @@ local_doFFTCompletelyLocal(gridRegularFFT_t fft, int direction)
 		fftw_execute(plan);
 		fftw_destroy_plan(plan);
 	}
+
+	if (direction == GRIDREGULARFFT_FORWARD)
+		gridPatch_freeVarData(fft->patch, fft->idxFFTVar);
+	else
+		gridPatch_freeVarData(fft->patchFFTed, fft->idxFFTVarFFTed);
+
 	return dataOut;
 #  endif
 } /* local_doFFTCompletelyLocal */
@@ -365,6 +371,8 @@ local_doFFTParallelR2CPencil(gridRegularFFT_t fft)
 		fftw_destroy_plan(plan);
 	}
 
+	gridPatch_freeVarData(fft->patch, fft->idxFFTVar);
+
 	return dataOut;
 } /* local_doFFTParallelR2CPencil */
 
@@ -401,6 +409,8 @@ local_doFFTParallelC2RPencil(gridRegularFFT_t fft)
 		fftw_execute(plan);
 		fftw_destroy_plan(plan);
 	}
+
+	gridPatch_freeVarData(fft->patchFFTed, fft->idxFFTVarFFTed);
 
 	return dataOut;
 } /* local_doFFTParallelC2RPencil */

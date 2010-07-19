@@ -525,6 +525,7 @@ local_transposeAllVarsAtPatch(gridPatch_t    patch,
 
 	for (int i = 0; i < numVars; i++) {
 		int          idxOfVar;
+		gridVar_t    varTmp;
 		gridVar_t    var    = gridPatch_getVarHandle(patch, 0);
 		commScheme_t scheme = commScheme_new(commCart, 4223);
 
@@ -532,14 +533,15 @@ local_transposeAllVarsAtPatch(gridPatch_t    patch,
 
 		local_transposeGetFullSendBuffers(scheme, sendLayout, patch,
 		                                  var, commCart);
-		gridVar_freeMemory(var, gridPatch_detachVarData(patch, 0));
+		varTmp = gridPatch_detachVar(patch, 0);
+		gridVar_del(&varTmp);
 		local_transposeGetRecvBuffers(scheme, recvLayout, var, commCart);
 
 		commScheme_fire(scheme);
 		commScheme_wait(scheme);
 
 		local_transposeDelSendBuffers(sendLayout, var);
-		idxOfVar = gridPatch_attachVarData(patchT, var);
+		idxOfVar = gridPatch_attachVar(patchT, var);
 		local_transposeMoveRecvBuffersToPatch(recvLayout, patchT,
 		                                      idxOfVar, var);
 

@@ -196,22 +196,17 @@ gridPatch_getIdxLo(gridPatch_t patch, gridPointUint32_t idxLo)
 }
 
 extern int
-gridPatch_attachVarData(gridPatch_t patch, gridVar_t var)
+gridPatch_attachVar(gridPatch_t patch, gridVar_t var)
 {
-	void      *data;
 	gridVar_t varClone;
 	int       posVar, posVarData;
-	uint64_t  numCellsToAllocate = 1;
 
 	assert(patch != NULL);
 	assert(var != NULL);
 
-	varClone           = gridVar_getRef(var);
-	posVar             = varArr_insert(patch->vars, varClone);
-
-	numCellsToAllocate = gridPatch_getNumCellsActual(patch, posVar);
-	data               = gridVar_getMemory(varClone, numCellsToAllocate);
-	posVarData         = varArr_insert(patch->varData, data);
+	varClone   = gridVar_getRef(var);
+	posVar     = varArr_insert(patch->vars, varClone);
+	posVarData = varArr_insert(patch->varData, NULL);
 
 	if (posVar != posVarData) {
 		diediedie(EXIT_FAILURE);
@@ -220,22 +215,46 @@ gridPatch_attachVarData(gridPatch_t patch, gridVar_t var)
 	return posVar;
 }
 
-extern void *
-gridPatch_detachVarData(gridPatch_t patch, int idxOfVarData)
+extern gridVar_t
+gridPatch_detachVar(gridPatch_t patch, int idxOfVar)
 {
 	gridVar_t tmp;
 
+	assert(idxOfVar >= 0
+	       && idxOfVar < varArr_getLength(patch->var));
+
+	gridPatch_freeVarData(patch, idxOfVar);
+	(void)varArr_remove(patch->varData, idxOfVar);
+
+	return varArr_remove(patch->vars, idxOfVar);
+}
+
+extern void *
+gridPatch_allocateVarData(gridPatch_t patch, int idxOfVarData)
+{
+	void *data;
+
+	assert(patch != NULL);
 	assert(idxOfVarData >= 0
 	       && idxOfVarData < varArr_getLength(patch->varData));
 
-	tmp = varArr_remove(patch->vars, idxOfVarData);
-	gridVar_del(&tmp);
+	data = varArr_getElementHandle(patch->varData, idxOfVarData);
 
-	return varArr_remove(patch->varData, idxOfVarData);
+	if (data == NULL) {
+		gridVar_t var;
+		uint64_t  numCellsToAllocate = 1;
+		var                = gridPatch_getVarHandle(patch, idxOfVarData);
+		numCellsToAllocate = gridPatch_getNumCellsActual(patch,
+		                                                 idxOfVarData);
+		data               = gridVar_getMemory(var, numCellsToAllocate);
+		(void)varArr_replace(patch->varData, idxOfVarData, data);
+	}
+
+	return data;
 }
 
 extern void
-gridPatch_wipeVarData(gridPatch_t patch, int idxOfVarData)
+gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData)
 {
 	gridVar_t var;
 	void      *data;
@@ -276,10 +295,17 @@ gridPatch_getVarHandle(gridPatch_t patch, int idxOfVar)
 extern void *
 gridPatch_getVarDataHandle(gridPatch_t patch, int idxOfVarData)
 {
+	void *data;
+
+	assert(patch != NULL);
 	assert(idxOfVarData >= 0
 	       && idxOfVarData < varArr_getLength(patch->varData));
 
-	return varArr_getElementHandle(patch->varData, idxOfVarData);
+	data = varArr_getElementHandle(patch->varData, idxOfVarData);
+	if (data == NULL)
+		data = gridPatch_allocateVarData(patch, idxOfVarData);
+
+	return data;
 }
 
 extern int

@@ -162,7 +162,7 @@ gridReaderBov_readIntoPatchForVar_test(void)
 
 	ini    = parse_ini_open("tests/reading.ini");
 	reader = gridReaderBov_newFromIni(ini, "BovDetails");
-	gridPatch_attachVarData(patch, var);
+	gridPatch_attachVar(patch, var);
 
 	gridReaderBov_readIntoPatchForVar((gridReader_t)reader, patch, 0);
 	data = gridPatch_getVarDataHandle(patch, 0);

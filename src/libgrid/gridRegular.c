@@ -394,7 +394,7 @@ local_addVarToAllPatches(gridRegular_t grid, gridVar_t var)
 
 	for (int i = 0; i < numPatches; i++) {
 		gridPatch_t patch = varArr_getElementHandle(grid->patches, i);
-		gridPatch_attachVarData(patch, var);
+		gridPatch_attachVar(patch, var);
 	}
 }
 
@@ -405,7 +405,8 @@ local_removeVarFromAllPatches(gridRegular_t grid, int idxOfVar)
 
 	for (int i = 0; i < numPatches; i++) {
 		gridPatch_t patch = varArr_getElementHandle(grid->patches, i);
-		xfree(gridPatch_detachVarData(patch, idxOfVar));
+		gridVar_t var = gridPatch_detachVar(patch, idxOfVar);
+		gridVar_del(&var);
 	}
 }
 
@@ -416,6 +417,6 @@ local_addAllVarsToPatch(gridRegular_t grid, gridPatch_t patch)
 
 	for (int i = 0; i < numVars; i++) {
 		gridVar_t var = varArr_getElementHandle(grid->vars, i);
-		gridPatch_attachVarData(patch, var);
+		gridPatch_attachVar(patch, var);
 	}
 }
