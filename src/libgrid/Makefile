@@ -20,6 +20,7 @@ sources = gridRegular.c \
           gridReaderGrafic.c \
           gridWriter.c \
           gridWriterSilo.c \
+          gridWriterGrafic.c \
           gridUtil.c
 
 sourcesTests = lib${LIBNAME}_tests.c \

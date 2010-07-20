@@ -55,7 +55,25 @@ local_readWindowedActualRead(grafic_t       grafic,
                              bool           doByteswap);
 
 static void
+local_writeWindowedActualRead(grafic_t       grafic,
+                              void           *data,
+                              graficFormat_t dataFormat,
+                              int            numComponents,
+                              uint32_t       *idxLo,
+                              uint32_t       *dims,
+                              bool           doByteswap);
+
+static void
 local_cpBufferToData(float          *buffer,
+                     uint32_t       num,
+                     void           *data,
+                     graficFormat_t format,
+                     int            numComponents,
+                     size_t         dataOffset,
+                     bool           doByteswap);
+
+static void
+local_cpDataToBuffer(float          *buffer,
                      uint32_t       num,
                      void           *data,
                      graficFormat_t format,
@@ -326,6 +344,45 @@ grafic_setIseed(grafic_t grafic, int iseed)
 	grafic->iseed = iseed;
 }
 
+extern bool
+grafic_isWhiteNoise(grafic_t grafic)
+{
+	assert(grafic != NULL);
+	return grafic->isWhiteNoise;
+}
+
+extern void
+grafic_makeEmptyFile(grafic_t grafic)
+{
+	FILE   *f;
+	size_t fileSize = 0;
+	long   numInPlane;
+	int    b;
+
+	assert(grafic != NULL);
+	assert(grafic->graficFileName != NULL);
+	assert(grafic->np1 > 0);
+	assert(grafic->np2 > 0);
+	assert(grafic->np3 > 0);
+
+	numInPlane = grafic->np1 * grafic->np2;
+	fileSize   = (numInPlane + 8) * grafic->np3;
+	fileSize  += grafic->headerSkip + 8;
+	xfile_createFileWithSize(grafic->graficFileName, fileSize);
+
+	f = xfopen(grafic->graficFileName, "w+b");
+	local_writeHeader(grafic, f);
+	b = (int)(numInPlane * sizeof(float));
+	if (grafic->fileEndianess != grafic->machineEndianess)
+		byteswap(&b, sizeof(int));
+	for (int i = 0; i < grafic->np3; i++) {
+		xfwrite(&b, sizeof(int), 1, f);
+		xfseek(f, numInPlane * sizeof(float), SEEK_CUR);
+		xfwrite(&b, sizeof(int), 1, f);
+	}
+	xfclose(&f);
+}
+
 extern void
 grafic_read(grafic_t       grafic,
             void           *data,
@@ -415,7 +472,7 @@ grafic_readWindowed(grafic_t       grafic,
 	if ((idxLo[0] + dims[0] > grafic->np1)
 	    || (idxLo[1] + dims[1] > grafic->np2)
 	    || (idxLo[2] + dims[2] > grafic->np3)) {
-		fprintf(stderr, "Window too large for data in bov :(\n");
+		fprintf(stderr, "Window too large for data in file :(\n");
 		diediedie(EXIT_FAILURE);
 	}
 
@@ -423,6 +480,36 @@ grafic_readWindowed(grafic_t       grafic,
 
 	local_readWindowedActualRead(grafic, data, dataFormat, numComponents,
 	                             idxLo, dims, doByteswap);
+}
+
+extern void
+grafic_writeWindowed(grafic_t       grafic,
+                     void           *data,
+                     graficFormat_t dataFormat,
+                     int            numComponents,
+                     uint32_t       *idxLo,
+                     uint32_t       *dims)
+{
+	bool doByteswap;
+
+	assert(grafic != NULL);
+	assert(data != NULL);
+	assert(numComponents > 0);
+	assert(idxLo != NULL);
+	assert(dims != NULL);
+	assert(dims[0] > 0 && dims[1] > 0 && dims[2] > 0);
+
+	if ((idxLo[0] + dims[0] > grafic->np1)
+	    || (idxLo[1] + dims[1] > grafic->np2)
+	    || (idxLo[2] + dims[2] > grafic->np3)) {
+		fprintf(stderr, "Window too large for file :(\n");
+		diediedie(EXIT_FAILURE);
+	}
+
+	doByteswap = grafic->machineEndianess != grafic->fileEndianess;
+
+	local_writeWindowedActualRead(grafic, data, dataFormat, numComponents,
+	                              idxLo, dims, doByteswap);
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -565,6 +652,57 @@ local_readWindowedActualRead(grafic_t       grafic,
 } /* local_readWindowedActualRead */
 
 static void
+local_writeWindowedActualRead(grafic_t       grafic,
+                              void           *data,
+                              graficFormat_t dataFormat,
+                              int            numComponents,
+                              uint32_t       *idxLo,
+                              uint32_t       *dims,
+                              bool           doByteswap)
+{
+	FILE   *f;
+	float  *buffer    = xmalloc(sizeof(float) * dims[0]);
+	size_t dataOffset = 0;
+	long pos;
+
+	f = xfopen(grafic->graficFileName, "r+b");
+	xfseek(f, grafic->headerSkip + 8L, SEEK_SET);
+	pos = ftell(f);
+	for (uint32_t k = 0; k < idxLo[2]; k++)
+		local_skipPlane(f, grafic->np1 * grafic->np2);
+	pos = ftell(f);
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		int b1, b2;
+		xfread(&b1, sizeof(int), 1, f);
+		pos = ftell(f);
+		for (uint32_t j = 0; j < idxLo[1]; j++)
+			xfseek(f, grafic->np1 * sizeof(float), SEEK_CUR);
+		pos = ftell(f);
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			if (idxLo[0] > 0)
+				xfseek(f, sizeof(float) * idxLo[0], SEEK_CUR);
+			local_cpDataToBuffer(buffer, dims[0], data, dataFormat,
+			                     numComponents, dataOffset, doByteswap);
+			dataOffset += dims[0];
+			xfwrite(buffer, sizeof(float), dims[0], f);
+			if (grafic->np1 - dims[0] - idxLo[0] > 0)
+				xfseek(f, sizeof(float) * (grafic->np1 - dims[0] - idxLo[0]),
+				       SEEK_CUR);
+		}
+		pos = ftell(f);
+		for (uint32_t j = 0; j < grafic->np2 - dims[1] - idxLo[1]; j++)
+			xfseek(f, grafic->np1 * sizeof(float), SEEK_CUR);
+		pos = ftell(f);
+		xfread(&b2, sizeof(int), 1, f);
+		if (b1 != b2)
+			diediedie(EXIT_FAILURE);
+	}
+
+	xfclose(&f);
+	xfree(buffer);
+} /* local_writeWindowedActualRead */
+
+static void
 local_cpBufferToData(float          *buffer,
                      uint32_t       num,
                      void           *data,
@@ -592,6 +730,33 @@ local_cpBufferToData(float          *buffer,
 }
 
 static void
+local_cpDataToBuffer(float          *buffer,
+                     uint32_t       num,
+                     void           *data,
+                     graficFormat_t format,
+                     int            numComponents,
+                     size_t         dataOffset,
+                     bool           doByteswap)
+{
+	if (format == GRAFIC_FORMAT_FLOAT) {
+		for (uint32_t i = 0; i < num; i++) {
+			size_t idx = (dataOffset + i) * numComponents;
+			buffer[i] = ((float *)data)[idx];
+		}
+	} else {
+		for (uint32_t i = 0; i < num; i++) {
+			size_t idx = (dataOffset + i) * numComponents;
+			buffer[i] = (float)(((double *)data)[idx]);
+		}
+	}
+
+	if (doByteswap) {
+		for (uint32_t i = 0; i < num; i++)
+			byteswap(buffer + i, sizeof(float));
+	}
+}
+
+static void
 local_skipRow(FILE *f, long numInRow)
 {
 	xfseek(f, numInRow * sizeof(float), SEEK_CUR);
@@ -614,8 +779,12 @@ local_skipPlane(FILE *f, long numInPlane)
 static void
 local_writeHeader(grafic_t grafic, FILE *f)
 {
-	xfwrite(&(grafic->headerSkip), sizeof(int), 1, f);
+	if (grafic->machineEndianess != grafic->fileEndianess) {
+		local_swapHeaderValues(grafic); // swap to file encoding
+		byteswap(&(grafic->headerSkip), sizeof(int));
+	}
 
+	xfwrite(&(grafic->headerSkip), sizeof(int), 1, f);
 	xfwrite(&(grafic->np1), sizeof(int), 1, f);
 	xfwrite(&(grafic->np2), sizeof(int), 1, f);
 	xfwrite(&(grafic->np3), sizeof(int), 1, f);
@@ -630,8 +799,12 @@ local_writeHeader(grafic_t grafic, FILE *f)
 		xfwrite(&(grafic->h0), sizeof(float), 1, f);
 	} else
 		xfwrite(&(grafic->iseed), sizeof(int), 1, f);
-
 	xfwrite(&(grafic->headerSkip), sizeof(int), 1, f);
+
+	if (grafic->machineEndianess != grafic->fileEndianess) {
+		local_swapHeaderValues(grafic); // swap back to system
+		byteswap(&(grafic->headerSkip), sizeof(int));
+	}
 }
 
 static void

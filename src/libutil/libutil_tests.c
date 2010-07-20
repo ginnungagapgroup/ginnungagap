@@ -161,8 +161,12 @@ main(int argc, char **argv)
 		RUNTEST(&grafic_setOmegav_test, hasFailed);
 		RUNTEST(&grafic_setH0_test, hasFailed);
 		RUNTEST(&grafic_setIseed_test, hasFailed);
+		RUNTEST(&grafic_isWhiteNoise_test, hasFailed);
+		RUNTEST(&grafic_makeEmptyFile_test, hasFailed);
 		RUNTEST(&grafic_read_test, hasFailed);
 		RUNTEST(&grafic_readWindowed_test, hasFailed);
+		RUNTEST(&grafic_write_test, hasFailed);
+		RUNTEST(&grafic_writeWindowed_test, hasFailed);
 	}
 
 #ifdef WITH_MPI

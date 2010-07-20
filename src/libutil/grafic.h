@@ -87,6 +87,12 @@ grafic_setH0(grafic_t grafic, float h0);
 extern void
 grafic_setIseed(grafic_t grafic, int iseed);
 
+extern bool
+grafic_isWhiteNoise(grafic_t grafic);
+
+extern void
+grafic_makeEmptyFile(grafic_t grafic);
+
 extern void
 grafic_read(grafic_t       grafic,
             void           *data,
@@ -106,5 +112,13 @@ grafic_readWindowed(grafic_t       grafic,
                     int            numComponents,
                     uint32_t       *idxLo,
                     uint32_t       *dims);
+
+extern void
+grafic_writeWindowed(grafic_t       grafic,
+                     void           *data,
+                     graficFormat_t dataFormat,
+                     int            numComponents,
+                     uint32_t       *idxLo,
+                     uint32_t       *dims);
 
 #endif

@@ -688,6 +688,69 @@ grafic_setIseed_test(void)
 }
 
 extern bool
+grafic_isWhiteNoise_test(void)
+{
+	bool     hasPassed = true;
+	int      rank      = 0;
+	grafic_t grafic;
+#ifdef XMEM_TRACK_MEM
+	size_t   allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grafic = grafic_new(true);
+	if (!grafic_isWhiteNoise(grafic))
+		hasPassed = false;
+	grafic_del(&grafic);
+
+	grafic = grafic_new(false);
+	if (grafic_isWhiteNoise(grafic))
+		hasPassed = false;
+	grafic_del(&grafic);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+grafic_makeEmptyFile_test(void)
+{
+	bool     hasPassed = true;
+	int      rank      = 0;
+	grafic_t grafic;
+	uint32_t size[3] = {2, 2, 2};
+#ifdef XMEM_TRACK_MEM
+	size_t   allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grafic = grafic_new(true);
+	grafic_setFileName(grafic, "empty.grafic");
+	grafic_setSize(grafic, size);
+	grafic_makeEmptyFile(grafic);
+	grafic_del(&grafic);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 grafic_read_test(void)
 {
 	bool     hasPassed = true;
@@ -847,6 +910,102 @@ grafic_readWindowed_test(void)
 	xfree(dataFloat);
 
 	grafic_del(&grafic);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* grafic_readWindowed_test */
+
+extern bool
+grafic_write_test(void)
+{
+	bool     hasPassed = true;
+	int      rank      = 0;
+	grafic_t grafic;
+	uint32_t size[3] = {3, 4, 2};
+	size_t   numElements = 3*4*2;
+	float   *data, *data2;
+#ifdef XMEM_TRACK_MEM
+	size_t   allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	data   = xmalloc(sizeof(float) * numElements);
+	for (int i=0; i<numElements; i++)
+		data[i] = (float)i;
+
+	grafic = grafic_new(true);
+	grafic_setSize(grafic, size);
+	grafic_setFileName(grafic, "writeTest.grafic");
+	grafic_write(grafic, data, GRAFIC_FORMAT_FLOAT, 1);
+	grafic_del(&grafic);
+
+	data2   = xmalloc(sizeof(float) * numElements);
+	grafic  = grafic_newFromFile("writeTest.grafic", true);
+	grafic_read(grafic, data2, GRAFIC_FORMAT_FLOAT, 1);
+	grafic_del(&grafic);
+
+	for (int i=0; i<numElements; i++) {
+		if (data2[i] != data[i])
+			hasPassed = false;
+	}
+
+	xfree(data2);
+	xfree(data);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+grafic_writeWindowed_test(void)
+{
+	bool     hasPassed = true;
+	int      rank      = 0;
+	grafic_t grafic;
+	uint32_t idxLo[3]  = { 1, 1, 0 };
+	uint32_t dims[3]   = { 2, 2, 1 };
+	uint32_t size[3] = {4, 5, 2} ;
+	size_t   numElements = 2 * 2 * 1;
+	float   *data;
+#ifdef XMEM_TRACK_MEM
+	size_t   allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grafic = grafic_new(true);
+	grafic_setSize(grafic, size);
+	grafic_setFileName(grafic, "writeWindowed.grafic");
+	numElements = dims[0] * dims[1] * dims[2];
+
+	data = xmalloc(sizeof(double) * 2 * numElements);
+	for (int k=0; k<dims[2]; k++) {
+		for (int j=0; j<dims[1]; j++) {
+			for (int i=0; i<dims[0]; i++) {
+				int idx = i + (j + k * dims[1]) * dims[0];
+				data[idx] = (float)idx;
+			}
+		}
+	}
+	grafic_makeEmptyFile(grafic);
+	grafic_writeWindowed(grafic, data, GRAFIC_FORMAT_FLOAT, 1, idxLo, dims);
+	grafic_del(&grafic);
+	xfree(data);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;

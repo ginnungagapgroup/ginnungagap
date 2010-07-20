@@ -141,6 +141,17 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 
 	timing = timer_start("Going back to Real Space");
 	local_fourierToReal(ginnungagap);
+#if 0
+	{
+		gridPatch_t patch = gridRegular_getPatchHandle(ginnungagap->grid, 0);
+		fpv_t *data = gridPatch_getVarDataHandle(patch, 0);
+		FILE *f;
+
+		f = fopen("delta.dat", "wb");
+		fwrite(data, sizeof(fpv_t), 256*256*256, f);
+		fclose(f);
+	}
+#endif
 	timing = timer_stop(timing);
 
 	timing = timer_start("Writing final output");

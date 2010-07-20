@@ -71,7 +71,7 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 	double            norm;
 	double            maxFreq;
 	gridPointUint32_t kMaxGrid;
-	local_mode_t      mode = DO_VZ;
+	local_mode_t      mode = DO_DELTA;
 	double            scaleVelocity;
 
 	assert(ginnungagap != NULL);
@@ -105,12 +105,12 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 
 				if ((k0 == 0) && (k1 == 0) && (k2 == 0)) {
 					data[idx] = 0.0;
-				} else if (kCell > maxFreq) {
-					data[idx] = 0.0 + 0.0I;
+//				} else if (kCell > maxFreq) {
+//					data[idx] = 0.0 + 0.0I;
 				} else {
 					double tmp;
 					tmp        = sqrt(cosmoPk_eval(ginnungagap->pk, kCell));
-					tmp       *= cos(0.5 * M_PI * kCell / maxFreq);
+//					tmp       *= cos(0.5 * M_PI * kCell / maxFreq);
 					data[idx] *= (fpv_t)(tmp * norm);
 					if (mode == DO_VX) {
 						data[idx] *= k1 * wavenumToFreq * I

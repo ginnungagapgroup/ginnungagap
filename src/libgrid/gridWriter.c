@@ -11,6 +11,7 @@
 #ifdef WITH_SILO
 #  include "gridWriterSilo.h"
 #endif
+#include "gridWriterGrafic.h"
 #include "gridPatch.h"
 #include "gridRegular.h"
 #include "gridPoint.h"
@@ -143,6 +144,9 @@ local_newFromIniWrapper(parse_ini_t   ini,
 		        "To use Silo output, run configure using --with-silo\n");
 		diediedie(EXIT_FAILURE);
 #endif
+	} else if (type == IO_TYPE_GRAFIC) {
+		writer = (gridWriter_t)gridWriterGrafic_newFromIni(ini,
+		                                                   writerSectionName);
 	} else {
 		fprintf(stderr, "Cannot create writer for %s\n",
 		        gridIO_getNameFromType(type));

@@ -76,6 +76,12 @@ extern bool
 grafic_setIseed_test(void);
 
 extern bool
+grafic_isWhiteNoise_test(void);
+
+extern bool
+grafic_makeEmptyFile_test(void);
+
+extern bool
 grafic_read_test(void);
 
 extern bool
@@ -83,6 +89,9 @@ grafic_write_test(void);
 
 extern bool
 grafic_readWindowed_test(void);
+
+extern bool
+grafic_writeWindowed_test(void);
 
 
 #endif
