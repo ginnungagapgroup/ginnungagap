@@ -87,5 +87,17 @@ xfwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 extern int
 xfseek(FILE *stream, long offset, int whence);
 
+/**
+ * \brief  Creates a new file and ensures that it contains bytes number
+ *         of bytes.
+ *
+ * \param  *fname  The name of the file to create.
+ * \param  bytes   The file size in bytes.
+ *
+ * \return  Always returns 0.
+ */
+extern int
+xfile_createFileWithSize(const char *fname, size_t bytes);
+
 
 #endif

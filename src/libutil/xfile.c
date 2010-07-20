@@ -4,11 +4,18 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
+#include "util_config.h"
 #include "xfile.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#if (_XOPEN_SOURCE >= 600)
+#  include <unistd.h>
+#  include <sys/types.h>
+#  include <sys/stat.h>
+#  include <fcntl.h>
+#endif
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -78,3 +85,39 @@ xfseek(FILE *stream, long offset, int whence)
 
 	return 0;
 }
+
+extern int
+xfile_createFileWithSize(const char *fname, size_t bytes)
+{
+#if (_XOPEN_SOURCE >= 600)
+	int fd;
+	int errnum;
+
+	fd = creat(fname, S_IRWXU | S_IRWXG | S_IRWXO);
+	if (fd == -1) {
+		errnum = errno;
+		fprintf(stderr, "Error in %s:%i %s\n",
+		        __func__, __LINE__, strerror(errnum));
+		exit(EXIT_FAILURE);
+	}
+	errnum = posix_fallocate(fd, (off_t)0, (off_t)bytes);
+	if (errnum != 0) {
+		fprintf(stderr, "Error in %s:%i %i\n",
+		        __func__, __LINE__, errnum);
+		exit(EXIT_FAILURE);
+	}
+	close(fd);
+#else
+	FILE *f;
+	char nullData = 124;
+
+	f = xfopen(fname, "wb");
+
+	for (int i = 0; i < bytes; i++)
+		xfwrite(&nullData, sizeof(char), 1, f);
+
+	xfclose(&f);
+#endif
+
+	return 0;
+} /* file_createWithSize */
