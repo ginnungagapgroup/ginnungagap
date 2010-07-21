@@ -31,5 +31,7 @@ ginnungagapWN_setup(ginnungagapWN_t wn,
 extern void
 ginnungagapWN_dump(ginnungagapWN_t wn, gridRegular_t grid);
 
+extern void
+ginnungagapWN_reset(ginnungagapWN_t wn);
 
 #endif

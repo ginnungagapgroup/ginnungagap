@@ -663,21 +663,16 @@ local_writeWindowedActualRead(grafic_t       grafic,
 	FILE   *f;
 	float  *buffer    = xmalloc(sizeof(float) * dims[0]);
 	size_t dataOffset = 0;
-	long pos;
 
 	f = xfopen(grafic->graficFileName, "r+b");
 	xfseek(f, grafic->headerSkip + 8L, SEEK_SET);
-	pos = ftell(f);
 	for (uint32_t k = 0; k < idxLo[2]; k++)
 		local_skipPlane(f, grafic->np1 * grafic->np2);
-	pos = ftell(f);
 	for (uint32_t k = 0; k < dims[2]; k++) {
 		int b1, b2;
 		xfread(&b1, sizeof(int), 1, f);
-		pos = ftell(f);
 		for (uint32_t j = 0; j < idxLo[1]; j++)
 			xfseek(f, grafic->np1 * sizeof(float), SEEK_CUR);
-		pos = ftell(f);
 		for (uint32_t j = 0; j < dims[1]; j++) {
 			if (idxLo[0] > 0)
 				xfseek(f, sizeof(float) * idxLo[0], SEEK_CUR);
@@ -689,10 +684,8 @@ local_writeWindowedActualRead(grafic_t       grafic,
 				xfseek(f, sizeof(float) * (grafic->np1 - dims[0] - idxLo[0]),
 				       SEEK_CUR);
 		}
-		pos = ftell(f);
 		for (uint32_t j = 0; j < grafic->np2 - dims[1] - idxLo[1]; j++)
 			xfseek(f, grafic->np1 * sizeof(float), SEEK_CUR);
-		pos = ftell(f);
 		xfread(&b2, sizeof(int), 1, f);
 		if (b1 != b2)
 			diediedie(EXIT_FAILURE);

@@ -135,11 +135,11 @@ double	omhh,		/* Omega_matter*h^2 */
 
 /* Convenience from Numerical Recipes in C, 2nd edition */
 static double sqrarg;
-#define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
+#define SQR(a) (islessgreater(sqrarg=(a), 0.0) ?  sqrarg*sqrarg : 0.0)
 static double cubearg;
-#define CUBE(a) ((cubearg=(a)) == 0.0 ? 0.0 : cubearg*cubearg*cubearg)
+#define CUBE(a) (islessgreater(cubearg=(a), 0.0) ? cubearg*cubearg*cubearg : 0.0)
 static double pow4arg;
-#define POW4(a) ((pow4arg=(a)) == 0.0 ? 0.0 : pow4arg*pow4arg*pow4arg*pow4arg)
+#define POW4(a) (islessgreater(pow4arg=(a), 0.0) ? pow4arg*pow4arg*pow4arg*pow4arg : 0.0)
 	/* Yes, I know the last one isn't optimal; it doesn't appear much */
 
 static void TFset_parameters(double omega0hh, double f_baryon, double Tcmb)

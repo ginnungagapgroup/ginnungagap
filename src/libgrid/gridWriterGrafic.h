@@ -9,12 +9,13 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridWriter.h"
-#include "gridRegular.h"
-#include "gridPatch.h"
-#include "gridPoint.h"
+#include <stdbool.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#include "gridRegular.h"
+#include "gridPatch.h"
+#include "gridPoint.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -22,6 +23,9 @@ typedef struct gridWriterGrafic_struct *gridWriterGrafic_t;
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
+extern gridWriterGrafic_t
+gridWriterGrafic_new(const char *prefix, bool isWhiteNoise);
+
 extern gridWriterGrafic_t
 gridWriterGrafic_newFromIni(parse_ini_t ini, const char *sectionName);
 
