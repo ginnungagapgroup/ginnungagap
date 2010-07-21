@@ -5,7 +5,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "ginnungagapConfig.h"
-#include "ginnungagapDeltaK.h"
+#include "ginnungagapIC.h"
 #include <assert.h>
 #include <stdint.h>
 #include <math.h>
@@ -61,7 +61,7 @@ local_getDisplacementToVelocityFactor(ginnungagap_t ginnungagap);
 
 /*--- Implementations of exported functios ------------------------------*/
 extern void
-ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
+ginnungagapIC_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 {
 	gridPointUint32_t dimsGrid;
 	gridPointUint32_t dimsPatch;
@@ -135,10 +135,10 @@ ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap)
 			}
 		}
 	}
-} /* ginnungagapDeltaK_calcFromWhiteNoise */
+} /* ginnungagapIC_calcFromWhiteNoise */
 
 extern void
-ginnungagapDeltaK_calcPowerSpectrum(ginnungagap_t ginnungagap)
+ginnungagapIC_calcPowerSpectrum(ginnungagap_t ginnungagap)
 {
 	gridPointUint32_t dimsGrid;
 	gridPointUint32_t dimsPatch;
@@ -198,7 +198,7 @@ ginnungagapDeltaK_calcPowerSpectrum(ginnungagap_t ginnungagap)
 	xfree(numFreqHits);
 	xfree(freq);
 	xfree(P);
-} /* ginnungagapDeltaK_calcPowerSpectrum */
+} /* ginnungagapIC_calcPowerSpectrum */
 
 /*--- Implementations of local functions --------------------------------*/
 static void

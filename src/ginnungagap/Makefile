@@ -16,7 +16,7 @@ sources = main.c \
           ginnungagapSetup.c \
           ginnungagapInit.c \
           ginnungagapWN.c \
-          ginnungagapDeltaK.c
+          ginnungagapIC.c
 
 include ../../Makefile.rules
 

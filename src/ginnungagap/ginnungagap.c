@@ -8,7 +8,7 @@
 #include "ginnungagap.h"
 #include "ginnungagapInit.h"
 #include "ginnungagapWN.h"
-#include "ginnungagapDeltaK.h"
+#include "ginnungagapIC.h"
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
@@ -129,8 +129,8 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	timing = timer_stop(timing);
 
 	timing = timer_start("  Generating rho(k)");
-	ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap);
-	ginnungagapDeltaK_calcPowerSpectrum(ginnungagap);
+	ginnungagapIC_calcFromWhiteNoise(ginnungagap);
+	ginnungagapIC_calcPowerSpectrum(ginnungagap);
 	timing = timer_stop(timing);
 
 	timing = timer_start("  Going back to Real Space");

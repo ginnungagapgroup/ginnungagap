@@ -2,8 +2,8 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GINNUNGAGAPDELTAK_H
-#define GINNUNGAGAPDELTAK_H
+#ifndef GINNUNGAGAPIC_H
+#define GINNUNGAGAPIC_H
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -13,10 +13,10 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern void
-ginnungagapDeltaK_calcFromWhiteNoise(ginnungagap_t ginnungagap);
+ginnungagapIC_calcFromWhiteNoise(ginnungagap_t ginnungagap);
 
 extern void
-ginnungagapDeltaK_calcPowerSpectrum(ginnungagap_t ginnungagap);
+ginnungagapIC_calcPowerSpectrum(ginnungagap_t ginnungagap);
 
 
 #endif
