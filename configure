@@ -394,7 +394,7 @@ Code properties:
   --enable-double          This switches on the usage of double
                            precision floating point variables instead of
                            single precision for fields and particle
-                           properties.  Default: yes.
+                           properties.  Default: No.
   --ndim=VALUE             Sets the dimensionality of the code.  Allowed
                            values are 2 and 3.  Default: 3.
 
