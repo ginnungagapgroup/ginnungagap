@@ -227,7 +227,7 @@ static double TFfit_onek(double k, double *tf_baryon, double *tf_cdm)
 //  double T_nowiggles_L0, T_nowiggles_C0, T_nowiggles;
 
     k = fabs(k);	/* Just define negative k as positive */
-    if (k==0.0) {
+    if (!islessgreater(k,0.0)) {
 	if (tf_baryon!=NULL) *tf_baryon = 1.0;
 	if (tf_cdm!=NULL) *tf_cdm = 1.0;
 	return 1.0;

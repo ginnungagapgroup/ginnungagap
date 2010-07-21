@@ -76,9 +76,10 @@ ginnungagapIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
 	norm         *= pow(1. / (boxsizeInMpch), 1.5);
 //	maxFreq       = 0.5 * dim1D * wavenumToFreq;
 
+// maxFreq needs to be added to shared when used again
 #ifdef _OPENMP
 #  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
-	dimsGrid, data, pk, norm, maxFreq)
+	dimsGrid, data, pk, norm)
 #endif
 	for (uint32_t k = 0; k < dimsPatch[2]; k++) {
 		int64_t k2 = k + idxLo[2];
