@@ -42,6 +42,12 @@ cosmoPk_newFromArrays(uint32_t     numPoints,
 extern void
 cosmoPk_del(cosmoPk_t *pk);
 
+extern double
+cosmoPk_getKminSecure(const cosmoPk_t pk);
+
+extern double
+cosmoPk_getKmaxSecure(const cosmoPk_t pk);
+
 extern void
 cosmoPk_dumpToFile(cosmoPk_t pk, const char *fname, uint32_t numSubSample);
 

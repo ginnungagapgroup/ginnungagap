@@ -110,7 +110,9 @@ local_finalMessage(void)
 		xmem_info(stdout);
 		printf("\n");
 #endif
-		printf("Vertu sæl/sæll...\n");
+		printf("\nAll done.\nThank you for using `%s'!\n"
+		       "Vertu sæl/sæll...\n",
+		       PACKAGE_NAME);
 	}
 }
 

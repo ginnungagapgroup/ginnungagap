@@ -17,7 +17,7 @@
 typedef struct ginnungagapSetup_struct *ginnungagapSetup_t;
 
 
-/*--- Implemention of main structure ------------------------------------*/
+/*--- Implementation of main structure ----------------------------------*/
 struct ginnungagapSetup_struct {
 	uint32_t dim1D;
 	double   boxsizeInMpch;

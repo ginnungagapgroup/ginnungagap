@@ -14,6 +14,7 @@ progName = ginnungagap
 sources = main.c \
           $(progName).c \
           ginnungagapSetup.c \
+          ginnungagapInit.c \
           ginnungagapWN.c \
           ginnungagapDeltaK.c
 

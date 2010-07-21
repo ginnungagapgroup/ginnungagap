@@ -28,6 +28,10 @@
 #define LOCAL_MAX_FORCESIGMA8_ITERATIONS 42
 #define LOCAL_LIMIT 2048
 #define LOCAL_EPSREL 1e-7
+#define LOCAL_MINPOINTS 25
+// Ignoring a few points at the beginning and the end of the arrays, as
+// the spline interpolation tends to oscillate somewhat there
+#define LOCAL_IGNOREPOINTS 5
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -133,6 +137,8 @@ cosmoPk_newFromArrays(uint32_t     numPoints,
                       double       slopeBeyondKmax)
 {
 	cosmoPk_t pk;
+
+	assert(numPoints > LOCAL_MINPOINTS);
 	assert(k != NULL && P != NULL);
 
 	pk = local_new();
@@ -159,6 +165,22 @@ cosmoPk_del(cosmoPk_t *pk)
 		gsl_spline_free((*pk)->spline);
 	xfree(*pk);
 	*pk = NULL;
+}
+
+extern double
+cosmoPk_getKminSecure(const cosmoPk_t pk)
+{
+	assert(pk != NULL);
+
+	return pk->k[LOCAL_IGNOREPOINTS];
+}
+
+extern double
+cosmoPk_getKmaxSecure(const cosmoPk_t pk)
+{
+	assert(pk != NULL);
+
+	return pk->k[pk->numPoints - 1 - LOCAL_IGNOREPOINTS];
 }
 
 extern void
@@ -347,6 +369,11 @@ local_new(void)
 static void
 local_getMem(cosmoPk_t pk, uint32_t numPoints)
 {
+	if (numPoints < LOCAL_MINPOINTS) {
+		fprintf(stderr, "P(k) needs to have at least %i points!\n",
+		        LOCAL_MINPOINTS);
+		diediedie(EXIT_FAILURE);
+	}
 	if (pk->k != NULL)
 		xfree(pk->k);
 	pk->k         = xmalloc(sizeof(double) * numPoints * 2);
