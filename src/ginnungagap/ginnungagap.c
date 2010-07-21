@@ -52,10 +52,16 @@ static gridRegularFFT_t
 local_getFFT(ginnungagap_t ginnungagap);
 
 static void
-local_realToFourier(ginnungagap_t ginnungagap);
+local_doWhiteNoise(ginnungagap_t ginnungagap);
 
 static void
-local_fourierToReal(ginnungagap_t ginnungagap);
+local_doDeltaK(ginnungagap_t ginnungagap);
+
+static void
+local_doDeltaX(ginnungagap_t ginnungagap);
+
+static void
+local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -95,8 +101,6 @@ ginnungagap_new(parse_ini_t ini)
 extern void
 ginnungagap_init(ginnungagap_t ginnungagap)
 {
-	double timing;
-
 	if (ginnungagap->rank == 0)
 		printf("\nInitialising:\n");
 	ginnungagapInit_init(ginnungagap->setup->boxsizeInMpch,
@@ -112,51 +116,39 @@ ginnungagap_init(ginnungagap_t ginnungagap)
 extern void
 ginnungagap_run(ginnungagap_t ginnungagap)
 {
-	double timing;
 	assert(ginnungagap != NULL);
 
 	if (ginnungagap->rank == 0)
 		printf("\nGenerating IC:\n\n");
-	timing = timer_start("  Setting up white noise");
-	ginnungagapWN_setup(ginnungagap->whiteNoise,
-	                    ginnungagap->grid,
-	                    ginnungagap->posOfDens);
-	timing = timer_stop(timing);
-	ginnungagapWN_dump(ginnungagap->whiteNoise, ginnungagap->grid);
 
-	timing = timer_start("  Going to Fourier Space");
-	local_realToFourier(ginnungagap);
-	timing = timer_stop(timing);
-
-	timing = timer_start("  Generating rho(k)");
-	ginnungagapIC_calcFromWhiteNoise(ginnungagap);
-	ginnungagapIC_calcPowerSpectrum(ginnungagap);
-	timing = timer_stop(timing);
-
-	timing = timer_start("  Going back to Real Space");
-	local_fourierToReal(ginnungagap);
-#if 0
-	{
-		gridPatch_t patch = gridRegular_getPatchHandle(ginnungagap->grid, 0);
-		fpv_t       *data = gridPatch_getVarDataHandle(patch, 0);
-		FILE        *f;
-
-		f = fopen("delta.dat", "wb");
-		fwrite(data, sizeof(fpv_t), 256 * 256 * 256, f);
-		fclose(f);
-	}
-#endif
-	timing = timer_stop(timing);
-
-	timing = timer_start("  Writing final output");
-	gridWriter_activate(ginnungagap->finalWriter);
-	gridWriter_writeGridRegular(ginnungagap->finalWriter,
-	                            ginnungagap->grid);
-	gridWriter_deactivate(ginnungagap->finalWriter);
-	timing = timer_stop(timing);
+	local_doWhiteNoise(ginnungagap);
+	local_doDeltaK(ginnungagap);
+	local_doDeltaX(ginnungagap);
 	if (ginnungagap->rank == 0)
 		printf("\n");
-} /* ginnungagap_run */
+
+	ginnungagapWN_reset(ginnungagap->whiteNoise);
+	local_doWhiteNoise(ginnungagap);
+	local_doDeltaK(ginnungagap);
+	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VX);
+	if (ginnungagap->rank == 0)
+		printf("\n");
+
+	ginnungagapWN_reset(ginnungagap->whiteNoise);
+	local_doWhiteNoise(ginnungagap);
+	local_doDeltaK(ginnungagap);
+	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VY);
+	if (ginnungagap->rank == 0)
+		printf("\n");
+
+	ginnungagapWN_reset(ginnungagap->whiteNoise);
+	local_doWhiteNoise(ginnungagap);
+	local_doDeltaK(ginnungagap);
+	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VZ);
+
+	if (ginnungagap->rank == 0)
+		printf("\n");
+}
 
 extern void
 ginnungagap_del(ginnungagap_t *ginnungagap)
@@ -250,13 +242,77 @@ local_getFFT(ginnungagap_t ginnungagap)
 }
 
 static void
-local_realToFourier(ginnungagap_t ginnungagap)
+local_doWhiteNoise(ginnungagap_t ginnungagap)
 {
+	double timing;
+
+	timing = timer_start("  Setting up white noise");
+	ginnungagapWN_setup(ginnungagap->whiteNoise,
+	                    ginnungagap->grid,
+	                    ginnungagap->posOfDens);
+	timing = timer_stop(timing);
+	ginnungagapWN_dump(ginnungagap->whiteNoise, ginnungagap->grid);
+
+	timing = timer_start("  Going to Fourier Space");
 	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_FORWARD);
+	timing = timer_stop(timing);
 }
 
 static void
-local_fourierToReal(ginnungagap_t ginnungagap)
+local_doDeltaK(ginnungagap_t ginnungagap)
 {
+	double timing;
+
+	timing = timer_start("  Generating delta(k)");
+	ginnungagapIC_calcDeltaFromWN(ginnungagap->gridFFT,
+	                              ginnungagap->setup->dim1D,
+	                              ginnungagap->setup->boxsizeInMpch,
+	                              ginnungagap->pk);
+	timing = timer_stop(timing);
+}
+
+static void
+local_doDeltaX(ginnungagap_t ginnungagap)
+{
+	double timing;
+
+	timing = timer_start("  FFTing to delta(x)");
 	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_BACKWARD);
+	timing = timer_stop(timing);
+
+	timing = timer_start("  Writing delta to file");
+	gridWriter_activate(ginnungagap->finalWriter);
+	gridWriter_writeGridRegular(ginnungagap->finalWriter,
+	                            ginnungagap->grid);
+	gridWriter_deactivate(ginnungagap->finalWriter);
+	timing = timer_stop(timing);
+}
+
+static void
+local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
+{
+	double timing;
+	char   *msg = NULL;
+
+	msg    = xstrmerge("  Generating ", ginnungagapIC_getModeStr(mode));
+	timing = timer_start(msg);
+	ginnungagapIC_calcVelFromDelta(ginnungagap->gridFFT,
+	                               ginnungagap->setup->dim1D,
+	                               ginnungagap->setup->boxsizeInMpch,
+	                               ginnungagap->model,
+	                               cosmo_z2a(ginnungagap->setup->zInit),
+	                               GINNUNGAGAPIC_MODE_VX);
+	timing = timer_stop(timing);
+	xfree(msg);
+
+	timing = timer_start("  FFTing to vel(x)");
+	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_BACKWARD);
+	timing = timer_stop(timing);
+
+	timing = timer_start("  Writing velocity to file");
+	gridWriter_activate(ginnungagap->finalWriter);
+	gridWriter_writeGridRegular(ginnungagap->finalWriter,
+	                            ginnungagap->grid);
+	gridWriter_deactivate(ginnungagap->finalWriter);
+	timing = timer_stop(timing);
 }

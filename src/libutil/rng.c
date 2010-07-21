@@ -105,6 +105,21 @@ rng_del(rng_t *rng)
 	*rng = NULL;
 }
 
+extern void
+rng_reset(rng_t rng)
+{
+#ifdef WITH_SPRNG
+	for (int i = 0; i < rng->numStreamsLocal; i++) {
+		free_rng(rng->streams[i]);
+		rng->streams[i] = init_sprng(rng->generatorType,
+		                             rng->baseStreamId + i,
+		                             rng->numStreamsTotal,
+		                             rng->randomSeed,
+		                             SPRNG_DEFAULT);
+	}
+#endif
+}
+
 extern int
 rng_getNumStreamsLocal(const rng_t rng)
 {

@@ -8,15 +8,39 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "ginnungagapConfig.h"
-#include "ginnungagap.h"
+#include <stdint.h>
+#include "../libgrid/gridRegularFFT.h"
+#include "../libcosmo/cosmoPk.h"
+#include "../libcosmo/cosmoModel.h"
 
+/*--- Typedefs ----------------------------------------------------------*/
+typedef enum {
+	GINNUNGAGAPIC_MODE_VX,
+	GINNUNGAGAPIC_MODE_VY,
+	GINNUNGAGAPIC_MODE_VZ
+} ginnungagapICMode_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern void
-ginnungagapIC_calcFromWhiteNoise(ginnungagap_t ginnungagap);
+ginnungagapIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
+                              uint32_t         dim1D,
+                              double           boxsizeInMpch,
+                              cosmoPk_t        pk);
 
 extern void
-ginnungagapIC_calcPowerSpectrum(ginnungagap_t ginnungagap);
+ginnungagapIC_calcVelFromDelta(gridRegularFFT_t    gridFFT,
+                               uint32_t            dim1D,
+                               double              boxsizeInMpch,
+                               cosmoModel_t        model,
+                               double              aInit,
+                               ginnungagapICMode_t mode);
+
+extern cosmoPk_t
+ginnungagapIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
+                              uint32_t         dim1D,
+                              double           boxsizeInMpch);
+extern const char *
+ginnungagapIC_getModeStr(ginnungagapICMode_t mode);
 
 
 #endif

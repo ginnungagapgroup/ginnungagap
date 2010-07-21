@@ -8,6 +8,7 @@
 #include "gridVar.h"
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
@@ -56,7 +57,9 @@ gridVar_clone(const gridVar_t var)
 
 	assert(var != NULL);
 
-	clone = gridVar_new(var->name, var->type, var->numComponents);
+	clone                 = gridVar_new(var->name,
+	                                    var->type,
+	                                    var->numComponents);
 	clone->mallocFunc     = var->mallocFunc;
 	clone->freeFunc       = var->freeFunc;
 	clone->isFFTWPadded   = var->isFFTWPadded;
@@ -121,8 +124,11 @@ gridVar_getName(gridVar_t var)
 
 extern void
 gridVar_setMemFuncs(gridVar_t var,
-                    void *(*mallocFunc)(size_t size),
-                    void      (*freeFunc)(void *ptr))
+                              void *(*mallocFunc)(size_t
+                                        size),
+                    void      (*freeFunc
+                                                  )(
+                        void  *ptr))
 {
 	assert(var != NULL);
 
@@ -144,6 +150,23 @@ gridVar_getMemory(gridVar_t var, uint64_t numElements)
 		return var->mallocFunc(sizeToAlloc);
 
 	return xmalloc(sizeToAlloc);
+}
+
+extern void *
+gridVar_getCopy(gridVar_t var, uint64_t numElements, const void *data)
+{
+	void *cpy = NULL;
+
+	assert(var != NULL);
+	assert(numElements > UINT64_C(0));
+
+	if (data != NULL) {
+		size_t totalSize = gridVar_getSizePerElement(var) * numElements;
+		cpy = gridVar_getMemory(var, numElements);
+		memcpy(cpy, data, totalSize);
+	}
+
+	return cpy;
 }
 
 extern void

@@ -98,6 +98,14 @@ ginnungagapWN_setup(ginnungagapWN_t wn,
 }
 
 extern void
+ginnungagapWN_reset(ginnungagapWN_t wn)
+{
+	if (!wn->useFile) {
+		rng_reset(wn->rng);
+	}
+}
+
+extern void
 ginnungagapWN_dump(ginnungagapWN_t wn, gridRegular_t grid)
 {
 	if (wn->dumpWhiteNoise) {
@@ -134,10 +142,14 @@ local_newGetOutput(ginnungagapWN_t wn,
                    parse_ini_t     ini,
                    const char      *sectionName)
 {
-	wn->writer = gridWriter_newFromIni(ini, sectionName);
+	if (wn->dumpWhiteNoise) {
+		wn->writer = gridWriter_newFromIni(ini, sectionName);
 #ifdef WITH_MPI
-	gridWriter_initParallel(wn->writer, MPI_COMM_WORLD);
+		gridWriter_initParallel(wn->writer, MPI_COMM_WORLD);
 #endif
+	} else {
+		wn->writer = NULL;
+	}
 }
 
 static void

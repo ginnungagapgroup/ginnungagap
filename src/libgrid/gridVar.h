@@ -54,6 +54,9 @@ gridVar_setMemFuncs(gridVar_t var,
 extern void *
 gridVar_getMemory(gridVar_t var, uint64_t numElements);
 
+extern void *
+gridVar_getCopy(gridVar_t var, uint64_t numElements, const void *data);
+
 extern void
 gridVar_freeMemory(gridVar_t var, void *data);
 

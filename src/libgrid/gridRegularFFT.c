@@ -90,7 +90,7 @@ gridRegularFFT_new(gridRegular_t        grid,
 #endif
 	local_getFFTedThings(fft);
 #if (defined WITH_FFT_FFTW3)
-	fft->norm = 1. / ((double)gridRegular_getNumCellsTotal(grid));
+	fft->norm   = 1. / ((double)gridRegular_getNumCellsTotal(grid));
 #endif
 
 	return fft;

@@ -265,6 +265,20 @@ gridRegular_getVarHandle(gridRegular_t grid, int idxOfVar)
 	return varArr_getElementHandle(grid->vars, idxOfVar);
 }
 
+extern void
+gridRegular_freeVarData(gridRegular_t grid, int idxOfVarData)
+{
+	assert(grid != NULL);
+	assert(idxOfVarData >= 0 && idxOfVarData < varArr_getLength(grid->vars));
+
+	for (int i=0; i < gridRegular_getNumPatches(grid); i++) {
+		gridPatch_t patch;
+		patch = gridRegular_getPatchHandle(grid, i);
+		gridPatch_freeVarData(patch, idxOfVarData);
+	}
+
+}
+
 extern int
 gridRegular_getNumPatches(gridRegular_t grid)
 {
