@@ -81,6 +81,8 @@ gridVar_unsetComplexified(gridVar_t var);
 extern bool
 gridVar_isComplexified(gridVar_t var);
 
+extern void
+gridVar_rename(gridVar_t var, const char *newName);
 
 #ifdef WITH_MPI
 extern MPI_Datatype

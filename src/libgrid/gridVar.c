@@ -236,6 +236,17 @@ gridVar_isComplexified(gridVar_t var)
 	return var->isComplexified;
 }
 
+extern void
+gridVar_rename(gridVar_t var, const char *newName)
+{
+	assert(var != NULL);
+	assert(newName != NULL && newName[0] != '\0');
+
+	if (var->name != NULL)
+		xfree(var->name);
+	var->name = xstrdup(newName);
+}
+
 #ifdef WITH_MPI
 extern MPI_Datatype
 gridVar_getMPIDatatype(gridVar_t var)

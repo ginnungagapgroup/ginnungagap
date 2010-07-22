@@ -87,6 +87,9 @@ local_getVarType(gridVar_t var);
 static void *
 local_getPatchVarName(gridVar_t var, const char *patchName, char *varName);
 
+static bool
+local_dirExistsInFile(DBfile *db, const char *dname);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern gridWriterSilo_t
@@ -331,12 +334,20 @@ gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 static void *
 local_createDB(const char *fname, const char *dname, void *udata)
 {
+	FILE *f;
 	gridWriterSilo_t writer = (gridWriterSilo_t)udata;
 
-	writer->f = DBCreate(fname, DB_CLOBBER, DB_LOCAL, NULL,
-	                     writer->dbType);
+	f = fopen(fname, "r");
+	if (f != NULL) {
+		fclose(f);
+		writer->f = DBOpen(fname, writer->dbType, DB_APPEND);
+	} else {
+		writer->f = DBCreate(fname, DB_CLOBBER, DB_LOCAL, NULL,
+		                     writer->dbType);
+	}
 	if ((dname != NULL) && (dname[0] != '\0')) {
-		DBMkDir(writer->f, dname);
+		if (!local_dirExistsInFile(writer->f, dname))
+			DBMkDir(writer->f, dname);
 		DBSetDir(writer->f, dname);
 	}
 
@@ -358,9 +369,11 @@ local_openDB(const char     *fname,
 	if (writer->f == NULL) {
 		writer->f = DBOpen(fname, writer->dbType, mode);
 		if ((dname != NULL) && (dname[0] != '\0')) {
-			if (mode == DB_APPEND)
-				DBMkDir(writer->f, dname);
-			DBSetDir(writer->f, dname);
+			if (mode == DB_APPEND) {
+				if (!local_dirExistsInFile(writer->f, dname))
+					DBMkDir(writer->f, dname);
+				DBSetDir(writer->f, dname);
+			}
 		}
 	}
 
@@ -524,6 +537,23 @@ local_getPatchVarName(gridVar_t var, const char *patchName, char *varName)
 	sprintf(varName, "%s_%s", baseVarName, patchName);
 
 	return varName;
+}
+
+static bool
+local_dirExistsInFile(DBfile *db, const char *dname)
+{
+	bool dirExists = false;
+	DBtoc *toc = DBGetToc(db);
+	int numDirs = toc->ndir;
+
+	for (int i=0; i<numDirs; i++) {
+		if (strcmp(toc->dir_names[i], dname) == 0) {
+			dirExists = true;
+			break;
+		}
+	}
+
+	return dirExists ? true : false;
 }
 
 #endif
