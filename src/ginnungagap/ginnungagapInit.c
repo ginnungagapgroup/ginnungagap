@@ -51,8 +51,7 @@ local_renormalizePk(localFreqs_t k,
                     int          rank);
 
 static inline void
-local_shiftPkToAInit(localFreqs_t k,
-                     cosmoModel_t model,
+local_shiftPkToAInit(cosmoModel_t model,
                      cosmoPk_t    pk,
                      double       aInit,
                      int          rank);
@@ -85,7 +84,7 @@ ginnungagapInit_init(double       boxsizeInMpch,
 
 	local_calcAndCheckFreqs(&k, boxsizeInMpch, dim1D, pk, rank);
 	local_renormalizePk(&k, pk, model, forceNormalisation, rank);
-	local_shiftPkToAInit(&k, model, pk, cosmo_z2a(zInit), rank);
+	local_shiftPkToAInit(model, pk, cosmo_z2a(zInit), rank);
 	local_calcSigmaBox(&k, pk, rank);
 }
 
@@ -156,8 +155,7 @@ local_renormalizePk(localFreqs_t k,
 }
 
 static inline void
-local_shiftPkToAInit(localFreqs_t k,
-                     cosmoModel_t model,
+local_shiftPkToAInit(cosmoModel_t model,
                      cosmoPk_t    pk,
                      double       aInit,
                      int          rank)

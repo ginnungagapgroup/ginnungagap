@@ -134,13 +134,13 @@ gridWriterGrafic_newFromIni(parse_ini_t ini, const char *sectionName)
 		grafic_setDx(writer->grafic, (float)tmp);
 		grafic_setXoff(writer->grafic, xOff);
 		getFromIni(&tmp, parse_ini_get_double, ini, "astart", sectionName);
-		grafic_setAstart(writer->grafic, tmp);
+		grafic_setAstart(writer->grafic, (float)tmp);
 		getFromIni(&tmp, parse_ini_get_double, ini, "omegam", sectionName);
-		grafic_setOmegam(writer->grafic, tmp);
+		grafic_setOmegam(writer->grafic, (float)tmp);
 		getFromIni(&tmp, parse_ini_get_double, ini, "omegav", sectionName);
-		grafic_setOmegav(writer->grafic, tmp);
+		grafic_setOmegav(writer->grafic, (float)tmp);
 		getFromIni(&tmp, parse_ini_get_double, ini, "h0", sectionName);
-		grafic_setH0(writer->grafic, tmp);
+		grafic_setH0(writer->grafic, (float)tmp);
 	}
 
 	xfree(prefix);
@@ -244,6 +244,9 @@ gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
 	assert(patch != NULL);
 	assert(patchName != NULL);
 
+	if (patchName == NULL || origin == NULL || delta == NULL)
+		;
+
 	gridPatch_getIdxLo(patch, idxLo);
 	gridPatch_getDims(patch, dims);
 	var           = gridPatch_getVarHandle(patch, 0);
@@ -314,6 +317,9 @@ local_createFile(const char *fname, const char *dname, void *udata)
 {
 	gridWriterGrafic_t writer = (gridWriterGrafic_t)udata;
 
+	if (fname != NULL || dname != NULL)
+		; // Only used to swat compiler warning
+
 	grafic_setFileName(writer->grafic,
 	                   writer->fileNames[writer->curOutFile]);
 	grafic_makeEmptyFile(writer->grafic);
@@ -330,6 +336,9 @@ local_openFile(const char     *fname,
 {
 	gridWriterGrafic_t writer = (gridWriterGrafic_t)udata;
 
+	if (fname != NULL || dname != NULL)
+		; // Only used to swat compiler warning
+
 	if (iomode == PMPIO_READ) {
 		diediedie(EXIT_FAILURE);
 	}
@@ -344,7 +353,8 @@ local_openFile(const char     *fname,
 static void
 local_closeFile(void *file, void *udata)
 {
-	;
+	if (file != NULL || udata != NULL)
+		; // Only used to swat compiler warning
 }
 
 static graficFormat_t
@@ -366,17 +376,4 @@ local_getGraficTypeFromGridType(const gridVar_t var)
 	}
 
 	return varType;
-}
-
-static void *
-local_getPatchVarName(gridVar_t var, const char *patchName, char *varName)
-{
-	char *baseVarName = gridVar_getName(var);
-	int  lenBaseName  = strlen(baseVarName);
-	int  lenSuffix    = strlen(patchName);
-
-	varName = xrealloc(varName, lenBaseName + lenSuffix + 1 + 1);
-	sprintf(varName, "%s_%s", baseVarName, patchName);
-
-	return varName;
 }

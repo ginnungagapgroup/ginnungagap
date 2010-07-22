@@ -61,9 +61,12 @@ ginnungagapIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
 {
 	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
 	fpvComplex_t      *data;
-	double            wavenumToFreq, norm, maxFreq;
+	double            wavenumToFreq, norm;
+//	double            maxFreq;
 
 	assert(gridFFT != NULL);
+
+
 	assert(pk != NULL);
 
 	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch, idxLo,
@@ -71,11 +74,12 @@ ginnungagapIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
 	wavenumToFreq = 2. * M_PI / (boxsizeInMpch);
 	norm          = sqrt(gridRegularFFT_getNorm(gridFFT));
 	norm         *= pow(1. / (boxsizeInMpch), 1.5);
-	maxFreq       = 0.5 * dim1D * wavenumToFreq;
+//	maxFreq       = 0.5 * dim1D * wavenumToFreq;
 
+// maxFreq needs to be added to shared when used again
 #ifdef _OPENMP
 #  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
-	dimsGrid, data, pk, norm, maxFreq)
+	dimsGrid, data, pk, norm)
 #endif
 	for (uint32_t k = 0; k < dimsPatch[2]; k++) {
 		int64_t k2 = k + idxLo[2];
@@ -87,9 +91,10 @@ ginnungagapIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
 				int64_t  k0 = i + idxLo[0];
 				uint64_t idx;
 				double   kCell;
-				k0    = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
-				idx   = i + (j + k * dimsPatch[1]) * dimsPatch[0];
-				kCell = sqrt(k0 * k0 + k1 * k1 + k2 * k2) * wavenumToFreq;
+				k0     = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
+				idx    = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCell  = sqrt((double)(k0 * k0 + k1 * k1 + k2 * k2));
+				kCell *= wavenumToFreq;
 
 				if ((k0 == 0) && (k1 == 0) && (k2 == 0)) {
 					data[idx] = 0.0;
@@ -141,22 +146,28 @@ ginnungagapIC_calcVelFromDelta(gridRegularFFT_t    gridFFT,
 				double   kCellSqr;
 				uint64_t idx;
 
-				k0       = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
-				idx      = i + (j + k * dimsPatch[1]) * dimsPatch[0];
-				kCellSqr = (k0 * k0 + k1 * k1 + k2 * k2);
+				k0        = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
+				idx       = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCellSqr  = (double)(k0 * k0 + k1 * k1 + k2 * k2);
 				kCellSqr *= wavenumToFreq * wavenumToFreq;
 
 				if ((k0 == 0) && (k1 == 0) && (k2 == 0)) {
 					data[idx] = 0.0;
 				} else if (mode == GINNUNGAGAPIC_MODE_VX) {
-					data[idx] *= norm * k1 * wavenumToFreq * I / kCellSqr;
-					data[idx]  = (k1 == kMaxGrid[1]) ? 0.0 : data[idx];
+					data[idx] *= (fpv_t)(norm * k1 * wavenumToFreq
+					                     / kCellSqr) * I;
+					data[idx]  = (k1 == kMaxGrid[1]) ?
+					             FPV_C(0.0) : data[idx];
 				} else if (mode == GINNUNGAGAPIC_MODE_VY) {
-					data[idx] *= norm * k2 * wavenumToFreq * I / kCellSqr;
-					data[idx]  = (k2 == kMaxGrid[2]) ? 0.0 : data[idx];
+					data[idx] *= (fpv_t)(norm * k2 * wavenumToFreq
+					                     / kCellSqr) * I;
+					data[idx]  = (k2 == kMaxGrid[2]) ?
+					             FPV_C(0.0) : data[idx];
 				} else {
-					data[idx] *= norm * k0 * wavenumToFreq * I / kCellSqr;
-					data[idx]  = (k0 == kMaxGrid[0]) ? 0.0 : data[idx];
+					data[idx] *= (fpv_t)(norm * k0 * wavenumToFreq
+					                     / kCellSqr) * I;
+					data[idx]  = (k0 == kMaxGrid[0]) ?
+					             FPV_C(0.0) : data[idx];
 				}
 			}
 		}
@@ -202,7 +213,8 @@ ginnungagapIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
 
 				k0    = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
 				idx   = i + (j + k * dimsPatch[1]) * dimsPatch[0];
-				kCell = (int)floor(sqrt(k0 * k0 + k1 * k1 + k2 * k2));
+				kCell = (int)floor(sqrt((double)(k0 * k0 + k1 * k1
+				                                 + k2 * k2)));
 
 				if ((kCell <= kMaxGrid[0]) && (kCell > 0)) {
 					P[kCell]       += creal(data[idx]) * creal(data[idx])
@@ -248,7 +260,6 @@ ginnungagapIC_getModeStr(ginnungagapICMode_t mode)
 
 	return s;
 }
-
 
 /*--- Implementations of local functions --------------------------------*/
 static void

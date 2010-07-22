@@ -135,11 +135,11 @@ double	omhh,		/* Omega_matter*h^2 */
 
 /* Convenience from Numerical Recipes in C, 2nd edition */
 static double sqrarg;
-#define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
+#define SQR(a) (islessgreater(sqrarg=(a), 0.0) ?  sqrarg*sqrarg : 0.0)
 static double cubearg;
-#define CUBE(a) ((cubearg=(a)) == 0.0 ? 0.0 : cubearg*cubearg*cubearg)
+#define CUBE(a) (islessgreater(cubearg=(a), 0.0) ? cubearg*cubearg*cubearg : 0.0)
 static double pow4arg;
-#define POW4(a) ((pow4arg=(a)) == 0.0 ? 0.0 : pow4arg*pow4arg*pow4arg*pow4arg)
+#define POW4(a) (islessgreater(pow4arg=(a), 0.0) ? pow4arg*pow4arg*pow4arg*pow4arg : 0.0)
 	/* Yes, I know the last one isn't optimal; it doesn't appear much */
 
 static void TFset_parameters(double omega0hh, double f_baryon, double Tcmb)
@@ -227,7 +227,7 @@ static double TFfit_onek(double k, double *tf_baryon, double *tf_cdm)
 //  double T_nowiggles_L0, T_nowiggles_C0, T_nowiggles;
 
     k = fabs(k);	/* Just define negative k as positive */
-    if (k==0.0) {
+    if (!islessgreater(k,0.0)) {
 	if (tf_baryon!=NULL) *tf_baryon = 1.0;
 	if (tf_cdm!=NULL) *tf_cdm = 1.0;
 	return 1.0;
