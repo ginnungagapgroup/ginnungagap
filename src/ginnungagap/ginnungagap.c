@@ -293,6 +293,7 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 {
 	double timing;
 	char   *msg = NULL;
+	gridVar_t var;
 
 	msg    = xstrmerge("  Generating ", ginnungagapIC_getModeStr(mode));
 	timing = timer_start(msg);
@@ -301,7 +302,7 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 	                               ginnungagap->setup->boxsizeInMpch,
 	                               ginnungagap->model,
 	                               cosmo_z2a(ginnungagap->setup->zInit),
-	                               GINNUNGAGAPIC_MODE_VX);
+	                               mode);
 	timing = timer_stop(timing);
 	xfree(msg);
 
@@ -310,6 +311,9 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 	timing = timer_stop(timing);
 
 	timing = timer_start("  Writing velocity to file");
+	var = gridRegular_getVarHandle(ginnungagap->grid,
+	                               ginnungagap->posOfDens);
+	gridVar_rename(var, ginnungagapIC_getModeStr(mode));
 	gridWriter_activate(ginnungagap->finalWriter);
 	gridWriter_writeGridRegular(ginnungagap->finalWriter,
 	                            ginnungagap->grid);
