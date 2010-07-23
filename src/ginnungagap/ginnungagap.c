@@ -148,7 +148,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 
 	if (ginnungagap->rank == 0)
 		printf("\n");
-}
+} /* ginnungagap_run */
 
 extern void
 ginnungagap_del(ginnungagap_t *ginnungagap)
@@ -253,7 +253,7 @@ local_doWhiteNoise(ginnungagap_t ginnungagap)
 	timing = timer_stop(timing);
 	ginnungagapWN_dump(ginnungagap->whiteNoise, ginnungagap->grid);
 
-	timing = timer_start("  Going to Fourier Space");
+	timing = timer_start("  Going to k-space");
 	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_FORWARD);
 	timing = timer_stop(timing);
 }
@@ -276,11 +276,11 @@ local_doDeltaX(ginnungagap_t ginnungagap)
 {
 	double timing;
 
-	timing = timer_start("  FFTing to delta(x)");
+	timing = timer_start("  Going back to real space");
 	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_BACKWARD);
 	timing = timer_stop(timing);
 
-	timing = timer_start("  Writing delta to file");
+	timing = timer_start("  Writing delta(x) to file");
 	gridWriter_activate(ginnungagap->finalWriter);
 	gridWriter_writeGridRegular(ginnungagap->finalWriter,
 	                            ginnungagap->grid);
@@ -291,12 +291,13 @@ local_doDeltaX(ginnungagap_t ginnungagap)
 static void
 local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 {
-	double timing;
-	char   *msg = NULL;
+	double    timing;
+	char      *msg = NULL, *msg2 = NULL;
 	gridVar_t var;
 
 	msg    = xstrmerge("  Generating ", ginnungagapIC_getModeStr(mode));
-	timing = timer_start(msg);
+	msg2   = xstrmerge(msg, "(k)");
+	timing = timer_start(msg2);
 	ginnungagapIC_calcVelFromDelta(ginnungagap->gridFFT,
 	                               ginnungagap->setup->dim1D,
 	                               ginnungagap->setup->boxsizeInMpch,
@@ -304,19 +305,24 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 	                               cosmo_z2a(ginnungagap->setup->zInit),
 	                               mode);
 	timing = timer_stop(timing);
+	xfree(msg2);
 	xfree(msg);
 
-	timing = timer_start("  FFTing to vel(x)");
+	timing = timer_start("  Going back to real space");
 	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_BACKWARD);
 	timing = timer_stop(timing);
 
-	timing = timer_start("  Writing velocity to file");
-	var = gridRegular_getVarHandle(ginnungagap->grid,
-	                               ginnungagap->posOfDens);
+	msg    = xstrmerge("  Writing ", ginnungagapIC_getModeStr(mode));
+	msg2   = xstrmerge(msg, "(x) to file");
+	timing = timer_start(msg2);
+	var    = gridRegular_getVarHandle(ginnungagap->grid,
+	                                  ginnungagap->posOfDens);
 	gridVar_rename(var, ginnungagapIC_getModeStr(mode));
 	gridWriter_activate(ginnungagap->finalWriter);
 	gridWriter_writeGridRegular(ginnungagap->finalWriter,
 	                            ginnungagap->grid);
 	gridWriter_deactivate(ginnungagap->finalWriter);
 	timing = timer_stop(timing);
-}
+	xfree(msg2);
+	xfree(msg);
+} /* local_doVelocities */
