@@ -23,13 +23,16 @@ all:
 	@echo ""
 
 clean:
+	$(MAKE) -C estimateMemReq clean
 	$(MAKE) -C grafic2bov clean
 	$(MAKE) -C makeSiloRoot clean
 
 tests:
+	$(MAKE) -C estimateMemReq tests
 	$(MAKE) -C grafic2bov tests
 	$(MAKE) -C makeSiloRoot tests
 
 dist-clean:
+	$(MAKE) -C estimateMemReq dist-clean
 	$(MAKE) -C grafic2bov dist-clean
 	$(MAKE) -C makeSiloRoot dist-clean
