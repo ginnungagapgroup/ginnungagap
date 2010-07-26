@@ -174,3 +174,41 @@ ifeq ($(TOOLCHAIN), "intel")
     MAKE = make
   endif
 endif
+
+ifeq ($(TOOLCHAIN), "ibm")
+  ifndef CC
+    ifeq ($(WITH_MPI), "true")
+      CC = $(MPICC)
+    else
+      CC = xlc
+    endif
+  endif
+  ifeq ($(WITH_OPENMP), "true")
+    CC += -qsmp=omp -qthreaded
+  else
+    CC += -qsmp=noomp -qthreaded
+  endif
+  CFLAGS += -qlanglvl=stdc99
+  ifeq ($(ENABLE_DEBUG), "true")
+    CFLAGS += -O0 -g
+  endif
+  ifeq ($(ENABLE_PROFILE), "true")
+    CFLAGS += -pg
+  endif
+  ifndef DEPCC
+    ifeq ($(WITH_MPI), "true")
+      DEPCC = $(MPICC)
+    else
+      DEPCC = gcc
+    endif
+  endif
+  ifndef LD
+    LD = ld
+  endif
+  ifndef AR
+    AR = ar
+  endif
+  ifndef MAKE
+    MAKE = make
+  endif
+endif
