@@ -13,9 +13,7 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
-#ifdef XMEM_TRACK_MEM
-#  include "../libutil/xmem.h"
-#endif
+#include "../libutil/xmem.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -723,10 +721,10 @@ grafic_isWhiteNoise_test(void)
 extern bool
 grafic_makeEmptyFile_test(void)
 {
-	bool     hasPassed = true;
-	int      rank      = 0;
+	bool     hasPassed      = true;
+	int      rank           = 0;
 	grafic_t grafic;
-	uint32_t size[3] = {2, 2, 2};
+	uint32_t size[3]        = { 2, 2, 2 };
 #ifdef XMEM_TRACK_MEM
 	size_t   allocatedBytes = global_allocated_bytes;
 #endif
@@ -876,7 +874,12 @@ grafic_readWindowed_test(void)
 	xfree(data);
 
 	dataFloat = xmalloc(sizeof(float) * 2 * numElements);
-	grafic_readWindowed(grafic, dataFloat, GRAFIC_FORMAT_FLOAT, 2, idxLo, dims);
+	grafic_readWindowed(grafic,
+	                    dataFloat,
+	                    GRAFIC_FORMAT_FLOAT,
+	                    2,
+	                    idxLo,
+	                    dims);
 	for (int k = 0; k < dims[2]; k++) {
 		for (int j = 0; j < dims[1]; j++) {
 			for (int i = 0; i < dims[0]; i++) {
@@ -893,7 +896,12 @@ grafic_readWindowed_test(void)
 	xfree(dataFloat);
 
 	dataFloat = xmalloc(sizeof(float) * numElements);
-	grafic_readWindowed(grafic, dataFloat, GRAFIC_FORMAT_FLOAT, 1, idxLo, dims);
+	grafic_readWindowed(grafic,
+	                    dataFloat,
+	                    GRAFIC_FORMAT_FLOAT,
+	                    1,
+	                    idxLo,
+	                    dims);
 	for (int k = 0; k < dims[2]; k++) {
 		for (int j = 0; j < dims[1]; j++) {
 			for (int i = 0; i < dims[0]; i++) {
@@ -921,12 +929,12 @@ grafic_readWindowed_test(void)
 extern bool
 grafic_write_test(void)
 {
-	bool     hasPassed = true;
-	int      rank      = 0;
+	bool     hasPassed   = true;
+	int      rank        = 0;
 	grafic_t grafic;
-	uint32_t size[3] = {3, 4, 2};
-	size_t   numElements = 3*4*2;
-	float   *data, *data2;
+	uint32_t size[3]     = { 3, 4, 2 };
+	size_t   numElements = 3 * 4 * 2;
+	float    *data, *data2;
 #ifdef XMEM_TRACK_MEM
 	size_t   allocatedBytes = global_allocated_bytes;
 #endif
@@ -937,8 +945,8 @@ grafic_write_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	data   = xmalloc(sizeof(float) * numElements);
-	for (int i=0; i<numElements; i++)
+	data = xmalloc(sizeof(float) * numElements);
+	for (int i = 0; i < numElements; i++)
 		data[i] = (float)i;
 
 	grafic = grafic_new(true);
@@ -947,12 +955,12 @@ grafic_write_test(void)
 	grafic_write(grafic, data, GRAFIC_FORMAT_FLOAT, 1);
 	grafic_del(&grafic);
 
-	data2   = xmalloc(sizeof(float) * numElements);
-	grafic  = grafic_newFromFile("writeTest.grafic", true);
+	data2  = xmalloc(sizeof(float) * numElements);
+	grafic = grafic_newFromFile("writeTest.grafic", true);
 	grafic_read(grafic, data2, GRAFIC_FORMAT_FLOAT, 1);
 	grafic_del(&grafic);
 
-	for (int i=0; i<numElements; i++) {
+	for (int i = 0; i < numElements; i++) {
 		if (data2[i] != data[i])
 			hasPassed = false;
 	}
@@ -965,19 +973,19 @@ grafic_write_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* grafic_write_test */
 
 extern bool
 grafic_writeWindowed_test(void)
 {
-	bool     hasPassed = true;
-	int      rank      = 0;
+	bool     hasPassed   = true;
+	int      rank        = 0;
 	grafic_t grafic;
-	uint32_t idxLo[3]  = { 1, 1, 0 };
-	uint32_t dims[3]   = { 2, 2, 1 };
-	uint32_t size[3] = {4, 5, 2} ;
+	uint32_t idxLo[3]    = { 1, 1, 0 };
+	uint32_t dims[3]     = { 2, 2, 1 };
+	uint32_t size[3]     = { 4, 5, 2 };
 	size_t   numElements = 2 * 2 * 1;
-	float   *data;
+	float    *data;
 #ifdef XMEM_TRACK_MEM
 	size_t   allocatedBytes = global_allocated_bytes;
 #endif
@@ -993,10 +1001,10 @@ grafic_writeWindowed_test(void)
 	grafic_setFileName(grafic, "writeWindowed.grafic");
 	numElements = dims[0] * dims[1] * dims[2];
 
-	data = xmalloc(sizeof(double) * 2 * numElements);
-	for (int k=0; k<dims[2]; k++) {
-		for (int j=0; j<dims[1]; j++) {
-			for (int i=0; i<dims[0]; i++) {
+	data        = xmalloc(sizeof(double) * 2 * numElements);
+	for (int k = 0; k < dims[2]; k++) {
+		for (int j = 0; j < dims[1]; j++) {
+			for (int i = 0; i < dims[0]; i++) {
 				int idx = i + (j + k * dims[1]) * dims[0];
 				data[idx] = (float)idx;
 			}

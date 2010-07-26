@@ -13,9 +13,7 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
-#ifdef XMEM_TRACK_MEM
-#  include "../libutil/xmem.h"
-#endif
+#include "../libutil/xmem.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
