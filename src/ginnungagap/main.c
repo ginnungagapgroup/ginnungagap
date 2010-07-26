@@ -14,6 +14,10 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#if (defined _OPENMP && WITH_FFT_FFTW3)
+#  include <omp.h>
+#  include <fftw3.h>
+#endif
 #include "../libutil/xmem.h"
 #include "../libutil/cmdline.h"
 #include "../libutil/parse_ini.h"
@@ -72,6 +76,11 @@ local_initEnvironment(int *argc, char ***argv)
 #ifdef WITH_MPI
 	MPI_Init(argc, argv);
 #endif
+#if (defined _OPENMP && WITH_FFT_FFTW3)
+	fftw_init_threads();
+	fftw_plan_with_nthreads(omp_get_max_threads());
+	printf("Using %i threads\n", omp_get_max_threads());
+#endif
 
 	cmdline = local_cmdlineSetup();
 	cmdline_parse(cmdline, *argc, *argv);
@@ -99,6 +108,9 @@ static void
 local_finalMessage(void)
 {
 	int rank = 0;
+#if (defined _OPENMP && WITH_FFT_FFTW3)
+	fftw_cleanup_threads();
+#endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Finalize();
