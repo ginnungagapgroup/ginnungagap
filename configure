@@ -206,6 +206,7 @@ do
 		--with-gsl-libs=*)
 			WITH_GSL_LIBS="$ac_optarg"
 			;;
+		# More Stuff
 		--with-proc-dir | --with-proc-dir=*)
 			if test "x$ac_optarg" = "xyes"
 			then
@@ -381,6 +382,14 @@ Optional features:
                            installed.  As in --with-sprng-dir this can
                            be 'auto'.
                            Default: auto.
+  --with-gsl-dir=DIR       See description of --with-sprng-dir.  Note
+                           that this can be used to specify which
+                           gsl-config will be used.
+                           Default: auto.
+  --with gsl-libs=LIBS     See description of --with-sprng-libs.  This
+                           should not be necessary, as gsl-config will
+                           be queried to provide the required libraries.
+                           Default: auto.
   --with-proc-dir          If the code can use /proc/self/statm to query
                            its memory usage (true at least on Linux),
                            the you may use this option to allow the code
@@ -482,7 +491,7 @@ fi
 echo "Configuring $PACKAGE_NAME $PACKAGE_VERSION_MAJOR.$PACKAGE_VERSION_MINOR.$PACKAGE_VERSION_MICRO" | tee config.log
 
 # Generate Makefile.config
-echo -n "\to generating \`Makefile.config'... " | tee -a config.log
+echo -n -e "\to generating \`Makefile.config'... " | tee -a config.log
 echo "# Makefile.config generated from Makefile.config.in by configure" > Makefile.config
 echo "" >> Makefile.config
 cat Makefile.config.in >> Makefile.config
@@ -553,7 +562,7 @@ echo "done" | tee -a config.log
 
 
 # Generate config.h
-echo -n "\to generating \`config.h'... " | tee -a config.log
+echo -n -e "\to generating \`config.h'... " | tee -a config.log
 echo "/* config.h generated from config.h.in by configure */" > config.h
 echo "" >> config.h
 cat config.h.in >> config.h
@@ -599,31 +608,31 @@ echo "done" | tee -a config.log
 # Summarize the configuration
 echo "" | tee -a config.log
 echo "Summary" | tee -a config.log
-echo "\to features in use/code properties:" | tee -a config.log
+echo -e "\to features in use/code properties:" | tee -a config.log
 grep '#define' config.h \
 	| grep -v CONFIG_H \
 	| awk '{print "\t\t"$2"\t"$3}' \
 	| tee -a config.log
 
-echo "\to features NOT in use:" | tee -a config.log
+echo -e "\to features NOT in use:" | tee -a config.log
 grep '#undef' config.h | awk '{print "\t\t"$2}' | tee -a config.log
 
-echo "\to programs and program options:" | tee -a config.log
+echo -e "\to programs and program options:" | tee -a config.log
 cat <<_BLA_EOF >> bla.$$
 include Makefile.config
 
 .PHONY: check
 
 check:
-	@echo "\t\tCC       = \$(CC)"
-	@echo "\t\tCFLAGS   = \$(CFLAGS)"
-	@echo "\t\tCPPFLAGS = \$(CPPFLAGS)"
-	@echo "\t\tDEPCC    = \$(DEPCC)"
-	@echo "\t\tLD       = \$(LD)"
-	@echo "\t\tLDFLAGS  = \$(LDFLAGS)"
-	@echo "\t\tLIBS     = \$(LIBS)"
-	@echo "\t\tAR       = \$(AR)"
-	@echo "\t\tMAKE     = \$(MAKE)"
+	@echo -e "\t\tCC       = \$(CC)"
+	@echo -e "\t\tCFLAGS   = \$(CFLAGS)"
+	@echo -e "\t\tCPPFLAGS = \$(CPPFLAGS)"
+	@echo -e "\t\tDEPCC    = \$(DEPCC)"
+	@echo -e "\t\tLD       = \$(LD)"
+	@echo -e "\t\tLDFLAGS  = \$(LDFLAGS)"
+	@echo -e "\t\tLIBS     = \$(LIBS)"
+	@echo -e "\t\tAR       = \$(AR)"
+	@echo -e "\t\tMAKE     = \$(MAKE)"
 _BLA_EOF
 make -f bla.$$ check | tee -a config.log
 rm -f bla.$$
