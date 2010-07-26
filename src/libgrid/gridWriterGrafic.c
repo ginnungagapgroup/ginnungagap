@@ -8,7 +8,6 @@
 #include "gridWriterGrafic.h"
 #include <assert.h>
 #include <string.h>
-#include <silo.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #  include <pmpio.h>
