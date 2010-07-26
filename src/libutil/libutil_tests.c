@@ -17,6 +17,7 @@
 #ifdef WITH_MPI
 #  include "commSchemeBuffer_tests.h"
 #  include "commScheme_tests.h"
+#  include "groupi_tests.h"
 #  include <mpi.h>
 #endif
 #ifdef XMEM_TRACK_MEM
@@ -190,6 +191,11 @@ main(int argc, char **argv)
 	RUNTESTMPI(&commScheme_fire_test, hasFailed);
 	RUNTESTMPI(&commScheme_fireBlock_test, hasFailed);
 	RUNTESTMPI(&commScheme_wait_test, hasFailed);
+
+	if (rank == 0)
+		printf("\nRunning tests for groupi:\n");
+	RUNTESTMPI(&groupi_new_test, hasFailed);
+	RUNTESTMPI(&groupi_del_test, hasFailed);
 
 	MPI_Finalize();
 #endif

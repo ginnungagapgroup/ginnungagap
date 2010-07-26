@@ -24,7 +24,8 @@ sources = xmem.c \
 
 ifeq ($(WITH_MPI), "true")
 sources += commScheme.c \
-           commSchemeBuffer.c
+           commSchemeBuffer.c \
+           groupi.c
 endif
 
 sourcesTests = lib${LIBNAME}_tests.c \
@@ -37,7 +38,8 @@ sourcesTests = lib${LIBNAME}_tests.c \
 
 ifeq ($(WITH_MPI), "true")
 sourcesTests += commScheme_tests.c \
-                commSchemeBuffer_tests.c
+                commSchemeBuffer_tests.c \
+                groupi_tests.c
 endif
 
 
@@ -54,6 +56,8 @@ dist-clean:
 	$(MAKE) clean
 	rm -f $(sources:.c=.d) $(sourcesTests:.c=.d)
 
+# The MPI tests must be run with 16 processes, otherwise the tests will
+# prodouce bogus results
 tests:
 	$(MAKE) lib${LIBNAME}_tests
 ifeq ($(WITH_MPI), "true")
