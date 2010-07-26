@@ -465,7 +465,12 @@ if test "x$WITH_FFT_LIBS" = "xauto"
 then
 	case $WITH_FFT in
 		fftw3)
-			WITH_FFT_LIBS="-lfftw3 -lfftw3f"
+			if test "x$WITH_OPENMP" = "xtrue"
+			then
+				WITH_FFT_LIBS="-lfftw3_threads -lfftw3 -lfftw3f_threads -lfftw3f"
+			else
+				WITH_FFT_LIBS="-lfftw3 -lfftw3f"
+			fi
 			;;
 		fftw2)
 			WITH_FFT_LIBS="-ldrfftw -ldfftw -lsrfftw -lsfftw"
