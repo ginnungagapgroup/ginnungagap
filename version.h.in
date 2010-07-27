@@ -10,7 +10,7 @@
 #define PACKAGE_BUG_EMAIL        "steffen.knollmann@uam.es"
 #define PACKAGE_VERSION_MAJOR    0
 #define PACKAGE_VERSION_MINOR    3
-#define PACKAGE_VERSION_MICRO    0
+#define PACKAGE_VERSION_MICRO    1
 #define PACKAGE_VERSION_REVISION "__REVISION__"
 
 #define PRINT_VERSION_INFO(f)                                         \
