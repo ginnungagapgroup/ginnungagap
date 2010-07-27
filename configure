@@ -4,6 +4,9 @@
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
+# Get aroud the $ECHO quirks
+ECHO=/bin/echo
+
 # Get a bunch of informative things
 if test -e version.h
 then
@@ -39,6 +42,7 @@ WITH_FFT_LIBS=auto
 WITH_SILO=false
 WITH_SILO_DIR=auto
 WITH_SILO_LIBS=auto
+WITH_HDF5=false
 WITH_HDF5_DIR=auto
 WITH_GSL_DIR=auto
 WITH_GSL_LIBS=auto
@@ -60,8 +64,8 @@ do
 
 	case $ac_option in
 		--toolchain)
-			echo -n "Error: --toolchain requires an argument; "
-			echo "use, e.g., --toolchain=gnu"
+			$$ECHO -n "Error: --toolchain requires an argument; "
+			$ECHO "use, e.g., --toolchain=gnu"
 			exit 1
 			;;
 		--toolchain=*)
@@ -111,14 +115,14 @@ do
 			WITH_SPRNG=false
 			;;
 		--with-sprng-dir)
-			echo "Error:  --with-sprng-dir requires an argument."
+			$ECHO "Error:  --with-sprng-dir requires an argument."
 			exit 1
 			;;
 		--with-sprng-dir=*)
 			WITH_SPRNG_DIR="$ac_optarg"
 			;;
 		--with-sprng-libs)
-			echo "Error:  --with-sprng-libs requires an argument."
+			$ECHO "Error:  --with-sprng-libs requires an argument."
 			exit 1
 			;;
 		--with-sprng-libs=*)
@@ -126,7 +130,7 @@ do
 			;;
 		# FFT stuff
 		--with-fft)
-			echo "Error:  --with-fft requires an argument."
+			$ECHO "Error:  --with-fft requires an argument."
 			exit 1
 			;;
 		--with-fft=*)
@@ -137,19 +141,19 @@ do
 			then
 				WITH_FFT=fftw2
 			else
-				echo "Error:  Unkown argument for --with-fft."
+				$ECHO "Error:  Unkown argument for --with-fft."
 				exit 1
 			fi
 			;;
 		--with-fft-dir)
-			echo "Error:  --with-fft-dir requires an argument."
+			$ECHO "Error:  --with-fft-dir requires an argument."
 			exit 1
 			;;
 		--with-fft-dir=*)
 			WITH_FFT_DIR="$ac_optarg"
 			;;
 		--with-fft-libs)
-			echo "Error:  --with-fft-libs requires an argument."
+			$ECHO "Error:  --with-fft-libs requires an argument."
 			exit 1
 			;;
 		--with-fft-libs=*)
@@ -171,21 +175,36 @@ do
 			WITH_SILO=false
 			;;
 		--with-silo-dir)
-			echo "Error:  --with-silo-dir requires an argument."
+			$ECHO "Error:  --with-silo-dir requires an argument."
 			exit 1
 			;;
 		--with-silo-dir=*)
 			WITH_SILO_DIR="$ac_optarg"
 			;;
 		--with-silo-libs)
-			echo "Error:  --with-silo-libs requires an argument."
+			$ECHO "Error:  --with-silo-libs requires an argument."
 			exit 1
 			;;
 		--with-silo-libs=*)
 			WITH_SILO_LIBS="$ac_optarg"
 			;;
+		# HDF5 stuff (related to Silo)
+		--with-hdf5 | --with-hdf5=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				WITH_HDF5=true
+			elif test "x$ac_optarg" = "xno"
+			then
+				WITH_HDF5=false
+			else
+				WITH_HDF5=true
+			fi
+			;;
+		--without-hdf5 | --without-hdf5=*)
+			WITH_HDF5=false;
+			;;
 		--with-hdf5-dir)
-			echo "Error:  --with-hdf5-dir requires an argument."
+			$ECHO "Error:  --with-hdf5-dir requires an argument."
 			exit 1
 			;;
 		--with-hdf5-dir=*)
@@ -193,14 +212,14 @@ do
 			;;
 		# GSL stuff
 		--with-gsl-dir)
-			echo Error:  --with-gsl-dir requires an argument.""
+			$ECHO Error:  --with-gsl-dir requires an argument.""
 			exit 1
 			;;
 		--with-gsl-dir=*)
 			WITH_GSL_DIR="$ac_optarg"
 			;;
 		--with-gsl-libs)
-			echo "Error:  --with-gsl-libs requires an argument."
+			$ECHO "Error:  --with-gsl-libs requires an argument."
 			exit 1
 			;;
 		--with-gsl-libs=*)
@@ -255,8 +274,8 @@ do
 			ENABLE_PROFILE=false
 			;;
 		--ndim)
-			echo -n "Error:  --ndim requires an argumet; "
-			echo "use either --ndim=2 or --ndim=3"
+			$ECHO -n "Error:  --ndim requires an argumet; "
+			$ECHO "use either --ndim=2 or --ndim=3"
 			exit 1
 			;;
 		--ndim=*)
@@ -267,8 +286,8 @@ do
 			then
 				NDIM_VALUE=2
 			else
-				echo -n "Error:  --ndim accepts only 2 and 3 "
-				echo "as arguments"
+				$ECHO -n "Error:  --ndim accepts only 2 and 3 "
+				$ECHO "as arguments"
 				exit 1
 			fi
 			;;
@@ -279,13 +298,13 @@ do
 			SHOW_VERSION=true
 			;;
 		-* | --*)
-			echo "Unknown option $ac_option."
-			echo "Try \`$0 --help' to get a list of allowed options."
+			$ECHO "Unknown option $ac_option."
+			$ECHO "Try \`$0 --help' to get a list of allowed options."
 			exit 1
 			;;
 		*)
-			echo "Unknown parameter $ac_option"
-			echo "Try \`$0 --help' to get a list of allowed options."
+			$ECHO "Unknown parameter $ac_option"
+			$ECHO "Try \`$0 --help' to get a list of allowed options."
 			exit 1
 			;;
 	esac
@@ -370,12 +389,13 @@ Optional features:
   --with-silo-libs=LIBS    This can be used to specify the required
                            libraries for using Silo.  If Silo is
                            actually used, it defaults to:
+                             -lsilo -lz
+                           in the non-HDF5 situation and to
                              -lsiloh5 -lhdf5 -lstdc++ -lz
-                           For a non-HDF5 version of Silo, that should
-                           look different though.  Note that it is
-                           recommended to use the HDF5 version of Silo
-                           anyways, so this option should not be needed
-                           in most situations.
+                           for HDF5 enabled code (see --with-hdf5).
+  --with-hdf5              Specify this if you want to use (nor not use)
+                           the HDF5 backend of Silo.
+                           Default: false.
   --with-hdf5-dir=DIR      If you are using the HDF5 version of SILO
                            then you may want to specify the directory
                            where the HDF5 that SILO was built against is
@@ -478,7 +498,12 @@ then
 fi
 if test "x$WITH_SILO_LIBS" = "xauto"
 then
-	WITH_SILO_LIBS="-lsiloh5 -lhdf5 -lstdc++ -lz"
+	if test "x$WITH_HDF5" = "xtrue"
+	then
+		WITH_SILO_LIBS="-lsiloh5 -lhdf5 -lstdc++ -lz"
+	else
+		WITH_SILO_LIBS="-lsilo -lz"
+	fi
 fi
 if test "x$WITH_GSL_LIBS" = "xauto"
 then
@@ -493,12 +518,12 @@ fi
 # Now lets actually do something.
 
 # Say hello
-echo "Configuring $PACKAGE_NAME $PACKAGE_VERSION_MAJOR.$PACKAGE_VERSION_MINOR.$PACKAGE_VERSION_MICRO" | tee config.log
+$ECHO "Configuring $PACKAGE_NAME $PACKAGE_VERSION_MAJOR.$PACKAGE_VERSION_MINOR.$PACKAGE_VERSION_MICRO" | tee config.log
 
 # Generate Makefile.config
-echo -n -e "\to generating \`Makefile.config'... " | tee -a config.log
-echo "# Makefile.config generated from Makefile.config.in by configure" > Makefile.config
-echo "" >> Makefile.config
+$ECHO -ne "\to generating \`Makefile.config'... " | tee -a config.log
+$ECHO "# Makefile.config generated from Makefile.config.in by configure" > Makefile.config
+$ECHO "" >> Makefile.config
 cat Makefile.config.in >> Makefile.config
 sed -i s/__TOOLCHAIN__/$TOOLCHAIN/ Makefile.config
 if test "x$WITH_OPENMP" = "xtrue"
@@ -526,6 +551,12 @@ then
 	sed -i s/__WITH_SILO__/true/ Makefile.config
 else
 	sed -i s/__WITH_SILO__/false/ Makefile.config
+fi
+if test "x$WITH_HDF5" = "xtrue"
+then
+	sed -i s/__WITH_HDF5__/true/ Makefile.config
+else
+	sed -i s/__WITH_HDF5__/false/ Makefile.config
 fi
 if test "x$ENABLE_DEBUG" = "xtrue"
 then
@@ -563,13 +594,13 @@ sed -i -e "s@__WITH_SILO_LIBS__@$WITH_SILO_LIBS@" Makefile.config
 sed -i -e "s@__WITH_HDF5_DIR__@$WITH_HDF5_DIR@" Makefile.config
 sed -i -e "s@__WITH_GSL_DIR__@$WITH_GSL_DIR@" Makefile.config
 sed -i -e "s@__WITH_GSL_LIBS__@$WITH_GSL_LIBS@" Makefile.config
-echo "done" | tee -a config.log
+$ECHO "done" | tee -a config.log
 
 
 # Generate config.h
-echo -n -e "\to generating \`config.h'... " | tee -a config.log
-echo "/* config.h generated from config.h.in by configure */" > config.h
-echo "" >> config.h
+$ECHO -ne "\to generating \`config.h'... " | tee -a config.log
+$ECHO "/* config.h generated from config.h.in by configure */" > config.h
+$ECHO "" >> config.h
 cat config.h.in >> config.h
 if test "x$WITH_OPENMP" = "xtrue"
 then
@@ -594,6 +625,10 @@ if test "x$WITH_SILO" = "xtrue"
 then
 	sed -i -e 's/undef WITH_SILO/define WITH_SILO 1/' config.h
 fi
+if test "x$WITH_HDF5" = "xtrue"
+then
+	sed -i -e 's/undef WITH_HDF5/define WITH_HDF 1/' config.h
+fi
 if test "x$WITH_PROC_DIR" = "xtrue"
 then
 	sed -i -e 's/undef WITH_PROC_DIR/define WITH_PROC_DIR 1/' config.h
@@ -607,41 +642,41 @@ then
 	sed -i -e 's/undef ENABLE_DOUBLE/define ENABLE_DOUBLE 1/' config.h
 fi
 sed -i -e "s@__NDIM_VALUE__@$NDIM_VALUE@" config.h
-echo "done" | tee -a config.log
+$ECHO "done" | tee -a config.log
 
 
 # Summarize the configuration
-echo "" | tee -a config.log
-echo "Summary" | tee -a config.log
-echo -e "\to features in use/code properties:" | tee -a config.log
+$ECHO "" | tee -a config.log
+$ECHO "Summary" | tee -a config.log
+$ECHO -e "\to features in use/code properties:" | tee -a config.log
 grep '#define' config.h \
 	| grep -v CONFIG_H \
 	| awk '{print "\t\t"$2"\t"$3}' \
 	| tee -a config.log
 
-echo -e "\to features NOT in use:" | tee -a config.log
+$ECHO -e "\to features NOT in use:" | tee -a config.log
 grep '#undef' config.h | awk '{print "\t\t"$2}' | tee -a config.log
 
-echo -e "\to programs and program options:" | tee -a config.log
+$ECHO -e "\to programs and program options:" | tee -a config.log
 cat <<_BLA_EOF >> bla.$$
 include Makefile.config
 
 .PHONY: check
 
 check:
-	@echo -e "\t\tCC       = \$(CC)"
-	@echo -e "\t\tCFLAGS   = \$(CFLAGS)"
-	@echo -e "\t\tCPPFLAGS = \$(CPPFLAGS)"
-	@echo -e "\t\tDEPCC    = \$(DEPCC)"
-	@echo -e "\t\tLD       = \$(LD)"
-	@echo -e "\t\tLDFLAGS  = \$(LDFLAGS)"
-	@echo -e "\t\tLIBS     = \$(LIBS)"
-	@echo -e "\t\tAR       = \$(AR)"
-	@echo -e "\t\tMAKE     = \$(MAKE)"
+	@$ECHO -e "\t\tCC       = \$(CC)"
+	@$ECHO -e "\t\tCFLAGS   = \$(CFLAGS)"
+	@$ECHO -e "\t\tCPPFLAGS = \$(CPPFLAGS)"
+	@$ECHO -e "\t\tDEPCC    = \$(DEPCC)"
+	@$ECHO -e "\t\tLD       = \$(LD)"
+	@$ECHO -e "\t\tLDFLAGS  = \$(LDFLAGS)"
+	@$ECHO -e "\t\tLIBS     = \$(LIBS)"
+	@$ECHO -e "\t\tAR       = \$(AR)"
+	@$ECHO -e "\t\tMAKE     = \$(MAKE)"
 _BLA_EOF
 make -f bla.$$ check | tee -a config.log
 rm -f bla.$$
-echo ""
+$ECHO ""
 cat <<_END_EOF
 To build $PACKAGE_NAME, run \`make all'.
 To generate the code documention execute \`make doc'.

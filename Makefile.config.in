@@ -47,6 +47,7 @@ WITH_FFT = "__WITH_FFT__"
 WITH_FFT_DIR = "__WITH_FFT_DIR__"
 WITH_SILO = "__WITH_SILO__"
 WITH_SILO_DIR = "__WITH_SILO_DIR__"
+WITH_HDF5 = "__WITH_HDF5__"
 WITH_HDF5_DIR = "__WITH_HDF5_DIR__"
 WITH_GSL_DIR = "__WITH_GSL_DIR__"
 ENABLE_DEBUG = "__ENABLE_DEBUG__"
@@ -69,24 +70,26 @@ AR = __AR__
 MAKE = __MAKE__
 
 ifneq ($(WITH_SPRNG_DIR), "auto")
-	CPPFLAGS += -I$(WITH_SPRNG_DIR)/include
-	LDFLAGS += -L$(WITH_SPRNG_DIR)/lib
+  CPPFLAGS += -I$(WITH_SPRNG_DIR)/include
+  LDFLAGS += -L$(WITH_SPRNG_DIR)/lib
 endif
 ifneq ($(WITH_FFT_DIR), "auto")
-	CPPFLAGS += -I$(WITH_FFT_DIR)/include
-	LDFLAGS += -L$(WITH_FFT_DIR)/lib
+  CPPFLAGS += -I$(WITH_FFT_DIR)/include
+  LDFLAGS += -L$(WITH_FFT_DIR)/lib
 endif
 ifneq ($(WITH_SILO_DIR), "auto")
-	CPPFLAGS += -I$(WITH_SILO_DIR)/include
-	LDFLAGS += -L$(WITH_SILO_DIR)/lib
+  CPPFLAGS += -I$(WITH_SILO_DIR)/include
+  LDFLAGS += -L$(WITH_SILO_DIR)/lib
 endif
 ifneq ($(WITH_HDF5_DIR), "auto")
-	CPPFLAGS += -I$(WITH_HDF5_DIR)/include
-	LDFLAGS += -L$(WITH_HDF5_DIR)/lib
+  ifeq ($(WITH_HDF5), "true")
+    CPPFLAGS += -I$(WITH_HDF5_DIR)/include
+    LDFLAGS += -L$(WITH_HDF5_DIR)/lib
+  endif
 endif
 ifneq ($(WITH_GSL_DIR), "auto")
-	CPPFLAGS += -I$(WITH_GSL_DIR)/include
-	LDFLAGS += -L$(WITH_GSL_DIR)/lib
+  CPPFLAGS += -I$(WITH_GSL_DIR)/include
+  LDFLAGS += -L$(WITH_GSL_DIR)/lib
 endif
 
 # Do all the libraries

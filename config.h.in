@@ -11,6 +11,7 @@
 #undef WITH_MPI
 #undef WITH_SPRNG
 #undef WITH_SILO
+#undef WITH_HDF5
 #undef WITH_PROC_DIR
 #undef WITH_FFT_FFTW2
 #undef WITH_FFT_FFTW3

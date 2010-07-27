@@ -98,7 +98,11 @@ gridWriterSilo_new(const char *prefix, int dbType)
 	gridWriterSilo_t writer;
 
 	assert(prefix != NULL);
+#  ifdef WITH_HDF5
 	assert(dbType == DB_HDF5 || dbType == DB_PDB);
+#  else
+	assert(dbType == DB_PDB);
+#  endif
 
 	writer              = xmalloc(sizeof(struct gridWriterSilo_struct));
 	writer->type        = IO_TYPE_SILO;
@@ -136,12 +140,15 @@ gridWriterSilo_newFromIni(parse_ini_t ini, const char *sectionName)
 	getFromIni(&prefix, parse_ini_get_string,
 	           ini, "prefix", sectionName);
 
-	if (strcmp(dbTypeStr, "DB_HDF5") == 0)
-		dbType = DB_HDF5;
-	else if (strcmp(dbTypeStr, "DB_PDB") == 0)
+	if (strcmp(dbTypeStr, "DB_PDB") == 0)
 		dbType = DB_PDB;
+#  ifdef WITH_HDF5
+	else if (strcmp(dbTypeStr, "DB_HDF5") == 0)
+		dbType = DB_HDF5;
+#  endif
 	else {
-		fprintf(stderr, "Unknown Silo DB type: %s\n", dbTypeStr);
+		fprintf(stderr, "Unknown or unsupported Silo DB type: %s\n",
+		        dbTypeStr);
 		diediedie(EXIT_FAILURE);
 	}
 
@@ -153,7 +160,7 @@ gridWriterSilo_newFromIni(parse_ini_t ini, const char *sectionName)
 	xfree(dbTypeStr);
 
 	return writer;
-}
+} /* gridWriterSilo_newFromIni */
 
 extern void
 gridWriterSilo_del(gridWriter_t *writer)
@@ -334,7 +341,7 @@ gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 static void *
 local_createDB(const char *fname, const char *dname, void *udata)
 {
-	FILE *f;
+	FILE             *f;
 	gridWriterSilo_t writer = (gridWriterSilo_t)udata;
 
 	f = fopen(fname, "r");
@@ -542,11 +549,11 @@ local_getPatchVarName(gridVar_t var, const char *patchName, char *varName)
 static bool
 local_dirExistsInFile(DBfile *db, const char *dname)
 {
-	bool dirExists = false;
-	DBtoc *toc = DBGetToc(db);
-	int numDirs = toc->ndir;
+	bool  dirExists = false;
+	DBtoc *toc      = DBGetToc(db);
+	int   numDirs   = toc->ndir;
 
-	for (int i=0; i<numDirs; i++) {
+	for (int i = 0; i < numDirs; i++) {
 		if (strcmp(toc->dir_names[i], dname) == 0) {
 			dirExists = true;
 			break;
