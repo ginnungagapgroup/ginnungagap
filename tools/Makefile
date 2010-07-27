@@ -13,6 +13,7 @@ all:
 	@echo "|   Working on the tools        |"
 	@echo "+-------------------------------+"
 	@echo ""
+	$(MAKE) -C estimateMemReq all
 	$(MAKE) -C makeSiloRoot all
 	$(MAKE) -C grafic2bov all
 	@echo ""

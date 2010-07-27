@@ -24,7 +24,11 @@ extern void
 estimateMemReq_del(estimateMemReq_t *emr);
 
 extern void
-estimateMemReq_run(estimateMemReq_t emr);
+estimateMemReq_run(estimateMemReq_t emr,
+                   int              npTot,
+                   int              npY,
+                   int              npZ,
+                   size_t           memPerProcesInBytes);
 
 
 #endif

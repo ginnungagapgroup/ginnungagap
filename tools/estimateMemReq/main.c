@@ -20,9 +20,10 @@
 
 
 /*--- Local variables ---------------------------------------------------*/
-static int    localDim1D             = 1;
-static int    localNpTot             = 1;
-static int    localNpY               = 1;
+static int    localDim1D             = 0;
+static int    localNpTot             = 0;
+static int    localNpY               = 0;
+static int    localNpZ               = 0;
 static size_t localMemPerProcInBytes = 0;
 static bool   localIsDouble          = false;
 
@@ -60,7 +61,8 @@ main(int argc, char **argv)
 	local_initEnvironment(&argc, &argv);
 
 	emr = local_getEmr();
-	estimateMemReq_run(emr);
+	estimateMemReq_run(emr, localNpTot, localNpY, localNpZ,
+	                   localMemPerProcInBytes);
 	estimateMemReq_del(&emr);
 
 	return EXIT_SUCCESS;
@@ -81,8 +83,10 @@ local_initEnvironment(int *argc, char ***argv)
 	if (cmdline_checkOptSetByNum(cmdline, 3))
 		cmdline_getOptValueByNum(cmdline, 3, &localNpY);
 	if (cmdline_checkOptSetByNum(cmdline, 4))
-		cmdline_getOptValueByNum(cmdline, 4, &localMemPerProcInBytes);
-	localIsDouble = cmdline_checkOptSetByNum(cmdline, 5);
+		cmdline_getOptValueByNum(cmdline, 4, &localNpZ);
+	if (cmdline_checkOptSetByNum(cmdline, 5))
+		cmdline_getOptValueByNum(cmdline, 5, &localMemPerProcInBytes);
+	localIsDouble = cmdline_checkOptSetByNum(cmdline, 6);
 	cmdline_getArgValueByNum(cmdline, 0, &localDim1D);
 	cmdline_del(&cmdline);
 }
@@ -128,7 +132,7 @@ local_cmdlineSetup(void)
 {
 	cmdline_t cmdline;
 
-	cmdline = cmdline_new(1, 6, THIS_PROGNAME);
+	cmdline = cmdline_new(1, 7, THIS_PROGNAME);
 	(void)cmdline_addOpt(cmdline, "version",
 	                     "This will output a version information.",
 	                     false, CMDLINE_TYPE_NONE);
@@ -140,6 +144,9 @@ local_cmdlineSetup(void)
 	                     true, CMDLINE_TYPE_INT);
 	(void)cmdline_addOpt(cmdline, "npy",
 	                     "Number of MPI processes in the y-direction.",
+	                     true, CMDLINE_TYPE_INT);
+	(void)cmdline_addOpt(cmdline, "npz",
+	                     "Number of MPI processes in the z-direction.",
 	                     true, CMDLINE_TYPE_INT);
 	(void)cmdline_addOpt(cmdline, "mem",
 	                     "Amount of memory available per (MPI) process "
@@ -183,8 +190,7 @@ local_getEmr(void)
 {
 	estimateMemReq_t emr;
 
-	emr = estimateMemReq_new(localDim1D, localNpTot, localNpY,
-	                         localMemPerProcInBytes, localIsDouble);
+	emr = estimateMemReq_new(localDim1D, localIsDouble);
 
 	return emr;
 }

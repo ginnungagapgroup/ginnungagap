@@ -22,7 +22,19 @@ static void
 local_getProcessGrid(int *npTot, int pGrid[3]);
 
 static void
-local_printProcessGrid(int pGrid[3]);
+local_printProcessGrid(const int pGrid[3]);
+
+static void
+local_getGrids(int       dim1D,
+               int       idealGrid[3],
+               int       worstGrid[3],
+               const int pGrid[3]);
+
+static void
+local_printGrids(const int idealGrid[3], const int worstGrid[3]);
+
+static size_t
+local_getMemReq(const int grid[3], size_t bytesPerCell);
 
 static void
 local_checkProcessNumbers(const int npTot, const int npY, const int npZ);
@@ -46,11 +58,11 @@ estimateMemReq_new(int dim1D, bool isDouble)
 	emr        = xmalloc(sizeof(struct estimateMemReq_struct));
 	emr->dim1D = dim1D > 0 ? dim1D : 512;
 	if (emr->dim1D > (1L << 17) - 2) {
-		fprintf(stderr, "dim1D = %zu is too large, adjusting to %zu.\n",
+		fprintf(stderr, "dim1D = %i is too large, adjusting to %lu.\n",
 		        emr->dim1D, (1L << 17) - 2);
 		emr->dim1D = (1L << 17) - 2;
 	}
-	emr->bytesPerCell = isDouble ? 8 : 4;
+	emr->bytesPerCell = isDouble ? 16 : 8; // complex number per cell
 
 	return emr;
 }
@@ -72,12 +84,31 @@ estimateMemReq_run(estimateMemReq_t emr,
                    int              npZ,
                    size_t           memPerProcesInBytes)
 {
-	int pGrid[3] = { 1, npY, npZ };
+	int    pGrid[3] = {1, npY, npZ};
+	int    idealGrid[3], worstGrid[3];
+	size_t memIdeal, memWorst;
 
 	assert(emr != NULL);
 
-	local_getProcessGrid(npTot, pGrid);
+	local_getProcessGrid(&npTot, pGrid);
 	local_printProcessGrid(pGrid);
+
+	local_getGrids(emr->dim1D, idealGrid, worstGrid, pGrid);
+	local_printGrids(idealGrid, worstGrid);
+
+	memIdeal = local_getMemReq(idealGrid, emr->bytesPerCell);
+	memWorst = local_getMemReq(worstGrid, emr->bytesPerCell);
+
+	printf("Ideal memory per task:  grid: ");
+	local_printMem(memIdeal);
+	printf("  grid+buffer: ");
+	local_printMem(memIdeal * 2);
+	printf("\n");
+	printf("Worst memory per task:  grid: ");
+	local_printMem(memWorst);
+	printf("  grid+buffer: ");
+	local_printMem(memWorst * 2);
+	printf("\n");
 }
 
 #if 0
@@ -152,7 +183,7 @@ printf("\n");
 static void
 local_getProcessGrid(int *npTot, int pGrid[3])
 {
-	local_getProcessNumbers(*npTot, pGrid + 1, pGrid + 2);
+	local_checkProcessNumbers(*npTot, pGrid[1], pGrid[2]);
 
 	pGrid[0] = 1;
 
@@ -164,7 +195,7 @@ local_getProcessGrid(int *npTot, int pGrid[3])
 			pGrid[2] = local_getClosestFactor(*npTot, pGrid[2]);
 			pGrid[1] = *npTot / pGrid[2];
 		} else if ((pGrid[1] <= 0) && (pGrid[2] <= 0)) {
-			local_getFactors(*npTot, nGrid + 1, nGrid + 2);
+			local_getFactors(*npTot, pGrid + 1, pGrid + 2);
 		} else {
 			assert(*npTot == pGrid[0] * pGrid[1] * pGrid[2]);
 		}
@@ -173,10 +204,58 @@ local_getProcessGrid(int *npTot, int pGrid[3])
 }
 
 static void
-local_printProcessGrid(int pGrid[3])
+local_printProcessGrid(const int pGrid[3])
 {
 	printf("Process grid:  %i x %i x %i  (%i total)\n",
 	       pGrid[0], pGrid[1], pGrid[2], pGrid[0] * pGrid[1] * pGrid[2]);
+}
+
+static void
+local_getGrids(int       dim1D,
+               int       idealGrid[3],
+               int       worstGrid[3],
+               const int pGrid[3])
+{
+	if ((pGrid[2] == 1) || (pGrid[1] == 1)) {
+		// slab
+		idealGrid[0]  = (dim1D / 2 + 1) / pGrid[0];
+		idealGrid[1]  = dim1D / pGrid[1];
+		idealGrid[2]  = dim1D / pGrid[2];
+		worstGrid[0]  = idealGrid[0];
+		worstGrid[1]  = dim1D % pGrid[1] == 0 ?
+		                idealGrid[1] : idealGrid[1] + 1;
+		worstGrid[2]  = dim1D % pGrid[2] == 0 ?
+		                idealGrid[2] : idealGrid[2] + 1;
+	} else {
+		// pencil
+		idealGrid[0]  = dim1D / pGrid[0];
+		idealGrid[1]  = (dim1D / 2 + 1) / pGrid[1];
+		idealGrid[2]  = dim1D / pGrid[2];
+		worstGrid[0]  = idealGrid[0];
+		worstGrid[1]  = (dim1D / 2 + 1) % pGrid[1] == 0 ?
+		                idealGrid[1] : idealGrid[1] + 1;
+		worstGrid[2]  = dim1D % pGrid[2] == 0 ?
+		                idealGrid[2] : idealGrid[2] + 1;
+	}
+}
+
+static void
+local_printGrids(const int idealGrid[3], const int worstGrid[3])
+{
+	printf("Ideal grid:  %i x %i x %i\n",
+	       idealGrid[0], idealGrid[1], idealGrid[2]);
+	printf("Worst grid:  %i x %i x %i\n",
+	       worstGrid[0], worstGrid[1], worstGrid[2]);
+}
+
+static size_t
+local_getMemReq(const int grid[3], size_t bytesPerCell)
+{
+	size_t memReq = 0;
+
+	memReq = (size_t)(grid[0]) * (size_t)(grid[1]) * (size_t)(grid[2]);
+
+	return memReq * bytesPerCell;
 }
 
 static void
@@ -225,8 +304,10 @@ local_getClosestFactor(const int npTot, const int np)
 static void
 local_getFactors(const int npTot, int *npY, int *npZ)
 {
-	int npTotSqrt = (int)round(sqrt((double)(*npTot)));
+	int npTotSqrt = (int)round(sqrt((double)(npTot)));
 
+	if (*npY <= 0)
+		*npY = 1;
 	*npY = local_getClosestFactor(npTotSqrt, *npY);
 	*npZ = npTot / *npY;
 }
