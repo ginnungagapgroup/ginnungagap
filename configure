@@ -627,7 +627,7 @@ then
 fi
 if test "x$WITH_HDF5" = "xtrue"
 then
-	sed -i -e 's/undef WITH_HDF5/define WITH_HDF 1/' config.h
+	sed -i -e 's/undef WITH_HDF5/define WITH_HDF5 1/' config.h
 fi
 if test "x$WITH_PROC_DIR" = "xtrue"
 then
