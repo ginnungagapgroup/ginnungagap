@@ -13,13 +13,7 @@
 /*--- Implemention of main structure ------------------------------------*/
 struct estimateMemReq_struct {
 	int    dim1D;
-	size_t dims[3];
-	int    npTot;
-	int    npX;
-	int    npY;
-	int    npZ;
 	int    bytesPerCell;
-	size_t memPerProcInBytes;
 };
 
 
