@@ -15,6 +15,9 @@
 #  include <mpi.h>
 #endif
 #include "../libutil/xmem.h"
+#ifdef WITH_MPITRACE
+#  include <mpitrace_user_events.h>
+#endif
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -22,6 +25,9 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+#ifdef WITH_MPITRACE
+#  define LOCAL_MPITRACE_EVENT 460000000
+#endif
 
 
 /*--- Local structures --------------------------------------------------*/
@@ -382,6 +388,9 @@ local_transposeMPIInit(gridRegularDistrib_t distrib,
 	gridPointInt_t    pPos;
 	gridPointUint32_t dims;
 
+#  ifdef WITH_MPITRACE
+	MPItrace_event(LOCAL_MPITRACE_EVENT, 11);
+#  endif
 	MPI_Comm_rank(distrib->commCart, &rank);
 	MPI_Cart_coords(distrib->commCart, rank, NDIM, pPos);
 	gridRegular_getDims(distrib->grid, dims);
@@ -394,6 +403,9 @@ local_transposeMPIInit(gridRegularDistrib_t distrib,
 	*patch  = gridRegular_getPatchHandle(distrib->grid, 0);
 	*patchT = local_transposeGetPatchT(dims, distrib->nProcs,
 	                                   pPos, dimA, dimB);
+#  ifdef WITH_MPITRACE
+	MPItrace_event(LOCAL_MPITRACE_EVENT, 0);
+#  endif
 }
 
 static void
@@ -531,24 +543,54 @@ local_transposeAllVarsAtPatch(gridPatch_t    patch,
 
 		var = gridVar_getRef(var);
 
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 12);
+#  endif
 		local_transposeGetFullSendBuffers(scheme, sendLayout, patch,
 		                                  var, commCart);
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 0);
+#  endif
 		varTmp = gridPatch_detachVar(patch, 0);
 		gridVar_del(&varTmp);
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 13);
+#  endif
 		local_transposeGetRecvBuffers(scheme, recvLayout, var, commCart);
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 0);
+#  endif
 
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 14);
+#  endif
 		commScheme_fire(scheme);
 		commScheme_wait(scheme);
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 0);
+#  endif
 
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 15);
+#  endif
 		local_transposeDelSendBuffers(sendLayout, var);
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 0);
+#  endif
 		idxOfVar = gridPatch_attachVar(patchT, var);
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 16);
+#  endif
 		local_transposeMoveRecvBuffersToPatch(recvLayout, patchT,
 		                                      idxOfVar, var);
+#  ifdef WITH_MPITRACE
+		MPItrace_event(LOCAL_MPITRACE_EVENT, 0);
+#  endif
 
 		commScheme_del(&scheme);
 		gridVar_del(&var);
 	}
-}
+} /* local_transposeAllVarsAtPatch */
 
 static void
 local_transposeGetFullSendBuffers(commScheme_t      scheme,

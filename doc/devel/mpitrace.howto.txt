@@ -1,0 +1,11 @@
+# Set the environment variables
+export MPTRACE_CONFIG_FILE=doc/devel/mpitrace.xml
+export MPITRACE_ON=1
+
+# Now run the code
+mpiexec -n 2 src/ginnungagap/ginnungagap doc/devel/test.ini
+
+# Convert the trace files to a paraver trace file (including debugging
+# symbols, that's what the -e does and syncing the start times, which is
+# done by the -syn)
+mpi2prv -f TRACE.mpits -syn -e src/ginnungagap/ginnungagap -o trace.prv
