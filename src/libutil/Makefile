@@ -24,8 +24,7 @@ sources = xmem.c \
 
 ifeq ($(WITH_MPI), "true")
 sources += commScheme.c \
-           commSchemeBuffer.c \
-           groupi.c
+           commSchemeBuffer.c
 endif
 
 sourcesTests = lib${LIBNAME}_tests.c \

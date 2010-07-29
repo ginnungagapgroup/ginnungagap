@@ -15,6 +15,7 @@
 #undef WITH_PROC_DIR
 #undef WITH_FFT_FFTW2
 #undef WITH_FFT_FFTW3
+#undef WITH_MPITRACE
 #undef ENABLE_DOUBLE
 #undef ENABLE_DEBUG
 #define NDIM __NDIM_VALUE__

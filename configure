@@ -46,6 +46,8 @@ WITH_HDF5=false
 WITH_HDF5_DIR=auto
 WITH_GSL_DIR=auto
 WITH_GSL_LIBS=auto
+WITH_MPITRACE=false
+WITH_MPITRACE_DIR=auto
 WITH_PROC_DIR=false
 ENABLE_DOUBLE=false
 ENABLE_DEBUG=false
@@ -212,7 +214,7 @@ do
 			;;
 		# GSL stuff
 		--with-gsl-dir)
-			$ECHO Error:  --with-gsl-dir requires an argument.""
+			$ECHO i"Error:  --with-gsl-dir requires an argument."
 			exit 1
 			;;
 		--with-gsl-dir=*)
@@ -224,6 +226,25 @@ do
 			;;
 		--with-gsl-libs=*)
 			WITH_GSL_LIBS="$ac_optarg"
+			;;
+		# MPItrace stuff
+		--with-mpitrace | --enable-mpitrace=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				WITH_MPITRACE=true
+			else
+				WITH_MPITRACE=false
+			fi
+			;;
+		--without-mpitrace | --without-mpitrace=*)
+			WITH_MPITRACE=false
+			;;
+		--with-mpitrace-dir)
+			$ECHO "Error:  --with-mpitrace-dir requires an argument"
+			exit 1
+			;;
+		--with-mpitrace-dir=*)
+			WITH_MPITRACE_DIR="$ac_optarg"
 			;;
 		# More Stuff
 		--with-proc-dir | --with-proc-dir=*)
@@ -410,6 +431,10 @@ Optional features:
                            should not be necessary, as gsl-config will
                            be queried to provide the required libraries.
                            Default: auto.
+  --with-mpitrace          Instrument the code with MPItrace calls.
+                           Default: no.
+  --with-mpitrace-dir=DIR  Give the directory where MPItrace is
+                           installed.  Default: auto.
   --with-proc-dir          If the code can use /proc/self/statm to query
                            its memory usage (true at least on Linux),
                            the you may use this option to allow the code
@@ -558,6 +583,12 @@ then
 else
 	sed -i s/__WITH_HDF5__/false/ Makefile.config
 fi
+if test "x$WITH_MPITRACE" = "xtrue"
+then
+	sed -i s/__WITH_MPITRACE__/true/ Makefile.config
+else
+	sed -i s/__WITH_MPITRACE__/false/ Makefile.config
+fi
 if test "x$ENABLE_DEBUG" = "xtrue"
 then
 	sed -i s/__ENABLE_DEBUG__/true/ Makefile.config
@@ -594,6 +625,7 @@ sed -i -e "s@__WITH_SILO_LIBS__@$WITH_SILO_LIBS@" Makefile.config
 sed -i -e "s@__WITH_HDF5_DIR__@$WITH_HDF5_DIR@" Makefile.config
 sed -i -e "s@__WITH_GSL_DIR__@$WITH_GSL_DIR@" Makefile.config
 sed -i -e "s@__WITH_GSL_LIBS__@$WITH_GSL_LIBS@" Makefile.config
+sed -i -e "s@__WITH_MPITRACE_DIR__@$WITH_MPITRACE_DIR@" Makefile.config
 $ECHO "done" | tee -a config.log
 
 
@@ -608,7 +640,7 @@ then
 fi
 if test "x$WITH_MPI" = "xtrue"
 then
-	sed -i -e 's/undef WITH_MPI/define WITH_MPI 1/' config.h
+	sed -i -e 's/undef WITH_MPI$/define WITH_MPI 1/' config.h
 fi
 if test "x$WITH_SPRNG" = "xtrue"
 then
@@ -628,6 +660,10 @@ fi
 if test "x$WITH_HDF5" = "xtrue"
 then
 	sed -i -e 's/undef WITH_HDF5/define WITH_HDF5 1/' config.h
+fi
+if test "x$WITH_MPITRACE" = "xtrue"
+then
+	sed -i -e 's/undef WITH_MPITRACE/define WITH_MPITRACE 1/' config.h
 fi
 if test "x$WITH_PROC_DIR" = "xtrue"
 then

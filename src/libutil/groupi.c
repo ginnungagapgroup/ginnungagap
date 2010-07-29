@@ -83,7 +83,7 @@ groupi_registerAcquireFunc(groupi_t            groupi,
                            groupiAcquireFunc_t acquireFunc,
                            void                *acquireFuncData)
 {
-	assert(groupi != MULL);
+	assert(groupi != NULL);
 	assert(acquireFunc != NULL);
 
 	groupi->acquireFunc     = acquireFunc;
@@ -95,7 +95,7 @@ groupi_registerReleaseFunc(groupi_t            groupi,
                            groupiReleaseFunc_t releaseFunc,
                            void                *releaseFuncData)
 {
-	assert(groupi != MULL);
+	assert(groupi != NULL);
 	assert(acquireFunc != NULL);
 
 	groupi->releaseFunc     = releaseFunc;

@@ -14,6 +14,9 @@
 #  include <complex.h>
 #  include <fftw3.h>
 #endif
+#ifdef WITH_MPITRACE
+#include <mpitrace_user_events.h>
+#endif
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -349,6 +352,9 @@ local_doFFTParallelR2CPencil(gridRegularFFT_t fft)
 	for (int i = 1; i < NDIM; i++)
 		howmany *= fft->localDims[0][i];
 
+#ifdef WITH_MPITRACE
+	MPItrace_event(460000000, 1);
+#endif
 	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
 		fftwf_plan plan;
 		plan = fftwf_plan_many_dft_r2c(1, &(fft->localNumRealElements),
@@ -370,7 +376,9 @@ local_doFFTParallelR2CPencil(gridRegularFFT_t fft)
 		fftw_execute(plan);
 		fftw_destroy_plan(plan);
 	}
-
+#ifdef WITH_MPITRACE
+	MPItrace_event(460000000, 0);
+#endif
 	gridPatch_freeVarData(fft->patch, fft->idxFFTVar);
 
 	return dataOut;
@@ -388,6 +396,9 @@ local_doFFTParallelC2RPencil(gridRegularFFT_t fft)
 	for (int i = 1; i < NDIM; i++)
 		howmany *= fft->localDims[0][i];
 
+#ifdef WITH_MPITRACE
+	MPItrace_event(460000000, 3);
+#endif
 	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
 		fftwf_plan plan;
 		plan = fftwf_plan_many_dft_c2r(1, &(fft->localNumRealElements),
@@ -409,6 +420,9 @@ local_doFFTParallelC2RPencil(gridRegularFFT_t fft)
 		fftw_execute(plan);
 		fftw_destroy_plan(plan);
 	}
+#ifdef WITH_MPITRACE
+	MPItrace_event(460000000, 0);
+#endif
 
 	gridPatch_freeVarData(fft->patchFFTed, fft->idxFFTVarFFTed);
 
@@ -428,6 +442,9 @@ local_doFFTParallelC2CPencil(gridRegularFFT_t fft, int phase, int sign)
 	for (int i = 1; i < NDIM; i++)
 		howmany *= fft->localDims[phase][i];
 
+#ifdef WITH_MPITRACE
+	MPItrace_event(460000000, 2);
+#endif
 	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
 		fftwf_plan plan;
 		result = fftwf_malloc(sizeof(fftwf_complex) * howmany
@@ -453,6 +470,9 @@ local_doFFTParallelC2CPencil(gridRegularFFT_t fft, int phase, int sign)
 		fftw_execute(plan);
 		fftw_destroy_plan(plan);
 	}
+#ifdef WITH_MPITRACE
+	MPItrace_event(460000000, 0);
+#endif
 
 	return result;
 } /* local_doFFTParallelC2CPencil */

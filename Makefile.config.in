@@ -50,6 +50,8 @@ WITH_SILO_DIR = "__WITH_SILO_DIR__"
 WITH_HDF5 = "__WITH_HDF5__"
 WITH_HDF5_DIR = "__WITH_HDF5_DIR__"
 WITH_GSL_DIR = "__WITH_GSL_DIR__"
+WITH_MPITRACE = "__WITH_MPITRACE__"
+WITH_MPITRACE_DIR = "__WITH_MPITRACE_DIR__"
 ENABLE_DEBUG = "__ENABLE_DEBUG__"
 ENABLE_DOUBLE = "__ENABLE_DOUBLE__"
 ENABLE_PROFILE = "__ENABLE_PROFILE__"
@@ -91,6 +93,10 @@ ifneq ($(WITH_GSL_DIR), "auto")
   CPPFLAGS += -I$(WITH_GSL_DIR)/include
   LDFLAGS += -L$(WITH_GSL_DIR)/lib
 endif
+ifneq ($(WITH_MPITRACE_DIR), "auto")
+  CPPFLAGS += -I$(WITH_MPITRACE_DIR)/include
+  LDFLAGS += -L$(WITH_MPITRACE_DIR)/lib
+endif
 
 # Do all the libraries
 LIBS =
@@ -99,6 +105,9 @@ ifeq ($(WITH_SPRNG), "true")
 endif
 ifeq ($(WITH_SILO), "true")
   LIBS += __WITH_SILO_LIBS__
+endif
+ifeq ($(WITH_MPITRACE), "true")
+  LIBS += -lmpitrace
 endif
 LIBS += __WITH_FFT_LIBS__
 LIBS += __WITH_GSL_LIBS__
