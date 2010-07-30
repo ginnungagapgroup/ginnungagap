@@ -13,6 +13,9 @@
 #include <string.h>
 #include <errno.h>
 #include "../../src/libutil/cmdline.h"
+#ifdef ENABLE_DEBUG
+#  include "../../src/libutil/xmem.h"
+#endif
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -73,6 +76,7 @@ static void
 local_initEnvironment(int *argc, char ***argv)
 {
 	cmdline_t cmdline;
+	double tmp;
 
 	cmdline = local_cmdlineSetup();
 	cmdline_parse(cmdline, *argc, *argv);
@@ -84,8 +88,10 @@ local_initEnvironment(int *argc, char ***argv)
 		cmdline_getOptValueByNum(cmdline, 3, &localNpY);
 	if (cmdline_checkOptSetByNum(cmdline, 4))
 		cmdline_getOptValueByNum(cmdline, 4, &localNpZ);
-	if (cmdline_checkOptSetByNum(cmdline, 5))
-		cmdline_getOptValueByNum(cmdline, 5, &localMemPerProcInBytes);
+	if (cmdline_checkOptSetByNum(cmdline, 5)) {
+		cmdline_getOptValueByNum(cmdline, 5, &tmp);
+		localMemPerProcInBytes = (size_t)(tmp * 1024 * 1024);
+	}
 	localIsDouble = cmdline_checkOptSetByNum(cmdline, 6);
 	cmdline_getArgValueByNum(cmdline, 0, &localDim1D);
 	cmdline_del(&cmdline);
@@ -151,7 +157,7 @@ local_cmdlineSetup(void)
 	(void)cmdline_addOpt(cmdline, "mem",
 	                     "Amount of memory available per (MPI) process "
 	                     "in MiB.",
-	                     true, CMDLINE_TYPE_INT);
+	                     true, CMDLINE_TYPE_DOUBLE);
 	(void)cmdline_addOpt(cmdline, "double",
 	                     "Use if you want to use double instead of float "
 	                     "for the grid.",
@@ -161,7 +167,7 @@ local_cmdlineSetup(void)
 	                     CMDLINE_TYPE_INT);
 
 	return cmdline;
-}
+} /* local_cmdlineSetup */
 
 static void
 local_checkForPrematureTermination(cmdline_t cmdline)

@@ -58,7 +58,7 @@ estimateMemReq_new(int dim1D, bool isDouble)
 	emr        = xmalloc(sizeof(struct estimateMemReq_struct));
 	emr->dim1D = dim1D > 0 ? dim1D : 512;
 	if (emr->dim1D > (1L << 17) - 2) {
-		fprintf(stderr, "dim1D = %i is too large, adjusting to %lu.\n",
+		fprintf(stderr, "dim1D = %i is too large, adjusting to %li.\n",
 		        emr->dim1D, (1L << 17) - 2);
 		emr->dim1D = (1L << 17) - 2;
 	}
@@ -108,6 +108,10 @@ estimateMemReq_run(estimateMemReq_t emr,
 	local_printMem(memWorst);
 	printf("  grid+buffer: ");
 	local_printMem(memWorst * 2);
+	if (memPerProcesInBytes > 0 && memPerProcesInBytes < memWorst * 2) {
+		printf("\n    not within memory limit of ");
+		local_printMem(memPerProcesInBytes);
+	}
 	printf("\n");
 }
 
