@@ -96,7 +96,7 @@ groupi_registerReleaseFunc(groupi_t            groupi,
                            void                *releaseFuncData)
 {
 	assert(groupi != NULL);
-	assert(acquireFunc != NULL);
+	assert(releaseFunc != NULL);
 
 	groupi->releaseFunc     = releaseFunc;
 	groupi->releaseFuncData = releaseFuncData;
