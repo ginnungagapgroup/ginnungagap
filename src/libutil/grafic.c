@@ -512,6 +512,40 @@ grafic_writeWindowed(grafic_t       grafic,
 	                              idxLo, dims, doByteswap);
 }
 
+extern void
+grafic_readSlab(grafic_t       grafic,
+                void           *data,
+                graficFormat_t dataFormat,
+                int            numComponents,
+                int            slabNum)
+{
+	FILE   *f;
+	size_t numInPlane;
+	bool   doByteswap;
+
+	assert(grafic != NULL);
+	assert(data != NULL);
+	assert(numComponents > 0);
+	assert(slabNum >= 0 && slabNum < grafic->np3);
+
+	numInPlane = grafic->np1 * grafic->np2;
+	doByteswap = grafic->machineEndianess != grafic->fileEndianess;
+	f          = xfopen(grafic->graficFileName, "rb");
+	xfseek(f, grafic->headerSkip + 8L, SEEK_SET);
+	xfseek(f, (numInPlane * sizeof(float) + 8L) * slabNum, SEEK_CUR);
+	if ((dataFormat == GRAFIC_FORMAT_FLOAT)
+	    && (numComponents == 1)) {
+		local_readPlane(((float *)data), numInPlane, f, doByteswap);
+	} else {
+		float *buffer = xmalloc(sizeof(float) * numInPlane);
+		data = local_readPlaneBuffered(data, dataFormat,
+		                               numComponents, buffer,
+		                               numInPlane, f, doByteswap);
+		xfree(buffer);
+	}
+	xfclose(&f);
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static void
 local_readGrafic(grafic_t grafic, FILE *f)

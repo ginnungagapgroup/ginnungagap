@@ -121,4 +121,11 @@ grafic_writeWindowed(grafic_t       grafic,
                      uint32_t       *idxLo,
                      uint32_t       *dims);
 
+extern void
+grafic_readSlab(grafic_t       grafic,
+                void           *data,
+                graficFormat_t dataFormat,
+                int            numComponents,
+                int            slabNum);
+
 #endif
