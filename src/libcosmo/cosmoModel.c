@@ -22,11 +22,27 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
-static cosmoModel_t
-local_new(void);
 
 
 /*--- Implementations of exported functios ------------------------------*/
+extern cosmoModel_t
+cosmoModel_new(void)
+{
+	cosmoModel_t model;
+
+	model               = xmalloc(sizeof(struct cosmoModel_struct));
+	model->omegaRad0    = 0.0;
+	model->omegaLambda0 = 0.0;
+	model->omegaMatter0 = 0.0;
+	model->omegaBaryon0 = 0.0;
+	model->hubble       = 0.0;
+	model->sigma8       = 0.0;
+	model->ns           = 0.0;
+	model->tempCMB      = 0.0;
+
+	return model;
+}
+
 #define CHECK(got, expected)   \
 	{                          \
 		if (got != expected) { \
@@ -41,7 +57,7 @@ cosmoModel_newFromFile(const char *fname)
 	int          rtn;
 
 	f     = xfopen(fname, "r");
-	model = local_new();
+	model = cosmoModel_new();
 	rtn   = fscanf(f, "omegaRad0 = %lf \n", &(model->omegaRad0));
 	CHECK(rtn, 1);
 	rtn   = fscanf(f, "omegaLambda0 = %lf \n", &(model->omegaLambda0));
@@ -64,13 +80,12 @@ cosmoModel_newFromFile(const char *fname)
 }
 
 #undef CHECK
-
 extern cosmoModel_t
 cosmoModel_newFromIni(parse_ini_t ini, const char *sectionName)
 {
 	cosmoModel_t model;
 
-	model = local_new();
+	model = cosmoModel_new();
 	getFromIni(&(model->omegaRad0), parse_ini_get_double,
 	           ini, "modelOmegaRad0", sectionName);
 	getFromIni(&(model->omegaLambda0), parse_ini_get_double,
@@ -161,6 +176,70 @@ cosmoModel_getTempCMB(const cosmoModel_t model)
 	assert(model != NULL);
 
 	return model->tempCMB;
+}
+
+extern void
+cosmoModel_setOmegaRad0(cosmoModel_t model, const double omegaRad0)
+{
+	assert(model != NULL);
+
+	model->omegaRad0 = omegaRad0;
+}
+
+extern void
+cosmoModel_setOmegaLambda0(cosmoModel_t model, const double omegaLambda0)
+{
+	assert(model != NULL);
+
+	model->omegaLambda0 = omegaLambda0;
+}
+
+extern void
+cosmoModel_setOmegaMatter0(cosmoModel_t model, const double omegaMatter0)
+{
+	assert(model != NULL);
+
+	model->omegaMatter0 = omegaMatter0;
+}
+
+extern void
+cosmoModel_setOmegaBaryon0(cosmoModel_t model, const double omegaBaryon0)
+{
+	assert(model != NULL);
+
+	model->omegaBaryon0 = omegaBaryon0;
+}
+
+extern void
+cosmoModel_setSmallH(cosmoModel_t model, const double hubble)
+{
+	assert(model != NULL);
+
+	model->hubble = hubble;
+}
+
+extern void
+cosmoModel_setSigma8(cosmoModel_t model, const double sigma8)
+{
+	assert(model != NULL);
+
+	model->sigma8 = sigma8;
+}
+
+extern void
+cosmoModel_setNs(cosmoModel_t model, const double ns)
+{
+	assert(model != NULL);
+
+	model->ns = ns;
+}
+
+extern void
+cosmoModel_setTempCMB(cosmoModel_t model, const double tempCMB)
+{
+	assert(model != NULL);
+
+	model->tempCMB = tempCMB;
 }
 
 extern double
@@ -338,19 +417,3 @@ cosmoModel_calcDlnGrowthDlna(cosmoModel_t model, double a, double *error)
 }
 
 /*--- Implementations of local functions --------------------------------*/
-static cosmoModel_t
-local_new(void)
-{
-	cosmoModel_t model;
-
-	model               = xmalloc(sizeof(struct cosmoModel_struct));
-	model->omegaRad0    = 0.0;
-	model->omegaLambda0 = 0.0;
-	model->omegaMatter0 = 0.0;
-	model->omegaBaryon0 = 0.0;
-	model->hubble       = 0.0;
-	model->sigma8       = 0.0;
-	model->ns           = 0.0;
-
-	return model;
-}

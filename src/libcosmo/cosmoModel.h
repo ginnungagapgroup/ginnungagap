@@ -17,6 +17,9 @@ typedef struct cosmoModel_struct *cosmoModel_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern cosmoModel_t
+cosmoModel_new(void);
+
+extern cosmoModel_t
 cosmoModel_newFromFile(const char *fname);
 
 extern cosmoModel_t
@@ -48,6 +51,30 @@ cosmoModel_getNs(const cosmoModel_t model);
 
 extern double
 cosmoModel_getTempCMB(const cosmoModel_t model);
+
+extern void
+cosmoModel_setOmegaRad0(cosmoModel_t model, const double omegaRad0);
+
+extern void
+cosmoModel_setOmegaLambda0(cosmoModel_t model, const double omegaLambda0);
+
+extern void
+cosmoModel_setOmegaMatter0(cosmoModel_t model, const double omegaMatter0);
+
+extern void
+cosmoModel_setOmegaBaryon0(cosmoModel_t model, const double omegaBaryon0);
+
+extern void
+cosmoModel_setSmallH(cosmoModel_t model, const double hubble);
+
+extern void
+cosmoModel_setSigma8(cosmoModel_t model, const double sigma8);
+
+extern void
+cosmoModel_setNs(cosmoModel_t model, const double ns);
+
+extern void
+cosmoModel_setTempCMB(cosmoModel_t model, const double tempCMB);
 
 extern double
 cosmoModel_calcAgeFromExpansion(cosmoModel_t model,
