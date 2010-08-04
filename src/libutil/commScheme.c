@@ -156,13 +156,28 @@ local_startReceiving(commScheme_t scheme)
 inline static void
 local_startSending(commScheme_t scheme)
 {
-	int numBuffersSend;
+	int                firstSendBuf = 0;
+	int                numBuffersSend;
+	commSchemeBuffer_t buf;
 
 	numBuffersSend       = varArr_getLength(scheme->buffersSend);
 	scheme->requestsSend = xmalloc(sizeof(MPI_Request) * numBuffersSend);
 
-	for (int i = 0; i < numBuffersSend; i++) {
-		commSchemeBuffer_t buf;
+	while (firstSendBuf < numBuffersSend) {
+		buf = varArr_getElementHandle(scheme->buffersSend, firstSendBuf);
+		if (buf->rank > scheme->rank)
+			break;
+		firstSendBuf++;
+	}
+	firstSendBuf %= numBuffersSend;
+
+	for (int i = firstSendBuf; i < numBuffersSend; i++) {
+		buf = varArr_getElementHandle(scheme->buffersSend, i);
+		MPI_Isend(buf->buf, buf->count, buf->datatype, buf->rank,
+		          scheme->tag, scheme->comm, scheme->requestsSend + i);
+	}
+
+	for (int i = 0; i < firstSendBuf; i++) {
 		buf = varArr_getElementHandle(scheme->buffersSend, i);
 		MPI_Isend(buf->buf, buf->count, buf->datatype, buf->rank,
 		          scheme->tag, scheme->comm, scheme->requestsSend + i);
