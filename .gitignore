@@ -14,5 +14,6 @@ src/libutil/libutil_tests
 src/libcosmo/libcosmo_tests
 tools/makeSiloRoot/makeSiloRoot
 tools/grafic2bov/grafic2bov
+tools/grafic2gadget/grafic2gadget
 tools/estimateMemReq/estimateMemReq
 tmp/
