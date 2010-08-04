@@ -20,6 +20,9 @@ sources = xmem.c \
           rng.c \
           bov.c \
           grafic.c \
+          gadget.c \
+          gadgetHeader.c \
+          gadgetUtil.c \
           varArr.c
 
 ifeq ($(WITH_MPI), "true")
