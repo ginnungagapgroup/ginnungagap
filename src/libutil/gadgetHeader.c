@@ -228,7 +228,7 @@ gadgetHeader_getNumPartsInFile(const gadgetHeader_t gadgetHeader)
 extern void
 gadgetHeader_write(gadgetHeader_t gadgetHeader, FILE *f)
 {
-	const static uint32_t thisBlockSize = GADGETHEADER_SIZE;
+	static const uint32_t thisBlockSize = GADGETHEADER_SIZE;
 	uint8_t               fill[GADGETHEADER_SIZE_UNUSED];
 
 	assert(gadgetHeader != NULL);

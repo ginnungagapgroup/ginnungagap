@@ -18,7 +18,7 @@
 extern void
 gadgetUtil_writeBlock(FILE *f, char *blockName, uint32_t dataBlockSize)
 {
-	const static uint32_t thisBlockSize = 8;
+	static const uint32_t thisBlockSize = 8;
 	uint32_t              nextBlockSize = dataBlockSize + 8;
 
 	assert(f != NULL);
