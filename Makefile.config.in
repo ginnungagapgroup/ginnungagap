@@ -208,11 +208,9 @@ ifeq ($(TOOLCHAIN), "ibm")
     CFLAGS += -pg
   endif
   ifndef DEPCC
-    ifeq ($(WITH_MPI), "true")
-      DEPCC = $(MPICC)
-    else
+      # Always use gcc for this, xlc might need different flags to do
+      # the same job.
       DEPCC = gcc
-    endif
   endif
   ifndef LD
     LD = ld
