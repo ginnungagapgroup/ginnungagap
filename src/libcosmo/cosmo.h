@@ -15,5 +15,8 @@
 #define cosmo_z2a(z) (1./((z)+1.))
 #define cosmo_a2z(a) (1./(a) - 1.)
 
+// [h^2*Msun]/[Mpc^3]
+#define COSMO_RHO_CRIT0 2.7755397e11
+
 
 #endif
