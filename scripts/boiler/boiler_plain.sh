@@ -3,6 +3,11 @@
 #
 # Usage:  boiler.sh trgtName config.h
 #
+if [ $# -ne 2 ]
+then
+	echo "Usage: `basename $0` trgtName config.g"
+	exit 1
+fi
 
 
 TRGT_NAME=$1
