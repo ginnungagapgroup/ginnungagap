@@ -14,6 +14,7 @@ sources = gridRegular.c \
           gridPatch.c \
           gridVar.c \
           gridVarType.c \
+          gridStatistics.c \
           gridIO.c \
           gridReader.c \
           gridReaderBov.c \
@@ -30,6 +31,7 @@ sourcesTests = lib${LIBNAME}_tests.c \
                gridPatch_tests.c \
                gridVar_tests.c \
                gridVarType_tests.c \
+               gridStatistics_tests.c \
                gridIO_tests.c \
                gridReader_tests.c \
                gridReaderBov_tests.c \

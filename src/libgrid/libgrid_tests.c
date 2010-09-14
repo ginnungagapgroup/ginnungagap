@@ -11,6 +11,7 @@
 #include "gridVar_tests.h"
 #include "gridVarType_tests.h"
 #include "gridUtil_tests.h"
+#include "gridStatistics_tests.h"
 #include "gridIO_tests.h"
 #include "gridReader_tests.h"
 #include "gridReaderBov_tests.h"
@@ -208,6 +209,18 @@ main(int argc, char **argv)
 		xmem_info(stdout);
 	global_max_allocated_bytes = 0;
 #endif
+
+	if (rank == 0) {
+		printf("\nRunning tests for gridStatistics:\n");
+	}
+	RUNTEST(&gridStatistics_new_test, hasFailed);
+	RUNTEST(&gridStatistics_del_test, hasFailed);
+	RUNTEST(&gridStatistics_calcGridPatch_test, hasFailed);
+#  ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#  endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridIO:\n");
