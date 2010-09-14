@@ -66,5 +66,13 @@
 #define M_SQRT1_2l 0.7071067811865475244008443621048490L
 
 
+/*--- Exported Macros ---------------------------------------------------*/
+#define POW2(a) ((a) * (a))
+#define POW3(a) ((a) * (a) * (a))
+#define POW4(a) ((a) * (a) * (a) * (a))
+
+
 /*--- Prototypes of exported functions ----------------------------------*/
+
+
 #endif
