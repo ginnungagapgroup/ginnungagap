@@ -479,7 +479,7 @@ gridPatch_detachVar_test(void)
 	gridVar_del(&varTmp);
 	varTmp = gridPatch_detachVar(gridPatch, 1);
 	gridVar_del(&varTmp);
-	varTmp = gridPatch_detachVar(gridPatch, 1);
+	varTmp = gridPatch_detachVar(gridPatch, 0);
 	gridVar_del(&varTmp);
 	gridPatch_del(&gridPatch);
 	gridVar_del(&var);
