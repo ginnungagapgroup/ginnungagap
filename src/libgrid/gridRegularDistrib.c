@@ -274,6 +274,14 @@ gridRegularDistrib_getNProcs(gridRegularDistrib_t distrib,
 		nProcs[i] = distrib->nProcs[i];
 }
 
+extern gridRegular_t
+gridRegularDistrib_getGridHandle(const gridRegularDistrib_t distrib)
+{
+	assert(distrib != NULL);
+
+	return distrib->grid;
+}
+
 extern void
 gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
                                      int      nProcs,

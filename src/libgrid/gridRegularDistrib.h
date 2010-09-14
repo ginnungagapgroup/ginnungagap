@@ -53,6 +53,9 @@ extern void
 gridRegularDistrib_getNProcs(gridRegularDistrib_t distrib,
                              gridPointInt_t       nProcs);
 
+extern gridRegular_t
+gridRegularDistrib_getGridHandle(const gridRegularDistrib_t distrib);
+
 extern void
 gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
                                      int      nProcs,
