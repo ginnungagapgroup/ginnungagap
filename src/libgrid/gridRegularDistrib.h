@@ -44,6 +44,9 @@ extern void
 gridRegularDistrib_getProcCoords(gridRegularDistrib_t distrib,
                                  gridPointInt_t       procCoords);
 
+extern MPI_Comm
+gridRegularDistrib_getGlobalComm(gridRegularDistrib_t distrib);
+
 #endif
 
 extern gridPatch_t

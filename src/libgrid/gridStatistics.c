@@ -10,6 +10,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
 #include "gridVar.h"
 #include "gridVarType.h"
 #include "gridPatch.h"
@@ -73,6 +76,22 @@ local_calcProtoVarSkewKurt(void         *data,
                            double       *skew,
                            double       *kurt,
                            const double mean);
+
+
+#ifdef WITH_MPI
+static void
+local_mpiCalcProtoMeanMinMax(MPI_Comm comm,
+                             double   *mean,
+                             double   *min,
+                             double   *max);
+
+static void
+local_mpiCalcProtoVarSkewKurt(MPI_Comm comm,
+                              double   *var,
+                              double   *skew,
+                              double   *kurt);
+
+#endif
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -280,12 +299,15 @@ local_calcRegularMeanMinMax(gridStatistics_t           stat,
 		stat->max = (stat->min > min) ? max : stat->max;
 	}
 
-	if (distrib != NULL) {
-		// Establish global min and max, globally sum-up protoMean
-	}
+#ifdef WITH_MPI
+	if (distrib != NULL)
+		local_mpiCalcProtoMeanMinMax(gridRegularDistrib_getGlobalComm(
+		                                 distrib), &(stat->mean),
+		                             &(stat->min), &(stat->max));
+#endif
 
 	stat->mean /= norm;
-}
+} /* local_calcRegularMeanMinMax */
 
 static void
 local_calcRegularVarSkewKurt(gridStatistics_t           stat,
@@ -316,9 +338,12 @@ local_calcRegularVarSkewKurt(gridStatistics_t           stat,
 		                           stat->mean);
 	}
 
-	if (distrib != NULL) {
-		// Globally sum-up var, skew and kurt
-	}
+#ifdef WITH_MPI
+	if (distrib != NULL)
+		local_mpiCalcProtoVarSkewKurt(gridRegularDistrib_getGlobalComm(
+		                                  distrib), &(stat->var),
+		                              &(stat->skew), &(stat->kurt));
+#endif
 
 	stat->var  /= (norm - 1);
 	stat->skew /= (norm * stat->var * sqrt(stat->var));
@@ -402,3 +427,40 @@ local_calcProtoVarSkewKurt(void         *data,
 		*kurt     += POW2(tmpSqr);
 	}
 }
+
+#ifdef WITH_MPI
+static void
+local_mpiCalcProtoMeanMinMax(MPI_Comm comm,
+                             double   *mean,
+                             double   *min,
+                             double   *max)
+{
+	double myMean = *mean;
+	double myMin  = *min;
+	double myMax  = *max;
+
+	MPI_Allreduce(&myMean, mean, 1, MPI_DOUBLE, MPI_SUM, comm);
+	MPI_Allreduce(&myMin, min, 1, MPI_DOUBLE, MPI_MIN, comm);
+	MPI_Allreduce(&myMax, max, 1, MPI_DOUBLE, MPI_MAX, comm);
+}
+
+static void
+local_mpiCalcProtoVarSkewKurt(MPI_Comm comm,
+                              double   *var,
+                              double   *skew,
+                              double   *kurt)
+{
+	double tmpIn[3], tmpOut[3];
+
+	tmpIn[0] = *var;
+	tmpIn[1] = *skew;
+	tmpIn[2] = *kurt;
+
+	MPI_Allreduce(tmpIn, tmpOut, 3, MPI_DOUBLE, MPI_SUM, comm);
+
+	*var  = tmpOut[0];
+	*skew = tmpOut[1];
+	*kurt = tmpOut[2];
+}
+
+#endif

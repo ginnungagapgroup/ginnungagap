@@ -44,7 +44,7 @@
 	}
 
 
-/*--- Prototypes of loceal functions ------------------------------------*/
+/*--- Prototypes of local functions -------------------------------------*/
 static bool
 local_runtest(bool (*f)(void));
 
@@ -133,8 +133,8 @@ main(int argc, char **argv)
 	RUNTEST(&gridPatch_getIdxLo_test, hasFailed);
 	RUNTEST(&gridPatch_attachVar_test, hasFailed);
 	RUNTEST(&gridPatch_detachVar_test, hasFailed);
-    RUNTEST(&gridPatch_allocateVarData_test, hasFailed);
-    RUNTEST(&gridPatch_freeVarData_test, hasFailed);
+	RUNTEST(&gridPatch_allocateVarData_test, hasFailed);
+	RUNTEST(&gridPatch_freeVarData_test, hasFailed);
 	RUNTEST(&gridPatch_replaceVarData_test, hasFailed);
 	RUNTEST(&gridPatch_getVarHandle_test, hasFailed);
 	RUNTEST(&gridPatch_getVarDataHandle_test, hasFailed);
@@ -216,22 +216,26 @@ main(int argc, char **argv)
 	RUNTEST(&gridStatistics_new_test, hasFailed);
 	RUNTEST(&gridStatistics_del_test, hasFailed);
 	RUNTEST(&gridStatistics_calcGridPatch_test, hasFailed);
-#  ifdef XMEM_TRACK_MEM
+	RUNTEST(&gridStatistics_calcGridRegular_test, hasFailed);
+#ifdef WITH_MPI
+	RUNTEST(&gridStatistics_calcGridRegularDistrib_test, hasFailed);
+#endif
+#ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
 	global_max_allocated_bytes = 0;
-#  endif
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridIO:\n");
 	}
 	RUNTEST(&gridIO_getTypeFromName_test, hasFailed);
 	RUNTEST(&gridIO_getNameFromType_test, hasFailed);
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
 	global_max_allocated_bytes = 0;
-#  endif
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridReader:\n");
@@ -240,11 +244,11 @@ main(int argc, char **argv)
 	RUNTEST(&gridReader_del_test, hasFailed);
 	RUNTEST(&gridReader_readIntoPatch_test, hasFailed);
 	RUNTEST(&gridReader_readIntoPatchForVar_test, hasFailed);
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
 	global_max_allocated_bytes = 0;
-#  endif
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for gridReaderBov:\n");
@@ -253,11 +257,11 @@ main(int argc, char **argv)
 	RUNTEST(&gridReaderBov_del_test, hasFailed);
 	RUNTEST(&gridReaderBov_readIntoPatch_test, hasFailed);
 	RUNTEST(&gridReaderBov_readIntoPatchForVar_test, hasFailed);
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
 	global_max_allocated_bytes = 0;
-#  endif
+#endif
 
 #ifdef WITH_SILO
 	if (rank == 0) {

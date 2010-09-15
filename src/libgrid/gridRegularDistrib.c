@@ -237,6 +237,14 @@ gridRegularDistrib_getProcCoords(gridRegularDistrib_t distrib,
 	MPI_Cart_coords(distrib->commCart, localRank, NDIM, procCoords);
 }
 
+extern MPI_Comm
+gridRegularDistrib_getGlobalComm(gridRegularDistrib_t distrib)
+{
+	assert(distrib != NULL);
+
+	return distrib->commGlobal;
+}
+
 #endif
 extern gridPatch_t
 gridRegularDistrib_getPatchForRank(gridRegularDistrib_t distrib, int rank)
