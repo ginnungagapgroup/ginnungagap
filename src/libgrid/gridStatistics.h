@@ -11,6 +11,7 @@
 #include "gridPatch.h"
 #include "gridRegular.h"
 #include "gridRegularDistrib.h"
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -68,5 +69,9 @@ gridStatistics_getMin(const gridStatistics_t stat);
 extern double
 gridStatistics_getMax(const gridStatistics_t stat);
 
+extern void
+gridStatistics_printPretty(const gridStatistics_t stat,
+                           FILE *out,
+                           const char *prefix);
 
 #endif

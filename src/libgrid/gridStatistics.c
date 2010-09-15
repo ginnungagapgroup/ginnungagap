@@ -229,6 +229,40 @@ gridStatistics_getMax(const gridStatistics_t stat)
 	return stat->max;
 }
 
+extern void
+gridStatistics_printPretty(const gridStatistics_t stat,
+                           FILE                   *out,
+                           const char             *prefix)
+{
+	if (prefix != NULL) {
+		fprintf(out, "%s                mean  :  %15e\n", prefix,
+		        gridStatistics_getMean(stat));
+		fprintf(out, "%s  standard deviation  :  %15e\n", prefix,
+		        gridStatistics_getSD(stat));
+		fprintf(out, "%s            skewness  :  %15e\n", prefix,
+		        gridStatistics_getSkew(stat));
+		fprintf(out, "%s            kurtosis  :  %15e\n", prefix,
+		        gridStatistics_getKurtosis(stat));
+		fprintf(out, "%s             minimum  :  %15e\n", prefix,
+		        gridStatistics_getMin(stat));
+		fprintf(out, "%s             maximum  :  %15e\n", prefix,
+		        gridStatistics_getMax(stat));
+	} else {
+		fprintf(out, "                mean  :  %15e\n",
+		        gridStatistics_getMean(stat));
+		fprintf(out, "  standard deviation  :  %15e\n",
+		        gridStatistics_getSD(stat));
+		fprintf(out, "            skewness  :  %15e\n",
+		        gridStatistics_getSkew(stat));
+		fprintf(out, "            kurtosis  :  %15e\n",
+		        gridStatistics_getKurtosis(stat));
+		fprintf(out, "             minimum  :  %15e\n",
+		        gridStatistics_getMin(stat));
+		fprintf(out, "             maximum  :  %15e\n",
+		        gridStatistics_getMax(stat));
+	}
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static void
 local_nullStat(gridStatistics_t stat)
@@ -296,7 +330,7 @@ local_calcRegularMeanMinMax(gridStatistics_t           stat,
 		local_calcProtoMeanMinMax(data, gridVar, len, &(stat->mean),
 		                          &min, &max);
 		stat->min = (stat->min > min) ? min : stat->min;
-		stat->max = (stat->min > min) ? max : stat->max;
+		stat->max = (stat->max < max) ? max : stat->max;
 	}
 
 #ifdef WITH_MPI
@@ -370,17 +404,17 @@ local_calcProtoMeanMinMax(void      *data,
 		switch (type) {
 		case GRIDVARTYPE_INT:
 			*min        = (*(tmp.i) < *min) ? (double)*(tmp.i) : *min;
-			*max        = (*(tmp.i) < *max) ? (double)*(tmp.i) : *max;
+			*max        = (*(tmp.i) > *max) ? (double)*(tmp.i) : *max;
 			*protoMean += (double)*(tmp.i);
 			break;
 		case GRIDVARTYPE_DOUBLE:
 			*min        = (*(tmp.lf) < *min) ? *(tmp.lf) : *min;
-			*max        = (*(tmp.lf) < *max) ? *(tmp.lf) : *max;
+			*max        = (*(tmp.lf) > *max) ? *(tmp.lf) : *max;
 			*protoMean += *(tmp.lf);
 			break;
 		case GRIDVARTYPE_FPV:
 			*min        = (*(tmp.fpv) < *min) ? (double)*(tmp.fpv) : *min;
-			*max        = (*(tmp.fpv) < *max) ? (double)*(tmp.fpv) : *max;
+			*max        = (*(tmp.fpv) > *max) ? (double)*(tmp.fpv) : *max;
 			*protoMean += (double)*(tmp.fpv);
 			break;
 		default:
