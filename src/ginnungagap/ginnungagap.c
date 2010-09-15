@@ -28,6 +28,7 @@
 #include "../libcosmo/cosmo.h"
 #include "../libcosmo/cosmoFunc.h"
 #include "../libgrid/gridWriter.h"
+#include "../libgrid/gridStatistics.h"
 #ifdef WITH_FFT_FFTW3
 #  include <complex.h>
 #  include <fftw3.h>
@@ -62,6 +63,9 @@ local_doDeltaX(ginnungagap_t ginnungagap);
 
 static void
 local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode);
+
+static void
+local_doStatistics(ginnungagap_t ginnungagap, int idxOfVar);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -124,6 +128,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	local_doWhiteNoise(ginnungagap);
 	local_doDeltaK(ginnungagap);
 	local_doDeltaX(ginnungagap);
+	local_doStatistics(ginnungagap, 0);
 	if (ginnungagap->rank == 0)
 		printf("\n");
 
@@ -131,6 +136,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	local_doWhiteNoise(ginnungagap);
 	local_doDeltaK(ginnungagap);
 	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VX);
+	local_doStatistics(ginnungagap, 0);
 	if (ginnungagap->rank == 0)
 		printf("\n");
 
@@ -138,6 +144,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	local_doWhiteNoise(ginnungagap);
 	local_doDeltaK(ginnungagap);
 	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VY);
+	local_doStatistics(ginnungagap, 0);
 	if (ginnungagap->rank == 0)
 		printf("\n");
 
@@ -145,7 +152,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	local_doWhiteNoise(ginnungagap);
 	local_doDeltaK(ginnungagap);
 	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VZ);
-
+	local_doStatistics(ginnungagap, 0);
 	if (ginnungagap->rank == 0)
 		printf("\n");
 } /* ginnungagap_run */
@@ -326,3 +333,19 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 	xfree(msg2);
 	xfree(msg);
 } /* local_doVelocities */
+
+static void
+local_doStatistics(ginnungagap_t ginnungagap, int idxOfVar)
+{
+	double timing;
+	gridStatistics_t stat;
+
+	timing = timer_start("  Calculating statistics");
+	stat = gridStatistics_new();
+	gridStatistics_calcGridRegularDistrib(stat, ginnungagap->gridDistrib,
+	                                      idxOfVar);
+	timing = timer_stop(timing);
+	if (ginnungagap->rank == 0)
+		gridStatistics_printPretty(stat, stdout, "  ");
+	gridStatistics_del(&stat);
+}
