@@ -18,6 +18,7 @@ typedef enum {
 	GROUPI_MODE_ROUNDROBIN
 } groupi_mode_t;
 
+
 /*--- ADT handle --------------------------------------------------------*/
 typedef struct groupi_struct *groupi_t;
 
@@ -47,18 +48,38 @@ groupi_registerReleaseFunc(groupi_t            groupi,
                            groupiReleaseFunc_t releaseFunc,
                            void                *releaseFuncData);
 
+extern int
+groupi_getNumGroups(const groupi_t groupi);
+
+extern MPI_Comm
+groupi_MpiCommunicator(const groupi_t groupi);
 
 extern int
-groupi_getRankInGroup(const groupi_t groupi);
+groupi_getMpiTag(const groupi_t groupi);
+
+extern int
+groupi_getGroupNumber(const groupi_t groupi);
 
 extern int
 groupi_getSizeOfGroup(const groupi_t groupi);
 
 extern int
-groupi_getNumGroups(const groupi_t groupi);
+groupi_getRankInGroup(const groupi_t groupi);
+
+extern int
+groupi_getPreviousProcess(const groupi_t groupi);
+
+extern int
+groupi_getNextProcess(const groupi_t groupi);
 
 extern bool
 groupi_isAcquired(const groupi_t groupi);
+
+extern bool
+groupi_isFirstInGroup(const groupi_t groupi);
+
+extern bool
+groupi_isLastInGroup(const groupi_t groupi);
 
 extern void *
 groupi_acquire(groupi_t groupi);

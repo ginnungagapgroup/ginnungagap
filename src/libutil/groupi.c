@@ -18,6 +18,7 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+#define LOCAL_NOPROCESS -1
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -103,11 +104,35 @@ groupi_registerReleaseFunc(groupi_t            groupi,
 }
 
 extern int
-groupi_getRankInGroup(const groupi_t groupi)
+groupi_getNumGroups(const groupi_t groupi)
 {
 	assert(groupi != NULL);
 
-	return groupi->rankInGroup;
+	return groupi->numGroups;
+}
+
+extern MPI_Comm
+groupi_MpiCommunicator(const groupi_t groupi)
+{
+	assert(groupi != NULL);
+
+	return groupi->mpiComm;
+}
+
+extern int
+groupi_getMpiTag(const groupi_t groupi)
+{
+	assert(groupi != NULL);
+
+	return groupi->mpiTag;
+}
+
+extern int
+groupi_getGroupNumber(const groupi_t groupi)
+{
+	assert(groupi != NULL);
+
+	return groupi->groupNumber;
 }
 
 extern int
@@ -119,11 +144,27 @@ groupi_getSizeOfGroup(const groupi_t groupi)
 }
 
 extern int
-groupi_getNumGroups(const groupi_t groupi)
+groupi_getRankInGroup(const groupi_t groupi)
 {
 	assert(groupi != NULL);
 
-	return groupi->numGroups;
+	return groupi->rankInGroup;
+}
+
+extern int
+groupi_getPreviousProcess(const groupi_t groupi)
+{
+	assert(groupi != NULL);
+
+	return groupi->prevProcess;
+}
+
+extern int
+groupi_getNextProcess(const groupi_t groupi)
+{
+	assert(groupi != NULL);
+
+	return groupi->nextProcess;
 }
 
 extern bool
@@ -134,6 +175,23 @@ groupi_isAcquired(const groupi_t groupi)
 	return groupi->isAcquired ? true : false;
 }
 
+extern bool
+groupi_isFirstInGroup(const groupi_t groupi)
+{
+	assert(groupi != NULL);
+
+	return groupi_getPreviousProcess(groupi) == LOCAL_NOPROCESS
+	       ? true : false;
+}
+
+extern bool
+groupi_isLastInGroup(const groupi_t groupi)
+{
+	assert(groupi != NULL);
+
+	return groupi_getNextProcess(groupi) == LOCAL_NOPROCESS ? true : false;
+}
+
 extern void *
 groupi_acquire(groupi_t groupi)
 {
@@ -141,7 +199,7 @@ groupi_acquire(groupi_t groupi)
 
 	assert(groupi != NULL);
 
-	if (groupi->prevProcess >= 0) {
+	if (!groupi_isFirstInGroup(groupi)) {
 		int        buf;
 		MPI_Status status;
 
@@ -165,7 +223,7 @@ groupi_release(groupi_t groupi)
 {
 	assert(groupi != NULL);
 
-	if (groupi->nextProcess >= 0) {
+	if (!groupi_isLastInGroup(groupi)) {
 		MPI_Send(&(groupi->mpiTag), 1, MPI_INT, groupi->nextProcess,
 		         groupi->mpiTag, groupi->mpiComm);
 	}
@@ -191,8 +249,8 @@ local_calcGroupDistribCommon(groupi_t groupi,
 	groupi->sizeOfGroup = *size / groupi->numGroups;
 	*numLargeGroups     = *size % groupi->numGroups;
 
-	groupi->prevProcess = -1;
-	groupi->nextProcess = -1;
+	groupi->prevProcess = LOCAL_NOPROCESS;
+	groupi->nextProcess = LOCAL_NOPROCESS;
 }
 
 static void
