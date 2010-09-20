@@ -29,9 +29,6 @@
 
 /*--- Prototypes of local functions -------------------------------------*/
 static void
-local_checkOutputName(const char *outName, bool force);
-
-static void
 local_getFactors(grafic_t     grafic,
                  uint32_t     np[3],
                  double       *dx,
@@ -97,6 +94,7 @@ grafic2gadget_new(const char *graficFileNameVx,
 	g2g->graficFileNameVz = xstrdup(graficFileNameVz);
 	g2g->numGadgetFiles   = numOutFiles;
 	g2g->gadgetFileStem   = xstrdup(outputFileStem);
+	g2g->force            = force;
 
 	return g2g;
 }
@@ -120,7 +118,7 @@ grafic2gadget_run(grafic2gadget_t g2g)
 {
 	grafic_t       gvx, gvy, gvz;
 	uint32_t       np[3];
-	uint64_t       numTotal, numPlane;
+	uint64_t       numPlane;
 	double         dx, boxsize, vFact, aInit;
 	cosmoModel_t   model;
 	gadget_t       gadget;
@@ -137,7 +135,6 @@ grafic2gadget_run(grafic2gadget_t g2g)
 	local_getFactors(gvx, np, &dx, &boxsize, &vFact, &aInit, &model);
 	baseHeader = local_getBaseHeader(gadget, boxsize, aInit, model, np);
 
-	numTotal   = np[0] * np[1] * np[2];
 	numPlane   = np[0] * np[1];
 	for (int i = 0; i < g2g->numGadgetFiles; i++) {
 		int            numSlabStart, numSlabEnd, numSlabs;
@@ -301,9 +298,9 @@ local_initposid(float    *pos,
 			for (int i = 0; i < np[0]; i++) {
 				size_t idx = i + j * np[0] + (k - zStart) * np[1] * np[0];
 				id[idx]          = i + j * np[0] + k * np[1] * np[0];
-				pos[idx * 3]     = (i + .5) * dx;
-				pos[idx * 3 + 1] = (j + .5) * dx;
-				pos[idx * 3 + 2] = (k + .5) * dx;
+				pos[idx * 3]     = (float)((i + .5) * dx);
+				pos[idx * 3 + 1] = (float)((j + .5) * dx);
+				pos[idx * 3 + 2] = (float)((k + .5) * dx);
 			}
 		}
 	}
@@ -320,15 +317,18 @@ local_vel2pos(float    *vel,
 #  pragma omp parallel for
 #endif
 	for (uint64_t i = 0; i < num; i++) {
-		pos[i * 3]     += boxsize;
-		pos[i * 3 + 1] += boxsize;
-		pos[i * 3 + 2] += boxsize;
-		pos[i * 3]      = fmod(pos[i * 3] + vFact * vel[i * 3],
-		                       boxsize);
-		pos[i * 3 + 1]  = fmod(pos[i * 3 + 1] + vFact * vel[i * 3 + 1],
-		                       boxsize);
-		pos[i * 3 + 2]  = fmod(pos[i * 3 + 2] + vFact * vel[i * 3 + 2],
-		                       boxsize);
+		pos[i * 3]     += (float)boxsize;
+		pos[i * 3 + 1] += (float)boxsize;
+		pos[i * 3 + 2] += (float)boxsize;
+		pos[i * 3]      = (float)fmod(pos[i * 3]
+		                              + vFact * vel[i * 3],
+		                              boxsize);
+		pos[i * 3 + 1]  = (float)fmod(pos[i * 3 + 1]
+		                              + vFact * vel[i * 3 + 1],
+		                              boxsize);
+		pos[i * 3 + 2]  = (float)fmod(pos[i * 3 + 2] 
+		                              + vFact * vel[i * 3 + 2],
+		                              boxsize);
 	}
 }
 
@@ -341,8 +341,8 @@ local_convertVel(float *vel, uint64_t num, double aInit)
 #  pragma omp parallel for
 #endif
 	for (uint64_t i = 0; i < num; i++) {
-		vel[i * 3]     *= fac;
-		vel[i * 3 + 1] *= fac;
-		vel[i * 3 + 2] *= fac;
+		vel[i * 3]     *= (float)fac;
+		vel[i * 3 + 1] *= (float)fac;
+		vel[i * 3 + 2] *= (float)fac;
 	}
 }

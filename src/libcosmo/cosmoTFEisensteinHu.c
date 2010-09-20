@@ -139,6 +139,9 @@ static double sqrarg;
 static double cubearg;
 #define CUBE(a) (islessgreater(cubearg=(a), 0.0) ? cubearg*cubearg*cubearg : 0.0)
 static double pow4arg;
+#ifdef POW4
+#  undef POW4
+#endif
 #define POW4(a) (islessgreater(pow4arg=(a), 0.0) ? pow4arg*pow4arg*pow4arg*pow4arg : 0.0)
 	/* Yes, I know the last one isn't optimal; it doesn't appear much */
 

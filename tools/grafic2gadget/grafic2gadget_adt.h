@@ -8,6 +8,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "grafic2gadgetConfig.h"
+#include <stdbool.h>
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -17,6 +18,7 @@ struct grafic2gadget_struct {
 	char *graficFileNameVz;
 	int  numGadgetFiles;
 	char *gadgetFileStem;
+	bool force;
 };
 
 
