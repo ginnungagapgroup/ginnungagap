@@ -114,4 +114,10 @@ bov_readWindowed(bov_t       bov,
                  uint32_t    *idxLo,
                  uint32_t    *dims);
 
+extern void
+bov_write(bov_t bov, const char *bovFileName);
+
+extern bool
+bov_isValidForWrite(const bov_t bov);
+
 #endif

@@ -27,6 +27,9 @@
 
 /*--- Prototypes of local functions -------------------------------------*/
 static void
+local_setNewBovFileNameAndPath(bov_t bov, const char *bovFileName);
+
+static void
 local_readBov(bov_t bov, FILE *f);
 
 static char *
@@ -111,6 +114,9 @@ local_cpBufferToData(bov_t       bov,
                      bovFormat_t dataFormat,
                      int         numComponents);
 
+static void
+local_writeBov(const bov_t bov);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern bov_t
@@ -149,10 +155,10 @@ bov_newFromFile(const char *fileName)
 
 	assert(fileName != NULL);
 
-	f                = xfopen(fileName, "r");
-	bov              = bov_new();
-	bov->bovFileName = xstrdup(fileName);
-	bov->bovFilePath = xdirname(fileName);
+	f   = xfopen(fileName, "r");
+	bov = bov_new();
+
+	local_setNewBovFileNameAndPath(bov, fileName);
 	local_readBov(bov, f);
 
 	xfclose(&f);
@@ -432,7 +438,60 @@ bov_readWindowed(bov_t       bov,
 	                             idxLo, dims);
 }
 
+extern void
+bov_write(bov_t bov, const char *bovFileName)
+{
+	assert(bov != NULL);
+
+	if (bov_isValidForWrite(bov)
+	    && ((bovFileName != NULL) || (bov->bovFileName != NULL))) {
+		local_setNewBovFileNameAndPath(bov, bovFileName);
+		local_writeBov(bov);
+	} else {
+		fprintf(stderr, "The BOV is not valid for writing :-(\n");
+		diediedie(EXIT_FAILURE);
+	}
+}
+
+extern bool
+bov_isValidForWrite(const bov_t bov)
+{
+	bool valid = true;
+
+	if (bov == NULL) {
+		valid = false;
+	} else {
+		if (bov->data_file == NULL)
+			valid = false;
+		if ((bov->data_size[0] == 0) || (bov->data_size[1] == 0)
+		    || (bov->data_size[2] == 0))
+			valid = false;
+		if (bov->variable == NULL)
+			valid = false;
+		if (bov->divide_brick) {
+			if ((bov->data_bricklets[0] <= 0)
+			    || (bov->data_bricklets[1] <= 0)
+			    || (bov->data_bricklets[2] <= 0))
+				valid = false;
+		}
+	}
+
+	return valid ? true : false;
+}
+
 /*--- Implementations of local functions --------------------------------*/
+static void
+local_setNewBovFileNameAndPath(bov_t bov, const char *bovFileName)
+{
+	if (bov->bovFileName != NULL)
+		xfree(bov->bovFileName);
+	if (bov->bovFilePath != NULL)
+		xfree(bov->bovFilePath);
+
+	bov->bovFileName = xstrdup(bovFileName);
+	bov->bovFilePath = xdirname(bovFileName);
+}
+
 static void
 local_readBov(bov_t bov, FILE *f)
 {
@@ -887,3 +946,42 @@ local_cpBufferToData(bov_t       bov,
 
 #undef cpy
 #undef recsize
+
+static void
+local_writeBov(const bov_t bov)
+{
+	FILE *f;
+
+	f = xfopen(bov->bovFileName, "w");
+
+	fprintf(f, "TIME: %e\n", bov->time);
+	fprintf(f, "DATA_FILE: %s\n", bov->data_file);
+	fprintf(f, "DATA_SIZE: %" PRIu32 " %" PRIu32 " %" PRIu32 "\n",
+	        bov->data_size[0], bov->data_size[1], bov->data_size[2]);
+	if (bov->data_format == BOV_FORMAT_DOUBLE)
+		fprintf(f, "DATA_FORMAT: DOUBLE\n");
+	else if (bov->data_format == BOV_FORMAT_FLOAT)
+		fprintf(f, "DATA_FORMAT: FLOAT\n");
+	else if (bov->data_format == BOV_FORMAT_INT)
+		fprintf(f, "DATA_FORMAT: INT\n");
+	else
+		fprintf(f, "DATA_FORMAT: BYTE\n");
+	fprintf(f, "VARIABLE: %s\n", bov->variable);
+	fprintf(f, "DATA_ENDIAN: %s\n",
+	        bov->data_endian == ENDIAN_LITTLE ? "LITTLE" : "BIG");
+	fprintf(f, "CENTERING: %s\n",
+	        bov->centering == BOV_CENTERING_ZONAL ? "zonal" : "nodal");
+	fprintf(f, "BRICK_ORIGIN: %e %e %e\n", bov->brick_origin[0],
+	        bov->brick_origin[1], bov->brick_origin[2]);
+	fprintf(f, "BRICK_SIZE: %e %e %e\n",
+	        bov->brick_size[0], bov->brick_size[1], bov->brick_size[2]);
+	fprintf(f, "BYTE_OFFSET: %i\n", bov->byte_offset);
+	if (bov->divide_brick) {
+		fprintf(f, "DIVIDE_BRICK: true\n");
+		fprintf(f, "DATA_BRICKLETS: %i %i %i\n", bov->data_bricklets[0],
+		        bov->data_bricklets[1], bov->data_bricklets[2]);
+	}
+	fprintf(f, "DATA_COMPONENTS: %i\n", bov->data_components);
+
+	xfclose(&f);
+} /* local_writeBov */
