@@ -333,12 +333,13 @@ local_calcRegularMeanMinMax(gridStatistics_t           stat,
 		stat->max = (stat->max < max) ? max : stat->max;
 	}
 
+	if (distrib != NULL) {
 #ifdef WITH_MPI
-	if (distrib != NULL)
-		local_mpiCalcProtoMeanMinMax(gridRegularDistrib_getGlobalComm(
-		                                 distrib), &(stat->mean),
+		MPI_Comm thisComm = gridRegularDistrib_getGlobalComm(distrib);
+		local_mpiCalcProtoMeanMinMax(thisComm, &(stat->mean),
 		                             &(stat->min), &(stat->max));
 #endif
+	}
 
 	stat->mean /= norm;
 } /* local_calcRegularMeanMinMax */
@@ -372,12 +373,13 @@ local_calcRegularVarSkewKurt(gridStatistics_t           stat,
 		                           stat->mean);
 	}
 
+	if (distrib != NULL) {
 #ifdef WITH_MPI
-	if (distrib != NULL)
-		local_mpiCalcProtoVarSkewKurt(gridRegularDistrib_getGlobalComm(
-		                                  distrib), &(stat->var),
+		MPI_Comm thisComm = gridRegularDistrib_getGlobalComm(distrib);
+		local_mpiCalcProtoVarSkewKurt(thisComm, &(stat->var),
 		                              &(stat->skew), &(stat->kurt));
 #endif
+	}
 
 	stat->var  /= (norm - 1);
 	stat->skew /= (norm * stat->var * sqrt(stat->var));
@@ -392,10 +394,10 @@ local_calcProtoMeanMinMax(void      *data,
                           double    *min,
                           double    *max)
 {
-	union {double *lf;
-		   int    *i;
-		   fpv_t  *fpv;
-		   void   *v;
+	union { double *lf;
+		    int    *i;
+		    fpv_t  *fpv;
+		    void   *v;
 	}             tmp;
 	gridVarType_t type = gridVar_getType(var);
 
@@ -432,10 +434,10 @@ local_calcProtoVarSkewKurt(void         *data,
                            double       *kurt,
                            const double mean)
 {
-	union {double *lf;
-		   int    *i;
-		   fpv_t  *fpv;
-		   void   *v;
+	union { double *lf;
+		    int    *i;
+		    fpv_t  *fpv;
+		    void   *v;
 	}             tmp;
 	double        tmpNo, tmpSqr;
 	gridVarType_t type = gridVar_getType(var);
