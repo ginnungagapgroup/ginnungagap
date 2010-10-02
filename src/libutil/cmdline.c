@@ -85,9 +85,9 @@ cmdline_new(int numArgs, int numOpts, const char *progName)
 	dummy = xmalloc(sizeof(cmdline_struct_t));
 	if (numArgs > 0) {
 		dummy->argDescription = xmalloc(sizeof(char *) * numArgs);
-		dummy->argType        = xmalloc(sizeof(int) * numOpts);
-		dummy->argValue       = xmalloc(sizeof(void *) * numOpts);
-		dummy->argParsed      = xmalloc(sizeof(bool) * numOpts);
+		dummy->argType        = xmalloc(sizeof(int) * numArgs);
+		dummy->argValue       = xmalloc(sizeof(void *) * numArgs);
+		dummy->argParsed      = xmalloc(sizeof(bool) * numArgs);
 	} else {
 		dummy->argDescription = NULL;
 		dummy->argType        = NULL;
