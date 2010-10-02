@@ -17,6 +17,7 @@ all:
 	$(MAKE) -C makeSiloRoot all
 	$(MAKE) -C grafic2gadget all
 	$(MAKE) -C grafic2bov all
+	$(MAKE) -C showFreqs all
 	@echo ""
 	@echo "+-------------------------------+"
 	@echo "|   Done with the tools         |"
@@ -29,15 +30,18 @@ clean:
 	$(MAKE) -C grafic2gadget clean
 	$(MAKE) -C grafic2bov clean
 	$(MAKE) -C makeSiloRoot clean
+	$(MAKE) -C showFreqs clean
 
 tests:
 	$(MAKE) -C estimateMemReq tests
 	$(MAKE) -C grafic2gadget tests
 	$(MAKE) -C grafic2bov tests
 	$(MAKE) -C makeSiloRoot tests
+	$(MAKE) -C showFreqs tests
 
 dist-clean:
 	$(MAKE) -C estimateMemReq dist-clean
 	$(MAKE) -C grafic2gadget dist-clean
 	$(MAKE) -C grafic2bov dist-clean
 	$(MAKE) -C makeSiloRoot dist-clean
+	$(MAKE) -C showFreqs dist-clean
