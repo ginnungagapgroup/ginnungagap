@@ -153,8 +153,9 @@ local_cmdlineSetup(void)
 	(void)cmdline_addArg(cmdline, "The grafic file containing vz.",
 	                     CMDLINE_TYPE_STRING);
 	(void)cmdline_addArg(cmdline,
-	                     "The stem for the resulting files (.gadget "
-	                     "will be appended).",
+	                     "The stem for the resulting files (for more"
+	                     " than 1 file, the file number will be "
+	                     "appended).",
 	                     CMDLINE_TYPE_STRING);
 
 	return cmdline;
