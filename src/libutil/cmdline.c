@@ -337,13 +337,14 @@ cmdline_printHelp(cmdline_t cmdline,
 	/* Print the usage info */
 	fprintf(fout, "Usage: %s", cmdline->progName);
 	for (i = 0; i < cmdline->numOptsUsed; i++) {
-		fprintf(fout, " --%s", cmdline->optName[i]);
+		fprintf(fout, " [--%s", cmdline->optName[i]);
 		if (cmdline->optType[i] != CMDLINE_TYPE_NONE) {
 			if (!cmdline->optValueRequired[i])
 				fprintf(fout, " [<value>]");
 			else
 				fprintf(fout, " <value>");
 		}
+		fprintf(fout, "]");
 	}
 	for (i = 0; i < cmdline->numArgsUsed; i++) {
 		fprintf(fout, " arg%i", i);
