@@ -16,6 +16,7 @@ all:
 	$(MAKE) -C libutil all
 	$(MAKE) -C libcosmo all
 	$(MAKE) -C libgrid all
+	$(MAKE) -C libpart all
 	$(MAKE) -C ginnungagap all
 	@echo ""
 	@echo "+-------------------------------+"
@@ -26,6 +27,7 @@ all:
 
 clean:
 	$(MAKE) -C ginnungagap clean
+	$(MAKE) -C libpart clean
 	$(MAKE) -C libgrid clean
 	$(MAKE) -C libcosmo clean
 	$(MAKE) -C libutil clean
@@ -34,9 +36,11 @@ tests:
 	$(MAKE) -C libutil tests
 	$(MAKE) -C libcosmo tests
 	$(MAKE) -C libgrid tests
+	$(MAKE) -C libpart tests
 
 dist-clean:
 	$(MAKE) -C ginnungagap dist-clean
+	$(MAKE) -C libpart dist-clean
 	$(MAKE) -C libgrid dist-clean
 	$(MAKE) -C libcosmo dist-clean
 	$(MAKE) -C libutil dist-clean
