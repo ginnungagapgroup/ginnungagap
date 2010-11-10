@@ -42,6 +42,7 @@ clean:
 dist-clean:
 	$(MAKE) -C src dist-clean
 	$(MAKE) -C tools dist-clean
+	$(MAKE) -C doc dist-clean
 	find . -name *.d.[0-9]* -exec rm {} \;
 ifeq ($(GITDIR_AVAILABLE),true)
 	rm -f version.h
@@ -66,3 +67,6 @@ endif
 
 statistics:
 	scripts/show-statistics.sh
+
+doc:
+	$(MAKE) -C doc
