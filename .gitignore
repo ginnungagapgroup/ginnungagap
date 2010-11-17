@@ -16,4 +16,5 @@ tools/makeSiloRoot/makeSiloRoot
 tools/grafic2bov/grafic2bov
 tools/grafic2gadget/grafic2gadget
 tools/estimateMemReq/estimateMemReq
+tools/showFreqs/showFreqs
 tmp/
