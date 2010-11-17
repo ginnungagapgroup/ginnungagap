@@ -11,8 +11,8 @@ include ../../Makefile.config
 sources = partBunch.c \
           partDesc.c
 
-#sourcesTests = lib${LIBNAME}_tests.c \
-               partUtil_tests.c
+sourcesTests = lib${LIBNAME}_tests.c \
+               partDesc_tests.c
 
 include ../../Makefile.rules
 
@@ -40,11 +40,13 @@ tests-clean:
 
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
+                     ../libgrid/libgrid.a \
                      ../libutil/libutil.a \
                      $(sourcesTests:.c=.o)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o lib${LIBNAME}_tests \
 	   $(sourcesTests:.c=.o) \
 	   lib${LIBNAME}.a \
+	   ../libgrid/libgrid.a \
 	   ../libutil/libutil.a \
 	   $(LIBS)
 
@@ -53,6 +55,9 @@ lib${LIBNAME}.a: $(sources:.c=.o)
 
 ../libutil/libutil.a:
 	$(MAKE) -C ../libutil
+
+../libgrid/libgrid.a:
+	$(MAKE) -C ../libgrid
 
 -include $(sources:.c=.d)
 

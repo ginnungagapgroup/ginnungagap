@@ -44,7 +44,7 @@ partDesc_new(const char *partDescName, int partDescID, int hintNumVars)
 
 	refCounter_init(&(desc->refCounter));
 
-	return desc;
+	return partDesc_getRef(desc);
 }
 
 extern partDesc_t
@@ -60,20 +60,19 @@ partDesc_getRef(partDesc_t desc)
 extern void
 partDesc_del(partDesc_t *desc)
 {
-	int arrLength;
-
 	assert(desc != NULL && *desc != NULL);
 
 	if (refCounter_deref(&((*desc)->refCounter))) {
+		int arrLength;
 		if ((*desc)->name != NULL)
 			xfree((*desc)->name);
 		while ((arrLength = varArr_getLength((*desc)->vars)) > 0) {
 			gridVar_t var;
-			var = varArr_getElementHandle((*desc)->vars, arrLength - 1);
+			var = varArr_remove((*desc)->vars, arrLength - 1);
 			gridVar_del(&var);
 		}
+		varArr_del(&((*desc)->vars));
 		xfree(*desc);
-
 		*desc = NULL;
 	}
 }

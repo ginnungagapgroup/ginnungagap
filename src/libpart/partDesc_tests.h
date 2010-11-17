@@ -16,7 +16,31 @@ extern bool
 partDesc_new_test(void);
 
 extern bool
+partDesc_getRef_test(void);
+
+extern bool
 partDesc_del_test(void);
+
+extern bool
+partDesc_addVar_test(void);
+
+extern bool
+partDesc_lock_test(void);
+
+extern bool
+partDesc_isLocked_test(void);
+
+extern bool
+partDesc_getNameHandle_test(void);
+
+extern bool
+partDesc_getPartDescID_test(void);
+
+extern bool
+partDesc_getNumVars_test(void);
+
+extern bool
+partDesc_getVarHandle_test(void);
 
 
 #endif
