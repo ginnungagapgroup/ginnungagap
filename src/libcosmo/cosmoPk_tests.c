@@ -76,12 +76,19 @@ extern bool
 cosmoPk_newFromArrays_test(void)
 {
 	cosmoPk_t pk;
-	double    k[] = { 1.0, 2.0, 3.0};
-	double    P[] = { 1.0, 5.0, 2.0};
-	printf("Testing %s... ", __func__);
-	pk = cosmoPk_newFromArrays(UINT32_C(3), k, P, 1.0, -3.0);
+	double    *k, *P;
 
-	if (pk->numPoints != UINT32_C(3))
+	printf("Testing %s... ", __func__);
+	k = xmalloc(sizeof(double) * 100);
+	P = xmalloc(sizeof(double) * 100);
+	for (int i=0; i < 100; i++) {
+		k[i] = (i+1);
+		P[i] = (i+1)*(i+1);
+	}
+
+	pk = cosmoPk_newFromArrays(UINT32_C(100), k, P, 1.0, -3.0);
+
+	if (pk->numPoints != UINT32_C(100))
 		return false;
 
 	if (islessgreater(pk->k[0], 1.0))
@@ -93,7 +100,7 @@ cosmoPk_newFromArrays_test(void)
 	if (islessgreater(pk->k[2], 3.0))
 		return false;
 
-	if (islessgreater(pk->P[2], 2.0))
+	if (islessgreater(pk->P[2], 9.0))
 		return false;
 
 	if (islessgreater(pk->slopeBeforeKmin, 1.0))
@@ -103,6 +110,9 @@ cosmoPk_newFromArrays_test(void)
 		return false;
 
 	cosmoPk_del(&pk);
+	xfree(P);
+	xfree(k);
+
 	return true;
 }
 
