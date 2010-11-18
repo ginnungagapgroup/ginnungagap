@@ -141,7 +141,7 @@ grafic2gadget_run(grafic2gadget_t g2g)
 		int64_t        numLocal;
 		float          *vel, *pos;
 		uint32_t       *id;
-		uint32_t       npLocal[6] = {0, 0, 0, 0, 0, 0};
+		uint32_t       npLocal[6] = { 0, 0, 0, 0, 0, 0 };
 		gadgetHeader_t myHeader;
 
 		local_getSlabNumbers(i, g2g->numGadgetFiles, np[2],
@@ -161,14 +161,10 @@ grafic2gadget_run(grafic2gadget_t g2g)
 			                GRAFIC_FORMAT_FLOAT, 3, j);
 			grafic_readSlab(gvy,
 			                vel + 3 * (j - numSlabStart) * numPlane + 1,
-			                GRAFIC_FORMAT_FLOAT,
-			                3,
-			                j);
+			                GRAFIC_FORMAT_FLOAT, 3, j);
 			grafic_readSlab(gvz,
 			                vel + 3 * (j - numSlabStart) * numPlane + 2,
-			                GRAFIC_FORMAT_FLOAT,
-			                3,
-			                j);
+			                GRAFIC_FORMAT_FLOAT, 3, j);
 		}
 		local_initposid(pos, id, np, numSlabStart, numSlabEnd, dx);
 		local_vel2pos(vel, pos, numLocal, boxsize, vFact);
@@ -323,12 +319,12 @@ local_vel2pos(float    *vel,
 		pos[i * 3]      = (float)fmod(pos[i * 3]
 		                              + vFact * vel[i * 3],
 		                              boxsize);
-		pos[i * 3 + 1]  = (float)fmod(pos[i * 3 + 1]
-		                              + vFact * vel[i * 3 + 1],
-		                              boxsize);
-		pos[i * 3 + 2]  = (float)fmod(pos[i * 3 + 2] 
-		                              + vFact * vel[i * 3 + 2],
-		                              boxsize);
+		pos[i * 3 + 1] = (float)fmod(pos[i * 3 + 1]
+		                             + vFact * vel[i * 3 + 1],
+		                             boxsize);
+		pos[i * 3 + 2] = (float)fmod(pos[i * 3 + 2]
+		                             + vFact * vel[i * 3 + 2],
+		                             boxsize);
 	}
 }
 
