@@ -76,6 +76,7 @@ main(int argc, char **argv)
 		RUNTEST(&partDesc_new_test, hasFailed);
 		RUNTEST(&partDesc_getRef_test, hasFailed);
 		RUNTEST(&partDesc_del_test, hasFailed);
+		RUNTEST(&partDesc_addVar_test, hasFailed);
 	}
 
 #if 0

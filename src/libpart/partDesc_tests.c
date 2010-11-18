@@ -12,6 +12,7 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#include "../libgrid/gridVar.h"
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
@@ -122,6 +123,42 @@ partDesc_del_test(void)
 	partDesc_del(&partDesc);
 	if (partDesc != NULL)
 		hasPassed = false;
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+partDesc_addVar_test(void)
+{
+	bool       hasPassed = true;
+	int        rank      = 0;
+	partDesc_t partDesc;
+	gridVar_t  var;
+#ifdef XMEM_TRACK_MEM
+	size_t     allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	partDesc = partDesc_new(LOCAL_TEST_DESCNAME, LOCAL_TEST_DESCID, 1);
+	var = gridVar_new("Bla", GRIDVARTYPE_DOUBLE, 1);
+
+	partDesc_addVar(partDesc, var);
+	if (varArr_getLength(partDesc->vars) != 1)
+		hasPassed = false;
+	if (varArr_getElementHandle(partDesc->vars, 0) != var)
+		hasPassed = false;
+	gridVar_del(&var);
+
+	partDesc_del(&partDesc);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
