@@ -77,8 +77,8 @@ gridVar_del(gridVar_t *var)
 		xfree((*var)->name);
 		xfree(*var);
 
-		*var = NULL;
 	}
+	*var = NULL;
 }
 
 extern gridVar_t

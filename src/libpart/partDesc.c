@@ -73,8 +73,8 @@ partDesc_del(partDesc_t *desc)
 		}
 		varArr_del(&((*desc)->vars));
 		xfree(*desc);
-		*desc = NULL;
 	}
+	*desc = NULL;
 }
 
 extern int
