@@ -32,7 +32,7 @@ refCounter_ref(refCounter_t *curRef)
 extern bool
 refCounter_deref(refCounter_t *curRef)
 {
-	assert(curRef > 0);
+	assert(*curRef > 0);
 
 	*curRef -= 1;
 
