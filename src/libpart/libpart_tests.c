@@ -5,6 +5,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "partConfig.h"
 #include "partDesc_tests.h"
+#include "partBunch_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,6 +78,17 @@ main(int argc, char **argv)
 		RUNTEST(&partDesc_getRef_test, hasFailed);
 		RUNTEST(&partDesc_del_test, hasFailed);
 		RUNTEST(&partDesc_addVar_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for partBunch:\n");
+		RUNTEST(&partBunch_new_test, hasFailed);
+		RUNTEST(&partBunch_del_test, hasFailed);
+		RUNTEST(&partBunch_allocMem_test, hasFailed);
+		RUNTEST(&partBunch_freeMem_test, hasFailed);
+		RUNTEST(&partBunch_resize_test, hasFailed);
+		RUNTEST(&partBunch_isAllocated_test, hasFailed);
+		RUNTEST(&partBunch_getNumParticles_test, hasFailed);
 	}
 
 #if 0

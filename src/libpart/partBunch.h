@@ -39,8 +39,5 @@ partBunch_isAllocated(const partBunch_t bunch);
 extern uint64_t
 partBunch_getNumParticles(const partBunch_t bunch);
 
-extern void
-partBunch_setNumParticles(partBunch_t bunch, uint64_t numParticles);
-
 
 #endif

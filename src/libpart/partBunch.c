@@ -97,9 +97,9 @@ partBunch_resize(partBunch_t bunch, uint64_t numParticles)
 
 	if (numParticles != partBunch_getNumParticles(bunch)) {
 		bool wasAllocated;
-		if (wasAllocated = partBunch_isAllocated(bunch))
+		if ((wasAllocated = partBunch_isAllocated(bunch)))
 			partBunch_freeMem(bunch);
-		partBunch_setNumParticles(bunch, numParticles);
+		bunch->numParticles = numParticles;
 		if (wasAllocated)
 			partBunch_allocMem(bunch);
 	}
@@ -119,15 +119,6 @@ partBunch_getNumParticles(const partBunch_t bunch)
 	assert(bunch != NULL);
 
 	return bunch->numParticles;
-}
-
-extern void
-partBunch_setNumParticles(partBunch_t bunch, uint64_t numParticles)
-{
-	assert(bunch != NULL);
-	assert(!partBunch_isAllocated(bunch));
-
-	bunch->numParticles = numParticles;
 }
 
 /*--- Implementations of local functions --------------------------------*/
