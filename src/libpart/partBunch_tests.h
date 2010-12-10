@@ -9,6 +9,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "partConfig.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
@@ -18,5 +19,19 @@ partBunch_new_test(void);
 extern bool
 partBunch_del_test(void);
 
+extern bool
+partBunch_allocMem_test(void);
+
+extern bool
+partBunch_freeMem_test(void);
+
+extern bool
+partBunch_resize_test(void);
+
+extern bool
+partBunch_isAllocated_test(void);
+
+extern bool
+partBunch_getNumParticles_test(void);
 
 #endif

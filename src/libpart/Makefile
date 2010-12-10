@@ -12,7 +12,8 @@ sources = partBunch.c \
           partDesc.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
-               partDesc_tests.c
+               partDesc_tests.c \
+               partBunch_tests.c
 
 include ../../Makefile.rules
 
