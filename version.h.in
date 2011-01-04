@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -15,7 +15,7 @@
 
 #define PRINT_VERSION_INFO(f)                                         \
     fprintf((f), "\nThis is %s %i.%i.%i   %s\n\n"                     \
-                 "Copyright (C) 2010, %s\n"                           \
+                 "Copyright (C) 2010, 2011 %s\n"                      \
                  "This is free software; see the source for copying " \
                  "conditions.  There is NO \n"                        \
                  "warranty; not even for MERCHANTABILITY or FITNESS " \
@@ -31,7 +31,7 @@
 
 #define PRINT_VERSION_INFO2(f, progname)                              \
     fprintf((f), "\nThis is %s of %s %i.%i.%i   %s\n\n"               \
-                 "Copyright (C) 2010, %s\n"                           \
+                 "Copyright (C) 2010, 2011 %s\n"                      \
                  "This is free software; see the source for copying " \
                  "conditions.  There is NO \n"                        \
                  "warranty; not even for MERCHANTABILITY or FITNESS " \
