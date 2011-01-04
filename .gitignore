@@ -19,3 +19,5 @@ tools/grafic2gadget/grafic2gadget
 tools/estimateMemReq/estimateMemReq
 tools/showFreqs/showFreqs
 tmp/
+doc/Doxyfile
+doc/ref/
