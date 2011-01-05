@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -17,6 +17,7 @@
 #undef WITH_FFT_FFTW3
 #undef WITH_MPITRACE
 #undef ENABLE_DOUBLE
+#undef ENABLE_WRITING
 #undef ENABLE_DEBUG
 #define NDIM __NDIM_VALUE__
 
