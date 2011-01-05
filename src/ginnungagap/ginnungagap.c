@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -287,12 +287,14 @@ local_doDeltaX(ginnungagap_t ginnungagap)
 	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_BACKWARD);
 	timing = timer_stop(timing);
 
+#ifdef ENABLE_WRITING
 	timing = timer_start("  Writing delta(x) to file");
 	gridWriter_activate(ginnungagap->finalWriter);
 	gridWriter_writeGridRegular(ginnungagap->finalWriter,
 	                            ginnungagap->grid);
 	gridWriter_deactivate(ginnungagap->finalWriter);
 	timing = timer_stop(timing);
+#endif
 }
 
 static void
@@ -300,7 +302,9 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 {
 	double    timing;
 	char      *msg = NULL, *msg2 = NULL;
+#ifdef ENABLE_WRITING
 	gridVar_t var;
+#endif
 
 	msg    = xstrmerge("  Generating ", ginnungagapIC_getModeStr(mode));
 	msg2   = xstrmerge(msg, "(k)");
@@ -319,6 +323,7 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_BACKWARD);
 	timing = timer_stop(timing);
 
+#ifdef ENABLE_WRITING
 	msg    = xstrmerge("  Writing ", ginnungagapIC_getModeStr(mode));
 	msg2   = xstrmerge(msg, "(x) to file");
 	timing = timer_start(msg2);
@@ -332,6 +337,7 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 	timing = timer_stop(timing);
 	xfree(msg2);
 	xfree(msg);
+#endif
 } /* local_doVelocities */
 
 static void

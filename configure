@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2010, Steffen Knollmann
+# Copyright (C) 2010, 2011, Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
@@ -50,6 +50,7 @@ WITH_MPITRACE=false
 WITH_MPITRACE_DIR=auto
 WITH_PROC_DIR=false
 ENABLE_DOUBLE=false
+ENABLE_WRITING=true
 ENABLE_DEBUG=false
 ENABLE_PROFILE=false
 SHOW_HELP=false
@@ -272,6 +273,17 @@ do
 		--disable-double | --disable-double=*)
 			ENABLE_DOUBLE=false
 			;;
+		--enable-writing | --enable-writing=*)
+			if test "x$ac_optarg" = "xyes"
+			then
+				ENABLE_WRITING=true
+			else
+				ENABLE_WRITING=false
+			fi
+			;;
+		--disable-writing | --disable-writing=*)
+			ENABLE_WRITING=false
+			;;
 		--enable-debug | --enable-debug=*)
 			if test "x$ac_optarg" = "xyes"
 			then
@@ -449,6 +461,10 @@ Code properties:
                            precision floating point variables instead of
                            single precision for fields and particle
                            properties.  Default: No.
+  --enable-writing         Only if enable-writing is set, the resulting
+                           files will be written to disc.  This is only 
+                           meant to disable the expensive IO for
+                           benchmarking.  Default: Yes.
   --ndim=VALUE             Sets the dimensionality of the code.  Allowed
                            values are 2 and 3.  Default: 3.
 
@@ -669,13 +685,17 @@ if test "x$WITH_PROC_DIR" = "xtrue"
 then
 	sed -i -e 's/undef WITH_PROC_DIR/define WITH_PROC_DIR 1/' config.h
 fi
-if test "x$ENABLE_DEBUG" = "xtrue"
-then
-	sed -i -e 's/undef ENABLE_DEBUG/define ENABLE_DEBUG 1/' config.h
-fi
 if test "x$ENABLE_DOUBLE" = "xtrue"
 then
 	sed -i -e 's/undef ENABLE_DOUBLE/define ENABLE_DOUBLE 1/' config.h
+fi
+if test "x$ENABLE_WRITING" = "xtrue"
+then
+	sed -i -e 's/undef ENABLE_WRITING/define ENABLE_WRITING 1/' config.h
+fi
+if test "x$ENABLE_DEBUG" = "xtrue"
+then
+	sed -i -e 's/undef ENABLE_DEBUG/define ENABLE_DEBUG 1/' config.h
 fi
 sed -i -e "s@__NDIM_VALUE__@$NDIM_VALUE@" config.h
 $ECHO "done" | tee -a config.log
