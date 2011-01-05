@@ -31,6 +31,13 @@ char *localIniFname = NULL;
 static void
 local_initEnvironment(int *argc, char ***argv);
 
+
+#if (defined _OPENMP && WITH_FFT_FFTW3)
+static void
+local_setThreadedFFTW(void);
+
+#endif
+
 static void
 local_registerCleanUpFunctions(void);
 
@@ -77,9 +84,7 @@ local_initEnvironment(int *argc, char ***argv)
 	MPI_Init(argc, argv);
 #endif
 #if (defined _OPENMP && WITH_FFT_FFTW3)
-	fftw_init_threads();
-	fftw_plan_with_nthreads(omp_get_max_threads());
-	printf("Using %i threads\n", omp_get_max_threads());
+	local_setThreadedFFTW();
 #endif
 
 	cmdline = local_cmdlineSetup();
@@ -88,6 +93,25 @@ local_initEnvironment(int *argc, char ***argv)
 	cmdline_getArgValueByNum(cmdline, 0, &localIniFname);
 	cmdline_del(&cmdline);
 }
+
+#if (defined _OPENMP && WITH_FFT_FFTW3)
+static void
+local_setThreadedFFTW(void)
+{
+	int rank = 0;
+
+#  ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#  endif
+
+	fftw_init_threads();
+	fftw_plan_with_nthreads(omp_get_max_threads());
+
+	if (rank == 0)
+		printf("Using %i threads\n", omp_get_max_threads());
+}
+
+#endif
 
 static void
 local_registerCleanUpFunctions(void)
