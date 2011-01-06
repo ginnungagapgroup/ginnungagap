@@ -961,7 +961,7 @@ grafic_write_test(void)
 	grafic_del(&grafic);
 
 	for (int i = 0; i < numElements; i++) {
-		if (data2[i] != data[i])
+		if (islessgreater(data2[i], data[i]))
 			hasPassed = false;
 	}
 
