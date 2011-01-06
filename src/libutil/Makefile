@@ -58,6 +58,8 @@ clean:
 dist-clean:
 	$(MAKE) clean
 	rm -f $(sources:.c=.d) $(sourcesTests:.c=.d)
+#   Removes the possibly generated test files
+	rm -f writeTest.grafic writeWindowed.grafic empty.grafic gmon.out groupiTest.*
 
 # The MPI tests must be run with 16 processes, otherwise the tests will
 # prodouce bogus results
