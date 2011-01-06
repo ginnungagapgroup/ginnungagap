@@ -1,4 +1,4 @@
-# Copyright (C) 2010, Steffen Knollmann
+# Copyright (C) 2010, 2011, Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
@@ -22,7 +22,7 @@ else
 GITDIR_AVAILABLE=false
 endif
 
-.PHONY: all clean dist-clean doc tarball statistics tests
+.PHONY: all clean dist-clean doc tarball statistics tests tests-clean
 
 ifeq ($(CONFIG_AVAILABLE),true)
 include Makefile.config
@@ -52,6 +52,10 @@ endif
 tests:
 	$(MAKE) -C src tests
 	$(MAKE) -C tools tests
+
+tests-clean:
+	$(MAKE) -C src tests-clean
+	$(MAKE) -C tools tests-clean
 else
 all:
 	@echo -n "Please run ./configure first "

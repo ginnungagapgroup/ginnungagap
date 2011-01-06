@@ -1,4 +1,4 @@
-# Copyright (C) 2010, Steffen Knollmann
+# Copyright (C) 2010, 2011 Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
@@ -6,7 +6,7 @@ LIBNAME = util
 
 include ../../Makefile.config
 
-.PHONY: all clean dist-clean tests
+.PHONY: all clean dist-clean tests tests-clean
 
 sources = xmem.c \
           xstring.c \
@@ -58,8 +58,6 @@ clean:
 dist-clean:
 	$(MAKE) clean
 	rm -f $(sources:.c=.d) $(sourcesTests:.c=.d)
-#   Removes the possibly generated test files
-	rm -f writeTest.grafic writeWindowed.grafic empty.grafic gmon.out groupiTest.*
 
 # The MPI tests must be run with 16 processes, otherwise the tests will
 # prodouce bogus results
@@ -70,6 +68,10 @@ ifeq ($(WITH_MPI), "true")
 else
 	./lib${LIBNAME}_tests
 endif
+
+tests-clean:
+	rm -f lib${LIBNAME}_tests $(sourcesTests:.c=.o)
+	rm -f writeTest.grafic writeWindowed.grafic empty.grafic gmon.out groupiTest.*
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
                      $(sourcesTests:.c=.o)

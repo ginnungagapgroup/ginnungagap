@@ -1,10 +1,10 @@
-# Copyright (C) 2010, Steffen Knollmann
+# Copyright (C) 2010, 2011, Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
 include ../Makefile.config
 
-.PHONY: all clean tests dist-clean
+.PHONY: all clean tests tests-clean dist-clean
 
 all:
 	@echo ""
@@ -38,6 +38,13 @@ tests:
 	$(MAKE) -C grafic2bov tests
 	$(MAKE) -C makeSiloRoot tests
 	$(MAKE) -C showFreqs tests
+
+tests-clean:
+	$(MAKE) -C estimateMemReq tests-clean
+	$(MAKE) -C grafic2gadget tests-clean
+	$(MAKE) -C grafic2bov tests-clean
+	$(MAKE) -C makeSiloRoot tests-clean
+	$(MAKE) -C showFreqs tests-clean
 
 dist-clean:
 	$(MAKE) -C estimateMemReq dist-clean

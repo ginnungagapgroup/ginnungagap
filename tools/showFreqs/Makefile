@@ -1,10 +1,10 @@
-# Copyright (C) 2010, Steffen Knollmann
+# Copyright (C) 2010, 2011, Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
 include ../../Makefile.config
 
-.PHONY: all clean tests dist-clean \
+.PHONY: all clean tests tests-clean dist-clean \
         ../../src/libutil/libutil.a
 
 progName = showFreqs
@@ -22,6 +22,9 @@ clean:
 
 tests:
 	@echo "No tests yet"
+
+tests-clean:
+	@echo "No tests yet to clean"
 
 dist-clean:
 	$(MAKE) clean

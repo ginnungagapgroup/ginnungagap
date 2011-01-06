@@ -1,10 +1,10 @@
-# Copyright (C) 2010, Steffen Knollmann
+# Copyright (C) 2010, 2011, Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
 include ../Makefile.config
 
-.PHONY: all clean tests dist-clean
+.PHONY: all clean tests tests-clean dist-clean
 
 all:
 	@echo ""
@@ -38,9 +38,16 @@ tests:
 	$(MAKE) -C libgrid tests
 	$(MAKE) -C libpart tests
 
+tests-clean:
+	$(MAKE) -C libutil tests-clean
+	$(MAKE) -C libcosmo tests-clean
+	$(MAKE) -C libgrid tests-clean
+	$(MAKE) -C libpart tests-clean
+
 dist-clean:
 	$(MAKE) -C ginnungagap dist-clean
 	$(MAKE) -C libpart dist-clean
 	$(MAKE) -C libgrid dist-clean
 	$(MAKE) -C libcosmo dist-clean
 	$(MAKE) -C libutil dist-clean
+

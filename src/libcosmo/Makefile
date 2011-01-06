@@ -1,4 +1,4 @@
-# Copyright (C) 2010, Steffen Knollmann
+# Copyright (C) 2010, 2011, Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
@@ -6,7 +6,7 @@ LIBNAME = cosmo
 
 include ../../Makefile.config
 
-.PHONY: all clean dist-clean tests
+.PHONY: all clean dist-clean tests tests-clean
 
 sources = cosmoTF.c \
           cosmoTFEisensteinHu.c \
@@ -35,6 +35,10 @@ dist-clean:
 tests:
 	$(MAKE) lib${LIBNAME}_tests
 	./lib${LIBNAME}_tests
+
+tests-clean:
+	rm -f lib${LIBNAME}_tests $(sourcesTests:.c=.o)
+	rm -f pk_from_tf.dat
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
                      ../libutil/libutil.a \
