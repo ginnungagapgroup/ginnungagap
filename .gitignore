@@ -8,9 +8,14 @@ src/ginnungagap/ginnungagap
 Makefile.config
 config.log
 config.h
+gmon.out
 src/libgrid/libgrid_tests
 src/libgrid/*Test*.silo
 src/libutil/libutil_tests
+src/libutil/empty.grafic
+src/libutil/groupiTest.*
+src/libutil/writeTest.grafic
+src/libutil/writeWindowed.grafic
 src/libcosmo/libcosmo_tests
 src/libpart/libpart_tests
 tools/makeSiloRoot/makeSiloRoot

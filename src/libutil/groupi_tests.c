@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -15,6 +15,8 @@
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
+#include <assert.h>
+#include <stdlib.h>
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -22,6 +24,11 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+static void *
+local_fakeAcquireFunc(int seqID, int seqNum, int seqLen, void *data);
+
+static void
+local_fakeReleaseFunc(int seqID, int seqNum, int seqLen, void *data);
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -258,4 +265,73 @@ groupi_del_test(void)
 	return hasPassed ? true : false;
 }
 
+extern bool
+groupi_test(void)
+{
+	bool     hasPassed = true;
+	int      rank      = 0;
+	groupi_t groupi;
+	FILE *f;
+#ifdef XMEM_TRACK_MEM
+	size_t   allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	groupi = groupi_new(7, MPI_COMM_WORLD, 123,
+	                    GROUPI_MODE_BLOCK);
+
+	groupi_registerAcquireFunc(groupi, local_fakeAcquireFunc,
+	                           "groupiTest");
+	groupi_registerReleaseFunc(groupi, local_fakeReleaseFunc, &f);
+
+	f = (FILE *)groupi_acquire(groupi);
+	if (!groupi_isAcquired(groupi))
+		hasPassed = false;
+	fprintf(f,
+	        "This is task %i of %i tasks in group %i (global rank %i).\n",
+	        groupi_getRankInGroup(groupi),
+	        groupi_getSizeOfGroup(groupi),
+	        groupi_getGroupNumber(groupi),
+	        rank);
+	groupi_release(groupi);
+
+	groupi_del(&groupi);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 /*--- Implementations of local functions --------------------------------*/
+static void *
+local_fakeAcquireFunc(int seqID, int seqNum, int seqLen, void *fileStem)
+{
+	char *fileName;
+	FILE *f;
+
+	fileName = malloc(strlen(fileStem) + 4 + 1);
+	sprintf(fileName, "%s.%03i", (char *)fileStem, seqID);
+
+	if (seqNum == 0)
+		f = fopen(fileName, "w");
+	else if (seqNum < seqLen)
+		f = fopen(fileName, "a");
+	else
+		f = NULL;
+
+	return f;
+}
+
+static void
+local_fakeReleaseFunc(int seqID, int seqNum, int seqLen, void *fptr)
+{
+	if (*(FILE **)fptr != NULL && seqID >= 0 && seqNum >= 0 && seqLen >= 0)
+		fclose(*(FILE **)fptr);
+}

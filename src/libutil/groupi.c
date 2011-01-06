@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -112,7 +112,7 @@ groupi_getNumGroups(const groupi_t groupi)
 }
 
 extern MPI_Comm
-groupi_MpiCommunicator(const groupi_t groupi)
+groupi_getMpiCommunicator(const groupi_t groupi)
 {
 	assert(groupi != NULL);
 
@@ -209,7 +209,8 @@ groupi_acquire(groupi_t groupi)
 	}
 
 	if (groupi->acquireFunc != NULL)
-		rtn = groupi->acquireFunc(groupi->rankInGroup,
+		rtn = groupi->acquireFunc(groupi->groupNumber,
+		                          groupi->rankInGroup,
 		                          groupi->sizeOfGroup,
 		                          groupi->acquireFuncData);
 
@@ -229,7 +230,8 @@ groupi_release(groupi_t groupi)
 	}
 
 	if (groupi->releaseFunc != NULL)
-		groupi->releaseFunc(groupi->rankInGroup,
+		groupi->releaseFunc(groupi->groupNumber,
+		                    groupi->rankInGroup,
 		                    groupi->sizeOfGroup,
 		                    groupi->releaseFuncData);
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -24,8 +24,10 @@ typedef struct groupi_struct *groupi_t;
 
 
 /*--- Callback types ----------------------------------------------------*/
-typedef void * (*groupiAcquireFunc_t)(int seqNum, int seqLen, void *data);
-typedef void (*groupiReleaseFunc_t)(int seqNum, int seqLen, void *data);
+typedef void * (*groupiAcquireFunc_t)(int seqID, int seqNum, int seqLen,
+                                      void *data);
+typedef void (*groupiReleaseFunc_t)(int seqID, int seqNum, int seqLen,
+                                    void *data);
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
@@ -52,7 +54,7 @@ extern int
 groupi_getNumGroups(const groupi_t groupi);
 
 extern MPI_Comm
-groupi_MpiCommunicator(const groupi_t groupi);
+groupi_getMpiCommunicator(const groupi_t groupi);
 
 extern int
 groupi_getMpiTag(const groupi_t groupi);
