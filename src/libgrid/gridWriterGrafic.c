@@ -10,7 +10,7 @@
 #include <string.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
-#  include <pmpio.h>
+#  include "../libutil/groupi.h"
 #endif
 #include "gridVar.h"
 #include "gridRegular.h"
@@ -50,25 +50,21 @@ static struct gridWriter_func_struct local_func
 static char **
 local_getFileNames(const char *prefix, int numFiles);
 
+inline static void
+local_setFileNameInGrafic(gridWriterGrafic_t writer);
 
-static void *
-local_createFile(const char *fname, const char *dname, void *udata);
+inline static void
+local_createEmptyGraficFile(gridWriterGrafic_t writer);
+
+static graficFormat_t
+local_getGraficTypeFromGridType(const gridVar_t var);
 
 
 #ifdef WITH_MPI
 static void *
-local_openFile(const char     *fname,
-               const char     *dname,
-               PMPIO_iomode_t iomode,
-               void           *udata);
+local_acquireFunc(int seqId, int seqNum, int seqLen, void *data);
 
 #endif
-
-static void
-local_closeFile(void *file, void *udata);
-
-static graficFormat_t
-local_getGraficTypeFromGridType(const gridVar_t var);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -88,10 +84,7 @@ gridWriterGrafic_new(const char *prefix, bool isWhiteNoise)
 	writer->numOutFiles = LOCAL_NUMOUTFILES;
 	writer->fileNames   = local_getFileNames(prefix, writer->numOutFiles);
 #ifdef WITH_MPI
-	writer->baton       = NULL;
-	writer->groupRank   = -1;
-	writer->rankInGroup = -1;
-	writer->globalRank  = -1;
+	writer->groupi      = NULL;
 #endif
 
 	return writer;
@@ -102,7 +95,7 @@ gridWriterGrafic_newFromIni(parse_ini_t ini, const char *sectionName)
 {
 	gridWriterGrafic_t writer;
 	bool               isWhiteNoise;
-	uint32_t           *size = NULL;
+	uint32_t           *size   = NULL;
 	char               *prefix = NULL;
 
 
@@ -167,8 +160,8 @@ gridWriterGrafic_del(gridWriter_t *writer)
 	}
 	grafic_del(&(tmp->grafic));
 #ifdef WITH_MPI
-	if (tmp->baton != NULL)
-		PMPIO_Finish(tmp->baton);
+	if (tmp->groupi != NULL)
+		groupi_del(&(tmp->groupi));
 #endif
 	xfree(*writer);
 
@@ -183,16 +176,15 @@ gridWriterGrafic_activate(gridWriter_t writer)
 	assert(tmp != NULL);
 	assert(tmp->type == IO_TYPE_GRAFIC);
 #ifdef WITH_MPI
-	assert(tmp->baton != NULL);
+	assert(tmp->groupi != NULL);
 #endif
 
 	if (!tmp->isActive) {
 #ifdef WITH_MPI
-		    (void) PMPIO_WaitForBaton(tmp->baton,
-		                              tmp->fileNames[tmp->curOutFile],
-		                              NULL);
+		    (void) groupi_acquire(tmp->groupi);
 #else
-		(void)local_createFile(tmp->fileNames[tmp->curOutFile], NULL, tmp);
+		local_setFileNameInGrafic(tmp);
+		local_createEmptyGraficFile(tmp);
 #endif
 		tmp->isActive = true;
 	}
@@ -206,14 +198,12 @@ gridWriterGrafic_deactivate(gridWriter_t writer)
 	assert(tmp != NULL);
 	assert(tmp->type == IO_TYPE_GRAFIC);
 #ifdef WITH_MPI
-	assert(tmp->baton != NULL);
+	assert(tmp->groupi != NULL);
 #endif
 
 	if (tmp->isActive) {
 #ifdef WITH_MPI
-		PMPIO_HandOffBaton(tmp->baton, tmp);
-#else
-		local_closeFile(tmp, tmp);
+		groupi_release(tmp->groupi);
 #endif
 		tmp->isActive    = false;
 		tmp->curOutFile++;
@@ -243,7 +233,7 @@ gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
 	assert(patch != NULL);
 	assert(patchName != NULL);
 
-	if (patchName == NULL || origin == NULL || delta == NULL)
+	if ((patchName == NULL) || (origin == NULL) || (delta == NULL))
 		;
 
 	gridPatch_getIdxLo(patch, idxLo);
@@ -278,21 +268,13 @@ extern void
 gridWriterGrafic_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 {
 	gridWriterGrafic_t tmp = (gridWriterGrafic_t)writer;
-	int                rank;
 
 	assert(tmp != NULL);
 	assert(tmp->type == IO_TYPE_GRAFIC);
 
-	MPI_Comm_rank(mpiComm, &rank);
-
-	tmp->baton = PMPIO_Init(1, PMPIO_WRITE, mpiComm,
-	                        LOCAL_MPI_TAG,
-	                        &local_createFile, &local_openFile,
-	                        &local_closeFile, (void *)tmp);
-
-	tmp->groupRank   = PMPIO_GroupRank(tmp->baton, rank);
-	tmp->rankInGroup = PMPIO_RankInGroup(tmp->baton, rank);
-	tmp->globalRank  = rank;
+	tmp->groupi = groupi_new(1, mpiComm, LOCAL_MPI_TAG,
+	                         GROUPI_MODE_BLOCK);
+	groupi_registerAcquireFunc(tmp->groupi, &local_acquireFunc, tmp);
 }
 
 #endif
@@ -311,49 +293,17 @@ local_getFileNames(const char *prefix, int numFiles)
 	return fnames;
 }
 
-static void *
-local_createFile(const char *fname, const char *dname, void *udata)
+inline static void
+local_setFileNameInGrafic(gridWriterGrafic_t writer)
 {
-	gridWriterGrafic_t writer = (gridWriterGrafic_t)udata;
-
-	if (fname != NULL || dname != NULL)
-		; // Only used to swat compiler warning
-
 	grafic_setFileName(writer->grafic,
 	                   writer->fileNames[writer->curOutFile]);
+}
+
+inline static void
+local_createEmptyGraficFile(gridWriterGrafic_t writer)
+{
 	grafic_makeEmptyFile(writer->grafic);
-
-	return writer;
-}
-
-#ifdef WITH_MPI
-static void *
-local_openFile(const char     *fname,
-               const char     *dname,
-               PMPIO_iomode_t iomode,
-               void           *udata)
-{
-	gridWriterGrafic_t writer = (gridWriterGrafic_t)udata;
-
-	if (fname != NULL || dname != NULL)
-		; // Only used to swat compiler warning
-
-	if (iomode == PMPIO_READ) {
-		diediedie(EXIT_FAILURE);
-	}
-
-	grafic_setFileName(writer->grafic, writer->fileNames[writer->curOutFile]);
-
-	return writer;
-}
-
-#endif
-
-static void
-local_closeFile(void *file, void *udata)
-{
-	if (file != NULL || udata != NULL)
-		; // Only used to swat compiler warning
 }
 
 static graficFormat_t
@@ -376,3 +326,23 @@ local_getGraficTypeFromGridType(const gridVar_t var)
 
 	return varType;
 }
+
+#ifdef WITH_MPI
+static void *
+local_acquireFunc(int seqId, int seqNum, int seqLen, void *data)
+{
+	gridWriterGrafic_t writer = (gridWriterGrafic_t)data;
+
+	assert(writer != NULL);
+
+	if ((seqId < 0) || (seqNum < 0) || (seqLen < 0))
+		; // Only used to swat compiler warnings.
+
+	local_setFileNameInGrafic(writer);
+	if (groupi_isFirstInGroup(writer->groupi))
+		local_createEmptyGraficFile(writer);
+
+	return writer;
+}
+
+#endif

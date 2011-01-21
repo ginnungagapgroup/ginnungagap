@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
-#  include <pmpio.h>
+#  include "../libutil/groupi.h"
 #endif
 #include "../libutil/grafic.h"
 
@@ -19,15 +19,12 @@
 /*--- ADT implementation ------------------------------------------------*/
 struct gridWriterGrafic_struct {
 	GRIDWRITER_T_CONTENT
-	grafic_t      grafic;
-	int           numOutFiles;
-	int           curOutFile;
-	char          **fileNames;
+	grafic_t grafic;
+	int      numOutFiles;
+	int      curOutFile;
+	char     **fileNames;
 #ifdef WITH_MPI
-	PMPIO_baton_t *baton;
-	int           groupRank;
-	int           rankInGroup;
-	int           globalRank;
+	groupi_t groupi;
 #endif
 };
 
