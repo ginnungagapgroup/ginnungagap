@@ -9,13 +9,17 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <inttypes.h>
+#include <math.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
 #include "../../src/libgrid/gridRegular.h"
 #include "../../src/libgrid/gridRegularDistrib.h"
+#include "../../src/libgrid/gridWriter.h"
+#include "../../src/libgrid/gridPatch.h"
+#include "../../src/libgrid/gridVar.h"
 #include "../../src/libutil/xmem.h"
-#include "../../src/libutil/xfile.h"
+#include "../../src/libutil/timer.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -33,13 +37,22 @@ inline static void
 local_createEmptyMask(makeMask_t mama);
 
 inline static void
-local_markHighResRegions(makeMask_t mama);
-
-inline static void
-local_markLowResRegions(makeMask_t mama);
+local_markRegions(makeMask_t mama);
 
 inline static void
 local_writeMask(makeMask_t mama);
+
+inline static uint8_t *
+local_createDegradeShape(uint32_t shapeDim1D);
+
+inline static void
+local_throwShapeOnMask(fpv_t             *maskData,
+                       gridPointUint32_t hiResCellIdxG,
+                       const uint8_t     *shape,
+                       uint32_t          shapeDim1D,
+                       gridPointUint32_t idxLo,
+                       gridPointUint32_t dimsPatch,
+                       gridPointUint32_t dimsGrid);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -56,6 +69,10 @@ makeMask_newFromIni(parse_ini_t ini, const char *maskSectionName)
 	mama->setup   = makeMaskSetup_newFromIni(ini, maskSectionName);
 	mama->grid    = local_getGrid(mama);
 	mama->distrib = local_getDistrib(mama);
+	mama->writer  = gridWriter_newFromIni(ini, mama->setup->outSecName);
+#ifdef WITH_MPI
+	gridWriter_initParallel(mama->writer, MPI_COMM_WORLD);
+#endif
 
 	return mama;
 }
@@ -66,8 +83,7 @@ makeMask_run(makeMask_t mama)
 	assert(mama != NULL);
 
 	local_createEmptyMask(mama);
-	local_markHighResRegions(mama);
-	local_markLowResRegions(mama);
+	local_markRegions(mama);
 	local_writeMask(mama);
 }
 
@@ -80,6 +96,7 @@ makeMask_del(makeMask_t *mama)
 	makeMaskSetup_del(&((*mama)->setup));
 	gridRegularDistrib_del(&((*mama)->distrib));
 	gridRegular_del(&((*mama)->grid));
+	gridWriter_del(&((*mama)->writer));
 	xfree(*mama);
 
 	*mama = NULL;
@@ -91,14 +108,11 @@ local_getGrid(makeMask_t mama)
 {
 	gridPointDbl_t    origin, extent;
 	gridPointUint32_t dims;
-	uint32_t          baseGridSize1D;
-
-	baseGridSize1D = makeMaskSetup_getBaseGridSize1D(mama->setup);
 
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
-		extent[i] = (double)baseGridSize1D;
-		dims[i]   = baseGridSize1D;
+		extent[i] = (double)(mama->setup->baseGridSize1D);
+		dims[i]   = mama->setup->baseGridSize1D;
 	}
 
 	return gridRegular_new("MaskGrid", origin, extent, dims);
@@ -107,12 +121,12 @@ local_getGrid(makeMask_t mama)
 inline static gridRegularDistrib_t
 local_getDistrib(makeMask_t mama)
 {
-	gridPointInt_t       nProcs;
 	gridRegularDistrib_t distrib;
 
-	distrib = gridRegularDistrib_new(mama->grid, nProcs);
+	distrib = gridRegularDistrib_new(mama->grid, NULL);
 #ifdef WITH_MPI
-	gridRegularDistrib_initMPI(distrib, nProcs, MPI_COMM_WORLD);
+	gridRegularDistrib_initMPI(distrib,
+	                           mama->setup->nProcs, MPI_COMM_WORLD);
 #endif
 
 	return distrib;
@@ -121,19 +135,125 @@ local_getDistrib(makeMask_t mama)
 inline static void
 local_createEmptyMask(makeMask_t mama)
 {
+	int         rank = 0;
+	gridPatch_t patch;
+	gridVar_t   var  = gridVar_new("Mask", GRIDVARTYPE_FPV, 1);
+	fpv_t       *maskData;
+
+#ifdef WITH_MPI
+	rank  = gridRegularDistrib_getLocalRank(mama->distrib);
+#endif
+	patch = gridRegularDistrib_getPatchForRank(mama->distrib, rank);
+	gridRegular_attachPatch(mama->grid, patch);
+	gridRegular_attachVar(mama->grid, var);
+
+	maskData = gridPatch_getVarDataHandle(patch, 0);
+	for (uint64_t i = 0; i < gridPatch_getNumCellsActual(patch, 0); i++) {
+		maskData[i] = (fpv_t)0;
+	}
 }
 
 inline static void
-local_markHighResRegions(makeMask_t mama)
+local_markRegions(makeMask_t mama)
 {
-}
+	gridPointUint32_t dimsGrid, dimsPatch, idxLo;
+	gridPatch_t       patch;
+	fpv_t             *maskData;
+	uint32_t          shapeDim1D;
+	uint8_t           *shape;
 
-inline static void
-local_markLowResRegions(makeMask_t mama)
-{
+	gridRegular_getDims(mama->grid, dimsGrid);
+	patch = gridRegular_getPatchHandle(mama->grid, 0);
+	gridPatch_getDims(patch, dimsPatch);
+	gridPatch_getIdxLo(patch, idxLo);
+	maskData   = gridPatch_getVarDataHandle(patch, 0);
+
+	shapeDim1D = 2 * (mama->setup->numLevels - 2) + 1;
+	shape      = local_createDegradeShape(shapeDim1D);
+
+	for (int i = 0; i < 1; i++) {
+		gridPointUint32_t hiResCellIdxG = { 6, 6, 6 };
+		local_throwShapeOnMask(maskData, hiResCellIdxG,
+		                       shape, shapeDim1D,
+		                       idxLo, dimsPatch, dimsGrid);
+	}
 }
 
 inline static void
 local_writeMask(makeMask_t mama)
 {
+	double timing;
+
+	timing = timer_start("  Writing mask to file");
+	gridWriter_activate(mama->writer);
+	gridWriter_writeGridRegular(mama->writer, mama->grid);
+	gridWriter_deactivate(mama->writer);
+	timing = timer_stop(timing);
 }
+
+inline static uint8_t *
+local_createDegradeShape(uint32_t shapeDim1D)
+{
+	uint8_t *shape;
+	int     extent = shapeDim1D / 2;
+	int     idx    = 0;
+	FILE    *f;
+
+	shape = xmalloc(sizeof(uint8_t) * (POW_NDIM(extent * 2 + 1)));
+
+	for (int k = -extent; k <= extent; k++) {
+		for (int j = -extent; j <= extent; j++) {
+			for (int i = -extent; i <= extent; i++) {
+				int dist = floor(sqrt(k * k + j * j + i * i));
+				shape[idx++] = (uint8_t)(dist < extent + 1
+				                         ? extent + 1 - dist : 0);
+			}
+		}
+	}
+
+	f = fopen("shape.dat", "wb");
+	fwrite(shape, sizeof(int8_t), (POW_NDIM(extent * 2 + 1)), f);
+	fclose(f);
+
+	return shape;
+}
+
+inline static void
+local_throwShapeOnMask(fpv_t             *maskData,
+                       gridPointUint32_t hiResCellIdxG,
+                       const uint8_t     *shape,
+                       uint32_t          shapeDim1D,
+                       gridPointUint32_t idxLo,
+                       gridPointUint32_t dimsPatch,
+                       gridPointUint32_t dimsGrid)
+{
+	uint32_t iSG, jSG, kSG; // position of shape (S) in grid coordinates (G)
+	int32_t  iSM, jSM, kSM; // position of shape (S) in map coordinates (M)
+	int32_t  shapeExtent = shapeDim1D / 2;
+	uint64_t idxS, idxM;
+
+	for (int32_t k = -shapeExtent; k <= shapeExtent; k++) {
+		kSG = (hiResCellIdxG[2] + k + dimsGrid[2]) % dimsGrid[2];
+		kSM = kSG - idxLo[2];
+		if (kSM < 0 || kSM >= dimsPatch[2])
+			continue;
+		for (int32_t j = -shapeExtent; j <= shapeExtent; j++) {
+			jSG = (hiResCellIdxG[1] + j + dimsGrid[1]) % dimsGrid[1];
+			jSM = jSG - idxLo[1];
+			if (jSM < 0 || jSM >= dimsPatch[1])
+				continue;
+			for (int32_t i = -shapeExtent; i <= shapeExtent; i++) {
+				iSG = (hiResCellIdxG[0] + i + dimsGrid[0]) % dimsGrid[0];
+				iSM = iSG - idxLo[0];
+				if (iSM < 0 || iSM >= dimsPatch[0])
+					continue;
+				idxS = (i + shapeExtent)
+				       + (j + shapeExtent) * shapeDim1D
+				       + (k + shapeExtent) * shapeDim1D * shapeDim1D;
+				idxM = iSM + (jSM + kSM * dimsPatch[1]) * dimsPatch[0];
+				if (maskData[idxM] < shape[idxS])
+					maskData[idxM] = shape[idxS];
+			}
+		}
+	}
+} /* local_throwShapeOnMask */

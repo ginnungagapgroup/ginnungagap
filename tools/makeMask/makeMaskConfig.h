@@ -10,4 +10,8 @@
 #include "../../config.h"
 
 
+/*--- Defines -----------------------------------------------------------*/
+#define MAKEMASK_SECTIONNAME_MASK   "Mask"
+#define MAKEMASK_SECTIONNAME_WRITER "MaskOutput"
+
 #endif

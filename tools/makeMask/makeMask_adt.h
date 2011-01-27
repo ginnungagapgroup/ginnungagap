@@ -11,6 +11,7 @@
 #include "makeMaskSetup.h"
 #include "../../src/libgrid/gridRegular.h"
 #include "../../src/libgrid/gridRegularDistrib.h"
+#include "../../src/libgrid/gridWriter.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -18,6 +19,7 @@ struct makeMask_struct {
 	makeMaskSetup_t      setup;
 	gridRegular_t        grid;
 	gridRegularDistrib_t distrib;
+	gridWriter_t         writer;
 };
 
 

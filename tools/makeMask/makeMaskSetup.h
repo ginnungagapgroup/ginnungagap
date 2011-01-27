@@ -15,6 +15,19 @@
 typedef struct makeMaskSetup_struct *makeMaskSetup_t;
 
 
+/*--- Implemention of main structure ------------------------------------*/
+struct makeMaskSetup_struct {
+	uint32_t baseGridSize1D;
+	uint32_t numLevels;
+	uint32_t refinementFactor;
+	char     *outFileName;
+	char     *outSecName;
+#ifdef WITH_MPI
+	int      nProcs[NDIM];
+#endif
+};
+
+
 /*--- Prototypes of exported functions ----------------------------------*/
 extern makeMaskSetup_t
 makeMaskSetup_newFromIni(parse_ini_t ini, const char *maskSectionName);
@@ -25,5 +38,7 @@ makeMaskSetup_del(makeMaskSetup_t *setup);
 extern uint32_t
 makeMaskSetup_getBaseGridSize1D(const makeMaskSetup_t setup);
 
+extern char *
+makeMaskSetup_getOutSecName(const makeMaskSetup_t setup);
 
 #endif

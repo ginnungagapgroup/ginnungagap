@@ -9,13 +9,17 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "../../src/libutil/xmem.h"
-
-
-/*--- Implemention of main structure ------------------------------------*/
-#include "makeMaskSetup_adt.h"
+#include "../../src/libutil/xstring.h"
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+#ifdef WITH_MPI
+static void
+local_parseMPIStuff(makeMaskSetup_t setup,
+                    parse_ini_t     ini,
+                    const char      *maskSectionName);
+
+#endif
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -37,6 +41,12 @@ makeMaskSetup_newFromIni(parse_ini_t ini, const char *maskSectionName)
 	           ini, "refinementFactor", maskSectionName);
 	getFromIni(&(setup->outFileName), parse_ini_get_string,
 	           ini, "outFileName", maskSectionName);
+	if (!parse_ini_get_string(ini, "outSecName", maskSectionName,
+	                          &(setup->outSecName)))
+		setup->outSecName = xstrdup(MAKEMASK_SECTIONNAME_WRITER);
+#ifdef WITH_MPI
+	local_parseMPIStuff(setup, ini, maskSectionName);
+#endif
 
 	return setup;
 }
@@ -49,18 +59,31 @@ makeMaskSetup_del(makeMaskSetup_t *setup)
 
 	if ((*setup)->outFileName != NULL)
 		xfree((*setup)->outFileName);
+	if ((*setup)->outSecName != NULL)
+		xfree((*setup)->outSecName);
 	xfree(*setup);
 
 	*setup = NULL;
 }
 
-extern uint32_t
-makeMaskSetup_getBaseGridSize1D(const makeMaskSetup_t setup)
-{
-	assert(setup != NULL);
-
-	return setup->baseGridSize1D;
-}
-
-
 /*--- Implementations of local functions --------------------------------*/
+#ifdef WITH_MPI
+static void
+local_parseMPIStuff(makeMaskSetup_t setup,
+                    parse_ini_t     ini,
+                    const char      *maskSectionName)
+{
+	int32_t *nProcs;
+	bool    rtn;
+
+	rtn = parse_ini_get_int32list(ini, "nProcs", maskSectionName,
+	                              NDIM, &nProcs);
+	if (!rtn) {
+		fprintf(stderr, "Could not get nProcs from section MPI.\n");
+		exit(EXIT_FAILURE);
+	}
+	for (int i = 0; i < NDIM; i++)
+		setup->nProcs[i] = (int)(nProcs[i]);
+	xfree(nProcs);
+}
+#endif

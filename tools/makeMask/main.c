@@ -6,12 +6,16 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "../../config.h"
 #include "../../version.h"
+#include "makeMaskConfig.h"
 #include "makeMask.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/xstring.h"
 #include "../../src/libutil/cmdline.h"
@@ -19,8 +23,7 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
-#define THIS_PROGNAME     "makeMask"
-#define LOCAL_SECTIONNAME "Mask"
+#define THIS_PROGNAME "makeMask"
 
 
 /*--- Local variables ---------------------------------------------------*/
@@ -73,13 +76,17 @@ local_initEnvironment(int *argc, char ***argv)
 {
 	cmdline_t cmdline;
 
+#ifdef WITH_MPI
+	MPI_Init(argc, argv);
+#endif
+
 	cmdline = local_cmdlineSetup();
 	cmdline_parse(cmdline, *argc, *argv);
 	local_checkForPrematureTermination(cmdline);
 	if (cmdline_checkOptSetByNum(cmdline, 2))
 		cmdline_getOptValueByNum(cmdline, 2, &localSectionName);
 	else
-		localSectionName = xstrdup(LOCAL_SECTIONNAME);
+		localSectionName = xstrdup(MAKEMASK_SECTIONNAME_MASK);
 	cmdline_getArgValueByNum(cmdline, 0, &localIniFileName);
 	cmdline_del(&cmdline);
 }
@@ -102,16 +109,23 @@ local_registerCleanUpFunctions(void)
 static void
 local_finalMessage(void)
 {
+	int rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Finalize();
+#endif
 	if (localSectionName != NULL)
 		xfree(localSectionName);
 	if (localIniFileName != NULL)
 		xfree(localIniFileName);
+	if (rank == 0) {
 #ifdef XMEM_TRACK_MEM
-	printf("\n");
-	xmem_info(stdout);
-	printf("\n");
+		printf("\n");
+		xmem_info(stdout);
+		printf("\n");
 #endif
-	printf("\nVertu sæl/sæll...\n");
+		printf("\nVertu sæl/sæll...\n");
+	}
 }
 
 static void
