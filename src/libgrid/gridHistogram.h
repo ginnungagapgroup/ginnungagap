@@ -41,5 +41,8 @@ gridHistogram_calcGridRegularDistrib(gridHistogram_t            histo,
                                      const gridRegularDistrib_t distrib,
                                      int                        idxOfVar);
 
+extern uint32_t
+gridHistogram_getCountInBin(const gridHistogram_t histo, uint32_t bin);
+
 
 #endif

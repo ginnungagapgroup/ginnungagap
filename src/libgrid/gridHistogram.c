@@ -134,6 +134,15 @@ gridHistogram_calcGridRegularDistrib(gridHistogram_t            histo,
 	                      NULL, idxOfVar);
 }
 
+extern uint32_t
+gridHistogram_getCountInBin(const gridHistogram_t histo, uint32_t bin)
+{
+	assert(histo != NULL);
+	assert(bin < histo->numBins);
+
+	return histo->binCounts[bin];
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static gridHistogram_t
 local_mallocHistogram(uint32_t numBins)

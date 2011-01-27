@@ -18,6 +18,7 @@
 #include "../../src/libgrid/gridWriter.h"
 #include "../../src/libgrid/gridPatch.h"
 #include "../../src/libgrid/gridVar.h"
+#include "../../src/libgrid/gridHistogram.h"
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/timer.h"
 
@@ -41,6 +42,9 @@ local_markRegions(makeMask_t mama);
 
 inline static void
 local_writeMask(makeMask_t mama);
+
+inline static void
+local_doHistogram(makeMask_t mama);
 
 inline static uint8_t *
 local_createDegradeShape(uint32_t shapeDim1D);
@@ -92,9 +96,8 @@ makeMask_run(makeMask_t mama)
 	local_markRegions(mama);
 	timing = timer_stop(timing);
 
-	timing = timer_start("  Writing mask to file");
 	local_writeMask(mama);
-	timing = timer_stop(timing);
+	local_doHistogram(mama);
 }
 
 extern void
@@ -202,9 +205,45 @@ local_markRegions(makeMask_t mama)
 inline static void
 local_writeMask(makeMask_t mama)
 {
+	double timing;
+
+	timing = timer_start("  Writing mask to file");
 	gridWriter_activate(mama->writer);
 	gridWriter_writeGridRegular(mama->writer, mama->grid);
 	gridWriter_deactivate(mama->writer);
+	timing = timer_stop(timing);
+}
+
+inline static void
+local_doHistogram(makeMask_t mama)
+{
+	double          timing;
+	gridHistogram_t histo;
+	int             rank = 0;
+
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	timing = timer_start("  Generating histogram");
+	histo  = gridHistogram_new(mama->setup->numLevels, -0.5,
+	                           mama->setup->numLevels - 0.5);
+	gridHistogram_calcGridRegularDistrib(histo, mama->distrib, 0);
+	timing = timer_stop(timing);
+	if (rank == 0) {
+		uint64_t numTotalParts = 0;
+		int particleMult = 1;
+		for (uint32_t i=0; i<mama->setup->numLevels; i++) {
+			uint32_t numInBin = gridHistogram_getCountInBin(histo, i+1);
+			printf("    level %1u: %8u (%10u particles)\n",
+			       i, numInBin, numInBin * particleMult);
+			numTotalParts += numInBin * particleMult;
+			particleMult *= POW_NDIM(mama->setup->refinementFactor);
+		}
+		printf("      -->  total of %10lu particles\n", numTotalParts);
+	}
+
+	gridHistogram_del(&histo);
 }
 
 inline static uint8_t *
