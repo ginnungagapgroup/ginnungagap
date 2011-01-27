@@ -39,8 +39,13 @@ makeMaskSetup_newFromIni(parse_ini_t ini, const char *maskSectionName)
 	           ini, "numLevels", maskSectionName);
 	getFromIni(&(setup->refinementFactor), parse_ini_get_uint32,
 	           ini, "refinementFactor", maskSectionName);
-	getFromIni(&(setup->outFileName), parse_ini_get_string,
-	           ini, "outFileName", maskSectionName);
+	getFromIni(&(setup->baseRefinementLevel), parse_ini_get_uint32,
+	           ini, "baseRefinementLevel", maskSectionName);
+	if (setup->refinementFactor >= setup->numLevels) {
+		fprintf(stderr,
+		        "baseRefinementLevel must be smaller than numLevels\n");
+		exit(EXIT_FAILURE);
+	}
 	if (!parse_ini_get_string(ini, "outSecName", maskSectionName,
 	                          &(setup->outSecName)))
 		setup->outSecName = xstrdup(MAKEMASK_SECTIONNAME_WRITER);
@@ -57,8 +62,6 @@ makeMaskSetup_del(makeMaskSetup_t *setup)
 	assert(setup != NULL);
 	assert(*setup != NULL);
 
-	if ((*setup)->outFileName != NULL)
-		xfree((*setup)->outFileName);
 	if ((*setup)->outSecName != NULL)
 		xfree((*setup)->outSecName);
 	xfree(*setup);

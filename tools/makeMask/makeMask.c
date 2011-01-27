@@ -80,11 +80,21 @@ makeMask_newFromIni(parse_ini_t ini, const char *maskSectionName)
 extern void
 makeMask_run(makeMask_t mama)
 {
+	double timing;
+
 	assert(mama != NULL);
 
+	timing = timer_start("  Generating empty mask");
 	local_createEmptyMask(mama);
+	timing = timer_stop(timing);
+
+	timing = timer_start("  Marking refinement levels");
 	local_markRegions(mama);
+	timing = timer_stop(timing);
+
+	timing = timer_start("  Writing mask to file");
 	local_writeMask(mama);
+	timing = timer_stop(timing);
 }
 
 extern void
@@ -148,8 +158,11 @@ local_createEmptyMask(makeMask_t mama)
 	gridRegular_attachVar(mama->grid, var);
 
 	maskData = gridPatch_getVarDataHandle(patch, 0);
+#ifdef _OPENMP
+#  pragma omp parallel for shared(maskData, patch, mama)
+#endif
 	for (uint64_t i = 0; i < gridPatch_getNumCellsActual(patch, 0); i++) {
-		maskData[i] = (fpv_t)0;
+		maskData[i] = (fpv_t)(mama->setup->baseRefinementLevel);
 	}
 }
 
@@ -171,24 +184,27 @@ local_markRegions(makeMask_t mama)
 	shapeDim1D = 2 * (mama->setup->numLevels - 2) + 1;
 	shape      = local_createDegradeShape(shapeDim1D);
 
-	for (int i = 0; i < 1; i++) {
-		gridPointUint32_t hiResCellIdxG = { 6, 6, 6 };
-		local_throwShapeOnMask(maskData, hiResCellIdxG,
-		                       shape, shapeDim1D,
-		                       idxLo, dimsPatch, dimsGrid);
+	for (int i = 0; i < 51; i++) {
+		for (int j = 0; j < 31; j++) {
+			for (int k = 0; k < 31; k++) {
+				gridPointUint32_t hiResCellIdxG;
+				hiResCellIdxG[0] = (50 + i) % 256;
+				hiResCellIdxG[1] = (110 + j) % 256;
+				hiResCellIdxG[2] = (250 + k) % 256;
+				local_throwShapeOnMask(maskData, hiResCellIdxG,
+				                       shape, shapeDim1D,
+				                       idxLo, dimsPatch, dimsGrid);
+			}
+		}
 	}
 }
 
 inline static void
 local_writeMask(makeMask_t mama)
 {
-	double timing;
-
-	timing = timer_start("  Writing mask to file");
 	gridWriter_activate(mama->writer);
 	gridWriter_writeGridRegular(mama->writer, mama->grid);
 	gridWriter_deactivate(mama->writer);
-	timing = timer_stop(timing);
 }
 
 inline static uint8_t *
@@ -204,7 +220,7 @@ local_createDegradeShape(uint32_t shapeDim1D)
 	for (int k = -extent; k <= extent; k++) {
 		for (int j = -extent; j <= extent; j++) {
 			for (int i = -extent; i <= extent; i++) {
-				int dist = floor(sqrt(k * k + j * j + i * i));
+				int dist = (int)floor(sqrt(k * k + j * j + i * i));
 				shape[idx++] = (uint8_t)(dist < extent + 1
 				                         ? extent + 1 - dist : 0);
 			}
@@ -235,25 +251,26 @@ local_throwShapeOnMask(fpv_t             *maskData,
 	for (int32_t k = -shapeExtent; k <= shapeExtent; k++) {
 		kSG = (hiResCellIdxG[2] + k + dimsGrid[2]) % dimsGrid[2];
 		kSM = kSG - idxLo[2];
-		if (kSM < 0 || kSM >= dimsPatch[2])
+		if ((kSM < 0) || (kSM >= dimsPatch[2]))
 			continue;
 		for (int32_t j = -shapeExtent; j <= shapeExtent; j++) {
 			jSG = (hiResCellIdxG[1] + j + dimsGrid[1]) % dimsGrid[1];
 			jSM = jSG - idxLo[1];
-			if (jSM < 0 || jSM >= dimsPatch[1])
+			if ((jSM < 0) || (jSM >= dimsPatch[1]))
 				continue;
 			for (int32_t i = -shapeExtent; i <= shapeExtent; i++) {
 				iSG = (hiResCellIdxG[0] + i + dimsGrid[0]) % dimsGrid[0];
 				iSM = iSG - idxLo[0];
-				if (iSM < 0 || iSM >= dimsPatch[0])
+				if ((iSM < 0) || (iSM >= dimsPatch[0]))
 					continue;
 				idxS = (i + shapeExtent)
 				       + (j + shapeExtent) * shapeDim1D
 				       + (k + shapeExtent) * shapeDim1D * shapeDim1D;
 				idxM = iSM + (jSM + kSM * dimsPatch[1]) * dimsPatch[0];
-				if (maskData[idxM] < shape[idxS])
+				if (maskData[idxM] < shape[idxS]) {
 					maskData[idxM] = shape[idxS];
+				}
 			}
 		}
 	}
-} /* local_throwShapeOnMask */
+}

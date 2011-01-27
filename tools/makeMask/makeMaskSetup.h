@@ -20,7 +20,7 @@ struct makeMaskSetup_struct {
 	uint32_t baseGridSize1D;
 	uint32_t numLevels;
 	uint32_t refinementFactor;
-	char     *outFileName;
+	uint32_t baseRefinementLevel;
 	char     *outSecName;
 #ifdef WITH_MPI
 	int      nProcs[NDIM];
