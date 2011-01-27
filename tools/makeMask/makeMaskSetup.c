@@ -41,7 +41,7 @@ makeMaskSetup_newFromIni(parse_ini_t ini, const char *maskSectionName)
 	           ini, "refinementFactor", maskSectionName);
 	getFromIni(&(setup->baseRefinementLevel), parse_ini_get_uint32,
 	           ini, "baseRefinementLevel", maskSectionName);
-	if (setup->refinementFactor >= setup->numLevels) {
+	if (setup->baseRefinementLevel >= setup->numLevels) {
 		fprintf(stderr,
 		        "baseRefinementLevel must be smaller than numLevels\n");
 		exit(EXIT_FAILURE);
