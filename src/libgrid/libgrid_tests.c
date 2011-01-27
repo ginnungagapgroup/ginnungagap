@@ -11,6 +11,7 @@
 #include "gridVar_tests.h"
 #include "gridVarType_tests.h"
 #include "gridUtil_tests.h"
+#include "gridHistogram_tests.h"
 #include "gridStatistics_tests.h"
 #include "gridIO_tests.h"
 #include "gridReader_tests.h"
@@ -204,6 +205,22 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegularFFT_del_test, hasFailed);
 	RUNTEST(&gridRegularFFT_getNorm_test, hasFailed);
 	RUNTEST(&gridRegularFFT_execute_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
+
+	if (rank == 0) {
+		printf("\nRunning tests for gridHistogram:\n");
+	}
+	RUNTEST(&gridHistogram_new_test, hasFailed);
+	RUNTEST(&gridHistogram_del_test, hasFailed);
+	RUNTEST(&gridHistogram_calcGridPatch_test, hasFailed);
+	RUNTEST(&gridHistogram_calcGridRegular_test, hasFailed);
+#ifdef WITH_MPI
+	RUNTEST(&gridHistogram_calcGridRegularDistrib_test, hasFailed);
+#endif
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
