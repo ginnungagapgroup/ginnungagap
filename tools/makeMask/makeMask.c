@@ -232,13 +232,16 @@ local_doHistogram(makeMask_t mama)
 	timing = timer_stop(timing);
 	if (rank == 0) {
 		uint64_t numTotalParts = 0;
-		int particleMult = 1;
-		for (uint32_t i=0; i<mama->setup->numLevels; i++) {
-			uint32_t numInBin = gridHistogram_getCountInBin(histo, i+1);
-			printf("    level %1u: %8u (%10u particles)\n",
-			       i, numInBin, numInBin * particleMult);
+		int      particleMult  = 1;
+		int      gridMult      = 1;
+		for (uint32_t i = 0; i < mama->setup->numLevels; i++) {
+			uint32_t numInBin = gridHistogram_getCountInBin(histo, i + 1);
+			printf("    level %1u (%5u^%i): %10u (%10u particles)\n",
+			       i, mama->setup->baseGridSize1D * gridMult, NDIM,
+			       numInBin, numInBin * particleMult);
 			numTotalParts += numInBin * particleMult;
-			particleMult *= POW_NDIM(mama->setup->refinementFactor);
+			particleMult  *= POW_NDIM(mama->setup->refinementFactor);
+			gridMult      *= mama->setup->refinementFactor;
 		}
 		printf("      -->  total of %10lu particles\n", numTotalParts);
 	}
