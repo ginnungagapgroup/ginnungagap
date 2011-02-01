@@ -64,6 +64,8 @@ endif
 tests-clean:
 	rm -f lib${LIBNAME}_tests $(sourcesTests:.c=.o) 
 	rm -rf siloTest*
+	rm -rf transposeTest*
+	rm -rf fftTest*
 
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
