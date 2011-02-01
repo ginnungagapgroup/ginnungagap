@@ -8,6 +8,7 @@
 #include "gridHistogram.h"
 #include <assert.h>
 #include <math.h>
+#include <inttypes.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
@@ -73,7 +74,7 @@ gridHistogram_new(uint32_t numBins, double min, double max)
 	delta               = (max - min) / numBins;
 	histo->binLimits[0] = -HUGE_VAL;
 	for (int i = 1; i < histo->numBins - 1; i++)
-		histo->binLimits[i] = min + (i-1) * delta;
+		histo->binLimits[i] = min + (i - 1) * delta;
 	histo->binLimits[histo->numBins - 1] = max;
 	histo->binLimits[histo->numBins]     = HUGE_VAL;
 
@@ -141,6 +142,59 @@ gridHistogram_getCountInBin(const gridHistogram_t histo, uint32_t bin)
 	assert(bin < histo->numBins);
 
 	return histo->binCounts[bin];
+}
+
+extern double
+gridHistogram_getBinLimitLeft(const gridHistogram_t histo, uint32_t bin)
+{
+	assert(histo != NULL);
+	assert(bin < histo->numBins);
+
+	return histo->binLimits[bin];
+}
+
+extern double
+gridHistogram_getBinLimitRight(const gridHistogram_t histo, uint32_t bin)
+{
+	assert(histo != NULL);
+	assert(bin < histo->numBins);
+
+	return histo->binLimits[bin + 1];
+}
+
+extern void
+gridHistogram_printPretty(const gridHistogram_t histo,
+                          FILE                  *out,
+                          const char            *prefix)
+{
+	assert(histo != NULL);
+	assert(out != NULL);
+
+	for (uint32_t i = 0; i < histo->numBins; i++) {
+		fprintf(out, "%s %15e %15e %" PRIu32 "\n",
+		        prefix != NULL ? prefix : "",
+		        gridHistogram_getBinLimitLeft(histo, i),
+		        gridHistogram_getBinLimitRight(histo, i),
+		        gridHistogram_getCountInBin(histo, i));
+	}
+}
+
+extern void
+gridHistogram_printPrettyFile(const gridHistogram_t histo,
+                              const char            *outFileName,
+                              bool                  append,
+                              const char            *prefix)
+{
+	FILE *f;
+
+	if (xfile_checkIfFileExists(outFileName) && append)
+		f = xfopen(outFileName, "a");
+	else
+		f = xfopen(outFileName, "w");
+
+	gridHistogram_printPretty(histo, f, prefix);
+
+	xfclose(&f);
 }
 
 /*--- Implementations of local functions --------------------------------*/
