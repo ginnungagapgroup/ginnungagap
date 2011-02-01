@@ -10,6 +10,7 @@
 #include "util_config.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
@@ -99,5 +100,15 @@ xfseek(FILE *stream, long offset, int whence);
 extern int
 xfile_createFileWithSize(const char *fname, size_t bytes);
 
+/**
+ * \brief  Check whether a file exists.
+ *
+ * \param *fname  The name of the file whose existance should be
+ *                checked.
+ *
+ * \returns Returns true if the file exists and false if not.
+ */
+extern bool
+xfile_checkIfFileExists(const char *fname);
 
 #endif
