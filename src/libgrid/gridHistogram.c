@@ -18,6 +18,7 @@
 #include "gridRegular.h"
 #include "gridRegularDistrib.h"
 #include "../libutil/xmem.h"
+#include "../libutil/xfile.h"
 #include "../libutil/diediedie.h"
 
 
