@@ -108,7 +108,8 @@ local_parseMPIStuff(makeMaskSetup_t setup,
 	rtn = parse_ini_get_int32list(ini, "nProcs", maskSectionName,
 	                              NDIM, &nProcs);
 	if (!rtn) {
-		fprintf(stderr, "Could not get nProcs from section MPI.\n");
+		fprintf(stderr, "Could not get nProcs from section %s.\n",
+		        maskSectionName);
 		exit(EXIT_FAILURE);
 	}
 	for (int i = 0; i < NDIM; i++)
