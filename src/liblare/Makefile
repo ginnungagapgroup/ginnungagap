@@ -9,6 +9,9 @@ include ../../Makefile.config
 .PHONY: all clean dist-clean tests tests-clean
 
 sources = lare.c \
+          lareIO.c \
+          lareReader.c \
+          lareReaderLegacy.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
                lare_tests.c
