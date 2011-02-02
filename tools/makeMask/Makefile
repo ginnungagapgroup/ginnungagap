@@ -5,6 +5,7 @@
 include ../../Makefile.config
 
 .PHONY: all clean tests tests-clean dist-clean \
+        ../../src/liblare/liblare.a \
         ../../src/libgrid/libgrid.a \
         ../../src/libutil/libutil.a
 
@@ -33,15 +34,20 @@ dist-clean:
 	rm -f $(sources:.c=.d)
 
 $(progName): $(sources:.c=.o) \
+                     ../../src/liblare/liblare.a \
                      ../../src/libgrid/libgrid.a \
 	                 ../../src/libutil/libutil.a
 	$(CC) $(LDFLAGS) $(CFLAGS) \
 	  -o $(progName) $(sources:.c=.o) \
+                     ../../src/liblare/liblare.a \
 	                 ../../src/libgrid/libgrid.a \
 	                 ../../src/libutil/libutil.a \
 	                 $(LIBS)
 
 -include $(sources:.c=.d)
+
+../../src/liblare/liblare.a:
+	$(MAKE) -C ../../src/liblare
 
 ../../src/libgrid/libgrid.a:
 	$(MAKE) -C ../../src/libgrid

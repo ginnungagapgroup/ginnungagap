@@ -9,6 +9,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "makeMaskConfig.h"
 #include "../../src/libutil/parse_ini.h"
+#include "../../src/liblare/lare.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -22,6 +23,7 @@ struct makeMaskSetup_struct {
 	uint32_t refinementFactor;
 	uint32_t baseRefinementLevel;
 	char     *outSecName;
+	lare_t   lare;
 #ifdef WITH_MPI
 	int      nProcs[NDIM];
 #endif

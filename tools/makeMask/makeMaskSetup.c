@@ -10,9 +10,13 @@
 #include <assert.h>
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/xstring.h"
+#include "../../src/liblare/lare.h"
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+static lare_t
+local_newLare(makeMaskSetup_t setup);
+
 #ifdef WITH_MPI
 static void
 local_parseMPIStuff(makeMaskSetup_t setup,
@@ -49,6 +53,7 @@ makeMaskSetup_newFromIni(parse_ini_t ini, const char *maskSectionName)
 	if (!parse_ini_get_string(ini, "outSecName", maskSectionName,
 	                          &(setup->outSecName)))
 		setup->outSecName = xstrdup(MAKEMASK_SECTIONNAME_WRITER);
+	setup->lare = local_newLare(setup);
 #ifdef WITH_MPI
 	local_parseMPIStuff(setup, ini, maskSectionName);
 #endif
@@ -64,12 +69,33 @@ makeMaskSetup_del(makeMaskSetup_t *setup)
 
 	if ((*setup)->outSecName != NULL)
 		xfree((*setup)->outSecName);
+	lare_del(&((*setup)->lare));
 	xfree(*setup);
 
 	*setup = NULL;
 }
 
 /*--- Implementations of local functions --------------------------------*/
+static lare_t
+local_newLare(makeMaskSetup_t setup)
+{
+	lare_t lare;
+	gridPointUint32_t dims, element;
+
+	for (int i=0; i<NDIM; i++)
+		dims[i] = setup->baseGridSize1D;
+
+	lare = lare_new(dims, 0);
+
+	for (int j=0; j < 30; j++) {
+		for (int i=0; i<NDIM; i++)
+			element[i] = (30 + j) % dims[i];
+		lare_addElement(lare, element);
+	}
+
+	return lare;
+}
+
 #ifdef WITH_MPI
 static void
 local_parseMPIStuff(makeMaskSetup_t setup,

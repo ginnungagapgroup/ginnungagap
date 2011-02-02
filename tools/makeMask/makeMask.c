@@ -187,18 +187,11 @@ local_markRegions(makeMask_t mama)
 	shapeDim1D = 2 * (mama->setup->numLevels - 2) + 1;
 	shape      = local_createDegradeShape(shapeDim1D);
 
-	for (int i = 0; i < 51; i++) {
-		for (int j = 0; j < 31; j++) {
-			for (int k = 0; k < 31; k++) {
-				gridPointUint32_t hiResCellIdxG;
-				hiResCellIdxG[0] = (50 + i) % 256;
-				hiResCellIdxG[1] = (110 + j) % 256;
-				hiResCellIdxG[2] = (250 + k) % 256;
-				local_throwShapeOnMask(maskData, hiResCellIdxG,
-				                       shape, shapeDim1D,
-				                       idxLo, dimsPatch, dimsGrid);
-			}
-		}
+	for (uint32_t i=0; i<lare_getNumElements(mama->setup->lare); i++) {
+		gridPointUint32_t element;
+		lare_getElement(mama->setup->lare, element, i);
+		local_throwShapeOnMask(maskData, element, shape, shapeDim1D,
+		                       idxLo, dimsPatch, dimsGrid);
 	}
 }
 
