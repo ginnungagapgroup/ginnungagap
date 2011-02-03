@@ -151,7 +151,7 @@ local_readElementsIntoLare(lare_t lare, FILE *f)
 	size_t            n     = 0;
 	gridPointUint32_t element;
 
-	while (xgetline(&line, &n, f) != -1) {
+	while (xgetline(&line, &n, f) != 0) {
 		uint32_t ijk[3];
 		sscanf(line, "%*i %*e %*e %*e %*e %*e %*e"
 		             " %" SCNu32 " %" SCNu32 "%" SCNu32,
