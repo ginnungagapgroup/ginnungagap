@@ -11,11 +11,13 @@
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/xstring.h"
 #include "../../src/liblare/lare.h"
+#include "../../src/liblare/lareReader.h"
 
 
 /*--- Prototypes of local functions -------------------------------------*/
 static lare_t
-local_newLare(makeMaskSetup_t setup);
+local_newLare(makeMaskSetup_t setup, parse_ini_t ini, const char *secName);
+
 
 #ifdef WITH_MPI
 static void
@@ -53,7 +55,7 @@ makeMaskSetup_newFromIni(parse_ini_t ini, const char *maskSectionName)
 	if (!parse_ini_get_string(ini, "outSecName", maskSectionName,
 	                          &(setup->outSecName)))
 		setup->outSecName = xstrdup(MAKEMASK_SECTIONNAME_WRITER);
-	setup->lare = local_newLare(setup);
+	setup->lare = local_newLare(setup, ini, maskSectionName);
 #ifdef WITH_MPI
 	local_parseMPIStuff(setup, ini, maskSectionName);
 #endif
@@ -77,21 +79,16 @@ makeMaskSetup_del(makeMaskSetup_t *setup)
 
 /*--- Implementations of local functions --------------------------------*/
 static lare_t
-local_newLare(makeMaskSetup_t setup)
+local_newLare(makeMaskSetup_t setup, parse_ini_t ini, const char *secName)
 {
-	lare_t lare;
-	gridPointUint32_t dims, element;
+	lare_t       lare;
+	lareReader_t reader;
 
-	for (int i=0; i<NDIM; i++)
-		dims[i] = setup->baseGridSize1D;
+	reader = lareReader_newFromIni(ini, secName);
 
-	lare = lare_new(dims, 0);
+	lare = lareReader_read(reader);
 
-	for (int j=0; j < 30; j++) {
-		for (int i=0; i<NDIM; i++)
-			element[i] = (30 + j) % dims[i];
-		lare_addElement(lare, element);
-	}
+	lareReader_del(&reader);
 
 	return lare;
 }
@@ -116,4 +113,5 @@ local_parseMPIStuff(makeMaskSetup_t setup,
 		setup->nProcs[i] = (int)(nProcs[i]);
 	xfree(nProcs);
 }
+
 #endif
