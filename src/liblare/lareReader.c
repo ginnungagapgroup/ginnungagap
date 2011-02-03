@@ -68,7 +68,7 @@ extern lare_t
 lareReader_read(lareReader_t reader)
 {
 	assert(reader != NULL);
-	assert(((*reader)->func != NULL) && ((*reader)->func->read != NULL));
+	assert((reader->func != NULL) && (reader->func->read != NULL));
 
 	return reader->func->read(reader);
 }
