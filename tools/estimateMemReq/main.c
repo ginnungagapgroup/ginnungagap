@@ -28,7 +28,7 @@ static int    localNpTot             = 0;
 static int    localNpY               = 0;
 static int    localNpZ               = 0;
 static size_t localMemPerProcInBytes = 0;
-static int    localProcessesPerNode  = 0;
+static int    localProcessesPerNode  = 1;
 static bool   localIsDouble          = false;
 
 
