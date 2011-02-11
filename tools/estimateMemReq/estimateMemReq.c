@@ -82,11 +82,13 @@ estimateMemReq_run(estimateMemReq_t emr,
                    int              npTot,
                    int              npY,
                    int              npZ,
-                   size_t           memPerProcesInBytes)
+                   size_t           memPerProcessInBytes,
+                   int              processesPerNode)
 {
-	int    pGrid[3] = {1, npY, npZ};
+	int    pGrid[3]     = { 1, npY, npZ };
 	int    idealGrid[3], worstGrid[3];
-	size_t memIdeal, memWorst;
+	int    totalGrid[3] = { emr->dim1D, emr->dim1D, emr->dim1D };
+	size_t memIdeal, memWorst, memTotal;
 
 	assert(emr != NULL);
 
@@ -98,7 +100,15 @@ estimateMemReq_run(estimateMemReq_t emr,
 
 	memIdeal = local_getMemReq(idealGrid, emr->bytesPerCell);
 	memWorst = local_getMemReq(worstGrid, emr->bytesPerCell);
+	// Total mem is in real space, hence the /2
+	memTotal = local_getMemReq(totalGrid, emr->bytesPerCell/2);
 
+	printf("Machine Info:\n");
+	printf("  npTotal: %i\n", npTot);
+	printf("  ppn    : %i\n", processesPerNode);
+	printf("  nodes  : %i\n", (int)ceil(npTot / ((double)processesPerNode)));
+
+	printf("\nRAM\n");
 	printf("Ideal memory per task:  grid: ");
 	local_printMem(memIdeal);
 	printf("  grid+buffer: ");
@@ -108,12 +118,16 @@ estimateMemReq_run(estimateMemReq_t emr,
 	local_printMem(memWorst);
 	printf("  grid+buffer: ");
 	local_printMem(memWorst * 2);
-	if (memPerProcesInBytes > 0 && memPerProcesInBytes < memWorst * 2) {
+	if ((memPerProcessInBytes > 0)
+	    && (memPerProcessInBytes < memWorst * 2)) {
 		printf("\n    not within memory limit of ");
-		local_printMem(memPerProcesInBytes);
+		local_printMem(memPerProcessInBytes);
 	}
-	printf("\n");
-}
+	printf("\n\nDISK\n");
+	printf("Velocity field: ");
+	local_printMem(memTotal * 3);
+	printf(" (not including file structure overhead)\n");
+} /* estimateMemReq_run */
 
 #if 0
 size_t memTotalMin, memTotalMax;
@@ -222,33 +236,33 @@ local_getGrids(int       dim1D,
 {
 	if ((pGrid[2] == 1) || (pGrid[1] == 1)) {
 		// slab
-		idealGrid[0]  = (dim1D / 2 + 1) / pGrid[0];
-		idealGrid[1]  = dim1D / pGrid[1];
-		idealGrid[2]  = dim1D / pGrid[2];
-		worstGrid[0]  = idealGrid[0];
-		worstGrid[1]  = dim1D % pGrid[1] == 0 ?
-		                idealGrid[1] : idealGrid[1] + 1;
-		worstGrid[2]  = dim1D % pGrid[2] == 0 ?
-		                idealGrid[2] : idealGrid[2] + 1;
+		idealGrid[0] = (dim1D / 2 + 1) / pGrid[0];
+		idealGrid[1] = dim1D / pGrid[1];
+		idealGrid[2] = dim1D / pGrid[2];
+		worstGrid[0] = idealGrid[0];
+		worstGrid[1] = dim1D % pGrid[1] == 0 ?
+		               idealGrid[1] : idealGrid[1] + 1;
+		worstGrid[2] = dim1D % pGrid[2] == 0 ?
+		               idealGrid[2] : idealGrid[2] + 1;
 	} else {
 		// pencil
-		idealGrid[0]  = dim1D / pGrid[0];
-		idealGrid[1]  = (dim1D / 2 + 1) / pGrid[1];
-		idealGrid[2]  = dim1D / pGrid[2];
-		worstGrid[0]  = idealGrid[0];
-		worstGrid[1]  = (dim1D / 2 + 1) % pGrid[1] == 0 ?
-		                idealGrid[1] : idealGrid[1] + 1;
-		worstGrid[2]  = dim1D % pGrid[2] == 0 ?
-		                idealGrid[2] : idealGrid[2] + 1;
+		idealGrid[0] = dim1D / pGrid[0];
+		idealGrid[1] = (dim1D / 2 + 1) / pGrid[1];
+		idealGrid[2] = dim1D / pGrid[2];
+		worstGrid[0] = idealGrid[0];
+		worstGrid[1] = (dim1D / 2 + 1) % pGrid[1] == 0 ?
+		               idealGrid[1] : idealGrid[1] + 1;
+		worstGrid[2] = dim1D % pGrid[2] == 0 ?
+		               idealGrid[2] : idealGrid[2] + 1;
 	}
 }
 
 static void
 local_printGrids(const int idealGrid[3], const int worstGrid[3])
 {
-	printf("Ideal grid:  %i x %i x %i\n",
+	printf("Ideal grid (complex):  %i x %i x %i\n",
 	       idealGrid[0], idealGrid[1], idealGrid[2]);
-	printf("Worst grid:  %i x %i x %i\n",
+	printf("Worst grid (complex):  %i x %i x %i\n",
 	       worstGrid[0], worstGrid[1], worstGrid[2]);
 }
 

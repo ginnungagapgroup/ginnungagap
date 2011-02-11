@@ -28,7 +28,8 @@ estimateMemReq_run(estimateMemReq_t emr,
                    int              npTot,
                    int              npY,
                    int              npZ,
-                   size_t           memPerProcesInBytes);
+                   size_t           memPerProcessInBytes,
+                   int              processesPerNode);
 
 
 #endif

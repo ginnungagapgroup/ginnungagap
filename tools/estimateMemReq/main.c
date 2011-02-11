@@ -28,6 +28,7 @@ static int    localNpTot             = 0;
 static int    localNpY               = 0;
 static int    localNpZ               = 0;
 static size_t localMemPerProcInBytes = 0;
+static int    localProcessesPerNode  = 0;
 static bool   localIsDouble          = false;
 
 
@@ -65,7 +66,7 @@ main(int argc, char **argv)
 
 	emr = local_getEmr();
 	estimateMemReq_run(emr, localNpTot, localNpY, localNpZ,
-	                   localMemPerProcInBytes);
+	                   localMemPerProcInBytes, localProcessesPerNode);
 	estimateMemReq_del(&emr);
 
 	return EXIT_SUCCESS;
@@ -76,7 +77,7 @@ static void
 local_initEnvironment(int *argc, char ***argv)
 {
 	cmdline_t cmdline;
-	double tmp;
+	double    tmp;
 
 	cmdline = local_cmdlineSetup();
 	cmdline_parse(cmdline, *argc, *argv);
@@ -92,7 +93,9 @@ local_initEnvironment(int *argc, char ***argv)
 		cmdline_getOptValueByNum(cmdline, 5, &tmp);
 		localMemPerProcInBytes = (size_t)(tmp * 1024 * 1024);
 	}
-	localIsDouble = cmdline_checkOptSetByNum(cmdline, 6);
+	if (cmdline_checkOptSetByNum(cmdline, 6))
+		cmdline_getOptValueByNum(cmdline, 6, &localProcessesPerNode);
+	localIsDouble = cmdline_checkOptSetByNum(cmdline, 7);
 	cmdline_getArgValueByNum(cmdline, 0, &localDim1D);
 	cmdline_del(&cmdline);
 }
@@ -138,7 +141,7 @@ local_cmdlineSetup(void)
 {
 	cmdline_t cmdline;
 
-	cmdline = cmdline_new(1, 7, THIS_PROGNAME);
+	cmdline = cmdline_new(1, 8, THIS_PROGNAME);
 	(void)cmdline_addOpt(cmdline, "version",
 	                     "This will output a version information.",
 	                     false, CMDLINE_TYPE_NONE);
@@ -158,6 +161,9 @@ local_cmdlineSetup(void)
 	                     "Amount of memory available per (MPI) process "
 	                     "in MiB.",
 	                     true, CMDLINE_TYPE_DOUBLE);
+	(void)cmdline_addOpt(cmdline, "ppn",
+	                     "Number of processors per node.",
+	                     true, CMDLINE_TYPE_INT);
 	(void)cmdline_addOpt(cmdline, "double",
 	                     "Use if you want to use double instead of float "
 	                     "for the grid.",
