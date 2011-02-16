@@ -83,6 +83,9 @@
  * Here is a chronological overview of the different versions of
  * ginnungagap:
  *
+ * - 2011/02/16 <b>ginnungagap-0.3.5</b> <br />
+ *   The memory estimate tools is updated to include the file size of
+ *   the velocity fields.
  * - 2011/02/03 <b>ginnungagap-0.3.4</b> <br />
  *   A new tool to generate masks that will be needed for the
  *   resimulation setup is added.  Support for the legacy format of the
