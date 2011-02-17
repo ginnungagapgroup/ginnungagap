@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -25,8 +25,8 @@
 extern cosmoTF_t
 cosmoTF_getTypeFromIni(parse_ini_t ini, const char *sectionName)
 {
-	char *tfTypeName = NULL;
-	cosmoTF_t tfType = COSMOTF_TYPE_EISENSTEINHU1998;
+	char      *tfTypeName = NULL;
+	cosmoTF_t tfType      = COSMOTF_TYPE_EISENSTEINHU1998;
 
 	assert(ini != NULL);
 	assert(sectionName != NULL);
@@ -36,6 +36,8 @@ cosmoTF_getTypeFromIni(parse_ini_t ini, const char *sectionName)
 
 	if (strncmp(tfTypeName, "EisensteinHu1998", 16) == 0)
 		tfType = COSMOTF_TYPE_EISENSTEINHU1998;
+	else if (strncmp(tfTypeName, "ScaleFree", 9) == 0)
+		tfType = COSMOTF_TYPE_SCALEFREE;
 
 	xfree(tfTypeName);
 
@@ -49,7 +51,7 @@ cosmoTF_eisensteinHu1998(double   omegaMatter0,
                          double   tempCMB,
                          uint32_t numPoints,
                          double   *k,
-                         double   *P)
+                         double   *T)
 {
 	assert(isfinite(omegaMatter0));
 	assert(isfinite(omegaBaryon0) && isgreaterequal(omegaBaryon0, 0.0));
@@ -58,10 +60,25 @@ cosmoTF_eisensteinHu1998(double   omegaMatter0,
 	assert(isfinite(tempCMB) && tempCMB > 0.0);
 	assert(numPoints > UINT32_C(0));
 	assert(k != NULL);
-	assert(P != NULL);
+	assert(T != NULL);
 
 	TFfit_hmpc(omegaMatter0, omegaBaryon0 / omegaMatter0, hubble,
-	           tempCMB, (int)numPoints, k, P, NULL, NULL);
+	           tempCMB, (int)numPoints, k, T, NULL, NULL);
+}
+
+extern void
+cosmoTF_scaleFree(uint32_t numPoints,
+                  double   *k,
+                  double   *T)
+{
+	assert(numPoints > UINT32_C(0));
+	assert(k != NULL);
+	assert(isfinite(k[0]) && isfinite(k[numPoints - 1]));
+	assert(0.0 < k[0] && k[0] < k[numPoints - 1]);
+	assert(T != NULL);
+
+	for (uint32_t i = 0; i < numPoints; i++)
+		T[i] = 1.0;
 }
 
 /*--- Implementations of local functions --------------------------------*/

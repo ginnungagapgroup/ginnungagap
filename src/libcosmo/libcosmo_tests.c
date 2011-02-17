@@ -32,6 +32,7 @@ main(void)
 
 	printf("Running tests for cosmoTF:\n");
 	RUNTEST(cosmoTF_eisensteinHu1998_test, hasFailed);
+	RUNTEST(cosmoTF_scaleFree_test, hasFailed);
 
 	printf("\nRunning tests for cosmoPk:\n");
 	RUNTEST(cosmoPk_newFromFile_test, hasFailed);
@@ -43,6 +44,7 @@ main(void)
 	RUNTEST(cosmoPk_calcSigma8_test, hasFailed);
 	RUNTEST(cosmoPk_scale_test, hasFailed);
 	RUNTEST(cosmoPk_forceSigma8_test, hasFailed);
+	RUNTEST(cosmoPk_forceAmplitude_test, hasFailed);
 
 	printf("\nRunning tests for cosmoModel:\n");
 	RUNTEST(cosmoModel_newFromFile_test, hasFailed);

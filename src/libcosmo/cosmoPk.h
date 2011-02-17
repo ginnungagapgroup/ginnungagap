@@ -95,6 +95,9 @@ cosmoPk_forceSigma8(cosmoPk_t pk,
                     double    kmax,
                     double    *error);
 
+extern double
+cosmoPk_forceAmplitude(cosmoPk_t pk, double amplitudeAtK, double k);
+
 extern void
 cosmoPk_findKWindowForSigma8(cosmoPk_t pk, double *kmin, double *kmax);
 

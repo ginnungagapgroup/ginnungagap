@@ -326,6 +326,22 @@ cosmoPk_forceSigma8(cosmoPk_t pk,
 	return POW2(sigma8 / sigma8First);
 }
 
+extern double
+cosmoPk_forceAmplitude(cosmoPk_t pk, double amplitudeAtK, double k)
+{
+	double amplitudeActual;
+
+	assert(pk != NULL);
+	assert(isfinite(amplitudeAtK) && amplitudeAtK > 0.0);
+	assert(isfinite(k) && k > 0.0);
+
+	amplitudeActual = cosmoPk_eval(pk, k);
+	cosmoPk_scale(pk, amplitudeAtK / amplitudeActual);
+	amplitudeActual = cosmoPk_eval(pk, k);
+
+	return fabs(1. - amplitudeAtK / amplitudeActual);
+}
+
 extern void
 cosmoPk_findKWindowForSigma8(cosmoPk_t pk, double *kmin, double *kmax)
 {
@@ -438,6 +454,9 @@ local_calcPkFromTransferFunction(cosmoPk_t          pk,
                                  const cosmoModel_t model)
 {
 	switch (transferFunctionType) {
+	case COSMOTF_TYPE_SCALEFREE:
+		cosmoTF_scaleFree(pk->numPoints, pk->k, pk->P);
+		break;
 	case COSMOTF_TYPE_ANATOLY2000:
 	case COSMOTF_TYPE_EISENSTEINHU1998:
 	default:

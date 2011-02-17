@@ -21,6 +21,13 @@
 #include "cosmoModel_adt.h"
 
 
+/*--- Local defines -----------------------------------------------------*/
+#define LOCAL_DEFAULT_OMEGARAD0    0.0
+#define LOCAL_DEFAULT_OMEGABARYON0 0.0
+#define LOCAL_DEFAULT_TEMPCMB      2.75
+#define LOCAL_DEFAULT_NS           1.0
+
+
 /*--- Prototypes of local functions -------------------------------------*/
 
 
@@ -86,22 +93,26 @@ cosmoModel_newFromIni(parse_ini_t ini, const char *sectionName)
 	cosmoModel_t model;
 
 	model = cosmoModel_new();
-	getFromIni(&(model->omegaRad0), parse_ini_get_double,
-	           ini, "modelOmegaRad0", sectionName);
+	if (!parse_ini_get_double(ini, "modelOmegaRad0", sectionName,
+	                          &(model->omegaRad0)))
+		model->omegaRad0 = LOCAL_DEFAULT_OMEGARAD0;
 	getFromIni(&(model->omegaLambda0), parse_ini_get_double,
 	           ini, "modelOmegaLambda0", sectionName);
 	getFromIni(&(model->omegaMatter0), parse_ini_get_double,
 	           ini, "modelOmegaMatter0", sectionName);
-	getFromIni(&(model->omegaBaryon0), parse_ini_get_double,
-	           ini, "modelOmegaBaryon0", sectionName);
+	if (!parse_ini_get_double(ini, "modelOmegaBaryon0", sectionName,
+	                          &(model->omegaBaryon0)))
+		model->omegaBaryon0 = LOCAL_DEFAULT_OMEGABARYON0;
 	getFromIni(&(model->hubble), parse_ini_get_double,
 	           ini, "modelHubble", sectionName);
 	getFromIni(&(model->sigma8), parse_ini_get_double,
 	           ini, "modelSigma8", sectionName);
-	getFromIni(&(model->ns), parse_ini_get_double,
-	           ini, "modelNs", sectionName);
-	getFromIni(&(model->tempCMB), parse_ini_get_double,
-	           ini, "modelTempCMB", sectionName);
+	if (!parse_ini_get_double(ini, "modelNs", sectionName,
+	                          &(model->ns)))
+		model->ns = LOCAL_DEFAULT_NS;
+	if (!parse_ini_get_double(ini, "modelTempCMB", sectionName,
+	                          &(model->tempCMB)))
+		model->omegaBaryon0 = LOCAL_DEFAULT_TEMPCMB;
 
 	return model;
 }

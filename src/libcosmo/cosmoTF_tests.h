@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -14,6 +14,9 @@
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
 cosmoTF_eisensteinHu1998_test(void);
+
+extern bool
+cosmoTF_scaleFree_test(void);
 
 
 #endif

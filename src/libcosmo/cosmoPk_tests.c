@@ -302,4 +302,35 @@ cosmoPk_forceSigma8_test(void)
 	return hasPassed ? true : false;
 }
 
+extern bool
+cosmoPk_forceAmplitude_test(void)
+{
+	cosmoPk_t    pk;
+	cosmoModel_t model;
+	bool         hasPassed = true;
+	double       error;
+#ifdef XMEM_TRACK_MEM
+	size_t       allocatedBytes = global_allocated_bytes;
+#endif
+
+	printf("Testing %s... ", __func__);
+
+	model = cosmoModel_newFromFile("tests/model_wmap7.dat");
+	pk    = cosmoPk_newFromModel(model, 1e-2, 1e1, 450,
+	                             COSMOTF_TYPE_EISENSTEINHU1998);
+
+	error = cosmoPk_forceAmplitude(pk, M_PI, 1.0);
+	if (isgreater(error, 1e-10))
+		hasPassed = false;
+
+	cosmoPk_del(&pk);
+	cosmoModel_del(&model);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 /*--- Implementations of local functions --------------------------------*/

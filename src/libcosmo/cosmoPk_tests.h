@@ -39,5 +39,8 @@ cosmoPk_scale_test(void);
 extern bool
 cosmoPk_forceSigma8_test(void);
 
+extern bool
+cosmoPk_forceAmplitude_test(void);
+
 
 #endif

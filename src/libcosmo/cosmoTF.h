@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -15,6 +15,7 @@
 /*--- Exported types ----------------------------------------------------*/
 typedef enum {
 	COSMOTF_TYPE_EISENSTEINHU1998,
+	COSMOTF_TYPE_SCALEFREE,
 	COSMOTF_TYPE_ANATOLY2000
 } cosmoTF_t;
 
@@ -30,7 +31,12 @@ cosmoTF_eisensteinHu1998(double   omegaMatter0,
                          double   tempCMB,
                          uint32_t numPoints,
                          double   *k,
-                         double   *P);
+                         double   *T);
+
+extern void
+cosmoTF_scaleFree(uint32_t numPoints,
+                  double   *k,
+                  double   *T);
 
 
 #endif
