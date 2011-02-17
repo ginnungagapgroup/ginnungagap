@@ -33,7 +33,7 @@
  *
  * - <b>C compiler</b> - Since ginnungagap uses features specific to
  *   C99, a compiler supporting this standard is required.
- *   Additionally, your compiler should support <bOpenMP</b> to make use
+ *   Additionally, your compiler should support <b>OpenMP</b> to make use
  *   of the shared memory parallelization of ginnungagap.
  * - <b>GSL</b> - The GNU Scientific Library must be available.  GSL is
  *   used for numerical integration and spline interpolations.
@@ -77,4 +77,50 @@
  *   highly advised.
  * - <b>MPItrace</b> - Tracing utilities can be used to generate trace
  *   files of ginnungagap runs
+ *
+ * \section history History
+ *
+ * Here is a chronological overview of the different versions of
+ * ginnungagap:
+ *
+ * - 2011/02/16 <b>ginnungagap-0.3.5</b> <br />
+ *   The memory estimate tools is updated to include the file size of
+ *   the velocity fields.
+ * - 2011/02/03 <b>ginnungagap-0.3.4</b> <br />
+ *   A new tool to generate masks that will be needed for the
+ *   resimulation setup is added.  Support for the legacy format of the
+ *   Lagrangian regions is implemented.  Also various updates and
+ *   improvements of the code.
+ * - 2010/09/15 <b>ginnungagap-0.3.3</b> <br />
+ *   Bug-fixes to allow compiling on IBM machines.  The grid now can
+ *   calculate simple statistics and prints them.
+ * - 2010/08/04 <b>ginnungagap-0.3.2</b> <br />
+ *   A new tool to convert Grafic files into Gadget.
+ * - 2010/07/27 <b>ginnungagap-0.3.1</b> <br />
+ *   Adding a tool to estimate the memory requirements of the code.
+ *   Some minor bug-fixes and thread support for the FFTW3 back-end.
+ * - 2010/07/22 <b>ginnungagap-0.3.0</b> <br />
+ *   Some code clean-up, the fields are now correctly calculated.
+ * - 2010/07/19 <b>ginnungagap-0.2.6</b> <br />
+ *   The velocity field is now calculated, albeit not correctly
+ *   normalized.
+ * - 2010/07/19 <b>ginnungagap-0.2.5</b> <br />
+ *   Modifying the handling of the power spectrum and correcting the
+ *   units of the density field.
+ * - 2010/07/17 <b>ginnungagap-0.2.4</b> <br />
+ *   The grid writing is moved to an abstract interface to allow
+ *   different output formats accessible with a common interface.  A
+ *   small tool to convert Grafics files to bov is added.
+ * - 2010/07/15 <b>ginnungagap-0.2.3</b> <br />
+ *   Renormalization of the power spectrum is included, allowing to read
+ *   grids from a bov.
+ * - 2010/06/23 <b>ginnungagap-0.2.2</b> <br />
+ *   A tool to generate a master file for the SILO output that allows
+ *   visualisation of datasets split over multiple domains.
+ * - 2010/06/02 <b>ginnungagap-0.2.1</b> <br />
+ *   Added functionality to calculate the power spectrum according to
+ *   the Eisenstein & Hu fitting formula.
+ * - 2010/05/21 <b>ginnungagap-0.2.0</b> <br />
+ *   First version.  Laid the groundwork of the grid infrastructure and
+ *   the FFT.  The density field is calculated in Fourier space.
  */
