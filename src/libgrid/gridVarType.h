@@ -14,6 +14,7 @@
 
 /*--- Exported types ----------------------------------------------------*/
 typedef enum {
+	GRIDVARTYPE_INT8,
 	GRIDVARTYPE_INT,
 	GRIDVARTYPE_DOUBLE,
 	GRIDVARTYPE_FPV

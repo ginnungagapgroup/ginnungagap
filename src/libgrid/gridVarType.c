@@ -7,6 +7,7 @@
 #include "gridConfig.h"
 #include "gridVarType.h"
 #include <assert.h>
+#include <stdint.h>
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
 
@@ -24,6 +25,9 @@ gridVarType_sizeof(gridVarType_t type)
 	size_t size;
 
 	switch (type) {
+	case GRIDVARTPYE_INT8:
+		size = sizeof(int8_t);
+		break;
 	case GRIDVARTYPE_INT:
 		size = sizeof(int);
 		break;
@@ -59,6 +63,7 @@ extern bool
 gridVarType_isInteger(gridVarType_t type)
 {
 	switch (type) {
+	case GRIDVARTYPE_INT8:
 	case GRIDVARTYPE_INT:
 		return true;
 
