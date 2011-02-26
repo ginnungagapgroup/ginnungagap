@@ -25,7 +25,7 @@ gridVarType_sizeof(gridVarType_t type)
 	size_t size;
 
 	switch (type) {
-	case GRIDVARTPYE_INT8:
+	case GRIDVARTYPE_INT8:
 		size = sizeof(int8_t);
 		break;
 	case GRIDVARTYPE_INT:
