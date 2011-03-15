@@ -57,9 +57,9 @@ gridVar_clone(const gridVar_t var)
 
 	assert(var != NULL);
 
-	clone                 = gridVar_new(var->name,
-	                                    var->type,
-	                                    var->numComponents);
+	clone = gridVar_new(var->name,
+	                    var->type,
+	                    var->numComponents);
 	clone->mallocFunc     = var->mallocFunc;
 	clone->freeFunc       = var->freeFunc;
 	clone->isFFTWPadded   = var->isFFTWPadded;
@@ -76,7 +76,6 @@ gridVar_del(gridVar_t *var)
 	if (refCounter_deref(&((*var)->refCounter))) {
 		xfree((*var)->name);
 		xfree(*var);
-
 	}
 	*var = NULL;
 }
@@ -124,11 +123,8 @@ gridVar_getName(gridVar_t var)
 
 extern void
 gridVar_setMemFuncs(gridVar_t var,
-                              void *(*mallocFunc)(size_t
-                                        size),
-                    void      (*freeFunc
-                                                  )(
-                        void  *ptr))
+                    void *(*mallocFunc)(size_t size),
+                    void (*freeFunc)(void *ptr))
 {
 	assert(var != NULL);
 
@@ -263,6 +259,9 @@ gridVar_getMPIDatatype(gridVar_t var)
 		case GRIDVARTYPE_INT:
 			dt = MPI_INT;
 			break;
+		case GRIDVARTYPE_INT8:
+			dt = MPI_CHAR;
+			break;
 		case GRIDVARTYPE_FPV:
 #  ifdef ENABLE_DOUBLE
 			dt = MPI_DOUBLE;
@@ -291,6 +290,7 @@ gridVar_getMPICount(gridVar_t var, uint64_t numElements)
 		switch (var->type) {
 		case GRIDVARTYPE_DOUBLE:
 		case GRIDVARTYPE_INT:
+		case GRIDVARTYPE_INT8:
 		case GRIDVARTYPE_FPV:
 			count = (int)numElements;
 			break;

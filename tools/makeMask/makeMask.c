@@ -50,7 +50,7 @@ inline static uint8_t *
 local_createDegradeShape(uint32_t shapeDim1D);
 
 inline static void
-local_throwShapeOnMask(fpv_t             *maskData,
+local_throwShapeOnMask(int8_t            *maskData,
                        gridPointUint32_t hiResCellIdxG,
                        const uint8_t     *shape,
                        uint32_t          shapeDim1D,
@@ -150,8 +150,8 @@ local_createEmptyMask(makeMask_t mama)
 {
 	int         rank = 0;
 	gridPatch_t patch;
-	gridVar_t   var  = gridVar_new("Mask", GRIDVARTYPE_FPV, 1);
-	fpv_t       *maskData;
+	gridVar_t   var  = gridVar_new("Mask", GRIDVARTYPE_INT8, 1);
+	int8_t      *maskData;
 
 #ifdef WITH_MPI
 	rank  = gridRegularDistrib_getLocalRank(mama->distrib);
@@ -165,7 +165,7 @@ local_createEmptyMask(makeMask_t mama)
 #  pragma omp parallel for shared(maskData, patch, mama)
 #endif
 	for (uint64_t i = 0; i < gridPatch_getNumCellsActual(patch, 0); i++) {
-		maskData[i] = (fpv_t)(mama->setup->baseRefinementLevel);
+		maskData[i] = (int8_t)(mama->setup->baseRefinementLevel);
 	}
 }
 
@@ -174,7 +174,7 @@ local_markRegions(makeMask_t mama)
 {
 	gridPointUint32_t dimsGrid, dimsPatch, idxLo;
 	gridPatch_t       patch;
-	fpv_t             *maskData;
+	int8_t            *maskData;
 	uint32_t          shapeDim1D;
 	uint8_t           *shape;
 
@@ -270,7 +270,7 @@ local_createDegradeShape(uint32_t shapeDim1D)
 }
 
 inline static void
-local_throwShapeOnMask(fpv_t             *maskData,
+local_throwShapeOnMask(int8_t            *maskData,
                        gridPointUint32_t hiResCellIdxG,
                        const uint8_t     *shape,
                        uint32_t          shapeDim1D,

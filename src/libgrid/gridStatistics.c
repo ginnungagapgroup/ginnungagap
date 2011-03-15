@@ -396,6 +396,7 @@ local_calcProtoMeanMinMax(void      *data,
 {
 	union { double *lf;
 		    int    *i;
+		    int8_t *i8;
 		    fpv_t  *fpv;
 		    void   *v;
 	}             tmp;
@@ -407,6 +408,11 @@ local_calcProtoMeanMinMax(void      *data,
 		case GRIDVARTYPE_INT:
 			*min        = (*(tmp.i) < *min) ? (double)*(tmp.i) : *min;
 			*max        = (*(tmp.i) > *max) ? (double)*(tmp.i) : *max;
+			*protoMean += (double)*(tmp.i);
+			break;
+		case GRIDVARTYPE_INT8:
+			*min        = (*(tmp.i8) < *min) ? (double)*(tmp.i8) : *min;
+			*max        = (*(tmp.i8) > *max) ? (double)*(tmp.i8) : *max;
 			*protoMean += (double)*(tmp.i);
 			break;
 		case GRIDVARTYPE_DOUBLE:
@@ -436,6 +442,7 @@ local_calcProtoVarSkewKurt(void         *data,
 {
 	union { double *lf;
 		    int    *i;
+		    int    *i8;
 		    fpv_t  *fpv;
 		    void   *v;
 	}             tmp;
@@ -447,6 +454,9 @@ local_calcProtoVarSkewKurt(void         *data,
 		switch (type) {
 		case GRIDVARTYPE_INT:
 			tmpNo = (double)*(tmp.i) - mean;
+			break;
+		case GRIDVARTYPE_INT8:
+			tmpNo = (double)*(tmp.i8) - mean;
 			break;
 		case GRIDVARTYPE_DOUBLE:
 			tmpNo = *(tmp.lf) - mean;

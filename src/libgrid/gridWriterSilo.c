@@ -519,6 +519,9 @@ local_getVarType(gridVar_t var)
 	case GRIDVARTYPE_INT:
 		varType = DB_INT;
 		break;
+	case GRIDVARTYPE_INT8:
+		varType = DB_CHAR;
+		break;
 	case GRIDVARTYPE_DOUBLE:
 		varType = DB_DOUBLE;
 		break;

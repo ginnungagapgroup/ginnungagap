@@ -157,6 +157,8 @@ local_translateBovTypeToGridType(bovFormat_t typeInBov)
 
 	if (typeInBov == BOV_FORMAT_INT) {
 		type = GRIDVARTYPE_INT;
+	} else if (typeInBov == BOV_FORMAT_BYTE) {
+		type = GRIDVARTYPE_INT8;
 	} else if (typeInBov == BOV_FORMAT_FLOAT) {
 		if (gridVarType_isNativeFloat(GRIDVARTYPE_FPV)) {
 			type = GRIDVARTYPE_FPV;
@@ -181,6 +183,8 @@ local_translateGridTypeToBovType(gridVarType_t type)
 
 	if (type == GRIDVARTYPE_INT) {
 		typeAsBovType = BOV_FORMAT_INT;
+	} else if (type == GRIDVARTYPE_INT8) {
+		typeAsBovType = BOV_FORMAT_BYTE;
 	} else if (type == GRIDVARTYPE_DOUBLE) {
 		typeAsBovType = BOV_FORMAT_DOUBLE;
 	} else if (type == GRIDVARTYPE_FPV) {

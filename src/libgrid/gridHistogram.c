@@ -267,6 +267,7 @@ local_count(void *data, gridVar_t var, uint64_t len, gridHistogram_t histo)
 {
 	union { double *lf;
 		    int    *i;
+	        int8_t *i8;
 		    fpv_t  *fpv;
 		    void   *v;
 	}             tmp;
@@ -278,6 +279,9 @@ local_count(void *data, gridVar_t var, uint64_t len, gridHistogram_t histo)
 		switch (type) {
 		case GRIDVARTYPE_INT:
 			value = (double)*(tmp.i);
+			break;
+		case GRIDVARTYPE_INT8:
+			value = (double)*(tmp.i8);
 			break;
 		case GRIDVARTYPE_DOUBLE:
 			value = (double)*(tmp.lf);
