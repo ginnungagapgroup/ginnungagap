@@ -167,8 +167,6 @@ gridRegularFFT_execute_test(void)
 	gridRegular_t        grid;
 	gridRegularDistrib_t distrib;
 	gridPatch_t          patch;
-	fpvComplex_t         *data;
-	fpv_t                *dataBack;
 	fpv_t                *dataCpy, *dataTmp;
 #ifdef XMEM_TRACK_MEM
 	size_t               allocatedBytes = global_allocated_bytes;
@@ -203,8 +201,8 @@ gridRegularFFT_execute_test(void)
 	gridWriterSilo_del(&writer);
 #endif
 	fft      = gridRegularFFT_new(grid, distrib, 0);
-	data     = (fpvComplex_t *)gridRegularFFT_execute(fft, 1);
-	dataBack = (fpv_t *)gridRegularFFT_execute(fft, -1);
+	gridRegularFFT_execute(fft, 1);
+	gridRegularFFT_execute(fft, -1);
 #ifdef WITH_SILO
 	writer  = (gridWriter_t)gridWriterSilo_new("fftTest-stage2", DB_HDF5);
 #  ifdef WITH_MPI

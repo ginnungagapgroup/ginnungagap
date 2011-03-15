@@ -228,10 +228,8 @@ local_getFakePatch(void)
 	uint64_t          num;
 	rng_t             rng;
 	int               size = 1;
-	int               rank = 0;
 #ifdef WITH_MPI
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
 	var      = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, 1);
