@@ -265,36 +265,40 @@ local_calcRegularCore(gridHistogram_t            histo,
 static void
 local_count(void *data, gridVar_t var, uint64_t len, gridHistogram_t histo)
 {
-	union { double *lf;
-		    int    *i;
-	        int8_t *i8;
-		    fpv_t  *fpv;
-		    void   *v;
-	}             tmp;
 	gridVarType_t type = gridVar_getType(var);
 
-	for (uint64_t i = 0; i < len; i++) {
-		double value;
-		tmp.v = gridVar_getPointerByOffset(var, data, i);
-		switch (type) {
-		case GRIDVARTYPE_INT:
-			value = (double)*(tmp.i);
-			break;
-		case GRIDVARTYPE_INT8:
-			value = (double)*(tmp.i8);
-			break;
-		case GRIDVARTYPE_DOUBLE:
-			value = (double)*(tmp.lf);
-			break;
-		case GRIDVARTYPE_FPV:
-			value = (double)*(tmp.fpv);
-			break;
-		default:
-			diediedie(999);
-		}
-		local_countValue(value, histo);
+
+	switch (type) {
+	case GRIDVARTYPE_INT:
+	{
+		int *tmp = (int *)data;
+		for (uint64_t i = 0; i < len; i++)
+			local_countValue(tmp[i], histo);
 	}
-}
+	break;
+	case GRIDVARTYPE_INT8:
+	{
+		int8_t *tmp = (int8_t *)data;
+		for (uint64_t i = 0; i < len; i++)
+			local_countValue(tmp[i], histo);
+	}
+	break;
+	case GRIDVARTYPE_DOUBLE:
+	{
+		double *tmp = (double *)data;
+		for (uint64_t i = 0; i < len; i++)
+			local_countValue(tmp[i], histo);
+	}
+	break;
+	case GRIDVARTYPE_FPV:
+	{
+		fpv_t *tmp = (fpv_t *)data;
+		for (uint64_t i = 0; i < len; i++)
+			local_countValue(tmp[i], histo);
+	}
+	break;
+	}
+} /* local_count */
 
 static void
 local_countValue(double value, gridHistogram_t histo)
@@ -309,8 +313,9 @@ local_countValue(double value, gridHistogram_t histo)
 	assert(binNumber < histo->numBins);
 	histo->binCounts[binNumber]++;
 	histo->totalCounts++;
-	if ((binNumber > 0) && (binNumber < histo->numBins - 1))
+	if ((binNumber > 0) && (binNumber < histo->numBins - 1)) {
 		histo->totalCountsInRange++;
+	}
 }
 
 static int
