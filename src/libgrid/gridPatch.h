@@ -24,27 +24,27 @@ extern void
 gridPatch_del(gridPatch_t *gridPatch);
 
 extern uint32_t
-gridPatch_getOneDim(gridPatch_t patch, int idxOfDim);
+gridPatch_getOneDim(const gridPatch_t patch, int idxOfDim);
 
 extern uint32_t
-gridPatch_getDimActual1D(gridPatch_t patch, int idxOfVar, int dim);
+gridPatch_getDimActual1D(const gridPatch_t patch, int idxOfVar, int dim);
 
 extern void
-gridPatch_getDims(gridPatch_t patch, gridPointUint32_t dim);
+gridPatch_getDims(const gridPatch_t patch, gridPointUint32_t dim);
 
 extern void
-gridPatch_getDimsActual(gridPatch_t       patch,
+gridPatch_getDimsActual(const gridPatch_t patch,
                         int               idxOfVar,
                         gridPointUint32_t dimsActual);
 
 extern uint64_t
-gridPatch_getNumCells(gridPatch_t patch);
+gridPatch_getNumCells(const gridPatch_t patch);
 
 extern uint64_t
-gridPatch_getNumCellsActual(gridPatch_t patch, int idxOfVar);
+gridPatch_getNumCellsActual(const gridPatch_t patch, int idxOfVar);
 
 extern void
-gridPatch_getIdxLo(gridPatch_t patch, gridPointUint32_t idxLo);
+gridPatch_getIdxLo(const gridPatch_t patch, gridPointUint32_t idxLo);
 
 extern int
 gridPatch_attachVar(gridPatch_t patch, gridVar_t var);
@@ -62,10 +62,10 @@ extern void
 gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);
 
 extern gridVar_t
-gridPatch_getVarHandle(gridPatch_t patch, int idxOfVar);
+gridPatch_getVarHandle(const gridPatch_t patch, int idxOfVar);
 
 extern void *
-gridPatch_getVarDataHandle(gridPatch_t patch, int idxOfVarData);
+gridPatch_getVarDataHandle(const gridPatch_t patch, int idxOfVarData);
 
 extern int
 gridPatch_getNumVars(gridPatch_t patch);

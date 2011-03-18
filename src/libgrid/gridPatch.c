@@ -112,7 +112,7 @@ gridPatch_del(gridPatch_t *gridPatch)
 }
 
 extern uint32_t
-gridPatch_getOneDim(gridPatch_t patch, int idxOfDim)
+gridPatch_getOneDim(const gridPatch_t patch, int idxOfDim)
 {
 	assert(patch != NULL);
 	assert(idxOfDim >= 0 && idxOfDim < NDIM);
@@ -121,7 +121,7 @@ gridPatch_getOneDim(gridPatch_t patch, int idxOfDim)
 }
 
 extern uint32_t
-gridPatch_getDimActual1D(gridPatch_t patch, int idxOfVar, int dim)
+gridPatch_getDimActual1D(const gridPatch_t patch, int idxOfVar, int dim)
 {
 	uint64_t  actualDim;
 	gridVar_t var;
@@ -141,7 +141,7 @@ gridPatch_getDimActual1D(gridPatch_t patch, int idxOfVar, int dim)
 }
 
 extern void
-gridPatch_getDims(gridPatch_t patch, gridPointUint32_t dims)
+gridPatch_getDims(const gridPatch_t patch, gridPointUint32_t dims)
 {
 	assert(patch != NULL);
 	assert(dims != NULL);
@@ -151,7 +151,7 @@ gridPatch_getDims(gridPatch_t patch, gridPointUint32_t dims)
 }
 
 extern void
-gridPatch_getDimsActual(gridPatch_t       patch,
+gridPatch_getDimsActual(const gridPatch_t patch,
                         int               idxOfVar,
                         gridPointUint32_t dimsActual)
 {
@@ -164,7 +164,7 @@ gridPatch_getDimsActual(gridPatch_t       patch,
 }
 
 extern uint64_t
-gridPatch_getNumCells(gridPatch_t patch)
+gridPatch_getNumCells(const gridPatch_t patch)
 {
 	assert(patch != NULL);
 
@@ -172,7 +172,7 @@ gridPatch_getNumCells(gridPatch_t patch)
 }
 
 extern uint64_t
-gridPatch_getNumCellsActual(gridPatch_t patch, int idxOfVar)
+gridPatch_getNumCellsActual(const gridPatch_t patch, int idxOfVar)
 {
 	uint64_t numCellsActual = 1;
 
@@ -186,7 +186,7 @@ gridPatch_getNumCellsActual(gridPatch_t patch, int idxOfVar)
 }
 
 extern void
-gridPatch_getIdxLo(gridPatch_t patch, gridPointUint32_t idxLo)
+gridPatch_getIdxLo(const gridPatch_t patch, gridPointUint32_t idxLo)
 {
 	assert(patch != NULL);
 
@@ -282,7 +282,7 @@ gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData)
 }
 
 extern gridVar_t
-gridPatch_getVarHandle(gridPatch_t patch, int idxOfVar)
+gridPatch_getVarHandle(const gridPatch_t patch, int idxOfVar)
 {
 	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(patch->vars));
 
@@ -290,7 +290,7 @@ gridPatch_getVarHandle(gridPatch_t patch, int idxOfVar)
 }
 
 extern void *
-gridPatch_getVarDataHandle(gridPatch_t patch, int idxOfVarData)
+gridPatch_getVarDataHandle(const gridPatch_t patch, int idxOfVarData)
 {
 	void *data;
 
@@ -306,7 +306,7 @@ gridPatch_getVarDataHandle(gridPatch_t patch, int idxOfVarData)
 }
 
 extern int
-gridPatch_getNumVars(gridPatch_t patch)
+gridPatch_getNumVars(const gridPatch_t patch)
 {
 	assert(patch != NULL);
 
