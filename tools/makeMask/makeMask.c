@@ -155,7 +155,7 @@ local_createEmptyMask(makeMask_t mama)
 	gridPatch_t patch;
 	gridVar_t   var  = gridVar_new("Mask", GRIDVARTYPE_INT8, 1);
 	int8_t      *maskData;
-	int8_t      emptyValue = (int8_t)(mama->setup->baseRefinementLevel);
+	int8_t      emptyValue;
 	uint64_t    numCells;
 
 #ifdef WITH_MPI
@@ -168,11 +168,12 @@ local_createEmptyMask(makeMask_t mama)
 	maskData = gridPatch_getVarDataHandle(patch, 0);
 
 	numCells = gridPatch_getNumCellsActual(patch, 0);
+	emptyValue = (int8_t)(mama->setup->baseRefinementLevel);
 #ifdef WITH_OPENMP
-#  pragma omp parallel for shared(maskData, patch, emptyValue) \
+#  pragma omp parallel for shared(maskData, numCells, emptyValue) \
      schedule(static)
 #endif
-	for (uint64_t i = 0; i < gridPatch_getNumCellsActual(patch, 0); i++) {
+	for (uint64_t i = 0; i < numCells; i++) {
 		maskData[i] = emptyValue;
 	}
 }
