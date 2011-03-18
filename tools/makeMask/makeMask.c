@@ -13,6 +13,9 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#ifdef WITH_OPENMP
+#  include <omp.h>
+#endif
 #include "../../src/libgrid/gridRegular.h"
 #include "../../src/libgrid/gridRegularDistrib.h"
 #include "../../src/libgrid/gridWriter.h"
@@ -152,6 +155,8 @@ local_createEmptyMask(makeMask_t mama)
 	gridPatch_t patch;
 	gridVar_t   var  = gridVar_new("Mask", GRIDVARTYPE_INT8, 1);
 	int8_t      *maskData;
+	int8_t      emptyValue = (int8_t)(mama->setup->baseRefinementLevel);
+	uint64_t    numCells;
 
 #ifdef WITH_MPI
 	rank  = gridRegularDistrib_getLocalRank(mama->distrib);
@@ -161,11 +166,14 @@ local_createEmptyMask(makeMask_t mama)
 	gridRegular_attachVar(mama->grid, var);
 
 	maskData = gridPatch_getVarDataHandle(patch, 0);
-#ifdef _OPENMP
-#  pragma omp parallel for shared(maskData, patch, mama)
+
+	numCells = gridPatch_getNumCellsActual(patch, 0);
+#ifdef WITH_OPENMP
+#  pragma omp parallel for shared(maskData, patch, emptyValue) \
+     schedule(static)
 #endif
 	for (uint64_t i = 0; i < gridPatch_getNumCellsActual(patch, 0); i++) {
-		maskData[i] = (int8_t)(mama->setup->baseRefinementLevel);
+		maskData[i] = emptyValue;
 	}
 }
 
