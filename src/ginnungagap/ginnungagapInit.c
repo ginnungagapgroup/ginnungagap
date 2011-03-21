@@ -118,7 +118,7 @@ local_calcAndCheckFreqs(localFreqs_t k,
 		if ((rank == 0) && !kMinOkay)
 			fprintf(stderr, "kmin = %f of P(k) is too large!\n", k->minPk);
 		if ((rank == 0) && !kMaxOkay)
-			fprintf(stderr, "kmax = %f of P(k) is too large!\n", k->maxPk);
+			fprintf(stderr, "kmax = %f of P(k) is too small!\n", k->maxPk);
 	}
 
 	if (!kMinOkay || !kMaxOkay)
