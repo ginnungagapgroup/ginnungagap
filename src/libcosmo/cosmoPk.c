@@ -3,6 +3,15 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libcosmo/cosmoPk.c
+ * @ingroup libcosmo libcosmoPowerspectrum
+ * @brief  This file provides the implementations of power spectrum.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "cosmo_config.h"
 #include "cosmoPk.h"
@@ -25,12 +34,36 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+
+/**
+ * @brief  Gives the maximal number of iteration to enforce sigma8.
+ *
+ * This is used when enforcing a certain sigma8, the method there is to
+ * calculate the current sigma8, use that to compute a correction factor
+ * for the power spectrum, scale the power spectrum and repeat from the
+ * beginning unless an error criterion is fulfilled or the maximal
+ * number of iterations are exhausted.
+ */
 #define LOCAL_MAX_FORCESIGMA8_ITERATIONS 42
+
+/** @brief  Gives the size of the integration workspace. */
 #define LOCAL_LIMIT 2048
+
+/** @brief  Gives the error tolerance for the integration. */
 #define LOCAL_EPSREL 1e-7
+
+/** @brief Gives the minimal number of points in a power spectrum */
 #define LOCAL_MINPOINTS 25
-// Ignoring a few points at the beginning and the end of the arrays, as
-// the spline interpolation tends to oscillate somewhat there
+
+/**
+ * @brief  Number of points to ignore at the beginning and end of the
+ *         power spectrum.
+ *
+ * The spline interpolation tends to oscillate at the beginning and end
+ * of the array, hence the first and last few points are not used when
+ * evaluating the power spectrum (they are however used to generate the
+ * spline interpolation).
+ */
 #define LOCAL_IGNOREPOINTS 5
 
 
@@ -354,14 +387,14 @@ cosmoPk_findKWindowForSigma8(cosmoPk_t pk, double *kmin, double *kmax)
 	sigma8 = cosmoPk_calcSigma8(pk, *kmin, *kmax, &error);
 	do {
 		sigma8Old = sigma8;
-		*kmin *= 0.9;
+		*kmin    *= 0.9;
 		if (*kmin < pkKmin)
 			*kmin = pkKmin;
 		*kmax *= 1.1;
 		if (*kmax > pkKmax)
 			*kmax = pkKmax;
 		sigma8 = cosmoPk_calcSigma8(pk, *kmin, *kmax, &error);
-	} while (isgreater(fabs(1. - sigma8/sigma8Old), 1e-6)
+	} while (isgreater(fabs(1. - sigma8 / sigma8Old), 1e-6)
 	         && (*kmin > pkKmin || *kmax < pkKmax));
 }
 

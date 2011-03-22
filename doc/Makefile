@@ -21,7 +21,15 @@ all:
 
 doc:
 	@../scripts/make_doxyfile.sh
-	$(DOXYGEN) Doxyfile
+	# This is a bit stupid, but doxygen needs to be executed from the
+	# main directory so that $PWD during its execution is set in such a
+	# way that the identical leading part of all investigated files is
+	# set correctly; i.e. it should strip everything up to the main
+	# directory and only lists the files as, e.g., src/libcosmos/bla.h
+	# instead of /full/path/to/ginnungagap/src/libcosmo/bla.h.
+	# For more details see documentation of FULL_PATH_NAMES and
+	# STRIP_FROM_PATH of doxygen.
+	@cd .. ; $(DOXYGEN) doc/Doxyfile ; cd doc
 
 clean:
 	rm -f Doxyfile
