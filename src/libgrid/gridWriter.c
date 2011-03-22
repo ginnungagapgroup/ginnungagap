@@ -3,6 +3,16 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridWriter.c
+ * @ingroup libgrid libgridIO libgridIOOut
+ * @brief  This file provides the implementations of the abstract grid
+ *         writer.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridWriter.h"
@@ -145,8 +155,9 @@ local_newFromIniWrapper(parse_ini_t   ini,
 		diediedie(EXIT_FAILURE);
 #endif
 	} else if (type == IO_TYPE_GRAFIC) {
-		writer = (gridWriter_t)gridWriterGrafic_newFromIni(ini,
-		                                                   writerSectionName);
+		writer = (gridWriter_t)gridWriterGrafic_newFromIni(
+		    ini,
+		    writerSectionName);
 	} else {
 		fprintf(stderr, "Cannot create writer for %s\n",
 		        gridIO_getNameFromType(type));

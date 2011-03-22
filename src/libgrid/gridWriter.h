@@ -6,6 +6,15 @@
 #define GRIDWRITER_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridWriter.h
+ * @ingroup libgrid libgridIO libgridIOOut
+ * @brief  This file provides the interface to an abstract grid writer.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPatch.h"
@@ -18,6 +27,10 @@
 
 
 /*--- ADT handle --------------------------------------------------------*/
+
+/**
+ * @brief  Defines the handle for a grid writer.
+ */
 typedef struct gridWriter_struct *gridWriter_t;
 
 

@@ -6,6 +6,15 @@
 #define GRIDWRITER_ADT_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridWriter_adt.h
+ * @ingroup libgrid libgridIO libgridIOOut
+ * @brief  This file implements the main grid writer structure.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridWriter.h"
@@ -42,8 +51,8 @@ typedef struct gridWriter_func_struct *gridWriter_func_t;
 
 /*--- ADT implementation ------------------------------------------------*/
 #define GRIDWRITER_T_CONTENT \
-    gridIO_type_t type;        \
-    gridWriter_func_t func;    \
+    gridIO_type_t type;      \
+    gridWriter_func_t func;  \
     bool              isActive;
 
 struct gridWriter_struct {
