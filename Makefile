@@ -22,7 +22,7 @@ else
 GITDIR_AVAILABLE=false
 endif
 
-.PHONY: all clean dist-clean doc tarball statistics tests tests-clean
+.PHONY: all clean dist-clean doc tarball statistics tests tests-clean tags
 
 ifeq ($(CONFIG_AVAILABLE),true)
 include Makefile.config
@@ -74,3 +74,6 @@ statistics:
 
 doc:
 	$(MAKE) -C doc
+
+tags:
+	etags --recurse src/ tools/
