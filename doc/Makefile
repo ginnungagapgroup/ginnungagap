@@ -21,6 +21,7 @@ all:
 
 doc:
 	@../scripts/make_doxyfile.sh
+	@mkdir -p ref/
 	# This is a bit stupid, but doxygen needs to be executed from the
 	# main directory so that $PWD during its execution is set in such a
 	# way that the identical leading part of all investigated files is
@@ -30,9 +31,17 @@ doc:
 	# For more details see documentation of FULL_PATH_NAMES and
 	# STRIP_FROM_PATH of doxygen.
 	@cd .. ; $(DOXYGEN) doc/Doxyfile ; cd doc
+	@echo ""
+	@echo "List of warnings:"
+	@cat doxygen.warning
+	@echo ""
+	@echo ""
+	@echo "Total number of warnings"
+	@cat doxygen.warning | wc -l
+	@echo ""
 
 clean:
-	rm -f Doxyfile
+	rm -f Doxyfile doxygen.warning
 	rm -rf ref/
 
 dist-clean:
