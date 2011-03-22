@@ -250,7 +250,7 @@ cosmoPk_eval(cosmoPk_t pk, double k);
  * parameters are in reverse order and the handle to the power spectrum
  * is defined as void * to satisfy the needs of GSL functions.
  *
- * @parami[in]  k
+ * @param[in]  k
  *                The frequency at which to evaluate the power spectrum.
  * @param[in]  *param
  *                This must be the handle to the power spectrum (i.e.
@@ -283,7 +283,7 @@ cosmoPk_evalGSL(double k, void *param);
  * @param[in]   moment
  *                 This gives the moment which should be evaluated (the
  *                 @f$n@f$ the above equation).
- * @param[in]   *windowFunc(double, void *)
+ * @param[in]   *windowFunc
  *                 A pointer to a function that should be used as a
  *                 window functions. See cosmoFunc.h for possible
  *                 functions to use here. Note: This must be
