@@ -46,7 +46,6 @@ gridReaderGrafic_newFromIni(parse_ini_t ini, const char *sectionName)
 {
 	gridReaderGrafic_t reader;
 	char               *graficFileName;
-	bool               isWhiteNoise;
 
 	reader       = xmalloc(sizeof(struct gridReaderGrafic_struct));
 	reader->type = IO_TYPE_GRAFIC;
