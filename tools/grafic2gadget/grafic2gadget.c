@@ -126,9 +126,9 @@ grafic2gadget_run(grafic2gadget_t g2g)
 
 	assert(g2g != NULL);
 
-	gvx    = grafic_newFromFile(g2g->graficFileNameVx, false);
-	gvy    = grafic_newFromFile(g2g->graficFileNameVy, false);
-	gvz    = grafic_newFromFile(g2g->graficFileNameVz, false);
+	gvx    = grafic_newFromFile(g2g->graficFileNameVx);
+	gvy    = grafic_newFromFile(g2g->graficFileNameVy);
+	gvz    = grafic_newFromFile(g2g->graficFileNameVz);
 
 	gadget = gadget_new(g2g->gadgetFileStem, g2g->numGadgetFiles);
 

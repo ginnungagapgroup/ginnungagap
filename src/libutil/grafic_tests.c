@@ -79,14 +79,14 @@ grafic_newFromFile_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testNormal.grafic", false);
+	grafic = grafic_newFromFile("tests/testNormal.grafic");
 	if (strcmp(grafic->graficFileName, "tests/testNormal.grafic") != 0)
 		hasPassed = false;
 	if (grafic->isWhiteNoise != false)
 		hasPassed = false;
 	grafic_del(&grafic);
 
-	grafic = grafic_newFromFile("tests/testWN.grafic", true);
+	grafic = grafic_newFromFile("tests/testWN.grafic");
 	if (strcmp(grafic->graficFileName, "tests/testWN.grafic") != 0)
 		hasPassed = false;
 	if (grafic->isWhiteNoise != true)
@@ -122,7 +122,7 @@ grafic_del_test(void)
 	if (grafic != NULL)
 		hasPassed = false;
 
-	grafic = grafic_newFromFile("tests/testWN.grafic", true);
+	grafic = grafic_newFromFile("tests/testWN.grafic");
 	grafic_del(&grafic);
 	if (grafic != NULL)
 		hasPassed = false;
@@ -150,7 +150,7 @@ grafic_getFileName_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testWN.grafic", true);
+	grafic = grafic_newFromFile("tests/testWN.grafic");
 	if (strcmp(grafic_getFileName(grafic), "tests/testWN.grafic") != 0)
 		hasPassed = false;
 	grafic_del(&grafic);
@@ -179,7 +179,7 @@ grafic_getSize_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testWN.grafic", true);
+	grafic = grafic_newFromFile("tests/testWN.grafic");
 	grafic_getSize(grafic, size);
 	if (size[0] != 8)
 		hasPassed = false;
@@ -213,7 +213,7 @@ grafic_getDx_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testNormal.grafic", false);
+	grafic = grafic_newFromFile("tests/testNormal.grafic");
 	dx     = grafic_getDx(grafic);
 	if (islessgreater(dx, 1.0f))
 		hasPassed = false;
@@ -243,7 +243,7 @@ grafic_getXoff_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testNormal.grafic", false);
+	grafic = grafic_newFromFile("tests/testNormal.grafic");
 	grafic_getXoff(grafic, xoff);
 	if (islessgreater(xoff[0], 0.0f))
 		hasPassed = false;
@@ -277,7 +277,7 @@ grafic_getAstart_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testNormal.grafic", false);
+	grafic = grafic_newFromFile("tests/testNormal.grafic");
 	astart = grafic_getAstart(grafic);
 	if (islessgreater(astart, 0.1f))
 		hasPassed = false;
@@ -307,7 +307,7 @@ grafic_getOmegam_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testNormal.grafic", false);
+	grafic = grafic_newFromFile("tests/testNormal.grafic");
 	omegam = grafic_getOmegam(grafic);
 	if (islessgreater(omegam, 0.3f))
 		hasPassed = false;
@@ -337,7 +337,7 @@ grafic_getOmegav_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testNormal.grafic", false);
+	grafic = grafic_newFromFile("tests/testNormal.grafic");
 	omegav = grafic_getOmegav(grafic);
 	if (islessgreater(omegav, 0.7f))
 		hasPassed = false;
@@ -367,7 +367,7 @@ grafic_getH0_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testNormal.grafic", false);
+	grafic = grafic_newFromFile("tests/testNormal.grafic");
 	h0     = grafic_getH0(grafic);
 	if (islessgreater(h0, 72.f))
 		hasPassed = false;
@@ -396,7 +396,7 @@ grafic_getIseed_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_newFromFile("tests/testWN.grafic", true);
+	grafic = grafic_newFromFile("tests/testWN.grafic");
 	if (grafic_getIseed(grafic) != 666)
 		hasPassed = false;
 	grafic_del(&grafic);
@@ -768,7 +768,7 @@ grafic_read_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic      = grafic_newFromFile("tests/testNormal.grafic", false);
+	grafic      = grafic_newFromFile("tests/testNormal.grafic");
 	grafic_getSize(grafic, size);
 	numElements = size[0] * size[1] * size[2];
 
@@ -835,7 +835,7 @@ grafic_readWindowed_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic      = grafic_newFromFile("tests/testWN.grafic", true);
+	grafic      = grafic_newFromFile("tests/testWN.grafic");
 	grafic_getSize(grafic, size);
 	numElements = dims[0] * dims[1] * dims[2];
 
@@ -956,7 +956,7 @@ grafic_write_test(void)
 	grafic_del(&grafic);
 
 	data2  = xmalloc(sizeof(float) * numElements);
-	grafic = grafic_newFromFile("writeTest.grafic", true);
+	grafic = grafic_newFromFile("writeTest.grafic");
 	grafic_read(grafic, data2, GRAFIC_FORMAT_FLOAT, 1);
 	grafic_del(&grafic);
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -27,6 +27,9 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+static bool
+local_checkIfFileIsWhiteNoise(FILE *f);
+
 static void
 local_readGrafic(grafic_t grafic, FILE *f);
 
@@ -128,14 +131,16 @@ grafic_new(bool isWhiteNoise)
 }
 
 extern grafic_t
-grafic_newFromFile(const char *fileName, bool isWhiteNoise)
+grafic_newFromFile(const char *fileName)
 {
 	grafic_t grafic;
 	FILE     *f;
+	bool     isWhiteNoise;
 
 	assert(fileName != NULL);
 
 	f                      = xfopen(fileName, "r");
+	isWhiteNoise           = local_checkIfFileIsWhiteNoise(f);
 	grafic                 = grafic_new(isWhiteNoise);
 	grafic->graficFileName = xstrdup(fileName);
 	grafic->fileEndianess  = endian_getFileEndianessByBlock(fileName);
@@ -547,6 +552,31 @@ grafic_readSlab(grafic_t       grafic,
 }
 
 /*--- Implementations of local functions --------------------------------*/
+static bool
+local_checkIfFileIsWhiteNoise(FILE *f)
+{
+	int  b1;
+	int  b1Swapped;
+	long oldPosition;
+	bool isWhiteNoise;
+
+	oldPosition = ftell(f);
+
+	rewind(f);
+	xfread(&b1, sizeof(int), 1, f);
+	fseek(f, oldPosition, SEEK_SET);
+
+	b1Swapped = b1;
+	byteswap(&b1Swapped, sizeof(int));
+
+	if ((b1 == 16) || (b1Swapped == 16))
+		isWhiteNoise = true;
+	else
+		isWhiteNoise = false;
+
+	return isWhiteNoise ? true : false;
+}
+
 static void
 local_readGrafic(grafic_t grafic, FILE *f)
 {

@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -28,7 +28,7 @@ extern grafic_t
 grafic_new(bool isWhiteNoise);
 
 extern grafic_t
-grafic_newFromFile(const char *fileName, bool isWhiteNoise);
+grafic_newFromFile(const char *fileName);
 
 extern void
 grafic_del(grafic_t *grafic);

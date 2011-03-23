@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -17,6 +17,8 @@
 #include "../../src/libutil/xstring.h"
 #include "../../src/libutil/xfile.h"
 #include "../../src/libutil/diediedie.h"
+#include "../../src/libutil/grafic.h"
+#include "../../src/libutil/bov.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -27,8 +29,22 @@
 static void
 local_checkOutputName(const char *outName, bool force);
 
+static float *
+local_getDataAndMeta(const char *fname,
+                     uint32_t   *np,
+                     float      *dx,
+                     float      *astart);
+
 static void
-local_doHeader(FILE *f, int np[3], float *dx, float *astart);
+local_writeData(const char *fname, const float *data, size_t numElements);
+
+static void
+local_writeBov(const char *bovFileName,
+               const char *dataFileName,
+               const char *varName,
+               uint32_t   *np,
+               float      astart,
+               float      dx);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -69,48 +85,23 @@ grafic2bov_del(grafic2bov_t *g2b)
 extern void
 grafic2bov_run(grafic2bov_t g2b)
 {
-	FILE  *f;
-	int   np[3];
-	float dx;
-	float astart;
-	float *data;
+	uint32_t np[3];
+	float    dx;
+	float    astart;
+	float    *data;
+	char     *varName;
 
 	assert(g2b != NULL);
 
-	f = xfopen(g2b->graficFileName, "rb");
+	varName = xbasename(g2b->graficFileName);
+	data    = local_getDataAndMeta(g2b->graficFileName, np, &dx, &astart);
 
-	local_doHeader(f, np, &dx, &astart);
-	data = xmalloc(sizeof(float) * np[0]*np[1]*np[2]);
-	for (int i=0; i<np[2]; i++) {
-		int   bSize1, bSize2;
-		xfread(&bSize1, sizeof(int), 1, f);
-		xfread(data+i*np[0]*np[1], sizeof(float), np[0]*np[1], f);
-		xfread(&bSize2, sizeof(int), 1, f);
-		if (bSize1 != bSize2)
-			diediedie(EXIT_FAILURE);
-	}
-	xfclose(&f);
+	local_writeData(g2b->bovDataFileName, data, np[0] * np[1] * np[2]);
+	local_writeBov(g2b->bovFileName, g2b->bovDataFileName, varName, np,
+	               astart, dx);
 
-	f = xfopen(g2b->bovDataFileName, "wb");
-	xfwrite(data, sizeof(float), np[0]*np[1]*np[2], f);
-	xfclose(&f);
-
+	xfree(varName);
 	xfree(data);
-
-	f = xfopen(g2b->bovFileName, "w");
-	fprintf(f, "TIME: %f\n", 1./astart - 1.);
-	char *tmp = xbasename(g2b->graficFileName);
-	fprintf(f, "VARIABLE: %s\n", tmp);
-	xfree(tmp);
-	fprintf(f, "BRICK_ORIGIN: 0. 0. 0.\n");
-	fprintf(f, "BRICK_SIZE: %f %f %f\n", np[0]*dx, np[1]*dx, np[2]*dx);
-	fprintf(f, "DATA_FILE: %s\n", g2b->bovDataFileName);
-	fprintf(f, "DATA_SIZE: %i %i %i\n", np[0], np[1], np[2]);
-	fprintf(f, "DATA_ENDIAN: LITTLE\n");
-	fprintf(f, "DATA_FORMAT: FLOAT\n");
-	fprintf(f, "DATA_COMPONENTS: 1\n");
-	fprintf(f, "CENTERING: zonal\n");
-	xfclose(&f);
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -136,42 +127,65 @@ local_checkOutputName(const char *outName, bool force)
 	}
 }
 
-static void
-local_doHeader(FILE *f, int np[3], float *dx, float *astart)
+static float *
+local_getDataAndMeta(const char *fname,
+                     uint32_t   *np,
+                     float      *dx,
+                     float      *astart)
 {
-	int   bSize1, bSize2;
-	float xoff[3];
-	float omegam;
-	float omegav;
-	float h0;
+	float    *data;
+	grafic_t grafic;
 
-	xfread(&bSize1, sizeof(int), 1, f);
-	xfread(np, sizeof(int), 3, f);
-	if (bSize1 > 16) {
-		xfread(dx, sizeof(float), 1, f);
-		xfread(xoff, sizeof(float), 3, f);
-		xfread(astart, sizeof(float), 1, f);
-		xfread(&omegam, sizeof(float), 1, f);
-		xfread(&omegav, sizeof(float), 1, f);
-		xfread(&h0, sizeof(float), 1, f);
-	} else {
-		int iseed;
-		xfread(&iseed, sizeof(int), 1, f);
-		*dx = 1.0;
-		h0 = 1.0;
+	grafic = grafic_newFromFile(fname);
+	grafic_getSize(grafic, np);
+	if (grafic_isWhiteNoise(grafic)) {
+		*dx     = 1.0;
 		*astart = 1.0;
+	} else {
+		*dx     = grafic_getDx(grafic);
+		*astart = grafic_getAstart(grafic);
 	}
-	xfread(&bSize2, sizeof(int), 1, f);
-	if (bSize1 != bSize2)
-		diediedie(EXIT_FAILURE);
 
-	*dx *= .01f * h0;
+	data = xmalloc(sizeof(float) * np[0] * np[1] * np[2]);
+	grafic_read(grafic, data, GRAFIC_FORMAT_FLOAT, 1);
+	grafic_del(&grafic);
 
-	fprintf(stdout,
-	        "np     =  (%i, %i, %i)\n"
-	        "dx     =  %f\nxoff   =  (%f, %f, %f)\n"
-	        "astart =  %f\nomegam =  %f\n"
-	        "omegav =  %f\nh0     =  %f\n",
-	        np[0], np[1], np[2], *dx, xoff[0], xoff[1], xoff[2],
-	        *astart, omegam, omegav, h0);
+	return data;
+}
+
+static void
+local_writeData(const char *fname, const float *data, size_t numElements)
+{
+	FILE *f;
+
+	f = xfopen(fname, "wb");
+	xfwrite(data, sizeof(float), numElements, f);
+	xfclose(&f);
+}
+
+static void
+local_writeBov(const char *bovFileName,
+               const char *dataFileName,
+               const char *varName,
+               uint32_t   *np,
+               float      astart,
+               float      dx)
+{
+	bov_t  bov;
+	double brickSize[3];
+
+	bov = bov_new();
+
+	bov_setTime(bov, astart);
+	bov_setDataFileName(bov, dataFileName);
+	bov_setDataSize(bov, np);
+	bov_setDataFormat(bov, BOV_FORMAT_FLOAT);
+	bov_setVarName(bov, varName);
+	for (int i = 0; i < 3; i++)
+		brickSize[i] = np[0] * dx;
+	bov_setBrickSize(bov, brickSize);
+
+	bov_write(bov, bovFileName);
+
+	bov_del(&bov);
 }

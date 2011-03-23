@@ -54,11 +54,8 @@ gridReaderGrafic_newFromIni(parse_ini_t ini, const char *sectionName)
 
 	getFromIni(&graficFileName, parse_ini_get_string,
 	           ini, "graficFileName", sectionName);
-	getFromIni(&isWhiteNoise, parse_ini_get_bool,
-	           ini, "isWhiteNoise", sectionName);
 
-	reader->grafic = grafic_newFromFile(graficFileName,
-	                                    isWhiteNoise);
+	reader->grafic = grafic_newFromFile(graficFileName);
 
 	xfree(graficFileName);
 
