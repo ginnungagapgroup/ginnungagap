@@ -39,6 +39,7 @@ dist-clean:
 	$(MAKE) clean
 	rm -f $(sources:.c=.d)
 
+ifeq ($(WITH_SILO), "true")
 $(progName): $(sources:.c=.o) \
 	                 ../../src/libutil/libutil.a
 	$(CC) $(LDFLAGS) $(CFLAGS) \
@@ -50,3 +51,4 @@ $(progName): $(sources:.c=.o) \
 
 ../../src/libutil/libutil.a:
 	$(MAKE) -C ../../src/libutil
+endif
