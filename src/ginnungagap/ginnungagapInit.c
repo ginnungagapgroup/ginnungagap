@@ -83,8 +83,11 @@ ginnungagapInit_init(double       boxsizeInMpch,
 #endif
 
 	local_calcAndCheckFreqs(&k, boxsizeInMpch, dim1D, pk, rank);
+	cosmoPk_dumpToFile(pk, "Pk.input.dat", 10);
 	local_renormalizePk(&k, pk, model, forceNormalisation, rank);
+	cosmoPk_dumpToFile(pk, "Pk.input_rescaled_z0.dat", 10);
 	local_shiftPkToAInit(model, pk, cosmo_z2a(zInit), rank);
+	cosmoPk_dumpToFile(pk, "Pk.input_rescaled_zinit.dat", 10);
 	local_calcSigmaBox(&k, pk, rank);
 }
 

@@ -217,10 +217,10 @@ ginnungagapIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
 				                                 + k2 * k2)));
 
 				if ((kCell <= kMaxGrid[0]) && (kCell > 0)) {
-					P[kCell]       += creal(data[idx]) * creal(data[idx])
+					P[kCell - 1]   += creal(data[idx]) * creal(data[idx])
 					                  + cimag(data[idx]) * cimag(data[idx]);
 					freq[kCell - 1] = kCell * wavenumToFreq;
-					numFreqHits[kCell]++;
+					numFreqHits[kCell -1]++;
 				}
 			}
 		}

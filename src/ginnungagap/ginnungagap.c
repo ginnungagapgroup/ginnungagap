@@ -56,7 +56,13 @@ static void
 local_doWhiteNoise(ginnungagap_t ginnungagap);
 
 static void
+local_doWhiteNoisePk(ginnungagap_t ginnungagap);
+
+static void
 local_doDeltaK(ginnungagap_t ginnungagap);
+
+static void
+local_doDeltaKPk(ginnungagap_t ginnungagap);
 
 static void
 local_doDeltaX(ginnungagap_t ginnungagap);
@@ -134,7 +140,9 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 
 	ginnungagapWN_reset(ginnungagap->whiteNoise);
 	local_doWhiteNoise(ginnungagap);
+	local_doWhiteNoisePk(ginnungagap);
 	local_doDeltaK(ginnungagap);
+	local_doDeltaKPk(ginnungagap);
 	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VX);
 	local_doStatistics(ginnungagap, 0);
 	if (ginnungagap->rank == 0)
@@ -266,6 +274,21 @@ local_doWhiteNoise(ginnungagap_t ginnungagap)
 }
 
 static void
+local_doWhiteNoisePk(ginnungagap_t ginnungagap)
+{
+	double timing;
+	cosmoPk_t pk;
+
+	timing = timer_start("  Calculating P(k) for white noise");
+	pk = ginnungagapIC_calcPkFromDelta(ginnungagap->gridFFT,
+	                                   ginnungagap->setup->dim1D,
+	                                   ginnungagap->setup->boxsizeInMpch);
+	cosmoPk_dumpToFile(pk, "wn.pk.dat", 1);
+	cosmoPk_del(&pk);
+	timing = timer_stop(timing);
+}
+
+static void
 local_doDeltaK(ginnungagap_t ginnungagap)
 {
 	double timing;
@@ -275,6 +298,21 @@ local_doDeltaK(ginnungagap_t ginnungagap)
 	                              ginnungagap->setup->dim1D,
 	                              ginnungagap->setup->boxsizeInMpch,
 	                              ginnungagap->pk);
+	timing = timer_stop(timing);
+}
+
+static void
+local_doDeltaKPk(ginnungagap_t ginnungagap)
+{
+	double timing;
+	cosmoPk_t pk;
+
+	timing = timer_start("  Calculating P(k) for delta(k)");
+	pk = ginnungagapIC_calcPkFromDelta(ginnungagap->gridFFT,
+	                                   ginnungagap->setup->dim1D,
+	                                   ginnungagap->setup->boxsizeInMpch);
+	cosmoPk_dumpToFile(pk, "deltak.pk.dat", 1);
+	cosmoPk_del(&pk);
 	timing = timer_stop(timing);
 }
 
