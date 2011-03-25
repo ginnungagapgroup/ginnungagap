@@ -53,7 +53,7 @@
 #define LOCAL_EPSREL 1e-7
 
 /** @brief Gives the minimal number of points in a power spectrum */
-#define LOCAL_MINPOINTS 25
+#define LOCAL_MINPOINTS 4
 
 /**
  * @brief  Number of points to ignore at the beginning and end of the
@@ -64,7 +64,7 @@
  * evaluating the power spectrum (they are however used to generate the
  * spline interpolation).
  */
-#define LOCAL_IGNOREPOINTS 5
+#define LOCAL_IGNOREPOINTS 2
 
 
 /*--- Prototypes of local functions -------------------------------------*/
