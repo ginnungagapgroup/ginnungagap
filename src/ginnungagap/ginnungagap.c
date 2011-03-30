@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <inttypes.h>
 #ifdef WITH_MPI
@@ -53,7 +54,7 @@ static gridRegularFFT_t
 local_getFFT(ginnungagap_t ginnungagap);
 
 static void
-local_doWhiteNoise(ginnungagap_t ginnungagap);
+local_doWhiteNoise(ginnungagap_t ginnungagap, bool doDumpOfWhiteNoise);
 
 static void
 local_doWhiteNoisePk(ginnungagap_t ginnungagap);
@@ -131,7 +132,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	if (ginnungagap->rank == 0)
 		printf("\nGenerating IC:\n\n");
 
-	local_doWhiteNoise(ginnungagap);
+	local_doWhiteNoise(ginnungagap, true);
 	local_doDeltaK(ginnungagap);
 	local_doDeltaX(ginnungagap);
 	local_doStatistics(ginnungagap, 0);
@@ -139,7 +140,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 		printf("\n");
 
 	ginnungagapWN_reset(ginnungagap->whiteNoise);
-	local_doWhiteNoise(ginnungagap);
+	local_doWhiteNoise(ginnungagap, false);
 	local_doWhiteNoisePk(ginnungagap);
 	local_doDeltaK(ginnungagap);
 	local_doDeltaKPk(ginnungagap);
@@ -149,7 +150,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 		printf("\n");
 
 	ginnungagapWN_reset(ginnungagap->whiteNoise);
-	local_doWhiteNoise(ginnungagap);
+	local_doWhiteNoise(ginnungagap, false);
 	local_doDeltaK(ginnungagap);
 	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VY);
 	local_doStatistics(ginnungagap, 0);
@@ -157,7 +158,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 		printf("\n");
 
 	ginnungagapWN_reset(ginnungagap->whiteNoise);
-	local_doWhiteNoise(ginnungagap);
+	local_doWhiteNoise(ginnungagap, false);
 	local_doDeltaK(ginnungagap);
 	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VZ);
 	local_doStatistics(ginnungagap, 0);
@@ -257,7 +258,7 @@ local_getFFT(ginnungagap_t ginnungagap)
 }
 
 static void
-local_doWhiteNoise(ginnungagap_t ginnungagap)
+local_doWhiteNoise(ginnungagap_t ginnungagap, bool doDumpOfWhiteNoise)
 {
 	double timing;
 
@@ -266,7 +267,12 @@ local_doWhiteNoise(ginnungagap_t ginnungagap)
 	                    ginnungagap->grid,
 	                    ginnungagap->posOfDens);
 	timing = timer_stop(timing);
-	ginnungagapWN_dump(ginnungagap->whiteNoise, ginnungagap->grid);
+
+	if (doDumpOfWhiteNoise) {
+		timing = timer_start("  Writing white noise to file");
+		ginnungagapWN_dump(ginnungagap->whiteNoise, ginnungagap->grid);
+		timing = timer_stop(timing);
+	}
 
 	timing = timer_start("  Going to k-space");
 	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_FORWARD);
