@@ -3,6 +3,16 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/groupi.c
+ * @ingroup libutilFilesParallel
+ * @brief  This file provides the implementation of the group parallel
+ *         interface.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include "groupi.h"

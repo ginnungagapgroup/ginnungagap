@@ -6,6 +6,15 @@
 #define GRAFIC_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/grafic.c
+ * @ingroup libutilFilesGrafic
+ * @brief  This file provides the interface of the Grafic file type.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include <stdint.h>

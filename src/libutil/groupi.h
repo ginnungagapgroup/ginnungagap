@@ -6,6 +6,15 @@
 #define GROUPI_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/groupi.h
+ * @ingroup libutilFilesParallel
+ * @brief  This file provides the group parallel interface.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include <stdbool.h>

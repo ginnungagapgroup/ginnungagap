@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef GADGETHEADER_H
 #define GADGETHEADER_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/gadgetHeader.h
+ * @ingroup libutilFilesGadget
+ * @brief  This file provides the interface to Gadget headers.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/

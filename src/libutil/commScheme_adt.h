@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef COMMSCHEME_ADT_H
 #define COMMSCHEME_ADT_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/commScheme_adt.h
+ * @ingroup libutilParallel
+ * @brief  Provides the main structure of the communication scheme ADT.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/

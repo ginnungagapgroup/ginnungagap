@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef PARSE_INI_H
 #define PARSE_INI_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/parse_ini.h
+ * @ingroup libutilFilesIni
+ * @brief  This file provides the interface of the INI file type.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/

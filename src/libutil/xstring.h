@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef XSTRING_H
 #define XSTRING_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/xstring.h
+ * @ingroup libutilCore
+ * @brief This file provides utility functions dealing with strings.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/

@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef GRAFIC_ADT_H
 #define GRAFIC_ADT_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/grafic_adt.h
+ * @ingroup libutilFilesGrafic
+ * @brief  This file provides the main structure of the Grafic ADT.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/

@@ -1,11 +1,23 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/byteswap.c
+ * @ingroup libutilMisc
+ * @brief  This file provides the implementation of a function for
+ *         byte-swapping.
+ */
+
+
+/*--- Includes ----------------------------------------------------------*/
 #include "byteswap.h"
 
 
+/*--- Implemenations of exported functions ------------------------------*/
 extern void
 byteswap(void *p, size_t s)
 {

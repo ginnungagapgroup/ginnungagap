@@ -3,6 +3,15 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/grafic.c
+ * @ingroup libutilFilesGrafic
+ * @brief  This file provides the implementation of the Grafic object.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include "grafic.h"

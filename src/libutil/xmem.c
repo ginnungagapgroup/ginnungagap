@@ -1,6 +1,16 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/xmem.c
+ * @ingroup libutilCore
+ * @brief This file implements the utility functions dealing with
+ *        memory.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -17,7 +27,7 @@ size_t  global_max_allocated_bytes = 0;
 int64_t global_malloc_vs_free      = 0;
 
 
-/*--- Prototypes of local functions -------------------------------------*/
+/*--- Implementation of exported functions ------------------------------*/
 extern void *
 xmalloc(size_t size)
 {

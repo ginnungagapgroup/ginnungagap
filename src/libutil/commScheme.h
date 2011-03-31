@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -6,10 +6,21 @@
 #define COMMSCHEME_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/commScheme.h
+ * @ingroup libutilParallel
+ * @brief  Provides a communication scheme interface (only available
+ *         with MPI).
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #ifdef WITH_MPI
 #  include "commSchemeBuffer.h"
+
 
 /*--- ADT handle --------------------------------------------------------*/
 typedef struct commScheme_struct *commScheme_t;

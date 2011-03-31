@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -6,17 +6,32 @@
 #define BYTESWAP_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libutil/byteswap.h
+ * @ingroup libutilMisc
+ * @brief  This file provides a function for byte-swapping.
+ */
+
+
+/*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include <stdlib.h>
 
 
+/*--- Prototypes of exported functions ----------------------------------*/
+
 /**
- * \brief  Performs a byteswapping.
+ * @brief  Performs a byteswapping.
  *
- * \param  *p  The pointer to the variable that should be byteswapped.
- * \param  s   The number of bytes of the variable.
+ * @param[in,out]  *p
+ *                    The pointer to the variable that should be
+ *                    byteswapped.
+ * @param[in]      s
+ *                    The number of bytes of the variable.
  *
- * \return  Returns nothing.
+ * @return  Returns nothing.
  */
 extern void
 byteswap(void *p, size_t s);
