@@ -698,6 +698,11 @@ sed -i.bak -e "s@__NDIM_VALUE__@$NDIM_VALUE@" config.h
 $ECHO "done" | tee -a config.log
 rm -f config.h.bak
 
+# Enforce a re-evaluation of the depencies by deleting all .d files
+find src -name \*.d -exec rm {} +
+find src -name \*.d.\* -exec rm {} +
+find tools -name \*.d -exec rm {} +
+find tools -name \*.d.\* -exec rm {} +
 
 # Summarize the configuration
 $ECHO "" | tee -a config.log
