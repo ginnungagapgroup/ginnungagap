@@ -18,18 +18,22 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
-#ifdef WITH_MPI
 #include <mpi.h>
 
 
 /*--- ADT implementation ------------------------------------------------*/
+
+/** @brief  The main structure holding the buffer information.  */
 struct commSchemeBuffer_struct {
+	/** @brief The actual buffer array. */
 	void         *buf;
+	/** @brief The number of elements in the buffer. */
 	int          count;
+	/** @brief The MPI datatype of the elements in the buffer. */
 	MPI_Datatype datatype;
+	/** @brief The associated rank. */
 	int          rank;
 };
 
 
-#endif
 #endif

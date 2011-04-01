@@ -25,6 +25,9 @@
 /**
  * @brief  Performs a byteswapping.
  *
+ * This will simply revers the order of the bytes, i.e. ABCD will
+ * become DCBA.
+ *
  * @param[in,out]  *p
  *                    The pointer to the variable that should be
  *                    byteswapped.

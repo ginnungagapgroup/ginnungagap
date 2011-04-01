@@ -15,18 +15,17 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
-#ifdef WITH_MPI
-#  include "commScheme.h"
-#  include "commSchemeBuffer.h"
-#  include <mpi.h>
-#  include <assert.h>
-#  include "xmem.h"
-#  include "varArr.h"
+#include "commScheme.h"
+#include "commSchemeBuffer.h"
+#include <mpi.h>
+#include <assert.h>
+#include "xmem.h"
+#include "varArr.h"
 
 
 /*--- Implementation of main structure ----------------------------------*/
-#  include "commScheme_adt.h"
-#  include "commSchemeBuffer_adt.h"
+#include "commScheme_adt.h"
+#include "commSchemeBuffer_adt.h"
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -193,5 +192,3 @@ local_startSending(commScheme_t scheme)
 		          scheme->tag, scheme->comm, scheme->requestsSend + i);
 	}
 }
-
-#endif

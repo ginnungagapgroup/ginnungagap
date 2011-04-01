@@ -24,9 +24,13 @@
 /*--- Exported defines --------------------------------------------------*/
 
 /**
- * @brief  Terminates the program with error code \a errCode and
- *         indicates the function, file name and line number where the
- *         macro was called.
+ * @brief  Terminates the program with an error code.
+ *
+ * The macro will print an error message to @a stderr and indicate the
+ * function, file and line that caused the error.  This is to be used as
+ * a worst case program termination.  Note that <b>no</b> clean-up is
+ * performed, if specific things are required they should have been
+ * registered with <b>at_exit</b>(3).
  */
 #define diediedie(errCode)                                \
 	{                                                     \

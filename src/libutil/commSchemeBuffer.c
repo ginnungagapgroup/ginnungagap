@@ -14,15 +14,14 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
-#ifdef WITH_MPI
-#  include "commSchemeBuffer.h"
-#  include <mpi.h>
-#  include <assert.h>
-#  include "xmem.h"
+#include "commSchemeBuffer.h"
+#include <mpi.h>
+#include <assert.h>
+#include "xmem.h"
 
 
 /*--- Implementation of main structure ----------------------------------*/
-#  include "commSchemeBuffer_adt.h"
+#include "commSchemeBuffer_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -61,34 +60,31 @@ commSchemeBuffer_del(commSchemeBuffer_t *buf)
 }
 
 extern void *
-commSchemeBuffer_getBuf(commSchemeBuffer_t buf)
+commSchemeBuffer_getBuf(const commSchemeBuffer_t buf)
 {
 	assert(buf != NULL);
 	return buf->buf;
 }
 
 extern int
-commSchemeBuffer_getCount(commSchemeBuffer_t buf)
+commSchemeBuffer_getCount(const commSchemeBuffer_t buf)
 {
 	assert(buf != NULL);
 	return buf->count;
 }
 
 extern MPI_Datatype
-commSchemeBuffer_getDatatype(commSchemeBuffer_t buf)
+commSchemeBuffer_getDatatype(const commSchemeBuffer_t buf)
 {
 	assert(buf != NULL);
 	return buf->datatype;
 }
 
 extern int
-commSchemeBuffer_getRank(commSchemeBuffer_t buf)
+commSchemeBuffer_getRank(const commSchemeBuffer_t buf)
 {
 	assert(buf != NULL);
 	return buf->rank;
 }
 
 /*--- Implementations of local functions --------------------------------*/
-
-
-#endif
