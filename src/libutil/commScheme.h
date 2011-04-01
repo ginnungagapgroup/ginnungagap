@@ -10,7 +10,7 @@
 
 /**
  * @file libutil/commScheme.h
- * @ingroup libutilParallel
+ * @ingroup libutilParallelCommScheme
  * @brief  Provides a communication scheme interface (only available
  *         with MPI).
  */
@@ -197,5 +197,15 @@ commScheme_wait(commScheme_t scheme);
 
 
 /** @} */
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libutilParallelCommScheme Communication Scheme
+ * @ingroup libutilParallel
+ * @brief Provides a communication scheme interface.
+ */
+
 
 #endif

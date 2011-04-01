@@ -7,7 +7,7 @@
 
 /**
  * @file libutil/varArr.c
- * @ingroup libutilMisc
+ * @ingroup libutilMiscVarArr
  * @brief This file provides the implementation of the variable length
  *        array.
  */
@@ -68,11 +68,20 @@ varArr_del(varArr_t *arr)
 }
 
 extern int
-varArr_getLength(varArr_t arr)
+varArr_getLength(const varArr_t arr)
 {
 	assert(arr != NULL);
 
 	return arr->numUsed;
+}
+
+extern void *
+varArr_getElementHandle(const varArr_t arr, int numElement)
+{
+	assert(arr != NULL);
+	assert(numElement >= 0 && numElement < arr->numUsed);
+
+	return arr->elements[numElement];
 }
 
 extern int
@@ -127,15 +136,6 @@ varArr_replace(varArr_t arr, int numElement, void *newElement)
 	arr->elements[numElement] = newElement;
 
 	return replacedElement;
-}
-
-extern void *
-varArr_getElementHandle(varArr_t arr, int numElement)
-{
-	assert(arr != NULL);
-	assert(numElement >= 0 && numElement < arr->numUsed);
-
-	return arr->elements[numElement];
 }
 
 /*--- Implementations of local functions --------------------------------*/

@@ -7,7 +7,7 @@
 
 /**
  * @file libutil/groupi.c
- * @ingroup libutilFilesParallel
+ * @ingroup libutilParallelGroupi
  * @brief  This file provides the implementation of the group parallel
  *         interface.
  */

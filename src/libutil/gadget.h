@@ -58,4 +58,15 @@ gadget_write(gadget_t gadget,
              float    *vel,
              uint32_t *id);
 
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libutilFilesGadget Gadget
+ * @ingroup libutilFiles
+ * @brief Provides low-level interfaces to Gadget files.
+ *
+ */
+
+
 #endif

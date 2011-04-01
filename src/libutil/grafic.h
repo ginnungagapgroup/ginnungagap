@@ -137,4 +137,15 @@ grafic_readSlab(grafic_t       grafic,
                 int            numComponents,
                 int            slabNum);
 
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libutilFilesGrafic Grafic
+ * @ingroup libutilFiles
+ * @brief Provides low-level interfaces to Grafic files.
+ *
+ */
+
+
 #endif

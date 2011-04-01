@@ -10,7 +10,7 @@
 
 /**
  * @file libutil/commSchemeBuffer.h
- * @ingroup libutilParallel
+ * @ingroup libutilParallelCommScheme
  * @brief  Provides a communication buffer interface (only with MPI).
  */
 

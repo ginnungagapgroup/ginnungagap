@@ -10,7 +10,7 @@
 
 /**
  * @file libutil/commSchemeBuffer_adt.h
- * @ingroup libutilParallel
+ * @ingroup libutilParallelCommScheme
  * @brief  Provides the implementation of the buffer structure for the
  *         communication scheme.
  */

@@ -10,7 +10,7 @@
 
 /**
  * @file libutil/commScheme_adt.h
- * @ingroup libutilParallel
+ * @ingroup libutilParallelCommScheme
  * @brief  Provides the main structure of the communication scheme ADT.
  */
 

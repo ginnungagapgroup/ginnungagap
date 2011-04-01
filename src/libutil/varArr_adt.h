@@ -10,7 +10,7 @@
 
 /**
  * @file libutil/varArr_adt.h
- * @ingroup libutilMisc
+ * @ingroup libutilMiscVarArr
  * @brief This file provides the implementation of the main structure of
  *        the variable length array.
  */
@@ -22,14 +22,24 @@
 
 
 /*--- Defines needed for this ADT ---------------------------------------*/
+
+/** Gives the smallest increment for the changing the array size. */
 #define VARARR_MIN_INCR 2
 
 
 /*--- ADT implementation ------------------------------------------------*/
+
+/**
+ * @brief  Implements the main structure for the variable length array.
+ */
 struct varArr_struct {
-	int numAllocated;
-	int numUsed;
-	int increment;
+	/** @brief  The number of allocated elements. */
+	int  numAllocated;
+	/** @brief  The number of used elements. */
+	int  numUsed;
+	/** @brief  The increment used to resize the array. */
+	int  increment;
+	/** @brief  The data array holding references to the elements. */
 	void **elements;
 };
 

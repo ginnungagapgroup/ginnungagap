@@ -7,7 +7,7 @@
 
 /**
  * @file libutil/commScheme.c
- * @ingroup libutilParallel
+ * @ingroup libutilParallelCommScheme
  * @brief  Provides the implementation of the communication scheme
  *         interface.
  */

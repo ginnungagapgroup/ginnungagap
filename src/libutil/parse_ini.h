@@ -23,6 +23,21 @@
 
 
 /*--- Exported defines --------------------------------------------------*/
+
+/**
+ * @brief  Provides an error checking wrapper get values from the ini.
+ *
+ * @param trgt
+ *           The memory location where the result will be written to.
+ * @param func
+ *           The function used for reading.
+ * @param ini
+ *           The ini parser from which to read.
+ * @param keyName
+ *           The key for which to look.
+ * @param sectionName
+ *           The section in which to search.
+ */
 #define getFromIni(trgt, func, ini, keyName, sectionName)      \
     if (!func(ini, keyName, sectionName, trgt)) {              \
 		fprintf(stderr,                                        \
@@ -33,7 +48,10 @@
 
 
 /*--- ADT handle --------------------------------------------------------*/
+
+/** @brief Short name for the structure holding the ini. */
 typedef struct parse_ini_struct parse_ini_struct_t;
+/** @brief Defines the handle of the ini parser. */
 typedef parse_ini_struct_t      *parse_ini_t;
 
 
@@ -266,6 +284,16 @@ parse_ini_get_int32list(parse_ini_t ini,
                         const char  *section_name,
                         uint32_t    num_values,
                         int32_t     **values);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libutilFilesIni INI
+ * @ingroup libutilFiles
+ * @brief Provides low-level interfaces to INI files.
+ *
+ */
 
 
 #endif

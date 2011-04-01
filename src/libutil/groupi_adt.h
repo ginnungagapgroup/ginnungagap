@@ -10,7 +10,7 @@
 
 /**
  * @file libutil/groupi_adt.h
- * @ingroup libutilFilesParallel
+ * @ingroup libutilParallelGroupi
  * @brief  This file provides the main structure of the group interface.
  */
 
