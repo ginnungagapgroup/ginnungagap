@@ -244,7 +244,7 @@ local_getBaseHeader(gadget_t     gadget,
 
 
 	gadgetHeader_setMassArr(header, massarr);
-	gadgetHeader_setExpansion(header, aInit);
+	gadgetHeader_setTime(header, aInit);
 	gadgetHeader_setNall(header, npall);
 	gadgetHeader_setNumFiles(header, numFiles);
 	gadgetHeader_setBoxsize(header, boxsize);

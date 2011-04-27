@@ -144,6 +144,8 @@ gadget_write(gadget_t gadget,
 	assert(gadget->headers[numFile] != NULL);
 
 	numPartWrite = gadgetHeader_getNumPartsInFile(gadget->headers[numFile]);
+
+	gadgetUtil_writeBlock(gadget->f[numFile], "HEAD", GADGETHEADER_SIZE);
 	gadgetHeader_write(gadget->headers[numFile], gadget->f[numFile]);
 
 	block = numPartWrite * 3 * sizeof(float);

@@ -29,21 +29,50 @@ typedef enum {
 } gadgetMode_t;
 
 /*--- ADT handle --------------------------------------------------------*/
+
+/**
+ * @brief  Defines the handle for a Gadget file object.
+ */
 typedef struct gadget_struct *gadget_t;
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
+
+/**
+ * @name  Creating and Deleting
+ *
+ * @{
+ */
+
 extern gadget_t
 gadget_new(const char *fileNameStem, int numFiles);
 
 extern void
 gadget_del(gadget_t *gadget);
 
+
+/** @} */
+
+/**
+ * @name  Using
+ *
+ * @{
+ */
+
 extern int
 gadget_getNumFiles(gadget_t gadget);
 
 extern void
 gadget_attachHeader(gadget_t gadget, gadgetHeader_t header, int numFile);
+
+
+/** @} */
+
+/**
+ * @name Input/Output
+ *
+ * @{
+ */
 
 extern void
 gadget_open(gadget_t gadget, gadgetMode_t mode, int numFile);
@@ -57,6 +86,9 @@ gadget_write(gadget_t gadget,
              float    *pos,
              float    *vel,
              uint32_t *id);
+
+
+/** @} */
 
 
 /*--- Doxygen group definitions -----------------------------------------*/
