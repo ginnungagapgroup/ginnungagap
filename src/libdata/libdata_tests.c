@@ -3,8 +3,10 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "partConfig.h"
-#include "partBunch_tests.h"
+#include "dataConfig.h"
+#include "dataVar_tests.h"
+#include "dataVarType_tests.h"
+#include "dataParticle_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,8 +18,9 @@
 #  include "../libutil/xmem.h"
 #endif
 
+
 /*--- Local defines -----------------------------------------------------*/
-#define NAME "libpart"
+#define NAME "libdata"
 
 
 /*--- Macros ------------------------------------------------------------*/
@@ -40,15 +43,13 @@
 #endif
 
 
-/*--- Prototypes of loceal functions ------------------------------------*/
+/*--- Prototypes of local functions -------------------------------------*/
 static bool
 local_runtest(bool (*f)(void));
-
 
 #ifdef WITH_MPI
 static bool
 local_runtestMPI(bool (*f)(void));
-
 #endif
 
 
@@ -65,33 +66,70 @@ main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
-
 	if (rank == 0) {
 		printf("\nTesting %s on %i %s\n",
 		       NAME, size, size > 1 ? "tasks" : "task");
 	}
 
 	if (rank == 0) {
-		printf("\nRunning tests for partBunch:\n");
-		RUNTEST(&partBunch_new_test, hasFailed);
-		RUNTEST(&partBunch_del_test, hasFailed);
-		RUNTEST(&partBunch_allocMem_test, hasFailed);
-		RUNTEST(&partBunch_freeMem_test, hasFailed);
-		RUNTEST(&partBunch_resize_test, hasFailed);
-		RUNTEST(&partBunch_isAllocated_test, hasFailed);
-		RUNTEST(&partBunch_getNumParticles_test, hasFailed);
+		printf("\nRunning tests for dataVar:\n");
 	}
+	RUNTEST(&dataVar_new_test, hasFailed);
+	RUNTEST(&dataVar_clone_test, hasFailed);
+	RUNTEST(&dataVar_del_test, hasFailed);
+	RUNTEST(&dataVar_getRef_test, hasFailed);
+	RUNTEST(&dataVar_getSizePerElement_test, hasFailed);
+	RUNTEST(&dataVar_getNumComponents_test, hasFailed);
+	RUNTEST(&dataVar_getType_test, hasFailed);
+	RUNTEST(&dataVar_setMemFuncs_test, hasFailed);
+	RUNTEST(&dataVar_getMemory_test, hasFailed);
+	RUNTEST(&dataVar_freeMemory_test, hasFailed);
+	RUNTEST(&dataVar_getPointerByOffset_test, hasFailed);
+	RUNTEST(&dataVar_setFFTWPadded_test, hasFailed);
+	RUNTEST(&dataVar_unsetFFTWPadded_test, hasFailed);
+	RUNTEST(&dataVar_isFFTWPadded_test, hasFailed);
+	RUNTEST(&dataVar_setComplexified_test, hasFailed);
+	RUNTEST(&dataVar_unsetComplexified_test, hasFailed);
+	RUNTEST(&dataVar_isComplexified_test, hasFailed);
+#ifdef WITH_MPI
+	RUNTEST(&dataVar_getMPIDatatype_test, hasFailed);
+	RUNTEST(&dataVar_getMPICount_test, hasFailed);
+#endif
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
 
-#if 0
-#  ifdef WITH_MPI
-	MPI_Barrier(MPI_COMM_WORLD);
 	if (rank == 0) {
-		printf("\nRunning tests for commSchemeBuffer:\n");
+		printf("\nRunning tests for dataVarType:\n");
 	}
-	RUNTESTMPI(&commSchemeBuffer_new_test, hasFailed);
+	RUNTEST(&dataVarType_sizeof_test, hasFailed);
+	RUNTEST(&dataVarType_isFloating_test, hasFailed);
+	RUNTEST(&dataVarType_isInteger_test, hasFailed);
+	RUNTEST(&dataVarType_isNativeFloat_test, hasFailed);
+	RUNTEST(&dataVarType_isNativeDouble_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
 
+	if (rank == 0) {
+		printf("\nRunning tests for dataParticle:\n");
+		RUNTEST(&dataParticle_new_test, hasFailed);
+		RUNTEST(&dataParticle_getRef_test, hasFailed);
+		RUNTEST(&dataParticle_del_test, hasFailed);
+		RUNTEST(&dataParticle_addVar_test, hasFailed);
+	}
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
+
+#ifdef WITH_MPI
 	MPI_Finalize();
-#  endif
 #endif
 
 	if (hasFailed) {

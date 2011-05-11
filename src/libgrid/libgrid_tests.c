@@ -8,8 +8,6 @@
 #include "gridRegularDistrib_tests.h"
 #include "gridRegularFFT_tests.h"
 #include "gridPatch_tests.h"
-#include "gridVar_tests.h"
-#include "gridVarType_tests.h"
 #include "gridUtil_tests.h"
 #include "gridHistogram_tests.h"
 #include "gridStatistics_tests.h"
@@ -72,50 +70,6 @@ main(int argc, char **argv)
 		printf("\nRunning tests for gridUtil:\n");
 	}
 	RUNTEST(&gridUtil_intersection1D_test, hasFailed);
-#ifdef XMEM_TRACK_MEM
-	if (rank == 0)
-		xmem_info(stdout);
-	global_max_allocated_bytes = 0;
-#endif
-
-	if (rank == 0) {
-		printf("\nRunning tests for gridVar:\n");
-	}
-	RUNTEST(&gridVar_new_test, hasFailed);
-	RUNTEST(&gridVar_clone_test, hasFailed);
-	RUNTEST(&gridVar_del_test, hasFailed);
-	RUNTEST(&gridVar_getRef_test, hasFailed);
-	RUNTEST(&gridVar_getSizePerElement_test, hasFailed);
-	RUNTEST(&gridVar_getNumComponents_test, hasFailed);
-	RUNTEST(&gridVar_getType_test, hasFailed);
-	RUNTEST(&gridVar_setMemFuncs_test, hasFailed);
-	RUNTEST(&gridVar_getMemory_test, hasFailed);
-	RUNTEST(&gridVar_freeMemory_test, hasFailed);
-	RUNTEST(&gridVar_getPointerByOffset_test, hasFailed);
-	RUNTEST(&gridVar_setFFTWPadded_test, hasFailed);
-	RUNTEST(&gridVar_unsetFFTWPadded_test, hasFailed);
-	RUNTEST(&gridVar_isFFTWPadded_test, hasFailed);
-	RUNTEST(&gridVar_setComplexified_test, hasFailed);
-	RUNTEST(&gridVar_unsetComplexified_test, hasFailed);
-	RUNTEST(&gridVar_isComplexified_test, hasFailed);
-#ifdef WITH_MPI
-	RUNTEST(&gridVar_getMPIDatatype_test, hasFailed);
-	RUNTEST(&gridVar_getMPICount_test, hasFailed);
-#endif
-#ifdef XMEM_TRACK_MEM
-	if (rank == 0)
-		xmem_info(stdout);
-	global_max_allocated_bytes = 0;
-#endif
-
-	if (rank == 0) {
-		printf("\nRunning tests for gridVarType:\n");
-	}
-	RUNTEST(&gridVarType_sizeof_test, hasFailed);
-	RUNTEST(&gridVarType_isFloating_test, hasFailed);
-	RUNTEST(&gridVarType_isInteger_test, hasFailed);
-	RUNTEST(&gridVarType_isNativeFloat_test, hasFailed);
-	RUNTEST(&gridVarType_isNativeDouble_test, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);

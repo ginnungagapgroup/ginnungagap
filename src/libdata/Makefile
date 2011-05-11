@@ -1,17 +1,21 @@
-# Copyright (C) 2010, 2011, Steffen Knollmann
+# Copyright (C) 2011, Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
-LIBNAME = part
+LIBNAME = data
 
 include ../../Makefile.config
 
 .PHONY: all clean dist-clean tests tests-clean
 
-sources = partBunch.c
+sources = dataVar.c \
+          dataVarType.c \
+          dataParticle.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
-               partBunch_tests.c
+               dataVar_tests.c \
+               dataVarType_tests.c \
+               dataParticle_tests.c
 
 include ../../Makefile.rules
 
@@ -37,14 +41,13 @@ endif
 tests-clean:
 	rm -f lib${LIBNAME}_tests $(sourcesTests:.c=.o) 
 
+
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
-                     ../libgrid/libgrid.a \
                      ../libutil/libutil.a \
                      $(sourcesTests:.c=.o)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o lib${LIBNAME}_tests \
 	   $(sourcesTests:.c=.o) \
 	   lib${LIBNAME}.a \
-	   ../libgrid/libgrid.a \
 	   ../libutil/libutil.a \
 	   $(LIBS)
 
@@ -53,9 +56,6 @@ lib${LIBNAME}.a: $(sources:.c=.o)
 
 ../libutil/libutil.a:
 	$(MAKE) -C ../libutil
-
-../libgrid/libgrid.a:
-	$(MAKE) -C ../libgrid
 
 -include $(sources:.c=.d)
 
