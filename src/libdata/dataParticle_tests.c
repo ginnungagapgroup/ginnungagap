@@ -1,25 +1,25 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "partConfig.h"
-#include "partDesc_tests.h"
-#include "partDesc.h"
+#include "dataConfig.h"
+#include "dataParticle_tests.h"
+#include "dataParticle.h"
 #include <stdio.h>
 #include <string.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
-#include "../libgrid/gridVar.h"
+#include "dataVar.h"
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
 
 
 /*--- Implemention of main structure ------------------------------------*/
-#include "partDesc_adt.h"
+#include "dataParticle_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -32,13 +32,13 @@
 
 /*--- Implementations of exported functios ------------------------------*/
 extern bool
-partDesc_new_test(void)
+dataParticle_new_test(void)
 {
-	bool       hasPassed = true;
-	int        rank      = 0;
-	partDesc_t partDesc;
+	bool           hasPassed = true;
+	int            rank      = 0;
+	dataParticle_t dataParticle;
 #ifdef XMEM_TRACK_MEM
-	size_t     allocatedBytes = global_allocated_bytes;
+	size_t         allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -47,15 +47,17 @@ partDesc_new_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	partDesc = partDesc_new(LOCAL_TEST_DESCNAME, LOCAL_TEST_DESCID, 0);
+	dataParticle = dataParticle_new(LOCAL_TEST_DESCNAME,
+	                                LOCAL_TEST_DESCID,
+	                                0);
 
-	if (strcmp(partDesc->name, LOCAL_TEST_DESCNAME) != 0)
+	if (strcmp(dataParticle->name, LOCAL_TEST_DESCNAME) != 0)
 		hasPassed = false;
-	if (partDesc->partDescID != LOCAL_TEST_DESCID)
+	if (dataParticle->dataParticleID != LOCAL_TEST_DESCID)
 		hasPassed = false;
 	// The number of variables hint is not tested!
 
-	partDesc_del(&partDesc);
+	dataParticle_del(&dataParticle);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -65,13 +67,13 @@ partDesc_new_test(void)
 }
 
 extern bool
-partDesc_getRef_test(void)
+dataParticle_getRef_test(void)
 {
-	bool       hasPassed = true;
-	int        rank      = 0;
-	partDesc_t partDesc, partDescRef;
+	bool           hasPassed = true;
+	int            rank      = 0;
+	dataParticle_t dataParticle, dataParticleRef;
 #ifdef XMEM_TRACK_MEM
-	size_t     allocatedBytes = global_allocated_bytes;
+	size_t         allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -80,21 +82,53 @@ partDesc_getRef_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	partDesc    = partDesc_new(LOCAL_TEST_DESCNAME, LOCAL_TEST_DESCID, 0);
-	partDescRef = partDesc_getRef(partDesc);
+	dataParticle = dataParticle_new(LOCAL_TEST_DESCNAME,
+	                                LOCAL_TEST_DESCID,
+	                                0);
+	dataParticleRef = dataParticle_getRef(dataParticle);
 
-	if (strcmp(partDescRef->name, LOCAL_TEST_DESCNAME) != 0)
+	if (strcmp(dataParticleRef->name, LOCAL_TEST_DESCNAME) != 0)
 		hasPassed = false;
-	if (partDescRef->partDescID != LOCAL_TEST_DESCID)
+	if (dataParticleRef->dataParticleID != LOCAL_TEST_DESCID)
 		hasPassed = false;
 	// The number of variables hint is not tested!
 
-	partDesc_del(&partDesc);
+	dataParticle_del(&dataParticle);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes == global_allocated_bytes)
 		hasPassed = false;
 #endif
-	partDesc_del(&partDescRef);
+	dataParticle_del(&dataParticleRef);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* dataParticle_getRef_test */
+
+extern bool
+dataParticle_del_test(void)
+{
+	bool           hasPassed = true;
+	int            rank      = 0;
+	dataParticle_t dataParticle;
+#ifdef XMEM_TRACK_MEM
+	size_t         allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	dataParticle = dataParticle_new(LOCAL_TEST_DESCNAME,
+	                                LOCAL_TEST_DESCID,
+	                                0);
+	dataParticle_del(&dataParticle);
+	if (dataParticle != NULL)
+		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -104,13 +138,14 @@ partDesc_getRef_test(void)
 }
 
 extern bool
-partDesc_del_test(void)
+dataParticle_addVar_test(void)
 {
-	bool       hasPassed = true;
-	int        rank      = 0;
-	partDesc_t partDesc;
+	bool           hasPassed = true;
+	int            rank      = 0;
+	dataParticle_t dataParticle;
+	dataVar_t      var;
 #ifdef XMEM_TRACK_MEM
-	size_t     allocatedBytes = global_allocated_bytes;
+	size_t         allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -119,52 +154,25 @@ partDesc_del_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	partDesc = partDesc_new(LOCAL_TEST_DESCNAME, LOCAL_TEST_DESCID, 0);
-	partDesc_del(&partDesc);
-	if (partDesc != NULL)
+	dataParticle = dataParticle_new(LOCAL_TEST_DESCNAME,
+	                                LOCAL_TEST_DESCID,
+	                                1);
+	var = dataVar_new("Bla", DATAVARTYPE_DOUBLE, 1);
+
+	dataParticle_addVar(dataParticle, var);
+	if (varArr_getLength(dataParticle->vars) != 1)
 		hasPassed = false;
+	if (varArr_getElementHandle(dataParticle->vars, 0) != var)
+		hasPassed = false;
+	dataVar_del(&var);
+
+	dataParticle_del(&dataParticle);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
 #endif
 
 	return hasPassed ? true : false;
-}
-
-extern bool
-partDesc_addVar_test(void)
-{
-	bool       hasPassed = true;
-	int        rank      = 0;
-	partDesc_t partDesc;
-	gridVar_t  var;
-#ifdef XMEM_TRACK_MEM
-	size_t     allocatedBytes = global_allocated_bytes;
-#endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
-
-	partDesc = partDesc_new(LOCAL_TEST_DESCNAME, LOCAL_TEST_DESCID, 1);
-	var = gridVar_new("Bla", GRIDVARTYPE_DOUBLE, 1);
-
-	partDesc_addVar(partDesc, var);
-	if (varArr_getLength(partDesc->vars) != 1)
-		hasPassed = false;
-	if (varArr_getElementHandle(partDesc->vars, 0) != var)
-		hasPassed = false;
-	gridVar_del(&var);
-
-	partDesc_del(&partDesc);
-#ifdef XMEM_TRACK_MEM
-	if (allocatedBytes != global_allocated_bytes)
-		hasPassed = false;
-#endif
-
-	return hasPassed ? true : false;
-}
+} /* dataParticle_addVar_test */
 
 /*--- Implementations of local functions --------------------------------*/

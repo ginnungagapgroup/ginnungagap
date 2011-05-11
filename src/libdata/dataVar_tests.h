@@ -1,78 +1,78 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GRIDVAR_TESTS_H
-#define GRIDVAR_TESTS_H
+#ifndef DATAVAR_TESTS_H
+#define DATAVAR_TESTS_H
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "gridConfig.h"
+#include "dataConfig.h"
 #include <stdbool.h>
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-gridVar_new_test(void);
+dataVar_new_test(void);
 
 extern bool
-gridVar_clone_test(void);
+dataVar_clone_test(void);
 
 extern bool
-gridVar_del_test(void);
+dataVar_del_test(void);
 
 extern bool
-gridVar_getRef_test(void);
+dataVar_getRef_test(void);
 
 extern bool
-gridVar_getSizePerElement_test(void);
+dataVar_getSizePerElement_test(void);
 
 extern bool
-gridVar_getNumComponents_test(void);
+dataVar_getNumComponents_test(void);
 
 extern bool
-gridVar_getType_test(void);
+dataVar_getType_test(void);
 
 extern bool
-gridVar_getName_test(void);
+dataVar_getName_test(void);
 
 extern bool
-gridVar_setMemFuncs_test(void);
+dataVar_setMemFuncs_test(void);
 
 extern bool
-gridVar_getMemory_test(void);
+dataVar_getMemory_test(void);
 
 extern bool
-gridVar_freeMemory_test(void);
+dataVar_freeMemory_test(void);
 
 extern bool
-gridVar_getPointerByOffset_test(void);
+dataVar_getPointerByOffset_test(void);
 
 extern bool
-gridVar_setFFTWPadded_test(void);
+dataVar_setFFTWPadded_test(void);
 
 extern bool
-gridVar_unsetFFTWPadded_test(void);
+dataVar_unsetFFTWPadded_test(void);
 
 extern bool
-gridVar_isFFTWPadded_test(void);
+dataVar_isFFTWPadded_test(void);
 
 extern bool
-gridVar_setComplexified_test(void);
+dataVar_setComplexified_test(void);
 
 extern bool
-gridVar_unsetComplexified_test(void);
+dataVar_unsetComplexified_test(void);
 
 extern bool
-gridVar_isComplexified_test(void);
+dataVar_isComplexified_test(void);
 
 #ifdef WITH_MPI
 
 extern bool
-gridVar_getMPIDatatype_test(void);
+dataVar_getMPIDatatype_test(void);
 
 extern bool
-gridVar_getMPICount_test(void);
+dataVar_getMPICount_test(void);
 
 #endif
 

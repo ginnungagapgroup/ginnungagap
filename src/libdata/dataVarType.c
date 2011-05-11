@@ -1,11 +1,11 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "gridConfig.h"
-#include "gridVarType.h"
+#include "dataConfig.h"
+#include "dataVarType.h"
 #include <assert.h>
 #include <stdint.h>
 #include "../libutil/xmem.h"
@@ -20,21 +20,21 @@
 
 /*--- Implementations of exported functios ------------------------------*/
 extern size_t
-gridVarType_sizeof(gridVarType_t type)
+dataVarType_sizeof(dataVarType_t type)
 {
 	size_t size;
 
 	switch (type) {
-	case GRIDVARTYPE_INT8:
+	case DATAVARTYPE_INT8:
 		size = sizeof(int8_t);
 		break;
-	case GRIDVARTYPE_INT:
+	case DATAVARTYPE_INT:
 		size = sizeof(int);
 		break;
-	case GRIDVARTYPE_DOUBLE:
+	case DATAVARTYPE_DOUBLE:
 		size = sizeof(double);
 		break;
-	case GRIDVARTYPE_FPV:
+	case DATAVARTYPE_FPV:
 		size = sizeof(fpv_t);
 		break;
 	default:
@@ -45,11 +45,11 @@ gridVarType_sizeof(gridVarType_t type)
 }
 
 extern bool
-gridVarType_isFloating(gridVarType_t type)
+dataVarType_isFloating(dataVarType_t type)
 {
 	switch (type) {
-	case GRIDVARTYPE_DOUBLE:
-	case GRIDVARTYPE_FPV:
+	case DATAVARTYPE_DOUBLE:
+	case DATAVARTYPE_FPV:
 		return true;
 
 	default:
@@ -60,11 +60,11 @@ gridVarType_isFloating(gridVarType_t type)
 }
 
 extern bool
-gridVarType_isInteger(gridVarType_t type)
+dataVarType_isInteger(dataVarType_t type)
 {
 	switch (type) {
-	case GRIDVARTYPE_INT8:
-	case GRIDVARTYPE_INT:
+	case DATAVARTYPE_INT8:
+	case DATAVARTYPE_INT:
 		return true;
 
 	default:
@@ -75,11 +75,11 @@ gridVarType_isInteger(gridVarType_t type)
 }
 
 extern bool
-gridVarType_isNativeFloat(gridVarType_t type)
+dataVarType_isNativeFloat(dataVarType_t type)
 {
 	switch (type) {
 #ifndef ENABLE_DOUBLE
-	case GRIDVARTYPE_FPV:
+	case DATAVARTYPE_FPV:
 		return true;
 #endif
 	default:
@@ -90,12 +90,12 @@ gridVarType_isNativeFloat(gridVarType_t type)
 }
 
 extern bool
-gridVarType_isNativeDouble(gridVarType_t type)
+dataVarType_isNativeDouble(dataVarType_t type)
 {
 	switch (type) {
-	case GRIDVARTYPE_DOUBLE:
+	case DATAVARTYPE_DOUBLE:
 #ifdef ENABLE_DOUBLE
-	case GRIDVARTYPE_FPV:
+	case DATAVARTYPE_FPV:
 #endif
 		return true;
 

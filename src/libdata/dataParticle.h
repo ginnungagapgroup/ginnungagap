@@ -1,33 +1,35 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef PARTDESC_H
-#define PARTDESC_H
+#ifndef DATAPARTICLE_H
+#define DATAPARTICLE_H
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "partConfig.h"
+#include "dataConfig.h"
 #include <stdbool.h>
-#include "../libgrid/gridVar.h"
+#include "dataVar.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
-typedef struct partDesc_struct *partDesc_t;
+typedef struct dataParticle_struct *dataParticle_t;
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
-extern partDesc_t
-partDesc_new(const char *partDescName, int partDescID, int hintNumVars);
+extern dataParticle_t
+dataParticle_new(const char *dataParticleName,
+                 int        dataParticleID,
+                 int        hintNumVars);
 
-extern partDesc_t
-partDesc_getRef(partDesc_t desc);
+extern dataParticle_t
+dataParticle_getRef(dataParticle_t desc);
 
 extern void
-partDesc_del(partDesc_t *desc);
+dataParticle_del(dataParticle_t *desc);
 
 extern int
-partDesc_addVar(partDesc_t desc, gridVar_t var);
+dataParticle_addVar(dataParticle_t desc, dataVar_t var);
 
 
 /**
@@ -36,25 +38,25 @@ partDesc_addVar(partDesc_t desc, gridVar_t var);
  * complete.
  */
 extern void
-partDesc_lock(partDesc_t desc);
+dataParticle_lock(dataParticle_t desc);
 
 
 /**
  * Check whether the particle description is complete (i.e. locked).
  */
 extern bool
-partDesc_isLocked(const partDesc_t desc);
+dataParticle_isLocked(const dataParticle_t desc);
 
 extern char *
-partDesc_getNameHandle(const partDesc_t desc);
+dataParticle_getNameHandle(const dataParticle_t desc);
 
 extern int
-partDesc_getPartDescID(const partDesc_t desc);
+dataParticle_getPartDescID(const dataParticle_t desc);
 
 extern int
-partDesc_getNumVars(const partDesc_t desc);
+dataParticle_getNumVars(const dataParticle_t desc);
 
-extern gridVar_t
-partDesc_getVarHandle(const partDesc_t desc, int varNum);
+extern dataVar_t
+dataParticle_getVarHandle(const dataParticle_t desc, int varNum);
 
 #endif

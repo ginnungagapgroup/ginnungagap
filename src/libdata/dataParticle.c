@@ -1,18 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "partConfig.h"
-#include "partDesc.h"
+#include "dataConfig.h"
+#include "dataParticle.h"
 #include <assert.h>
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
-#include "partDesc_adt.h"
+#include "dataParticle_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -26,29 +26,31 @@
 
 
 /*--- Implementations of exported functios ------------------------------*/
-extern partDesc_t
-partDesc_new(const char *partDescName, int partDescID, int hintNumVars)
+extern dataParticle_t
+dataParticle_new(const char *dataParticleName,
+                 int        dataParticleID,
+                 int        hintNumVars)
 {
-	partDesc_t desc;
+	dataParticle_t desc;
 
-	assert(partDescName != NULL);
+	assert(dataParticleName != NULL);
 	assert(hintNumVars < LOCAL_MAXNUMVARS);
 
-	hintNumVars      = hintNumVars < 0 ? 0 : hintNumVars;
+	hintNumVars          = hintNumVars < 0 ? 0 : hintNumVars;
 
-	desc             = xmalloc(sizeof(struct partDesc_struct));
-	desc->name       = xstrdup(partDescName);
-	desc->partDescID = partDescID;
-	desc->vars       = varArr_new(hintNumVars);
-	desc->isLocked   = false;
+	desc                 = xmalloc(sizeof(struct dataParticle_struct));
+	desc->name           = xstrdup(dataParticleName);
+	desc->dataParticleID = dataParticleID;
+	desc->vars           = varArr_new(hintNumVars);
+	desc->isLocked       = false;
 
 	refCounter_init(&(desc->refCounter));
 
-	return partDesc_getRef(desc);
+	return dataParticle_getRef(desc);
 }
 
-extern partDesc_t
-partDesc_getRef(partDesc_t desc)
+extern dataParticle_t
+dataParticle_getRef(dataParticle_t desc)
 {
 	assert(desc != NULL);
 
@@ -58,7 +60,7 @@ partDesc_getRef(partDesc_t desc)
 }
 
 extern void
-partDesc_del(partDesc_t *desc)
+dataParticle_del(dataParticle_t *desc)
 {
 	assert(desc != NULL && *desc != NULL);
 
@@ -67,9 +69,9 @@ partDesc_del(partDesc_t *desc)
 		if ((*desc)->name != NULL)
 			xfree((*desc)->name);
 		while ((arrLength = varArr_getLength((*desc)->vars)) > 0) {
-			gridVar_t var;
+			dataVar_t var;
 			var = varArr_remove((*desc)->vars, arrLength - 1);
-			gridVar_del(&var);
+			dataVar_del(&var);
 		}
 		varArr_del(&((*desc)->vars));
 		xfree(*desc);
@@ -78,27 +80,27 @@ partDesc_del(partDesc_t *desc)
 }
 
 extern int
-partDesc_addVar(partDesc_t desc, gridVar_t var)
+dataParticle_addVar(dataParticle_t desc, dataVar_t var)
 {
 	assert(desc != NULL);
 	assert(var != NULL);
-	assert(!partDesc_isLocked(desc));
+	assert(!dataParticle_isLocked(desc));
 	assert(varArr_getLength(desc->vars) < LOCAL_MAXNUMVARS);
 
-	return varArr_insert(desc->vars, gridVar_getRef(var));
+	return varArr_insert(desc->vars, dataVar_getRef(var));
 }
 
 extern void
-partDesc_lock(partDesc_t desc)
+dataParticle_lock(dataParticle_t desc)
 {
 	assert(desc != NULL);
-	assert(!partDesc_isLocked(desc));
+	assert(!dataParticle_isLocked(desc));
 
 	desc->isLocked = true;
 }
 
 extern bool
-partDesc_isLocked(const partDesc_t desc)
+dataParticle_isLocked(const dataParticle_t desc)
 {
 	assert(desc != NULL);
 
@@ -106,7 +108,7 @@ partDesc_isLocked(const partDesc_t desc)
 }
 
 extern char *
-partDesc_getNameHandle(const partDesc_t desc)
+dataParticle_getNameHandle(const dataParticle_t desc)
 {
 	assert(desc != NULL);
 
@@ -114,26 +116,26 @@ partDesc_getNameHandle(const partDesc_t desc)
 }
 
 extern int
-partDesc_getPartDescID(const partDesc_t desc)
+dataParticle_getPartDescID(const dataParticle_t desc)
 {
 	assert(desc != NULL);
 
-	return desc->partDescID;
+	return desc->dataParticleID;
 }
 
 extern int
-partDesc_getNumVars(const partDesc_t desc)
+dataParticle_getNumVars(const dataParticle_t desc)
 {
 	assert(desc != NULL);
 
 	return varArr_getLength(desc->vars);
 }
 
-extern gridVar_t
-partDesc_getVarHandle(const partDesc_t desc, int varNum)
+extern dataVar_t
+dataParticle_getVarHandle(const dataParticle_t desc, int varNum)
 {
 	assert(desc != NULL);
-	assert((varNum >= 0) && (varNum < partDesc_getNumVars(desc)));
+	assert((varNum >= 0) && (varNum < dataParticle_getNumVars(desc)));
 
 	return varArr_getElementHandle(desc->vars, varNum);
 }

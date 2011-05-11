@@ -1,12 +1,12 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "gridConfig.h"
-#include "gridVarType_tests.h"
-#include "gridVarType.h"
+#include "dataConfig.h"
+#include "dataVarType_tests.h"
+#include "dataVarType.h"
 #include <stdio.h>
 #include <string.h>
 #ifdef WITH_MPI
@@ -25,7 +25,7 @@
 
 /*--- Implementations of exported functios ------------------------------*/
 extern bool
-gridVarType_sizeof_test(void)
+dataVarType_sizeof_test(void)
 {
 	bool          hasPassed = true;
 	int           rank      = 0;
@@ -39,11 +39,11 @@ gridVarType_sizeof_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	if (gridVarType_sizeof(GRIDVARTYPE_INT) != sizeof(int))
+	if (dataVarType_sizeof(DATAVARTYPE_INT) != sizeof(int))
 		hasPassed = false;
-	if (gridVarType_sizeof(GRIDVARTYPE_DOUBLE) != sizeof(double))
+	if (dataVarType_sizeof(DATAVARTYPE_DOUBLE) != sizeof(double))
 		hasPassed = false;
-	if (gridVarType_sizeof(GRIDVARTYPE_FPV) != sizeof(fpv_t))
+	if (dataVarType_sizeof(DATAVARTYPE_FPV) != sizeof(fpv_t))
 		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -54,7 +54,7 @@ gridVarType_sizeof_test(void)
 }
 
 extern bool
-gridVarType_isFloating_test(void)
+dataVarType_isFloating_test(void)
 {
 	bool          hasPassed = true;
 	int           rank      = 0;
@@ -68,11 +68,11 @@ gridVarType_isFloating_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	if (gridVarType_isFloating(GRIDVARTYPE_INT))
+	if (dataVarType_isFloating(DATAVARTYPE_INT))
 		hasPassed = false;
-	if (!gridVarType_isFloating(GRIDVARTYPE_DOUBLE))
+	if (!dataVarType_isFloating(DATAVARTYPE_DOUBLE))
 		hasPassed = false;
-	if (!gridVarType_isFloating(GRIDVARTYPE_FPV))
+	if (!dataVarType_isFloating(DATAVARTYPE_FPV))
 		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -83,7 +83,7 @@ gridVarType_isFloating_test(void)
 }
 
 extern bool
-gridVarType_isInteger_test(void)
+dataVarType_isInteger_test(void)
 {
 	bool          hasPassed = true;
 	int           rank      = 0;
@@ -97,11 +97,11 @@ gridVarType_isInteger_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	if (!gridVarType_isInteger(GRIDVARTYPE_INT))
+	if (!dataVarType_isInteger(DATAVARTYPE_INT))
 		hasPassed = false;
-	if (gridVarType_isInteger(GRIDVARTYPE_DOUBLE))
+	if (dataVarType_isInteger(DATAVARTYPE_DOUBLE))
 		hasPassed = false;
-	if (gridVarType_isInteger(GRIDVARTYPE_FPV))
+	if (dataVarType_isInteger(DATAVARTYPE_FPV))
 		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -112,7 +112,7 @@ gridVarType_isInteger_test(void)
 }
 
 extern bool
-gridVarType_isNativeFloat_test(void)
+dataVarType_isNativeFloat_test(void)
 {
 	bool          hasPassed = true;
 	int           rank      = 0;
@@ -126,15 +126,15 @@ gridVarType_isNativeFloat_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	if (gridVarType_isNativeFloat(GRIDVARTYPE_INT))
+	if (dataVarType_isNativeFloat(DATAVARTYPE_INT))
 		hasPassed = false;
-	if (gridVarType_isNativeFloat(GRIDVARTYPE_DOUBLE))
+	if (dataVarType_isNativeFloat(DATAVARTYPE_DOUBLE))
 		hasPassed = false;
 #ifdef ENABLE_DOUBLE
-	if (gridVarType_isNativeFloat(GRIDVARTYPE_FPV))
+	if (dataVarType_isNativeFloat(DATAVARTYPE_FPV))
 		hasPassed = false;
 #else
-	if (!gridVarType_isNativeFloat(GRIDVARTYPE_FPV))
+	if (!dataVarType_isNativeFloat(DATAVARTYPE_FPV))
 		hasPassed = false;
 #endif
 #ifdef XMEM_TRACK_MEM
@@ -146,7 +146,7 @@ gridVarType_isNativeFloat_test(void)
 }
 
 extern bool
-gridVarType_isNativeDouble_test(void)
+dataVarType_isNativeDouble_test(void)
 {
 	bool          hasPassed = true;
 	int           rank      = 0;
@@ -160,15 +160,15 @@ gridVarType_isNativeDouble_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	if (gridVarType_isNativeDouble(GRIDVARTYPE_INT))
+	if (dataVarType_isNativeDouble(DATAVARTYPE_INT))
 		hasPassed = false;
-	if (!gridVarType_isNativeDouble(GRIDVARTYPE_DOUBLE))
+	if (!dataVarType_isNativeDouble(DATAVARTYPE_DOUBLE))
 		hasPassed = false;
 #ifdef ENABLE_DOUBLE
-	if (!gridVarType_isNativeDouble(GRIDVARTYPE_FPV))
+	if (!dataVarType_isNativeDouble(DATAVARTYPE_FPV))
 		hasPassed = false;
 #else
-	if (gridVarType_isNativeDouble(GRIDVARTYPE_FPV))
+	if (dataVarType_isNativeDouble(DATAVARTYPE_FPV))
 		hasPassed = false;
 #endif
 #ifdef XMEM_TRACK_MEM

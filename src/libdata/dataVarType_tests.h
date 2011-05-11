@@ -1,31 +1,31 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GRIDVARTYPE_TESTS_H
-#define GRIDVARTYPE_TESTS_H
+#ifndef DATAVARTYPE_TESTS_H
+#define DATAVARTYPE_TESTS_H
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "gridConfig.h"
+#include "dataConfig.h"
 #include <stdbool.h>
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-gridVarType_sizeof_test(void);
+dataVarType_sizeof_test(void);
 
 extern bool
-gridVarType_isFloating_test(void);
+dataVarType_isFloating_test(void);
 
 extern bool
-gridVarType_isInteger_test(void);
+dataVarType_isInteger_test(void);
 
 extern bool
-gridVarType_isNativeFloat_test(void);
+dataVarType_isNativeFloat_test(void);
 
 extern bool
-gridVarType_isNativeDouble_test(void);
+dataVarType_isNativeDouble_test(void);
 
 
 #endif

@@ -1,13 +1,13 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "gridConfig.h"
-#include "gridVar_tests.h"
-#include "gridVar.h"
-#include "gridVarType.h"
+#include "dataConfig.h"
+#include "dataVar_tests.h"
+#include "dataVar.h"
+#include "dataVarType.h"
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -20,7 +20,7 @@
 
 
 /*--- Implemention of main structure ------------------------------------*/
-#include "gridVar_adt.h"
+#include "dataVar_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -32,11 +32,11 @@
 
 /*--- Implementations of exported functios ------------------------------*/
 extern bool
-gridVar_new_test(void)
+dataVar_new_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -47,16 +47,16 @@ gridVar_new_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	if (strcmp(gridVar->name, LOCAL_TESTNAME) != 0)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	if (strcmp(dataVar->name, LOCAL_TESTNAME) != 0)
 		hasPassed = false;
-	if (gridVar->type != GRIDVARTYPE_DOUBLE)
+	if (dataVar->type != DATAVARTYPE_DOUBLE)
 		hasPassed = false;
-	if (gridVar->numComponents != NDIM)
+	if (dataVar->numComponents != NDIM)
 		hasPassed = false;
-	if (gridVar->isFFTWPadded)
+	if (dataVar->isFFTWPadded)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -66,11 +66,11 @@ gridVar_new_test(void)
 }
 
 extern bool
-gridVar_clone_test(void)
+dataVar_clone_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar, clone;
+	dataVar_t dataVar, clone;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -81,18 +81,18 @@ gridVar_clone_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	clone   = gridVar_clone(gridVar);
-	if (strcmp(gridVar->name, clone->name) != 0)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	clone   = dataVar_clone(dataVar);
+	if (strcmp(dataVar->name, clone->name) != 0)
 		hasPassed = false;
-	if (gridVar->type != clone->type)
+	if (dataVar->type != clone->type)
 		hasPassed = false;
-	if (gridVar->numComponents != clone->numComponents)
+	if (dataVar->numComponents != clone->numComponents)
 		hasPassed = false;
-	if (gridVar->isFFTWPadded != clone->isFFTWPadded)
+	if (dataVar->isFFTWPadded != clone->isFFTWPadded)
 		hasPassed = false;
-	gridVar_del(&gridVar);
-	gridVar_del(&clone);
+	dataVar_del(&dataVar);
+	dataVar_del(&clone);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -102,11 +102,11 @@ gridVar_clone_test(void)
 }
 
 extern bool
-gridVar_del_test(void)
+dataVar_del_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -117,9 +117,9 @@ gridVar_del_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	gridVar_del(&gridVar);
-	if (gridVar != NULL)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	dataVar_del(&dataVar);
+	if (dataVar != NULL)
 		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -130,11 +130,11 @@ gridVar_del_test(void)
 }
 
 extern bool
-gridVar_getRef_test(void)
+dataVar_getRef_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t var, varBackup;
+	dataVar_t var, varBackup;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -145,32 +145,32 @@ gridVar_getRef_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var       = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	varBackup = gridVar_getRef(var);
+	var       = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	varBackup = dataVar_getRef(var);
 	if (varBackup->name != var->name)
 		hasPassed = false;
 	if (varBackup->refCounter != var->refCounter)
 		hasPassed = false;
 	if (varBackup->refCounter != 2)
 		hasPassed = false;
-	gridVar_del(&var);
+	dataVar_del(&var);
 	if (varBackup->refCounter != 1)
 		hasPassed = false;
-	gridVar_del(&varBackup);
+	dataVar_del(&varBackup);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
 #endif
 
 	return hasPassed ? true : false;
-} /* gridVar_getRef_test */
+} /* dataVar_getRef_test */
 
 extern bool
-gridVar_getSizePerElement_test(void)
+dataVar_getSizePerElement_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -181,13 +181,13 @@ gridVar_getSizePerElement_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	if (gridVar_getSizePerElement(gridVar) != sizeof(double) * NDIM)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	if (dataVar_getSizePerElement(dataVar) != sizeof(double) * NDIM)
 		hasPassed = false;
-	gridVar_setComplexified(gridVar);
-	if (gridVar_getSizePerElement(gridVar) != sizeof(double) * NDIM * 2)
+	dataVar_setComplexified(dataVar);
+	if (dataVar_getSizePerElement(dataVar) != sizeof(double) * NDIM * 2)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -197,11 +197,11 @@ gridVar_getSizePerElement_test(void)
 }
 
 extern bool
-gridVar_getNumComponents_test(void)
+dataVar_getNumComponents_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -212,10 +212,10 @@ gridVar_getNumComponents_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	if (gridVar_getNumComponents(gridVar) != NDIM)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	if (dataVar_getNumComponents(dataVar) != NDIM)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -225,11 +225,11 @@ gridVar_getNumComponents_test(void)
 }
 
 extern bool
-gridVar_getType_test(void)
+dataVar_getType_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -240,10 +240,10 @@ gridVar_getType_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	if (gridVar_getType(gridVar) != GRIDVARTYPE_DOUBLE)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	if (dataVar_getType(dataVar) != DATAVARTYPE_DOUBLE)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -253,11 +253,11 @@ gridVar_getType_test(void)
 }
 
 extern bool
-gridVar_getName_test(void)
+dataVar_getName_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -268,10 +268,10 @@ gridVar_getName_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	if (strcmp(gridVar_getName(gridVar), LOCAL_TESTNAME) != 0)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	if (strcmp(dataVar_getName(dataVar), LOCAL_TESTNAME) != 0)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -281,11 +281,11 @@ gridVar_getName_test(void)
 }
 
 extern bool
-gridVar_setMemFuncs_test(void)
+dataVar_setMemFuncs_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -296,14 +296,14 @@ gridVar_setMemFuncs_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	gridVar_setMemFuncs(gridVar, NULL, NULL);
-	if ((gridVar->mallocFunc != NULL) || (gridVar->freeFunc != NULL))
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	dataVar_setMemFuncs(dataVar, NULL, NULL);
+	if ((dataVar->mallocFunc != NULL) || (dataVar->freeFunc != NULL))
 		hasPassed = false;
-	gridVar_setMemFuncs(gridVar, &malloc, &free);
-	if ((gridVar->mallocFunc != &malloc) || (gridVar->freeFunc != &free))
+	dataVar_setMemFuncs(dataVar, &malloc, &free);
+	if ((dataVar->mallocFunc != &malloc) || (dataVar->freeFunc != &free))
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -313,12 +313,12 @@ gridVar_setMemFuncs_test(void)
 }
 
 extern bool
-gridVar_getMemory_test(void)
+dataVar_getMemory_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
 	void      *tmp;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -329,12 +329,12 @@ gridVar_getMemory_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	tmp     = gridVar_getMemory(gridVar, UINT64_C(1024));
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	tmp     = dataVar_getMemory(dataVar, UINT64_C(1024));
 	if (tmp == NULL)
 		hasPassed = false;
-	gridVar_freeMemory(gridVar, tmp);
-	gridVar_del(&gridVar);
+	dataVar_freeMemory(dataVar, tmp);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -344,12 +344,12 @@ gridVar_getMemory_test(void)
 }
 
 extern bool
-gridVar_freeMemory_test(void)
+dataVar_freeMemory_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
 	void      *tmp;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -360,10 +360,10 @@ gridVar_freeMemory_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	tmp     = gridVar_getMemory(gridVar, UINT64_C(1024));
-	gridVar_freeMemory(gridVar, tmp);
-	gridVar_del(&gridVar);
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	tmp     = dataVar_getMemory(dataVar, UINT64_C(1024));
+	dataVar_freeMemory(dataVar, tmp);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -373,13 +373,13 @@ gridVar_freeMemory_test(void)
 }
 
 extern bool
-gridVar_getPointerByOffset_test(void)
+dataVar_getPointerByOffset_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
 	void      *tmp;
 	double    *tmpCorrect;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -390,33 +390,33 @@ gridVar_getPointerByOffset_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar    = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, 1);
-	tmp        = gridVar_getMemory(gridVar, UINT64_C(1024));
+	dataVar    = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, 1);
+	tmp        = dataVar_getMemory(dataVar, UINT64_C(1024));
 	tmpCorrect = (double *)tmp;
 
-	if (gridVar_getPointerByOffset(gridVar, tmp, 14) != tmpCorrect + 14)
+	if (dataVar_getPointerByOffset(dataVar, tmp, 14) != tmpCorrect + 14)
 		hasPassed = false;
-	if (gridVar_getPointerByOffset(gridVar, tmp, 321) != tmpCorrect + 321)
+	if (dataVar_getPointerByOffset(dataVar, tmp, 321) != tmpCorrect + 321)
 		hasPassed = false;
-	if (gridVar_getPointerByOffset(gridVar, tmp, 0) != tmpCorrect)
+	if (dataVar_getPointerByOffset(dataVar, tmp, 0) != tmpCorrect)
 		hasPassed = false;
 
-	gridVar_freeMemory(gridVar, tmp);
-	gridVar_del(&gridVar);
+	dataVar_freeMemory(dataVar, tmp);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
 #endif
 
 	return hasPassed ? true : false;
-} /* gridVar_getPointerByOffset_test */
+} /* dataVar_getPointerByOffset_test */
 
 extern bool
-gridVar_setFFTWPadded_test(void)
+dataVar_setFFTWPadded_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -427,11 +427,11 @@ gridVar_setFFTWPadded_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	gridVar_setFFTWPadded(gridVar);
-	if (!gridVar->isFFTWPadded)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	dataVar_setFFTWPadded(dataVar);
+	if (!dataVar->isFFTWPadded)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -441,11 +441,11 @@ gridVar_setFFTWPadded_test(void)
 }
 
 extern bool
-gridVar_unsetFFTWPadded_test(void)
+dataVar_unsetFFTWPadded_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -456,12 +456,12 @@ gridVar_unsetFFTWPadded_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	gridVar_setFFTWPadded(gridVar);
-	gridVar_unsetFFTWPadded(gridVar);
-	if (gridVar->isFFTWPadded)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	dataVar_setFFTWPadded(dataVar);
+	dataVar_unsetFFTWPadded(dataVar);
+	if (dataVar->isFFTWPadded)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -471,11 +471,11 @@ gridVar_unsetFFTWPadded_test(void)
 }
 
 extern bool
-gridVar_isFFTWPadded_test(void)
+dataVar_isFFTWPadded_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -486,13 +486,13 @@ gridVar_isFFTWPadded_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	if (gridVar_isFFTWPadded(gridVar))
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	if (dataVar_isFFTWPadded(dataVar))
 		hasPassed = false;
-	gridVar_setFFTWPadded(gridVar);
-	if (!gridVar_isFFTWPadded(gridVar))
+	dataVar_setFFTWPadded(dataVar);
+	if (!dataVar_isFFTWPadded(dataVar))
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -502,11 +502,11 @@ gridVar_isFFTWPadded_test(void)
 }
 
 extern bool
-gridVar_setComplexified_test(void)
+dataVar_setComplexified_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -517,11 +517,11 @@ gridVar_setComplexified_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	gridVar_setComplexified(gridVar);
-	if (!gridVar->isComplexified)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	dataVar_setComplexified(dataVar);
+	if (!dataVar->isComplexified)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -531,11 +531,11 @@ gridVar_setComplexified_test(void)
 }
 
 extern bool
-gridVar_unsetComplexified_test(void)
+dataVar_unsetComplexified_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -546,11 +546,11 @@ gridVar_unsetComplexified_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	gridVar_unsetComplexified(gridVar);
-	if (gridVar->isComplexified)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	dataVar_unsetComplexified(dataVar);
+	if (dataVar->isComplexified)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -560,11 +560,11 @@ gridVar_unsetComplexified_test(void)
 }
 
 extern bool
-gridVar_isComplexified_test(void)
+dataVar_isComplexified_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #endif
@@ -575,16 +575,16 @@ gridVar_isComplexified_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, NDIM);
-	if (gridVar->isComplexified)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, NDIM);
+	if (dataVar->isComplexified)
 		hasPassed = false;
-	gridVar_setComplexified(gridVar);
-	if (!gridVar->isComplexified)
+	dataVar_setComplexified(dataVar);
+	if (!dataVar->isComplexified)
 		hasPassed = false;
-	gridVar_unsetComplexified(gridVar);
-	if (gridVar->isComplexified)
+	dataVar_unsetComplexified(dataVar);
+	if (dataVar->isComplexified)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -595,11 +595,11 @@ gridVar_isComplexified_test(void)
 
 #ifdef WITH_MPI
 extern bool
-gridVar_getMPIDatatype_test(void)
+dataVar_getMPIDatatype_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #  ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #  endif
@@ -608,13 +608,13 @@ gridVar_getMPIDatatype_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, 1);
-	if (gridVar_getMPIDatatype(gridVar) != MPI_DOUBLE)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, 1);
+	if (dataVar_getMPIDatatype(dataVar) != MPI_DOUBLE)
 		hasPassed = false;
-	gridVar_setComplexified(gridVar);
-	if (gridVar_getMPIDatatype(gridVar) != MPI_BYTE)
+	dataVar_setComplexified(dataVar);
+	if (dataVar_getMPIDatatype(dataVar) != MPI_BYTE)
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #  ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -624,11 +624,11 @@ gridVar_getMPIDatatype_test(void)
 }
 
 extern bool
-gridVar_getMPICount_test(void)
+dataVar_getMPICount_test(void)
 {
 	bool      hasPassed = true;
 	int       rank      = 0;
-	gridVar_t gridVar;
+	dataVar_t dataVar;
 #  ifdef XMEM_TRACK_MEM
 	size_t    allocatedBytes = global_allocated_bytes;
 #  endif
@@ -637,13 +637,13 @@ gridVar_getMPICount_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	gridVar = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_DOUBLE, 1);
-	if (gridVar_getMPICount(gridVar, 2) != 2)
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, 1);
+	if (dataVar_getMPICount(dataVar, 2) != 2)
 		hasPassed = false;
-	gridVar_setComplexified(gridVar);
-	if (gridVar_getMPICount(gridVar, 2) != 2 * 2 * sizeof(double))
+	dataVar_setComplexified(dataVar);
+	if (dataVar_getMPICount(dataVar, 2) != 2 * 2 * sizeof(double))
 		hasPassed = false;
-	gridVar_del(&gridVar);
+	dataVar_del(&dataVar);
 #  ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
