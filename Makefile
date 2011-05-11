@@ -77,3 +77,4 @@ doc:
 
 tags:
 	etags --recurse src/ tools/
+	cscope -b -R

@@ -28,6 +28,8 @@
 #include "../libutil/utilMath.h"
 #include "../libcosmo/cosmo.h"
 #include "../libcosmo/cosmoFunc.h"
+#include "../libdata/dataVar.h"
+#include "../libdata/dataVarType.h"
 #include "../libgrid/gridWriter.h"
 #include "../libgrid/gridStatistics.h"
 #ifdef WITH_FFT_FFTW3
@@ -225,7 +227,7 @@ local_initGrid(ginnungagap_t ginnungagap)
 {
 	int         localRank = 0;
 	gridPatch_t patch;
-	gridVar_t   dens;
+	dataVar_t   dens;
 
 #ifdef WITH_MPI
 	localRank = gridRegularDistrib_getLocalRank(ginnungagap->gridDistrib);
@@ -234,12 +236,12 @@ local_initGrid(ginnungagap_t ginnungagap)
 	                                               localRank);
 	gridRegular_attachPatch(ginnungagap->grid, patch);
 
-	dens = gridVar_new("density", GRIDVARTYPE_FPV, 1);
+	dens = dataVar_new("density", DATAVARTYPE_FPV, 1);
 #ifdef WITH_FFT_FFTW3
 #  ifdef ENABLE_DOUBLE
-	gridVar_setMemFuncs(dens, &fftw_malloc, &fftw_free);
+	dataVar_setMemFuncs(dens, &fftw_malloc, &fftw_free);
 #  else
-	gridVar_setMemFuncs(dens, &fftwf_malloc, &fftwf_free);
+	dataVar_setMemFuncs(dens, &fftwf_malloc, &fftwf_free);
 #  endif
 #endif
 	ginnungagap->posOfDens = gridRegular_attachVar(ginnungagap->grid, dens);
@@ -347,7 +349,7 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 	double    timing;
 	char      *msg = NULL, *msg2 = NULL;
 #ifdef ENABLE_WRITING
-	gridVar_t var;
+	dataVar_t var;
 #endif
 
 	msg    = xstrmerge("  Generating ", ginnungagapIC_getModeStr(mode));
@@ -373,7 +375,7 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 	timing = timer_start(msg2);
 	var    = gridRegular_getVarHandle(ginnungagap->grid,
 	                                  ginnungagap->posOfDens);
-	gridVar_rename(var, ginnungagapIC_getModeStr(mode));
+	dataVar_rename(var, ginnungagapIC_getModeStr(mode));
 	gridWriter_activate(ginnungagap->finalWriter);
 	gridWriter_writeGridRegular(ginnungagap->finalWriter,
 	                            ginnungagap->grid);

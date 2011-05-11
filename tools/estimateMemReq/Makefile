@@ -4,8 +4,7 @@
 
 include ../../Makefile.config
 
-.PHONY: all clean tests tests-clean dist-clean \
-        ../../src/libutil/libutil.a
+.PHONY: all clean tests tests-clean dist-clean
 
 progName = estimateMemReq
 

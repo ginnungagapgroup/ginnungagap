@@ -4,10 +4,7 @@
 
 include ../../Makefile.config
 
-.PHONY: all clean tests tests-clean dist-clean \
-        ../../src/liblare/liblare.a \
-        ../../src/libgrid/libgrid.a \
-        ../../src/libutil/libutil.a
+.PHONY: all clean tests tests-clean dist-clean
 
 progName = makeMask
 
@@ -35,11 +32,13 @@ dist-clean:
 
 $(progName): $(sources:.c=.o) \
                      ../../src/liblare/liblare.a \
+                     ../../src/libdata/libdata.a \
                      ../../src/libgrid/libgrid.a \
 	                 ../../src/libutil/libutil.a
 	$(CC) $(LDFLAGS) $(CFLAGS) \
 	  -o $(progName) $(sources:.c=.o) \
                      ../../src/liblare/liblare.a \
+	                 ../../src/libdata/libdata.a \
 	                 ../../src/libgrid/libgrid.a \
 	                 ../../src/libutil/libutil.a \
 	                 $(LIBS)
@@ -48,6 +47,9 @@ $(progName): $(sources:.c=.o) \
 
 ../../src/liblare/liblare.a:
 	$(MAKE) -C ../../src/liblare
+
+../../src/libdata/libdata.a:
+	$(MAKE) -C ../../src/libgrid
 
 ../../src/libgrid/libgrid.a:
 	$(MAKE) -C ../../src/libgrid

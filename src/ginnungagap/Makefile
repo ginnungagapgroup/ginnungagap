@@ -4,10 +4,7 @@
 
 include ../../Makefile.config
 
-.PHONY: all clean dist-clean \
-        ../libutil/libutil.a \
-        ../libgrid/libgrid.a \
-        ../libcosmo/licosmo.a
+.PHONY: all clean dist-clean
 
 progName = ginnungagap
 
@@ -31,17 +28,22 @@ dist-clean:
 	rm -f $(sources:.c=.d)
 
 $(progName): $(sources:.c=.o) \
+	                 ../libdata/libdata.a \
 	                 ../libgrid/libgrid.a \
 	                 ../libcosmo/libcosmo.a \
 	                 ../libutil/libutil.a
 	$(CC) $(LDFLAGS) $(CFLAGS) \
 	  -o $(progName) $(sources:.c=.o) \
+	                 ../libdata/libdata.a \
 	                 ../libgrid/libgrid.a \
 	                 ../libcosmo/libcosmo.a \
 	                 ../libutil/libutil.a \
 	                 $(LIBS)
 
 -include $(sources:.c=.d)
+
+../libdata/libdata.a:
+	$(MAKE) -C ../libdata
 
 ../libgrid/libgrid.a:
 	$(MAKE) -C ../libgrid

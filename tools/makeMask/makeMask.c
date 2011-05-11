@@ -16,11 +16,12 @@
 #ifdef WITH_OPENMP
 #  include <omp.h>
 #endif
+#include "../../src/libdata/dataVar.h"
+#include "../../src/libdata/dataVarType.h"
 #include "../../src/libgrid/gridRegular.h"
 #include "../../src/libgrid/gridRegularDistrib.h"
 #include "../../src/libgrid/gridWriter.h"
 #include "../../src/libgrid/gridPatch.h"
-#include "../../src/libgrid/gridVar.h"
 #include "../../src/libgrid/gridHistogram.h"
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/timer.h"
@@ -153,7 +154,7 @@ local_createEmptyMask(makeMask_t mama)
 {
 	int         rank = 0;
 	gridPatch_t patch;
-	gridVar_t   var  = gridVar_new("Mask", GRIDVARTYPE_INT8, 1);
+	dataVar_t   var  = dataVar_new("Mask", DATAVARTYPE_INT8, 1);
 	int8_t      *maskData;
 	int8_t      emptyValue;
 	uint64_t    numCells;
