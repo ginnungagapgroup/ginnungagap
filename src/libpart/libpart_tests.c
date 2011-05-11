@@ -29,27 +29,10 @@
 			hasFailed = false; \
 	}
 
-#ifdef WITH_MPI
-#  define RUNTESTMPI(a, hasFailed) \
-    if (!(local_runtestMPI(a))) {  \
-		hasFailed = true;          \
-	} else {                       \
-		if (!hasFailed)            \
-			hasFailed = false;     \
-	}
-#endif
-
 
 /*--- Prototypes of loceal functions ------------------------------------*/
 static bool
 local_runtest(bool (*f)(void));
-
-
-#ifdef WITH_MPI
-static bool
-local_runtestMPI(bool (*f)(void));
-
-#endif
 
 
 /*--- M A I N -----------------------------------------------------------*/
@@ -73,25 +56,22 @@ main(int argc, char **argv)
 
 	if (rank == 0) {
 		printf("\nRunning tests for partBunch:\n");
-		RUNTEST(&partBunch_new_test, hasFailed);
-		RUNTEST(&partBunch_del_test, hasFailed);
-		RUNTEST(&partBunch_allocMem_test, hasFailed);
-		RUNTEST(&partBunch_freeMem_test, hasFailed);
-		RUNTEST(&partBunch_resize_test, hasFailed);
-		RUNTEST(&partBunch_isAllocated_test, hasFailed);
-		RUNTEST(&partBunch_getNumParticles_test, hasFailed);
 	}
+	RUNTEST(&partBunch_new_test, hasFailed);
+	RUNTEST(&partBunch_del_test, hasFailed);
+	RUNTEST(&partBunch_allocMem_test, hasFailed);
+	RUNTEST(&partBunch_freeMem_test, hasFailed);
+	RUNTEST(&partBunch_resize_test, hasFailed);
+	RUNTEST(&partBunch_isAllocated_test, hasFailed);
+	RUNTEST(&partBunch_getNumParticles_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
 
-#if 0
-#  ifdef WITH_MPI
-	MPI_Barrier(MPI_COMM_WORLD);
-	if (rank == 0) {
-		printf("\nRunning tests for commSchemeBuffer:\n");
-	}
-	RUNTESTMPI(&commSchemeBuffer_new_test, hasFailed);
-
+#ifdef WITH_MPI
 	MPI_Finalize();
-#  endif
 #endif
 
 	if (hasFailed) {
@@ -111,25 +91,8 @@ local_runtest(bool (*f)(void))
 {
 	bool hasPassed = f();
 	int  rank      = 0;
-
-	if (!hasPassed) {
-		if (rank == 0)
-			printf("!! FAILED !!\n");
-	} else {
-		if (rank == 0)
-			printf("passed\n");
-	}
-
-	return hasPassed;
-}
-
-#ifdef WITH_MPI
-static bool
-local_runtestMPI(bool (*f)(void))
-{
-	bool hasPassed   = f();
-	int  rank        = 0;
 	int  failedGlobal;
+#ifdef WITH_MPI
 	int  failedLocal = hasPassed ? 0 : 1;
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -137,6 +100,7 @@ local_runtestMPI(bool (*f)(void))
 	              MPI_COMM_WORLD);
 	if (failedGlobal != 0)
 		hasPassed = false;
+#endif
 
 	if (!hasPassed) {
 		if (rank == 0)
@@ -148,5 +112,3 @@ local_runtestMPI(bool (*f)(void))
 
 	return hasPassed;
 }
-
-#endif

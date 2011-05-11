@@ -16,7 +16,8 @@
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
-#include "partDesc.h"
+#include "../libdata/dataVar.h"
+#include "../libdata/dataParticle.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -27,7 +28,7 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
-static partDesc_t
+static dataParticle_t
 local_getSamplePartDesc(void);
 
 static partBunch_t
@@ -38,12 +39,12 @@ local_getSamplePartBunch(void);
 extern bool
 partBunch_new_test(void)
 {
-	bool        hasPassed = true;
-	int         rank      = 0;
-	partBunch_t partBunch;
-	partDesc_t  desc;
+	bool           hasPassed = true;
+	int            rank      = 0;
+	partBunch_t    partBunch;
+	dataParticle_t desc;
 #ifdef XMEM_TRACK_MEM
-	size_t      allocatedBytes = global_allocated_bytes;
+	size_t         allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -65,7 +66,7 @@ partBunch_new_test(void)
 		hasPassed = false;
 	partBunch_del(&partBunch);
 
-	partDesc_del(&desc);
+	dataParticle_del(&desc);
 
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -217,7 +218,7 @@ partBunch_resize_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* partBunch_resize_test */
 
 extern bool
 partBunch_isAllocated_test(void)
@@ -284,38 +285,38 @@ partBunch_getNumParticles_test(void)
 }
 
 /*--- Implementations of local functions --------------------------------*/
-static partDesc_t
+static dataParticle_t
 local_getSamplePartDesc(void)
 {
-	gridVar_t  var;
-	partDesc_t partDesc = partDesc_new("Sample Particle", 0, 3);
+	dataVar_t      var;
+	dataParticle_t dataParticle = dataParticle_new("Sample Particle", 0, 3);
 
-	var = gridVar_new("Var1", GRIDVARTYPE_DOUBLE, 1);
-	partDesc_addVar(partDesc, var);
-	gridVar_del(&var);
+	var = dataVar_new("Var1", DATAVARTYPE_DOUBLE, 1);
+	dataParticle_addVar(dataParticle, var);
+	dataVar_del(&var);
 
-	var = gridVar_new("Var2", GRIDVARTYPE_DOUBLE, 1);
-	partDesc_addVar(partDesc, var);
-	gridVar_del(&var);
+	var = dataVar_new("Var2", DATAVARTYPE_DOUBLE, 1);
+	dataParticle_addVar(dataParticle, var);
+	dataVar_del(&var);
 
-	var = gridVar_new("Var3", GRIDVARTYPE_DOUBLE, 1);
-	partDesc_addVar(partDesc, var);
-	gridVar_del(&var);
+	var = dataVar_new("Var3", DATAVARTYPE_DOUBLE, 1);
+	dataParticle_addVar(dataParticle, var);
+	dataVar_del(&var);
 
-	partDesc_lock(partDesc);
+	dataParticle_lock(dataParticle);
 
-	return partDesc;
+	return dataParticle;
 }
 
 static partBunch_t
 local_getSamplePartBunch(void)
 {
-	partBunch_t bunch = NULL;
-	partDesc_t  desc  = local_getSamplePartDesc();
+	partBunch_t    bunch = NULL;
+	dataParticle_t desc  = local_getSamplePartDesc();
 
 	bunch = partBunch_new(desc, UINT64_C(256));
 
-	partDesc_del(&desc);
+	dataParticle_del(&desc);
 
 	return bunch;
 }

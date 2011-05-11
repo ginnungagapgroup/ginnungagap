@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "../libdata/dataVar.h"
 #include "../libutil/xmem.h"
 #include "../libutil/varArr.h"
 
@@ -25,16 +26,16 @@
 
 /*--- Implementations of exported functios ------------------------------*/
 extern partBunch_t
-partBunch_new(partDesc_t desc, uint64_t initialNumParts)
+partBunch_new(dataParticle_t desc, uint64_t initialNumParts)
 {
 	partBunch_t bunch;
 
 	bunch               = xmalloc(sizeof(struct partBunch_struct));
 
-	bunch->desc         = partDesc_getRef(desc);
+	bunch->desc         = dataParticle_getRef(desc);
 	bunch->numParticles = initialNumParts;
-	bunch->data         = varArr_new(partDesc_getNumVars(desc));
-	for (int i = 0; i < partDesc_getNumVars(desc); i++)
+	bunch->data         = varArr_new(dataParticle_getNumVars(desc));
+	for (int i = 0; i < dataParticle_getNumVars(desc); i++)
 		(void)varArr_insert(bunch->data, NULL);
 	bunch->isAllocated = false;
 
@@ -48,7 +49,7 @@ partBunch_del(partBunch_t *bunch)
 
 	if (partBunch_isAllocated(*bunch))
 		partBunch_freeMem(*bunch);
-	partDesc_del(&((*bunch)->desc));
+	dataParticle_del(&((*bunch)->desc));
 	varArr_del(&((*bunch)->data));
 	xfree(*bunch);
 
@@ -63,9 +64,9 @@ partBunch_allocMem(partBunch_t bunch)
 
 	if (bunch->numParticles > UINT64_C(0)) {
 		for (int i = 0; i < varArr_getLength(bunch->data); i++) {
-			gridVar_t var = partDesc_getVarHandle(bunch->desc, i);
+			dataVar_t var = dataParticle_getVarHandle(bunch->desc, i);
 			(void)varArr_replace(bunch->data, i,
-			                     gridVar_getMemory(var, bunch->numParticles));
+			                     dataVar_getMemory(var, bunch->numParticles));
 		}
 	}
 
@@ -81,9 +82,9 @@ partBunch_freeMem(partBunch_t bunch)
 	if (bunch->numParticles > UINT64_C(0)) {
 		for (int i = 0; i < varArr_getLength(bunch->data); i++) {
 			void      *old;
-			gridVar_t var = partDesc_getVarHandle(bunch->desc, i);
+			dataVar_t var = dataParticle_getVarHandle(bunch->desc, i);
 			old = varArr_replace(bunch->data, i, NULL);
-			gridVar_freeMemory(var, old);
+			dataVar_freeMemory(var, old);
 		}
 	}
 

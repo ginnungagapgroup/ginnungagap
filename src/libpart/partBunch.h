@@ -8,9 +8,9 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "partConfig.h"
-#include "partDesc.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include "../libdata/dataParticle.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -19,7 +19,7 @@ typedef struct partBunch_struct *partBunch_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern partBunch_t
-partBunch_new(partDesc_t desc, uint64_t initialNumParts);
+partBunch_new(dataParticle_t desc, uint64_t initialNumParts);
 
 extern void
 partBunch_del(partBunch_t *bunch);

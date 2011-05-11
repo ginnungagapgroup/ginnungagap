@@ -38,13 +38,13 @@ tests-clean:
 	rm -f lib${LIBNAME}_tests $(sourcesTests:.c=.o) 
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
-                     ../libgrid/libgrid.a \
+                     ../libdata/libdata.a \
                      ../libutil/libutil.a \
                      $(sourcesTests:.c=.o)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o lib${LIBNAME}_tests \
 	   $(sourcesTests:.c=.o) \
 	   lib${LIBNAME}.a \
-	   ../libgrid/libgrid.a \
+	   ../libdata/libdata.a \
 	   ../libutil/libutil.a \
 	   $(LIBS)
 
@@ -54,8 +54,8 @@ lib${LIBNAME}.a: $(sources:.c=.o)
 ../libutil/libutil.a:
 	$(MAKE) -C ../libutil
 
-../libgrid/libgrid.a:
-	$(MAKE) -C ../libgrid
+../libdata/libdata.a:
+	$(MAKE) -C ../libdata
 
 -include $(sources:.c=.d)
 

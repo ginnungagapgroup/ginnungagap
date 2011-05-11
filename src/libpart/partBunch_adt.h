@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -8,18 +8,18 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "partConfig.h"
-#include "partDesc.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include "../libdata/dataParticle.h"
 #include "../libutil/varArr.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct partBunch_struct {
-	partDesc_t desc;
-	uint64_t   numParticles;
-	varArr_t   data;
-	bool       isAllocated;
+	dataParticle_t desc;
+	uint64_t       numParticles;
+	varArr_t       data;
+	bool           isAllocated;
 };
 
 
