@@ -10,6 +10,7 @@ config.log
 config.h
 gmon.out
 TAGS
+cscope.out
 
 src/libgrid/libgrid_tests
 src/libgrid/*Test*.silo
