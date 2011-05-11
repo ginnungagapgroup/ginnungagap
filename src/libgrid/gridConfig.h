@@ -51,7 +51,7 @@
  *        spaced evenly).
  *
  *
- * @defgroup libgridVars Grid Variables
+ * @defgroup libdataVars Grid Variables
  * @ingroup libgrid
  * @brief This provides abstract descriptions of possible variables that
  *        can be attached to the grids.

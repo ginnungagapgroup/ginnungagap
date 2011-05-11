@@ -13,8 +13,8 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
-#include "gridVar.h"
-#include "gridVarType.h"
+#include "../libdata/dataVar.h"
+#include "../libdata/dataVarType.h"
 #include "gridPatch.h"
 #include "gridRegular.h"
 #include "gridRegularDistrib.h"
@@ -61,7 +61,7 @@ local_calcRegularVarSkewKurt(gridStatistics_t           stat,
 
 static void
 local_calcProtoMeanMinMax(void      *data,
-                          gridVar_t var,
+                          dataVar_t var,
                           uint64_t  len,
                           double    *protoMean,
                           double    *min,
@@ -70,7 +70,7 @@ local_calcProtoMeanMinMax(void      *data,
 
 static void
 local_calcProtoVarSkewKurt(void         *data,
-                           gridVar_t    var,
+                           dataVar_t    var,
                            uint64_t     len,
                            double       *variance,
                            double       *skew,
@@ -309,7 +309,7 @@ local_calcRegularMeanMinMax(gridStatistics_t           stat,
                             uint64_t                   norm)
 {
 	gridPatch_t myPatch;
-	gridVar_t   gridVar;
+	dataVar_t   dataVar;
 	void        *data;
 	uint64_t    len;
 	double      min, max;
@@ -323,11 +323,11 @@ local_calcRegularMeanMinMax(gridStatistics_t           stat,
 		else
 			myPatch = patch;
 
-		gridVar = gridPatch_getVarHandle(myPatch, idxOfVar);
+		dataVar = gridPatch_getVarHandle(myPatch, idxOfVar);
 		data    = gridPatch_getVarDataHandle(myPatch, idxOfVar);
 		len     = gridPatch_getNumCells(myPatch);
 
-		local_calcProtoMeanMinMax(data, gridVar, len, &(stat->mean),
+		local_calcProtoMeanMinMax(data, dataVar, len, &(stat->mean),
 		                          &min, &max);
 		stat->min = (stat->min > min) ? min : stat->min;
 		stat->max = (stat->max < max) ? max : stat->max;
@@ -354,7 +354,7 @@ local_calcRegularVarSkewKurt(gridStatistics_t           stat,
                              uint64_t                   norm)
 {
 	gridPatch_t myPatch;
-	gridVar_t   gridVar;
+	dataVar_t   dataVar;
 	void        *data;
 	uint64_t    len;
 
@@ -364,11 +364,11 @@ local_calcRegularVarSkewKurt(gridStatistics_t           stat,
 		else
 			myPatch = patch;
 
-		gridVar = gridPatch_getVarHandle(myPatch, idxOfVar);
+		dataVar = gridPatch_getVarHandle(myPatch, idxOfVar);
 		data    = gridPatch_getVarDataHandle(myPatch, idxOfVar);
 		len     = gridPatch_getNumCells(myPatch);
 
-		local_calcProtoVarSkewKurt(data, gridVar, len, &(stat->var),
+		local_calcProtoVarSkewKurt(data, dataVar, len, &(stat->var),
 		                           &(stat->skew), &(stat->kurt),
 		                           stat->mean);
 	}
@@ -388,7 +388,7 @@ local_calcRegularVarSkewKurt(gridStatistics_t           stat,
 
 static void
 local_calcProtoMeanMinMax(void      *data,
-                          gridVar_t var,
+                          dataVar_t var,
                           uint64_t  len,
                           double    *protoMean,
                           double    *min,
@@ -400,27 +400,27 @@ local_calcProtoMeanMinMax(void      *data,
 		    fpv_t  *fpv;
 		    void   *v;
 	}             tmp;
-	gridVarType_t type = gridVar_getType(var);
+	dataVarType_t type = dataVar_getType(var);
 
 	for (uint64_t i = 0; i < len; i++) {
-		tmp.v = gridVar_getPointerByOffset(var, data, i);
+		tmp.v = dataVar_getPointerByOffset(var, data, i);
 		switch (type) {
-		case GRIDVARTYPE_INT:
+		case DATAVARTYPE_INT:
 			*min        = (*(tmp.i) < *min) ? (double)*(tmp.i) : *min;
 			*max        = (*(tmp.i) > *max) ? (double)*(tmp.i) : *max;
 			*protoMean += (double)*(tmp.i);
 			break;
-		case GRIDVARTYPE_INT8:
+		case DATAVARTYPE_INT8:
 			*min        = (*(tmp.i8) < *min) ? (double)*(tmp.i8) : *min;
 			*max        = (*(tmp.i8) > *max) ? (double)*(tmp.i8) : *max;
 			*protoMean += (double)*(tmp.i);
 			break;
-		case GRIDVARTYPE_DOUBLE:
+		case DATAVARTYPE_DOUBLE:
 			*min        = (*(tmp.lf) < *min) ? *(tmp.lf) : *min;
 			*max        = (*(tmp.lf) > *max) ? *(tmp.lf) : *max;
 			*protoMean += *(tmp.lf);
 			break;
-		case GRIDVARTYPE_FPV:
+		case DATAVARTYPE_FPV:
 			*min        = (*(tmp.fpv) < *min) ? (double)*(tmp.fpv) : *min;
 			*max        = (*(tmp.fpv) > *max) ? (double)*(tmp.fpv) : *max;
 			*protoMean += (double)*(tmp.fpv);
@@ -433,7 +433,7 @@ local_calcProtoMeanMinMax(void      *data,
 
 static void
 local_calcProtoVarSkewKurt(void         *data,
-                           gridVar_t    var,
+                           dataVar_t    var,
                            uint64_t     len,
                            double       *variance,
                            double       *skew,
@@ -447,21 +447,21 @@ local_calcProtoVarSkewKurt(void         *data,
 		    void   *v;
 	}             tmp;
 	double        tmpNo, tmpSqr;
-	gridVarType_t type = gridVar_getType(var);
+	dataVarType_t type = dataVar_getType(var);
 
 	for (uint64_t i = 0; i < len; i++) {
-		tmp.v = gridVar_getPointerByOffset(var, data, i);
+		tmp.v = dataVar_getPointerByOffset(var, data, i);
 		switch (type) {
-		case GRIDVARTYPE_INT:
+		case DATAVARTYPE_INT:
 			tmpNo = (double)*(tmp.i) - mean;
 			break;
-		case GRIDVARTYPE_INT8:
+		case DATAVARTYPE_INT8:
 			tmpNo = (double)*(tmp.i8) - mean;
 			break;
-		case GRIDVARTYPE_DOUBLE:
+		case DATAVARTYPE_DOUBLE:
 			tmpNo = *(tmp.lf) - mean;
 			break;
-		case GRIDVARTYPE_FPV:
+		case DATAVARTYPE_FPV:
 			tmpNo = (double)*(tmp.fpv) - mean;
 			break;
 		default:

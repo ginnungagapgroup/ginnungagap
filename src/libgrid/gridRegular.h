@@ -9,8 +9,8 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPoint.h"
-#include "gridVar.h"
 #include "gridPatch.h"
+#include "../libdata/dataVar.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -67,12 +67,12 @@ extern bool
 gridRegular_isComplexified(gridRegular_t grid, int idxOfVar);
 
 extern int
-gridRegular_attachVar(gridRegular_t grid, gridVar_t var);
+gridRegular_attachVar(gridRegular_t grid, dataVar_t var);
 
-extern gridVar_t
+extern dataVar_t
 gridRegular_detachVar(gridRegular_t grid, int idxOfVar);
 
-extern gridVar_t
+extern dataVar_t
 gridRegular_getVarHandle(gridRegular_t grid, int idxOfVar);
 
 extern void

@@ -322,7 +322,7 @@ local_getFakeGridRegular(void)
 	gridPointUint32_t lo;
 	gridPointUint32_t hi;
 	gridPatch_t patch;
-	gridVar_t var;
+	dataVar_t var;
 	int rank = 0;
 	int size = 1;
 	int perRank;
@@ -351,9 +351,9 @@ local_getFakeGridRegular(void)
 	patch = gridPatch_new(lo, hi);
 	gridRegular_attachPatch(grid, patch);
 
-	var = gridVar_new("var1", GRIDVARTYPE_DOUBLE, 1);
+	var = dataVar_new("var1", DATAVARTYPE_DOUBLE, 1);
 	gridRegular_attachVar(grid, var);
-	var = gridVar_new("var2", GRIDVARTYPE_DOUBLE, 3);
+	var = dataVar_new("var2", DATAVARTYPE_DOUBLE, 3);
 	gridRegular_attachVar(grid, var);
 
 	return grid;

@@ -12,8 +12,8 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
-#include "gridVar.h"
-#include "gridVarType.h"
+#include "../libdata/dataVar.h"
+#include "../libdata/dataVarType.h"
 #include "gridPatch.h"
 #include "gridRegular.h"
 #include "gridRegularDistrib.h"
@@ -44,7 +44,7 @@ local_calcRegularCore(gridHistogram_t            histo,
                       int                        idxOfVar);
 
 static void
-local_count(void *data, gridVar_t var, uint64_t len, gridHistogram_t histo);
+local_count(void *data, dataVar_t var, uint64_t len, gridHistogram_t histo);
 
 static void
 local_countValue(double value, gridHistogram_t histo);
@@ -239,7 +239,7 @@ local_calcRegularCore(gridHistogram_t            histo,
 
 	for (int i = 0; i < numPatches; i++) {
 		gridPatch_t myPatch;
-		gridVar_t   gridVar;
+		dataVar_t   dataVar;
 		void        *data;
 		uint64_t    len;
 		if (grid != NULL)
@@ -247,11 +247,11 @@ local_calcRegularCore(gridHistogram_t            histo,
 		else
 			myPatch = patch;
 
-		gridVar = gridPatch_getVarHandle(myPatch, idxOfVar);
+		dataVar = gridPatch_getVarHandle(myPatch, idxOfVar);
 		data    = gridPatch_getVarDataHandle(myPatch, idxOfVar);
 		len     = gridPatch_getNumCells(myPatch);
 
-		local_count(data, gridVar, len, histo);
+		local_count(data, dataVar, len, histo);
 	}
 
 	if (distrib != NULL) {
@@ -263,34 +263,34 @@ local_calcRegularCore(gridHistogram_t            histo,
 }
 
 static void
-local_count(void *data, gridVar_t var, uint64_t len, gridHistogram_t histo)
+local_count(void *data, dataVar_t var, uint64_t len, gridHistogram_t histo)
 {
-	gridVarType_t type = gridVar_getType(var);
+	dataVarType_t type = dataVar_getType(var);
 
 
 	switch (type) {
-	case GRIDVARTYPE_INT:
+	case DATAVARTYPE_INT:
 	{
 		int *tmp = (int *)data;
 		for (uint64_t i = 0; i < len; i++)
 			local_countValue(tmp[i], histo);
 	}
 	break;
-	case GRIDVARTYPE_INT8:
+	case DATAVARTYPE_INT8:
 	{
 		int8_t *tmp = (int8_t *)data;
 		for (uint64_t i = 0; i < len; i++)
 			local_countValue(tmp[i], histo);
 	}
 	break;
-	case GRIDVARTYPE_DOUBLE:
+	case DATAVARTYPE_DOUBLE:
 	{
 		double *tmp = (double *)data;
 		for (uint64_t i = 0; i < len; i++)
 			local_countValue(tmp[i], histo);
 	}
 	break;
-	case GRIDVARTYPE_FPV:
+	case DATAVARTYPE_FPV:
 	{
 		fpv_t *tmp = (fpv_t *)data;
 		for (uint64_t i = 0; i < len; i++)

@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "gridPatch.h"
-#include "gridVar.h"
+#include "../libdata/dataVar.h"
 #include "../libutil/xmem.h"
 #include "../libutil/parse_ini.h"
 #include "../libutil/diediedie.h"
@@ -31,14 +31,14 @@ static struct gridReader_func_struct local_func
 	    &gridReaderBov_readIntoPatchForVar };
 
 /*--- Prototypes of local functions -------------------------------------*/
-static gridVar_t
+static dataVar_t
 local_getNewVar(bov_t bov);
 
-static gridVarType_t
+static dataVarType_t
 local_translateBovTypeToGridType(bovFormat_t typeInBov);
 
 static bovFormat_t
-local_translateGridTypeToBovType(gridVarType_t type);
+local_translateGridTypeToBovType(dataVarType_t type);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -79,7 +79,7 @@ gridReaderBov_del(gridReader_t *reader)
 extern void
 gridReaderBov_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 {
-	gridVar_t       var;
+	dataVar_t       var;
 	int             idxOfVar;
 
 	assert(reader->type == IO_TYPE_BOV);
@@ -90,7 +90,7 @@ gridReaderBov_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 
 	gridReader_readIntoPatchForVar(reader, patch, idxOfVar);
 
-	gridVar_del(&var);
+	dataVar_del(&var);
 }
 
 extern void
@@ -98,8 +98,8 @@ gridReaderBov_readIntoPatchForVar(gridReader_t reader,
                                   gridPatch_t  patch,
                                   int          idxOfVar)
 {
-	gridVar_t     var;
-	gridVarType_t type;
+	dataVar_t     var;
+	dataVarType_t type;
 	void          *data;
 	bovFormat_t   typeAsBovType;
 	int           numComponents;
@@ -113,9 +113,9 @@ gridReaderBov_readIntoPatchForVar(gridReader_t reader,
 	var           = gridPatch_getVarHandle(patch, idxOfVar);
 	data          = gridPatch_getVarDataHandle(patch, idxOfVar);
 
-	type          = gridVar_getType(var);
+	type          = dataVar_getType(var);
 	typeAsBovType = local_translateGridTypeToBovType(type);
-	numComponents = gridVar_getNumComponents(var);
+	numComponents = dataVar_getNumComponents(var);
 
 	gridPatch_getIdxLo(patch, idxLo);
 	gridPatch_getDims(patch, dims);
@@ -129,45 +129,45 @@ gridReaderBov_readIntoPatchForVar(gridReader_t reader,
 }
 
 /*--- Implementations of local functions --------------------------------*/
-static gridVar_t
+static dataVar_t
 local_getNewVar(bov_t bov)
 {
 	char          *name;
-	gridVarType_t type;
+	dataVarType_t type;
 	bovFormat_t   typeInBov;
 	int           numComponents;
-	gridVar_t     var;
+	dataVar_t     var;
 
 	name          = bov_getVarName(bov);
 	typeInBov     = bov_getDataFormat(bov);
 	numComponents = bov_getDataComponents(bov);
 	type          = local_translateBovTypeToGridType(typeInBov);
 
-	var = gridVar_new(name, type, numComponents);
+	var = dataVar_new(name, type, numComponents);
 
 	xfree(name);
 
 	return var;
 }
 
-static gridVarType_t
+static dataVarType_t
 local_translateBovTypeToGridType(bovFormat_t typeInBov)
 {
-	gridVarType_t type;
+	dataVarType_t type;
 
 	if (typeInBov == BOV_FORMAT_INT) {
-		type = GRIDVARTYPE_INT;
+		type = DATAVARTYPE_INT;
 	} else if (typeInBov == BOV_FORMAT_BYTE) {
-		type = GRIDVARTYPE_INT8;
+		type = DATAVARTYPE_INT8;
 	} else if (typeInBov == BOV_FORMAT_FLOAT) {
-		if (gridVarType_isNativeFloat(GRIDVARTYPE_FPV)) {
-			type = GRIDVARTYPE_FPV;
+		if (dataVarType_isNativeFloat(DATAVARTYPE_FPV)) {
+			type = DATAVARTYPE_FPV;
 		} else {
 			fprintf(stderr, "There is no float capacity in the grid :(");
 			diediedie(EXIT_FAILURE);
 		}
 	} else if (typeInBov == BOV_FORMAT_DOUBLE) {
-		type = GRIDVARTYPE_DOUBLE;
+		type = DATAVARTYPE_DOUBLE;
 	} else {
 		fprintf(stderr, "Data format of bov not supported :(\n");
 		diediedie(EXIT_FAILURE);
@@ -177,18 +177,18 @@ local_translateBovTypeToGridType(bovFormat_t typeInBov)
 }
 
 static bovFormat_t
-local_translateGridTypeToBovType(gridVarType_t type)
+local_translateGridTypeToBovType(dataVarType_t type)
 {
 	bovFormat_t typeAsBovType;
 
-	if (type == GRIDVARTYPE_INT) {
+	if (type == DATAVARTYPE_INT) {
 		typeAsBovType = BOV_FORMAT_INT;
-	} else if (type == GRIDVARTYPE_INT8) {
+	} else if (type == DATAVARTYPE_INT8) {
 		typeAsBovType = BOV_FORMAT_BYTE;
-	} else if (type == GRIDVARTYPE_DOUBLE) {
+	} else if (type == DATAVARTYPE_DOUBLE) {
 		typeAsBovType = BOV_FORMAT_DOUBLE;
-	} else if (type == GRIDVARTYPE_FPV) {
-		if (gridVarType_isNativeFloat(type))
+	} else if (type == DATAVARTYPE_FPV) {
+		if (dataVarType_isNativeFloat(type))
 			typeAsBovType = BOV_FORMAT_FLOAT;
 		else
 			typeAsBovType = BOV_FORMAT_DOUBLE;

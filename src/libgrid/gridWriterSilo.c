@@ -82,10 +82,10 @@ local_writePatchData(gridWriterSilo_t writer,
                      const char       *patchName);
 
 inline static int
-local_getVarType(gridVar_t var);
+local_getVarType(dataVar_t var);
 
 static void *
-local_getPatchVarName(gridVar_t var, const char *patchName, char *varName);
+local_getPatchVarName(dataVar_t var, const char *patchName, char *varName);
 
 static bool
 local_dirExistsInFile(DBfile *db, const char *dname);
@@ -490,7 +490,7 @@ local_writePatchData(gridWriterSilo_t writer,
 
 
 	for (int i = 0; i < numVars; i++) {
-		gridVar_t var          = gridPatch_getVarHandle(patch, i);
+		dataVar_t var          = gridPatch_getVarHandle(patch, i);
 		void      *data        = gridPatch_getVarDataHandle(patch, i);
 		int       varType      = local_getVarType(var);
 		int       varCentering = DB_ZONECENT;
@@ -511,21 +511,21 @@ local_writePatchData(gridWriterSilo_t writer,
 }
 
 inline static int
-local_getVarType(gridVar_t var)
+local_getVarType(dataVar_t var)
 {
 	int varType;
 
-	switch (gridVar_getType(var)) {
-	case GRIDVARTYPE_INT:
+	switch (dataVar_getType(var)) {
+	case DATAVARTYPE_INT:
 		varType = DB_INT;
 		break;
-	case GRIDVARTYPE_INT8:
+	case DATAVARTYPE_INT8:
 		varType = DB_CHAR;
 		break;
-	case GRIDVARTYPE_DOUBLE:
+	case DATAVARTYPE_DOUBLE:
 		varType = DB_DOUBLE;
 		break;
-	case GRIDVARTYPE_FPV:
+	case DATAVARTYPE_FPV:
 		varType = (sizeof(fpv_t) == 4 ? DB_FLOAT : DB_DOUBLE);
 		break;
 	default:
@@ -537,9 +537,9 @@ local_getVarType(gridVar_t var)
 }
 
 static void *
-local_getPatchVarName(gridVar_t var, const char *patchName, char *varName)
+local_getPatchVarName(dataVar_t var, const char *patchName, char *varName)
 {
-	char *baseVarName = gridVar_getName(var);
+	char *baseVarName = dataVar_getName(var);
 	int  lenBaseName  = strlen(baseVarName);
 	int  lenSuffix    = strlen(patchName);
 

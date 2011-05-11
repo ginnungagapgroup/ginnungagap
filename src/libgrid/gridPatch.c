@@ -93,7 +93,7 @@ extern void
 gridPatch_del(gridPatch_t *gridPatch)
 {
 	int       numVarData;
-	gridVar_t var;
+	dataVar_t var;
 
 	assert(gridPatch != NULL && *gridPatch != NULL);
 
@@ -101,7 +101,7 @@ gridPatch_del(gridPatch_t *gridPatch)
 		numVarData = varArr_getLength((*gridPatch)->varData);
 		for (int i = 0; i < numVarData; i++) {
 			var = gridPatch_detachVar(*gridPatch, 0);
-			gridVar_del(&var);
+			dataVar_del(&var);
 		}
 		varArr_del(&((*gridPatch)->varData));
 		varArr_del(&((*gridPatch)->vars));
@@ -124,7 +124,7 @@ extern uint32_t
 gridPatch_getDimActual1D(const gridPatch_t patch, int idxOfVar, int dim)
 {
 	uint64_t  actualDim;
-	gridVar_t var;
+	dataVar_t var;
 
 	assert(patch != NULL);
 	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(patch->vars));
@@ -132,7 +132,7 @@ gridPatch_getDimActual1D(const gridPatch_t patch, int idxOfVar, int dim)
 
 	var = gridPatch_getVarHandle(patch, idxOfVar);
 
-	if (gridVar_isFFTWPadded(var) && (dim == 0))
+	if (dataVar_isFFTWPadded(var) && (dim == 0))
 		actualDim = 2 * ((patch->dims[dim]) / 2 + 1);
 	else
 		actualDim = patch->dims[dim];
@@ -195,15 +195,15 @@ gridPatch_getIdxLo(const gridPatch_t patch, gridPointUint32_t idxLo)
 }
 
 extern int
-gridPatch_attachVar(gridPatch_t patch, gridVar_t var)
+gridPatch_attachVar(gridPatch_t patch, dataVar_t var)
 {
-	gridVar_t varClone;
+	dataVar_t varClone;
 	int       posVar, posVarData;
 
 	assert(patch != NULL);
 	assert(var != NULL);
 
-	varClone   = gridVar_getRef(var);
+	varClone   = dataVar_getRef(var);
 	posVar     = varArr_insert(patch->vars, varClone);
 	posVarData = varArr_insert(patch->varData, NULL);
 
@@ -214,7 +214,7 @@ gridPatch_attachVar(gridPatch_t patch, gridVar_t var)
 	return posVar;
 }
 
-extern gridVar_t
+extern dataVar_t
 gridPatch_detachVar(gridPatch_t patch, int idxOfVar)
 {
 	assert(idxOfVar >= 0
@@ -238,12 +238,12 @@ gridPatch_allocateVarData(gridPatch_t patch, int idxOfVarData)
 	data = varArr_getElementHandle(patch->varData, idxOfVarData);
 
 	if (data == NULL) {
-		gridVar_t var;
+		dataVar_t var;
 		uint64_t  numCellsToAllocate = 1;
 		var                = gridPatch_getVarHandle(patch, idxOfVarData);
 		numCellsToAllocate = gridPatch_getNumCellsActual(patch,
 		                                                 idxOfVarData);
-		data               = gridVar_getMemory(var, numCellsToAllocate);
+		data               = dataVar_getMemory(var, numCellsToAllocate);
 		(void)varArr_replace(patch->varData, idxOfVarData, data);
 	}
 
@@ -253,7 +253,7 @@ gridPatch_allocateVarData(gridPatch_t patch, int idxOfVarData)
 extern void
 gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData)
 {
-	gridVar_t var;
+	dataVar_t var;
 	void      *data;
 
 	assert(idxOfVarData >= 0
@@ -262,14 +262,14 @@ gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData)
 	var  = varArr_getElementHandle(patch->vars, idxOfVarData);
 	data = varArr_replace(patch->varData, idxOfVarData, NULL);
 	if (data != NULL)
-		gridVar_freeMemory(var, data);
+		dataVar_freeMemory(var, data);
 }
 
 extern void
 gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData)
 {
 	void      *oldData;
-	gridVar_t var;
+	dataVar_t var;
 
 	assert(patch != NULL);
 	assert(idxOfVarData >= 0
@@ -278,10 +278,10 @@ gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData)
 	oldData = varArr_replace(patch->varData, idxOfVarData, newData);
 	var     = gridPatch_getVarHandle(patch, idxOfVarData);
 	if (oldData != NULL)
-		gridVar_freeMemory(var, oldData);
+		dataVar_freeMemory(var, oldData);
 }
 
-extern gridVar_t
+extern dataVar_t
 gridPatch_getVarHandle(const gridPatch_t patch, int idxOfVar)
 {
 	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(patch->vars));
@@ -349,7 +349,7 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 	void              *data, *dataCopy;
 	gridPointUint32_t dimsWindow;
 	uint64_t          num = 1;
-	gridVar_t         var;
+	dataVar_t         var;
 	size_t            sizePerElement;
 	size_t            offsetCopy = 0;
 	size_t            offsetData = 0;
@@ -371,8 +371,8 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 
 	var            = gridPatch_getVarHandle(patch, idxVar);
 	data           = gridPatch_getVarDataHandle(patch, idxVar);
-	dataCopy       = gridVar_getMemory(var, num);
-	sizePerElement = gridVar_getSizePerElement(var);
+	dataCopy       = dataVar_getMemory(var, num);
+	sizePerElement = dataVar_getSizePerElement(var);
 
 #if (NDIM == 2)
 	offsetData = idxLo[0] - patch->idxLo[0]
@@ -416,7 +416,7 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 	void              *dataTarget;
 	gridPointUint32_t windowDims;
 	uint64_t          numCells;
-	gridVar_t         var;
+	dataVar_t         var;
 	size_t            sizePerElement;
 	size_t            offsetTarget = 0;
 	size_t            offsetData   = 0;
@@ -436,7 +436,7 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 
 	var            = gridPatch_getVarHandle(patch, idxVar);
 	dataTarget     = gridPatch_getVarDataHandle(patch, idxVar);
-	sizePerElement = gridVar_getSizePerElement(var);
+	sizePerElement = dataVar_getSizePerElement(var);
 
 #if (NDIM == 2)
 	offsetTarget = idxLo[0] - patch->idxLo[0]
@@ -474,7 +474,7 @@ local_transposeVar(gridPatch_t patch,
                    int         dimB)
 {
 	void              *data;
-	gridVar_t         var;
+	dataVar_t         var;
 	int               size;
 	gridPointUint32_t dimsT;
 	uint32_t          tmp;
@@ -483,13 +483,13 @@ local_transposeVar(gridPatch_t patch,
 
 	data           = gridPatch_getVarDataHandle(patch, idxOfVarData);
 	var            = gridPatch_getVarHandle(patch, idxOfVarData);
-	size           = gridVar_getSizePerElement(var);
+	size           = dataVar_getSizePerElement(var);
 	gridPatch_getDimsActual(patch, idxOfVarData, dimsT);
 	tmp            = dimsT[dimA];
 	dimsT[dimA]    = dimsT[dimB];
 	dimsT[dimB]    = tmp;
 	numCellsActual = gridPatch_getNumCellsActual(patch, idxOfVarData);
-	dataT          = gridVar_getMemory(var, numCellsActual);
+	dataT          = dataVar_getMemory(var, numCellsActual);
 
 	switch (size) {
 	default:

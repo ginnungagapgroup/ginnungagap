@@ -161,7 +161,7 @@ gridPatch_getDimActual1D_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       patch;
-	gridVar_t         var0, var1;
+	dataVar_t         var0, var1;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 #ifdef XMEM_TRACK_MEM
@@ -178,8 +178,8 @@ gridPatch_getDimActual1D_test(void)
 		idxLo[i] = 12;
 		idxHi[i] = 16;
 	}
-	var0  = gridVar_new("Var0", GRIDVARTYPE_INT, 1);
-	var1  = gridVar_new("Var1", GRIDVARTYPE_INT, 1);
+	var0  = dataVar_new("Var0", DATAVARTYPE_INT, 1);
+	var1  = dataVar_new("Var1", DATAVARTYPE_INT, 1);
 	patch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVar(patch, var0);
 	gridPatch_attachVar(patch, var1);
@@ -250,7 +250,7 @@ gridPatch_getDimsActual_test(void)
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 	gridPointUint32_t dims;
-	gridVar_t var;
+	dataVar_t var;
 #ifdef XMEM_TRACK_MEM
 	size_t allocatedBytes = global_allocated_bytes;
 #endif
@@ -266,8 +266,8 @@ gridPatch_getDimsActual_test(void)
 		idxHi[i] = 16;
 	}
 	patch = gridPatch_new(idxLo, idxHi);
-	var = gridVar_new("basd", GRIDVARTYPE_INT, 1);
-	gridVar_setFFTWPadded(var);
+	var = dataVar_new("basd", DATAVARTYPE_INT, 1);
+	dataVar_setFFTWPadded(var);
 	gridPatch_attachVar(patch, var);
 	gridPatch_getDimsActual(patch, 0, dims);
 	if (dims[0] != (2 * ((idxHi[0] - idxLo[0] + 1)/2 + 1)))
@@ -276,7 +276,7 @@ gridPatch_getDimsActual_test(void)
 		if (dims[i] != (idxHi[i] - idxLo[i] + 1))
 			hasPassed = false;
 	}
-	gridVar_del(&var);
+	dataVar_del(&var);
 	gridPatch_del(&patch);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -330,7 +330,7 @@ gridPatch_getNumCellsActual_test(void)
 	gridPatch_t       patch;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
-	gridVar_t         var0, var1;
+	dataVar_t         var0, var1;
 	uint64_t          numCellsVar0   = UINT64_C(1);
 	uint64_t          numCellsVar1   = UINT64_C(1);
 #ifdef XMEM_TRACK_MEM
@@ -352,8 +352,8 @@ gridPatch_getNumCellsActual_test(void)
 		else
 			numCellsVar1 *= 2 * ((idxHi[i] - idxLo[i] + 1) / 2 + 1);
 	}
-	var0  = gridVar_new("Var0", GRIDVARTYPE_INT, 1);
-	var1  = gridVar_new("Var1", GRIDVARTYPE_INT, 1);
+	var0  = dataVar_new("Var0", DATAVARTYPE_INT, 1);
+	var1  = dataVar_new("Var1", DATAVARTYPE_INT, 1);
 	patch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVar(patch, var0);
 	gridPatch_attachVar(patch, var1);
@@ -414,7 +414,7 @@ gridPatch_attachVar_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       gridPatch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 #ifdef XMEM_TRACK_MEM
@@ -427,7 +427,7 @@ gridPatch_attachVar_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 12;
 		idxHi[i] = 13;
@@ -435,7 +435,7 @@ gridPatch_attachVar_test(void)
 	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVar(gridPatch, var);
 	gridPatch_del(&gridPatch);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -450,7 +450,7 @@ gridPatch_detachVar_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       gridPatch;
-	gridVar_t         var, varTmp;
+	dataVar_t         var, varTmp;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 #ifdef XMEM_TRACK_MEM
@@ -463,7 +463,7 @@ gridPatch_detachVar_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
 		idxHi[i] = 1;
@@ -474,15 +474,15 @@ gridPatch_detachVar_test(void)
 	gridPatch_attachVar(gridPatch, var);
 	gridPatch_attachVar(gridPatch, var);
 	varTmp = gridPatch_detachVar(gridPatch, 3);
-	gridVar_del(&varTmp);
+	dataVar_del(&varTmp);
 	varTmp = gridPatch_detachVar(gridPatch, 2);
-	gridVar_del(&varTmp);
+	dataVar_del(&varTmp);
 	varTmp = gridPatch_detachVar(gridPatch, 1);
-	gridVar_del(&varTmp);
+	dataVar_del(&varTmp);
 	varTmp = gridPatch_detachVar(gridPatch, 0);
-	gridVar_del(&varTmp);
+	dataVar_del(&varTmp);
 	gridPatch_del(&gridPatch);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -497,7 +497,7 @@ gridPatch_allocateVarData_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       gridPatch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 #ifdef XMEM_TRACK_MEM
@@ -510,7 +510,7 @@ gridPatch_allocateVarData_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, 1);
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, 1);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
 		idxHi[i] = 1;
@@ -525,7 +525,7 @@ gridPatch_allocateVarData_test(void)
 		hasPassed = false;
 
 	gridPatch_del(&gridPatch);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -540,7 +540,7 @@ gridPatch_freeVarData_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       gridPatch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 #ifdef XMEM_TRACK_MEM
@@ -553,7 +553,7 @@ gridPatch_freeVarData_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, 1);
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, 1);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
 		idxHi[i] = 1;
@@ -571,7 +571,7 @@ gridPatch_freeVarData_test(void)
 		hasPassed = false;
 
 	gridPatch_del(&gridPatch);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -586,7 +586,7 @@ gridPatch_replaceVarData_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       gridPatch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 	void              *replaceData;
@@ -600,19 +600,19 @@ gridPatch_replaceVarData_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, 1);
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, 1);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
 		idxHi[i] = 1;
 	}
 	gridPatch   = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVar(gridPatch, var);
-	replaceData = gridVar_getMemory(var, gridPatch->numCells);
+	replaceData = dataVar_getMemory(var, gridPatch->numCells);
 	gridPatch_replaceVarData(gridPatch, 0, replaceData);
 	if (gridPatch_getVarDataHandle(gridPatch, 0) != replaceData)
 		hasPassed = false;
 	gridPatch_del(&gridPatch);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -627,7 +627,7 @@ gridPatch_getVarHandle_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       gridPatch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 #ifdef XMEM_TRACK_MEM
@@ -640,7 +640,7 @@ gridPatch_getVarHandle_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
 		idxHi[i] = 1;
@@ -650,7 +650,7 @@ gridPatch_getVarHandle_test(void)
 	if (gridPatch_getVarHandle(gridPatch, 0) != var)
 		hasPassed = false;
 	gridPatch_del(&gridPatch);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -665,7 +665,7 @@ gridPatch_getVarDataHandle_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       gridPatch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 #ifdef XMEM_TRACK_MEM
@@ -678,7 +678,7 @@ gridPatch_getVarDataHandle_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
 		idxHi[i] = 1;
@@ -689,7 +689,7 @@ gridPatch_getVarDataHandle_test(void)
 	    != varArr_getElementHandle(gridPatch->varData, 0))
 		hasPassed = false;
 	gridPatch_del(&gridPatch);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -704,7 +704,7 @@ gridPatch_getNumVars_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridPatch_t       gridPatch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 #ifdef XMEM_TRACK_MEM
@@ -717,7 +717,7 @@ gridPatch_getNumVars_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, NDIM);
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, NDIM);
 	for (int i = 0; i < NDIM; i++) {
 		idxLo[i] = 0;
 		idxHi[i] = 1;
@@ -729,7 +729,7 @@ gridPatch_getNumVars_test(void)
 	if (gridPatch_getNumVars(gridPatch) != 1)
 		hasPassed = false;
 	gridPatch_del(&gridPatch);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -838,7 +838,7 @@ gridPatch_putWindowedData_test(void)
 {
 	bool              hasPassed = true;
 	int               rank      = 0;
-	gridVar_t var;
+	dataVar_t var;
 	gridPatch_t       patch;
 	gridPointUint32_t idxLoPatch, idxHiPatch;
 	gridPointUint32_t idxLoWindow, idxHiWindow;
@@ -854,7 +854,7 @@ gridPatch_putWindowedData_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	var = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, 1);
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, 1);
 
 	for (int i = 0; i < NDIM; i++) {
 		idxLoPatch[i] = 0;
@@ -873,7 +873,7 @@ gridPatch_putWindowedData_test(void)
 		idxHiWindow[i] = 5;
 		numCellsWindow *= 5-3+1;
 	}
-	dataWindow = gridVar_getMemory(var, numCellsWindow);
+	dataWindow = dataVar_getMemory(var, numCellsWindow);
 	for (uint64_t i=0; i<numCellsWindow; i++)
 		dataWindow[i] = -12.0;
 
@@ -888,10 +888,10 @@ gridPatch_putWindowedData_test(void)
 			hasPassed = false;
 	}
 
-	gridVar_freeMemory(var, dataWindowCopy);
-	gridVar_freeMemory(var, dataWindow);
+	dataVar_freeMemory(var, dataWindowCopy);
+	dataVar_freeMemory(var, dataWindow);
 	gridPatch_del(&patch);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -988,13 +988,13 @@ static gridPatch_t
 local_getFakePatch(void)
 {
 	gridPatch_t       patch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 	int               *data;
 	int               offset = 0;
 
-	var      = gridVar_new("TEST", GRIDVARTYPE_INT, 1);
+	var      = dataVar_new("TEST", DATAVARTYPE_INT, 1);
 	idxLo[0] = 0;
 #ifdef WITH_MPI
 	idxHi[0] = 32;
@@ -1035,7 +1035,7 @@ local_getFakePatch(void)
 		}
 	}
 #endif
-	gridVar_del(&var);
+	dataVar_del(&var);
 
 	return patch;
 } /* local_getFakePatch */
@@ -1083,13 +1083,13 @@ static gridPatch_t
 local_getFakePatchForCopy(void)
 {
 	gridPatch_t       patch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 	int               *data;
 	int               offset = 0;
 
-	var      = gridVar_new("TEST", GRIDVARTYPE_INT, 1);
+	var      = dataVar_new("TEST", DATAVARTYPE_INT, 1);
 	idxLo[0] = 1;
 	idxHi[0] = 32;
 	idxLo[1] = 2;
@@ -1119,7 +1119,7 @@ local_getFakePatchForCopy(void)
 		}
 	}
 #endif
-	gridVar_del(&var);
+	dataVar_del(&var);
 
 	return patch;
 } /* local_getFakePatch */

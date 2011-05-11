@@ -6,7 +6,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridRegularFFT.h"
-#include "gridVarType.h"
+#include "../libdata/dataVarType.h"
 #include <assert.h>
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
@@ -87,7 +87,7 @@ gridRegularFFT_new(gridRegular_t        grid,
 	fft->distrib   = gridRegularDistrib_getRef(distrib);
 	fft->idxFFTVar = idxFFTVar;
 	fft->var       = gridRegular_getVarHandle(grid, idxFFTVar);
-	assert(gridVarType_isFloating(gridVar_getType(fft->var)));
+	assert(dataVarType_isFloating(dataVar_getType(fft->var)));
 	fft->patch     = gridRegular_getPatchHandle(grid, 0);
 	gridRegularDistrib_getNProcs(fft->distrib, fft->nProcs);
 	assert(fft->nProcs[0] == 1);
@@ -174,8 +174,8 @@ local_getFFTedThings(gridRegularFFT_t fft)
 #endif
 	fft->patchFFTed = gridRegularDistrib_getPatchForRank(fft->distribFFTed,
 	                                                     rank);
-	fft->varFFTed   = gridVar_clone(fft->var);
-	gridVar_setComplexified(fft->varFFTed);
+	fft->varFFTed   = dataVar_clone(fft->var);
+	dataVar_setComplexified(fft->varFFTed);
 	gridRegular_attachPatch(fft->gridFFTed, fft->patchFFTed);
 	fft->idxFFTVarFFTed = gridRegular_attachVar(fft->gridFFTed,
 	                                            fft->varFFTed);
@@ -245,7 +245,7 @@ local_doFFTCompletelyLocal(gridRegularFFT_t fft, int direction)
 	for (int i = 0; i < NDIM; i++)
 		n[i] = dims[NDIM - 1 - i];
 
-	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
+	if (dataVarType_isNativeFloat(dataVar_getType(fft->var))) {
 		fftwf_plan plan;
 		if (direction == GRIDREGULARFFT_FORWARD) {
 			plan = fftwf_plan_dft_r2c(NDIM, n, (float *)(dataIn),
@@ -358,7 +358,7 @@ local_doFFTParallelR2CPencil(gridRegularFFT_t fft)
 #  ifdef WITH_MPITRACE
 	MPItrace_event(LOCAL_MPITRACE_EVENT, 1);
 #  endif
-	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
+	if (dataVarType_isNativeFloat(dataVar_getType(fft->var))) {
 		fftwf_plan plan;
 		plan = fftwf_plan_many_dft_r2c(1, &(fft->localNumRealElements),
 		                               howmany, (float *)dataIn,
@@ -402,7 +402,7 @@ local_doFFTParallelC2RPencil(gridRegularFFT_t fft)
 #  ifdef WITH_MPITRACE
 	MPItrace_event(LOCAL_MPITRACE_EVENT, 3);
 #  endif
-	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
+	if (dataVarType_isNativeFloat(dataVar_getType(fft->var))) {
 		fftwf_plan plan;
 		plan = fftwf_plan_many_dft_c2r(1, &(fft->localNumRealElements),
 		                               howmany, (fftwf_complex *)dataIn,
@@ -448,7 +448,7 @@ local_doFFTParallelC2CPencil(gridRegularFFT_t fft, int phase, int sign)
 #  ifdef WITH_MPITRACE
 	MPItrace_event(LOCAL_MPITRACE_EVENT, 2);
 #  endif
-	if (gridVarType_isNativeFloat(gridVar_getType(fft->var))) {
+	if (dataVarType_isNativeFloat(dataVar_getType(fft->var))) {
 		fftwf_plan plan;
 		result = fftwf_malloc(sizeof(fftwf_complex) * howmany
 		                      * fft->localDims[phase][0]);

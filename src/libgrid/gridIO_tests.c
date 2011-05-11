@@ -75,9 +75,6 @@ gridIO_getNameFromType_test(void)
 		hasPassed = false;
 	if (strcmp("unknown", gridIO_getNameFromType(IO_TYPE_UNKNOWN)) != 0)
 		hasPassed = false;
-	if (strcmp("unknown",
-	           gridIO_getNameFromType(IO_TYPE_UNKNOWN * 14)) != 0)
-		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;

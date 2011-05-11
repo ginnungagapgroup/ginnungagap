@@ -69,7 +69,7 @@ gridRegularFFT_new_test(void)
 	grid    = local_getFakeGrid();
 	distrib = local_getFakeGridDistrib(grid);
 	fft     = gridRegularFFT_new(grid, distrib, 0);
-	if (gridVar_getType(fft->var) != GRIDVARTYPE_FPV)
+	if (dataVar_getType(fft->var) != DATAVARTYPE_FPV)
 		hasPassed = false;
 	gridRegular_del(&grid);
 	gridRegularDistrib_del(&distrib);
@@ -239,22 +239,22 @@ local_getFakeGrid(void)
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
-	gridVar_t         var;
+	dataVar_t         var;
 
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
 		extent[i] = 1.0;
 		dims[i]   = 32 + i;
 	}
-	var = gridVar_new("test", GRIDVARTYPE_FPV, 1);
+	var = dataVar_new("test", DATAVARTYPE_FPV, 1);
 #ifndef WITH_MPI
-	gridVar_setFFTWPadded(var);
+	dataVar_setFFTWPadded(var);
 #endif
 #ifdef WITH_FFT_FFTW3
 #  ifdef ENABLE_DOUBLE
-	gridVar_setMemFuncs(var, &fftw_malloc, &fftw_free);
+	dataVar_setMemFuncs(var, &fftw_malloc, &fftw_free);
 #  else
-	gridVar_setMemFuncs(var, &fftwf_malloc, &fftwf_free);
+	dataVar_setMemFuncs(var, &fftwf_malloc, &fftwf_free);
 #  endif
 #endif
 
@@ -341,8 +341,8 @@ local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
 	gridPatch_t       patch   = gridRegular_getPatchHandle(grid, 0);
 	fpv_t             *data   = gridPatch_getVarDataHandle(patch, 0);
 	long double       sumSqr  = 0.;
-	gridVar_t         var     = gridPatch_getVarHandle(patch, 0);
-	gridVarType_t     varType = gridVar_getType(var);
+	dataVar_t         var     = gridPatch_getVarHandle(patch, 0);
+	dataVarType_t     varType = dataVar_getType(var);
 
 	gridPatch_getDims(patch, dims);
 	gridRegular_getDims(grid, dimsGlobal);
@@ -370,7 +370,7 @@ local_testFFTResult(gridRegular_t grid, fpv_t *dataCpy)
 	}
 #endif
 
-	if (gridVarType_isNativeDouble(varType)) {
+	if (dataVarType_isNativeDouble(varType)) {
 		if ((sqrtl(sumSqr) > 2e-9))
 			return false;
 	} else {

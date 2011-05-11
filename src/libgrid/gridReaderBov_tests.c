@@ -147,8 +147,8 @@ gridReaderBov_readIntoPatchForVar_test(void)
 	uint32_t    idxLo[3]       = { 0, 0, 0 };
 	uint32_t    idxHi[3]       = { 7, 7, 7 };
 	gridPatch_t patch          = gridPatch_new(idxLo, idxHi);
-	gridVar_t   var            = gridVar_new("test",
-	                                         GRIDVARTYPE_INT,
+	dataVar_t   var            = dataVar_new("test",
+	                                         DATAVARTYPE_INT,
 	                                         3);
 	gridReaderBov_t reader;
 	parse_ini_t     ini;
@@ -173,7 +173,7 @@ gridReaderBov_readIntoPatchForVar_test(void)
 
 	gridReaderBov_del((gridReader_t *)&reader);
 	parse_ini_close(&ini);
-	gridVar_del(&var);
+	dataVar_del(&var);
 	gridPatch_del(&patch);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)

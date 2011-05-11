@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "gridPatch.h"
-#include "gridVar.h"
+#include "../libdata/dataVar.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
 #include "../libutil/grafic.h"
@@ -33,11 +33,11 @@ static struct gridReader_func_struct local_func
 	    &gridReaderGrafic_readIntoPatchForVar };
 
 /*--- Prototypes of local functions -------------------------------------*/
-static gridVar_t
+static dataVar_t
 local_getNewVar(gridReaderGrafic_t grafic);
 
 static graficFormat_t
-local_translateGridTypeToGraficType(gridVarType_t type);
+local_translateGridTypeToGraficType(dataVarType_t type);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -79,7 +79,7 @@ gridReaderGrafic_del(gridReader_t *reader)
 extern void
 gridReaderGrafic_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 {
-	gridVar_t var;
+	dataVar_t var;
 	int       idxOfVar;
 
 	assert(reader->type == IO_TYPE_GRAFIC);
@@ -90,7 +90,7 @@ gridReaderGrafic_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 
 	gridReader_readIntoPatchForVar(reader, patch, idxOfVar);
 
-	gridVar_del(&var);
+	dataVar_del(&var);
 }
 
 extern void
@@ -98,8 +98,8 @@ gridReaderGrafic_readIntoPatchForVar(gridReader_t reader,
                                      gridPatch_t  patch,
                                      int          idxOfVar)
 {
-	gridVar_t      var;
-	gridVarType_t  type;
+	dataVar_t      var;
+	dataVarType_t  type;
 	void           *data;
 	graficFormat_t typeAsGraficType;
 	int            numComponents;
@@ -113,9 +113,9 @@ gridReaderGrafic_readIntoPatchForVar(gridReader_t reader,
 	var              = gridPatch_getVarHandle(patch, idxOfVar);
 	data             = gridPatch_getVarDataHandle(patch, idxOfVar);
 
-	type             = gridVar_getType(var);
+	type             = dataVar_getType(var);
 	typeAsGraficType = local_translateGridTypeToGraficType(type);
-	numComponents    = gridVar_getNumComponents(var);
+	numComponents    = dataVar_getNumComponents(var);
 
 	gridPatch_getIdxLo(patch, idxLo);
 	gridPatch_getDims(patch, dims);
@@ -129,14 +129,14 @@ gridReaderGrafic_readIntoPatchForVar(gridReader_t reader,
 }
 
 /*--- Implementations of local functions --------------------------------*/
-static gridVar_t
+static dataVar_t
 local_getNewVar(gridReaderGrafic_t reader)
 {
 	char      *name;
-	gridVar_t var;
+	dataVar_t var;
 
 	name = xbasename(grafic_getFileName(reader->grafic));
-	var  = gridVar_new(name, GRIDVARTYPE_FPV, 1);
+	var  = dataVar_new(name, DATAVARTYPE_FPV, 1);
 
 	xfree(name);
 
@@ -144,14 +144,14 @@ local_getNewVar(gridReaderGrafic_t reader)
 }
 
 static graficFormat_t
-local_translateGridTypeToGraficType(gridVarType_t type)
+local_translateGridTypeToGraficType(dataVarType_t type)
 {
 	graficFormat_t typeAsGraficType;
 
-	if (type == GRIDVARTYPE_DOUBLE) {
+	if (type == DATAVARTYPE_DOUBLE) {
 		typeAsGraficType = GRAFIC_FORMAT_DOUBLE;
-	} else if (type == GRIDVARTYPE_FPV) {
-		if (gridVarType_isNativeFloat(type))
+	} else if (type == DATAVARTYPE_FPV) {
+		if (dataVarType_isNativeFloat(type))
 			typeAsGraficType = GRAFIC_FORMAT_FLOAT;
 		else
 			typeAsGraficType = GRAFIC_FORMAT_DOUBLE;

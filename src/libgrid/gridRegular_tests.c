@@ -7,7 +7,7 @@
 #include "gridConfig.h"
 #include "gridRegular_tests.h"
 #include "gridRegular.h"
-#include "gridVar.h"
+#include "../libdata/dataVar.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -412,7 +412,7 @@ gridRegular_getNumVars_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridRegular_t     grid;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
@@ -430,7 +430,7 @@ gridRegular_getNumVars_test(void)
 
 	if (gridRegular_getNumVars(grid) != 0)
 		hasPassed = false;
-	var = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	var = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_FPV, NDIM);
 	gridRegular_attachVar(grid, var);
 	if (gridRegular_getNumVars(grid) != 1)
 		hasPassed = false;
@@ -450,7 +450,7 @@ gridRegular_getNumCellsTotal_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridRegular_t     grid;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
@@ -469,7 +469,7 @@ gridRegular_getNumCellsTotal_test(void)
 
 	if (gridRegular_getNumVars(grid) != 0)
 		hasPassed = false;
-	var           = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	var           = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_FPV, NDIM);
 	gridRegular_attachVar(grid, var);
 	numCellsTotal = 1;
 	for (int i = 0; i < NDIM; i++)
@@ -495,7 +495,7 @@ gridRegular_attachVar_test(void)
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
-	gridVar_t         var;
+	dataVar_t         var;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -508,7 +508,7 @@ gridRegular_attachVar_test(void)
 
 	grid = local_getFakeGrid(origin, extent, dims);
 
-	var  = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	var  = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_FPV, NDIM);
 	gridRegular_attachVar(grid, var);
 	if (varArr_getLength(grid->vars) != 1)
 		hasPassed = false;
@@ -530,7 +530,7 @@ gridRegular_detachVar_test(void)
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
-	gridVar_t         var;
+	dataVar_t         var;
 	int               idxOfVar;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
@@ -544,14 +544,14 @@ gridRegular_detachVar_test(void)
 
 	grid     = local_getFakeGrid(origin, extent, dims);
 
-	var      = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	var      = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_FPV, NDIM);
 	idxOfVar = gridRegular_attachVar(grid, var);
 	var      = gridRegular_detachVar(grid, idxOfVar);
 	if (varArr_getLength(grid->vars) != 0) {
 		hasPassed = false;
 	}
 	gridRegular_del(&grid);
-	gridVar_del(&var);
+	dataVar_del(&var);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -566,7 +566,7 @@ gridRegular_getVarHandle_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridRegular_t     grid;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    extent;
 	gridPointUint32_t dims;
@@ -582,7 +582,7 @@ gridRegular_getVarHandle_test(void)
 
 	grid = local_getFakeGrid(origin, extent, dims);
 
-	var  = gridVar_new(LOCAL_TESTNAME, GRIDVARTYPE_FPV, NDIM);
+	var  = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_FPV, NDIM);
 	gridRegular_attachVar(grid, var);
 
 	if (gridRegular_getVarHandle(grid, 0) != var)

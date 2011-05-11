@@ -221,7 +221,7 @@ static gridPatch_t
 local_getFakePatch(void)
 {
 	gridPatch_t       patch;
-	gridVar_t         var;
+	dataVar_t         var;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 	double            *data;
@@ -232,7 +232,7 @@ local_getFakePatch(void)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
 
-	var      = gridVar_new("TEST", GRIDVARTYPE_DOUBLE, 1);
+	var      = dataVar_new("TEST", DATAVARTYPE_DOUBLE, 1);
 	idxLo[0] = 0;
 	idxHi[0] = 15;
 	idxLo[1] = 0;
@@ -251,7 +251,7 @@ local_getFakePatch(void)
 		data[i] = rng_getGauss(rng, 0, LOCAL_FAKE_MEAN,
 		                       sqrt(LOCAL_FAKE_VARIANCE));
 	}
-	gridVar_del(&var);
+	dataVar_del(&var);
 	rng_del(&rng);
 
 	return patch;
@@ -279,7 +279,7 @@ local_getFakeDistrib(void)
 	gridRegularDistrib_t distrib;
 	gridRegular_t        grid;
 	gridPatch_t          patch;
-	gridVar_t            var;
+	dataVar_t            var;
 	gridPointDbl_t       origin = {0., 0., 0.};
 	gridPointDbl_t       extent = {1., 1., 1.};
 	gridPointUint32_t    dims   = {256, 256, 256};
@@ -291,7 +291,7 @@ local_getFakeDistrib(void)
 	uint64_t             num;
 
 	grid    = gridRegular_new("TEST", origin, extent, dims);
-	var     = gridVar_new("TESTVAR", GRIDVARTYPE_DOUBLE, 1);
+	var     = dataVar_new("TESTVAR", DATAVARTYPE_DOUBLE, 1);
 	gridRegular_attachVar(grid, var);
 	distrib = gridRegularDistrib_new(grid, nProcs);
 #ifdef WITH_MPI

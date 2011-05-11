@@ -65,16 +65,21 @@ tests-clean:
 
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
+                     ../libdata/libdata.a \
                      ../libutil/libutil.a \
                      $(sourcesTests:.c=.o)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o lib${LIBNAME}_tests \
 	   $(sourcesTests:.c=.o) \
 	   lib${LIBNAME}.a \
+	   ../libdata/libdata.a \
 	   ../libutil/libutil.a \
 	   $(LIBS)
 
 lib${LIBNAME}.a: $(sources:.c=.o)
 	$(AR) -rs lib${LIBNAME}.a $(sources:.c=.o)
+
+../libdata/libdata.a:
+	$(MAKE) -C ../libdata
 
 ../libutil/libutil.a:
 	$(MAKE) -C ../libutil

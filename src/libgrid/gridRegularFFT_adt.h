@@ -15,13 +15,13 @@ struct gridRegularFFT_struct {
 	gridRegular_t        grid;
 	gridRegularDistrib_t distrib;
 	int                  idxFFTVar;
-	gridVar_t            var;
+	dataVar_t            var;
 	gridPatch_t          patch;
 	gridPointInt_t       nProcs;
 	gridRegular_t        gridFFTed;
 	gridRegularDistrib_t distribFFTed;
 	int                  idxFFTVarFFTed;
-	gridVar_t            varFFTed;
+	dataVar_t            varFFTed;
 	gridPatch_t          patchFFTed;
 	double               norm;
 #if (defined WITH_MPI)

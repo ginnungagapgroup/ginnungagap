@@ -480,7 +480,7 @@ local_getFakeDistribForTranspose(void)
 	gridPointUint32_t    dims;
 	gridPointInt_t       nProcs;
 	gridPatch_t          patch;
-	gridVar_t            var;
+	dataVar_t            var;
 	int                  rank = 0;
 
 	origin[0] = 0.0;
@@ -498,7 +498,7 @@ local_getFakeDistribForTranspose(void)
 	nProcs[2] = 0;
 #endif
 	grid      = gridRegular_new("bla", origin, extent, dims);
-	var       = gridVar_new("blaVar", GRIDVARTYPE_INT, 1);
+	var       = dataVar_new("blaVar", DATAVARTYPE_INT, 1);
 	gridRegular_attachVar(grid, var);
 	distrib   = gridRegularDistrib_new(grid, nProcs);
 #ifdef WITH_MPI

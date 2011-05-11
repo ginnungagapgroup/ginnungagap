@@ -9,7 +9,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPoint.h"
-#include "gridVar.h"
+#include "../libdata/dataVar.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -47,9 +47,9 @@ extern void
 gridPatch_getIdxLo(const gridPatch_t patch, gridPointUint32_t idxLo);
 
 extern int
-gridPatch_attachVar(gridPatch_t patch, gridVar_t var);
+gridPatch_attachVar(gridPatch_t patch, dataVar_t var);
 
-extern gridVar_t
+extern dataVar_t
 gridPatch_detachVar(gridPatch_t patch, int idxOfVar);
 
 extern void *
@@ -61,7 +61,7 @@ gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData);
 extern void
 gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);
 
-extern gridVar_t
+extern dataVar_t
 gridPatch_getVarHandle(const gridPatch_t patch, int idxOfVar);
 
 extern void *

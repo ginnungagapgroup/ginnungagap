@@ -99,24 +99,24 @@ static void
 local_transposeGetFullSendBuffers(commScheme_t      scheme,
                                   const varArr_t    layout,
                                   const gridPatch_t patch,
-                                  const gridVar_t   var,
+                                  const dataVar_t   var,
                                   MPI_Comm          comm);
 
 static void
 local_transposeGetRecvBuffers(commScheme_t    scheme,
                               const varArr_t  layout,
-                              const gridVar_t var,
+                              const dataVar_t var,
                               MPI_Comm        comm);
 
 static void
 local_transposeDelSendBuffers(const varArr_t  layout,
-                              const gridVar_t var);
+                              const dataVar_t var);
 
 static void
 local_transposeMoveRecvBuffersToPatch(const varArr_t  layout,
                                       gridPatch_t     patchT,
                                       const int       idxOfVar,
-                                      const gridVar_t var);
+                                      const dataVar_t var);
 
 static local_layoutElement_t
 local_layoutElement_new(gridPointUint32_t idxLo,
@@ -553,11 +553,11 @@ local_transposeAllVarsAtPatch(gridPatch_t    patch,
 
 	for (int i = 0; i < numVars; i++) {
 		int          idxOfVar;
-		gridVar_t    varTmp;
-		gridVar_t    var    = gridPatch_getVarHandle(patch, 0);
+		dataVar_t    varTmp;
+		dataVar_t    var    = gridPatch_getVarHandle(patch, 0);
 		commScheme_t scheme = commScheme_new(commCart, 4223);
 
-		var = gridVar_getRef(var);
+		var = dataVar_getRef(var);
 
 #  ifdef WITH_MPITRACE
 		MPItrace_event(LOCAL_MPITRACE_EVENT, 12);
@@ -568,7 +568,7 @@ local_transposeAllVarsAtPatch(gridPatch_t    patch,
 		MPItrace_event(LOCAL_MPITRACE_EVENT, 0);
 #  endif
 		varTmp = gridPatch_detachVar(patch, 0);
-		gridVar_del(&varTmp);
+		dataVar_del(&varTmp);
 #  ifdef WITH_MPITRACE
 		MPItrace_event(LOCAL_MPITRACE_EVENT, 13);
 #  endif
@@ -604,7 +604,7 @@ local_transposeAllVarsAtPatch(gridPatch_t    patch,
 #  endif
 
 		commScheme_del(&scheme);
-		gridVar_del(&var);
+		dataVar_del(&var);
 	}
 } /* local_transposeAllVarsAtPatch */
 
@@ -612,11 +612,11 @@ static void
 local_transposeGetFullSendBuffers(commScheme_t      scheme,
                                   const varArr_t    layout,
                                   const gridPatch_t patch,
-                                  const gridVar_t   var,
+                                  const dataVar_t   var,
                                   MPI_Comm          comm)
 {
 	int          len  = varArr_getLength(layout);
-	MPI_Datatype type = gridVar_getMPIDatatype(var);
+	MPI_Datatype type = dataVar_getMPIDatatype(var);
 
 	for (int j = 0; j < len; j++) {
 		void                  *dataSend;
@@ -629,7 +629,7 @@ local_transposeGetFullSendBuffers(commScheme_t      scheme,
 		// emptied during the course of the main loop.
 		dataSend   = gridPatch_getWindowedDataCopy(patch, 0, le->idxLo,
 		                                           le->idxHi, &dataSize);
-		count      = gridVar_getMPICount(var, dataSize);
+		count      = dataVar_getMPICount(var, dataSize);
 		MPI_Cart_rank(comm, le->processCoord, &rankSend);
 		le->buffer = commSchemeBuffer_new(dataSend, count, type, rankSend);
 		commScheme_addBuffer(scheme, le->buffer, COMMSCHEME_TYPE_SEND);
@@ -639,11 +639,11 @@ local_transposeGetFullSendBuffers(commScheme_t      scheme,
 static void
 local_transposeGetRecvBuffers(commScheme_t    scheme,
                               const varArr_t  layout,
-                              const gridVar_t var,
+                              const dataVar_t var,
                               MPI_Comm        comm)
 {
 	int          len  = varArr_getLength(layout);
-	MPI_Datatype type = gridVar_getMPIDatatype(var);
+	MPI_Datatype type = dataVar_getMPIDatatype(var);
 
 	for (int j = 0; j < len; j++) {
 		local_layoutElement_t le = varArr_getElementHandle(layout, j);
@@ -655,8 +655,8 @@ local_transposeGetRecvBuffers(commScheme_t    scheme,
 		for (int k = 0; k < NDIM; k++) {
 			dataSize *= (le->idxHi[k] - le->idxLo[k] + 1);
 		}
-		dataRecv   = gridVar_getMemory(var, dataSize);
-		count      = gridVar_getMPICount(var, dataSize);
+		dataRecv   = dataVar_getMemory(var, dataSize);
+		count      = dataVar_getMPICount(var, dataSize);
 		MPI_Cart_rank(comm, le->processCoord, &rankRecv);
 		le->buffer = commSchemeBuffer_new(dataRecv, count, type, rankRecv);
 		commScheme_addBuffer(scheme, le->buffer, COMMSCHEME_TYPE_RECV);
@@ -665,11 +665,11 @@ local_transposeGetRecvBuffers(commScheme_t    scheme,
 
 static void
 local_transposeDelSendBuffers(const varArr_t  layout,
-                              const gridVar_t var)
+                              const dataVar_t var)
 {
 	for (int j = 0; j < varArr_getLength(layout); j++) {
 		local_layoutElement_t le = varArr_getElementHandle(layout, j);
-		gridVar_freeMemory(var, commSchemeBuffer_getBuf(le->buffer));
+		dataVar_freeMemory(var, commSchemeBuffer_getBuf(le->buffer));
 	}
 }
 
@@ -677,7 +677,7 @@ static void
 local_transposeMoveRecvBuffersToPatch(const varArr_t  layout,
                                       gridPatch_t     patchT,
                                       const int       idxOfVar,
-                                      const gridVar_t var)
+                                      const dataVar_t var)
 {
 	for (int j = 0; j < varArr_getLength(layout); j++) {
 		local_layoutElement_t le = varArr_getElementHandle(layout, j);
@@ -686,7 +686,7 @@ local_transposeMoveRecvBuffersToPatch(const varArr_t  layout,
 		dataRecv = commSchemeBuffer_getBuf(le->buffer);
 		gridPatch_putWindowedData(patchT, idxOfVar, le->idxLo,
 		                          le->idxHi, dataRecv);
-		gridVar_freeMemory(var, dataRecv);
+		dataVar_freeMemory(var, dataRecv);
 	}
 }
 

@@ -12,7 +12,7 @@
 #  include <mpi.h>
 #  include "../libutil/groupi.h"
 #endif
-#include "gridVar.h"
+#include "../libdata/dataVar.h"
 #include "gridRegular.h"
 #include "gridPatch.h"
 #include "../libutil/parse_ini.h"
@@ -57,7 +57,7 @@ inline static void
 local_createEmptyGraficFile(gridWriterGrafic_t writer);
 
 static graficFormat_t
-local_getGraficTypeFromGridType(const gridVar_t var);
+local_getGraficTypeFromGridType(const dataVar_t var);
 
 
 #ifdef WITH_MPI
@@ -220,7 +220,7 @@ gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
 {
 	gridWriterGrafic_t tmp = (gridWriterGrafic_t)writer;
 	void               *data;
-	gridVar_t          var;
+	dataVar_t          var;
 	int                numComponents;
 	gridPointUint32_t  dims;
 	gridPointUint32_t  idxLo;
@@ -240,7 +240,7 @@ gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
 	gridPatch_getDims(patch, dims);
 	var           = gridPatch_getVarHandle(patch, 0);
 	data          = gridPatch_getVarDataHandle(patch, 0);
-	numComponents = gridVar_getNumComponents(var);
+	numComponents = dataVar_getNumComponents(var);
 	format        = local_getGraficTypeFromGridType(var);
 
 	grafic_writeWindowed(tmp->grafic, data, format, numComponents,
@@ -307,19 +307,19 @@ local_createEmptyGraficFile(gridWriterGrafic_t writer)
 }
 
 static graficFormat_t
-local_getGraficTypeFromGridType(const gridVar_t var)
+local_getGraficTypeFromGridType(const dataVar_t var)
 {
 	graficFormat_t varType;
 
-	switch (gridVar_getType(var)) {
-	case GRIDVARTYPE_DOUBLE:
+	switch (dataVar_getType(var)) {
+	case DATAVARTYPE_DOUBLE:
 		varType = GRAFIC_FORMAT_DOUBLE;
 		break;
-	case GRIDVARTYPE_FPV:
+	case DATAVARTYPE_FPV:
 		varType = sizeof(fpv_t) == 4 ?
 		          GRAFIC_FORMAT_FLOAT : GRAFIC_FORMAT_DOUBLE;
 		break;
-	case GRIDVARTYPE_INT:
+	case DATAVARTYPE_INT:
 	default:
 		diediedie(EXIT_FAILURE);
 	}

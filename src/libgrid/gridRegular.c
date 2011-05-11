@@ -7,7 +7,7 @@
 #include "gridConfig.h"
 #include "gridRegular.h"
 #include "gridPoint.h"
-#include "gridVar.h"
+#include "../libdata/dataVar.h"
 #include "gridPatch.h"
 #include <assert.h>
 #include "../libutil/refCounter.h"
@@ -33,7 +33,7 @@ inline static void
 local_freeVars(gridRegular_t grid);
 
 inline static void
-local_addVarToAllPatches(gridRegular_t grid, gridVar_t var);
+local_addVarToAllPatches(gridRegular_t grid, dataVar_t var);
 
 inline static void
 local_removeVarFromAllPatches(gridRegular_t grid, int idxOfVar);
@@ -198,41 +198,41 @@ gridRegular_getNumCellsTotal(gridRegular_t grid)
 extern void
 gridRegular_setComplexified(gridRegular_t grid, int idxOfVar)
 {
-	gridVar_t var;
+	dataVar_t var;
 
 	assert(grid != NULL);
 	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(grid->vars));
 	
 	var = gridRegular_getVarHandle(grid, idxOfVar);
-	gridVar_setComplexified(var);
+	dataVar_setComplexified(var);
 }
 
 extern void
 gridRegular_unsetComplexified(gridRegular_t grid, int idxOfVar)
 {
-	gridVar_t var;
+	dataVar_t var;
 
 	assert(grid != NULL);
 	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(grid->vars));
 	
 	var = gridRegular_getVarHandle(grid, idxOfVar);
-	gridVar_unsetComplexified(var);
+	dataVar_unsetComplexified(var);
 }
 
 extern bool
 gridRegular_isComplexified(gridRegular_t grid, int idxOfVar)
 {
-	gridVar_t var;
+	dataVar_t var;
 
 	assert(grid != NULL);
 	assert(idxOfVar >= 0 && idxOfVar < varArr_getLength(grid->vars));
 	
 	var = gridRegular_getVarHandle(grid, idxOfVar);
-	return gridVar_isComplexified(var);
+	return dataVar_isComplexified(var);
 }
 
 extern int
-gridRegular_attachVar(gridRegular_t grid, gridVar_t var)
+gridRegular_attachVar(gridRegular_t grid, dataVar_t var)
 {
 	int idxOfVar;
 
@@ -245,7 +245,7 @@ gridRegular_attachVar(gridRegular_t grid, gridVar_t var)
 	return idxOfVar;
 }
 
-extern gridVar_t
+extern dataVar_t
 gridRegular_detachVar(gridRegular_t grid, int idxOfVar)
 {
 	assert(grid != NULL);
@@ -256,7 +256,7 @@ gridRegular_detachVar(gridRegular_t grid, int idxOfVar)
 	return varArr_remove(grid->vars, idxOfVar);
 }
 
-extern gridVar_t
+extern dataVar_t
 gridRegular_getVarHandle(gridRegular_t grid, int idxOfVar)
 {
 	assert(grid != NULL);
@@ -394,15 +394,15 @@ inline static void
 local_freeVars(gridRegular_t grid)
 {
 	while (varArr_getLength(grid->vars) != 0) {
-		gridVar_t var;
+		dataVar_t var;
 		var = varArr_remove(grid->vars, 0);
-		gridVar_del(&var);
+		dataVar_del(&var);
 	}
 	varArr_del(&(grid->vars));
 }
 
 inline static void
-local_addVarToAllPatches(gridRegular_t grid, gridVar_t var)
+local_addVarToAllPatches(gridRegular_t grid, dataVar_t var)
 {
 	int numPatches = varArr_getLength(grid->patches);
 
@@ -419,8 +419,8 @@ local_removeVarFromAllPatches(gridRegular_t grid, int idxOfVar)
 
 	for (int i = 0; i < numPatches; i++) {
 		gridPatch_t patch = varArr_getElementHandle(grid->patches, i);
-		gridVar_t var = gridPatch_detachVar(patch, idxOfVar);
-		gridVar_del(&var);
+		dataVar_t var = gridPatch_detachVar(patch, idxOfVar);
+		dataVar_del(&var);
 	}
 }
 
@@ -430,7 +430,7 @@ local_addAllVarsToPatch(gridRegular_t grid, gridPatch_t patch)
 	int numVars = varArr_getLength(grid->vars);
 
 	for (int i = 0; i < numVars; i++) {
-		gridVar_t var = varArr_getElementHandle(grid->vars, i);
+		dataVar_t var = varArr_getElementHandle(grid->vars, i);
 		gridPatch_attachVar(patch, var);
 	}
 }

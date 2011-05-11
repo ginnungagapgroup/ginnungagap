@@ -8,8 +8,8 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#include "../libutil/varArr.h"
 #include <stdint.h>
+#include "../libutil/varArr.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
