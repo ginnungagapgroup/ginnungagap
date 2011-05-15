@@ -105,7 +105,7 @@ gridWriterSilo_new(const char *prefix, int dbType)
 #  endif
 
 	writer              = xmalloc(sizeof(struct gridWriterSilo_struct));
-	writer->type        = IO_TYPE_SILO;
+	writer->type        = GRIDIO_TYPE_SILO;
 	writer->func        = (gridWriter_func_t)&local_func;
 	writer->isActive    = false;
 #  ifdef WITH_MPI
@@ -169,7 +169,7 @@ gridWriterSilo_del(gridWriter_t *writer)
 
 	assert(writer != NULL && *writer != NULL);
 	tmp = (gridWriterSilo_t)*writer;
-	assert(tmp->type == IO_TYPE_SILO);
+	assert(tmp->type == GRIDIO_TYPE_SILO);
 
 	if (tmp->isActive)
 		gridWriterSilo_deactivate(*writer);
@@ -194,7 +194,7 @@ gridWriterSilo_activate(gridWriter_t writer)
 	gridWriterSilo_t tmp = (gridWriterSilo_t)writer;
 
 	assert(tmp != NULL);
-	assert(tmp->type == IO_TYPE_SILO);
+	assert(tmp->type == GRIDIO_TYPE_SILO);
 #  ifdef WITH_MPI
 	assert(tmp->baton != NULL);
 #  endif
@@ -219,7 +219,7 @@ gridWriterSilo_deactivate(gridWriter_t writer)
 	gridWriterSilo_t tmp = (gridWriterSilo_t)writer;
 
 	assert(tmp != NULL);
-	assert(tmp->type == IO_TYPE_SILO);
+	assert(tmp->type == GRIDIO_TYPE_SILO);
 #  ifdef WITH_MPI
 	assert(tmp->baton != NULL);
 #  endif
@@ -247,7 +247,7 @@ gridWriterSilo_writeGridPatch(gridWriter_t   writer,
 	gridPointUint32_t idxLo;
 
 	assert(tmp != NULL);
-	assert(tmp->type == IO_TYPE_SILO);
+	assert(tmp->type == GRIDIO_TYPE_SILO);
 	assert(tmp->isActive);
 	assert(patch != NULL);
 	assert(patchName != NULL);
@@ -283,7 +283,7 @@ gridWriterSilo_writeGridRegular(gridWriter_t  writer,
 	int              *meshTypes;
 
 	assert(tmp != NULL);
-	assert(tmp->type == IO_TYPE_SILO);
+	assert(tmp->type == GRIDIO_TYPE_SILO);
 	assert(tmp->isActive);
 	assert(grid != NULL);
 
@@ -320,7 +320,7 @@ gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 	int              rank;
 
 	assert(tmp != NULL);
-	assert(tmp->type == IO_TYPE_SILO);
+	assert(tmp->type == GRIDIO_TYPE_SILO);
 
 	MPI_Comm_rank(mpiComm, &rank);
 

@@ -145,7 +145,7 @@ local_newFromIniWrapper(parse_ini_t   ini,
 {
 	gridWriter_t writer;
 
-	if (type == IO_TYPE_SILO) {
+	if (type == GRIDIO_TYPE_SILO) {
 #ifdef WITH_SILO
 		writer = (gridWriter_t)gridWriterSilo_newFromIni(ini,
 		                                                 writerSectionName);
@@ -154,7 +154,7 @@ local_newFromIniWrapper(parse_ini_t   ini,
 		        "To use Silo output, run configure using --with-silo\n");
 		diediedie(EXIT_FAILURE);
 #endif
-	} else if (type == IO_TYPE_GRAFIC) {
+	} else if (type == GRIDIO_TYPE_GRAFIC) {
 		writer = (gridWriter_t)gridWriterGrafic_newFromIni(
 		    ini,
 		    writerSectionName);

@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -13,10 +13,10 @@
 
 /*--- Exported types ----------------------------------------------------*/
 typedef enum {
-	IO_TYPE_BOV,
-	IO_TYPE_SILO,
-	IO_TYPE_GRAFIC,
-	IO_TYPE_UNKNOWN
+	GRIDIO_TYPE_BOV,
+	GRIDIO_TYPE_SILO,
+	GRIDIO_TYPE_GRAFIC,
+	GRIDIO_TYPE_UNKNOWN
 } gridIO_type_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/

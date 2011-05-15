@@ -49,7 +49,7 @@ gridReaderBov_newFromIni(parse_ini_t ini, const char *sectionName)
 	char            *bovFileName;
 
 	reader       = xmalloc(sizeof(struct gridReaderBov_struct));
-	reader->type = IO_TYPE_BOV;
+	reader->type = GRIDIO_TYPE_BOV;
 	reader->func = (gridReader_func_t)&local_func;
 
 	getFromIni(&bovFileName, parse_ini_get_string,
@@ -67,7 +67,7 @@ gridReaderBov_del(gridReader_t *reader)
 
 	assert(reader != NULL && *reader != NULL);
 	tmp = (gridReaderBov_t)*reader;
-	assert(tmp->type == IO_TYPE_BOV);
+	assert(tmp->type == GRIDIO_TYPE_BOV);
 
 	bov_del(&(tmp->bov));
 
@@ -82,7 +82,7 @@ gridReaderBov_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 	dataVar_t       var;
 	int             idxOfVar;
 
-	assert(reader->type == IO_TYPE_BOV);
+	assert(reader->type == GRIDIO_TYPE_BOV);
 	assert(patch != NULL);
 
 	var      = local_getNewVar(((gridReaderBov_t)reader)->bov);
@@ -106,7 +106,7 @@ gridReaderBov_readIntoPatchForVar(gridReader_t reader,
 	uint32_t      dims[3];
 	uint32_t      idxLo[3];
 
-	assert(reader->type == IO_TYPE_BOV);
+	assert(reader->type == GRIDIO_TYPE_BOV);
 	assert(patch != NULL);
 	assert(idxOfVar >= 0 && idxOfVar < gridPatch_getNumVars(patch));
 

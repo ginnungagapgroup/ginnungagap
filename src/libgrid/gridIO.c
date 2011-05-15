@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -34,13 +34,13 @@ gridIO_getTypeFromName(const char *name)
 	assert(name != NULL);
 
 	if (strcmp(name, local_typeBovStr) == 0)
-		rtn = IO_TYPE_BOV;
+		rtn = GRIDIO_TYPE_BOV;
 	else if (strcmp(name, local_typeSiloStr) == 0)
-		rtn = IO_TYPE_SILO;
+		rtn = GRIDIO_TYPE_SILO;
 	else if (strcmp(name, local_typeGraficStr) == 0)
-		rtn = IO_TYPE_GRAFIC;
+		rtn = GRIDIO_TYPE_GRAFIC;
 	else
-		rtn = IO_TYPE_UNKNOWN;
+		rtn = GRIDIO_TYPE_UNKNOWN;
 
 	return rtn;
 }
@@ -50,17 +50,16 @@ gridIO_getNameFromType(gridIO_type_t type)
 {
 	const char *rtn;
 
-	if (type == IO_TYPE_BOV)
+	if (type == GRIDIO_TYPE_BOV)
 		rtn = local_typeBovStr;
-	else if (type == IO_TYPE_SILO)
+	else if (type == GRIDIO_TYPE_SILO)
 		rtn = local_typeSiloStr;
-	else if (type == IO_TYPE_GRAFIC)
+	else if (type == GRIDIO_TYPE_GRAFIC)
 		rtn = local_typeGraficStr;
 	else
 		rtn = local_typeUnknownStr;
 
 	return rtn;
 }
-
 
 /*--- Implementations of local functions --------------------------------*/

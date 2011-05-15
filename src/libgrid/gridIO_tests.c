@@ -40,11 +40,11 @@ gridIO_getTypeFromName_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	if (gridIO_getTypeFromName("bov") != IO_TYPE_BOV)
+	if (gridIO_getTypeFromName("bov") != GRIDIO_TYPE_BOV)
 		hasPassed = false;
-	if (gridIO_getTypeFromName("silo") != IO_TYPE_SILO)
+	if (gridIO_getTypeFromName("silo") != GRIDIO_TYPE_SILO)
 		hasPassed = false;
-	if (gridIO_getTypeFromName("This will fail") != IO_TYPE_UNKNOWN)
+	if (gridIO_getTypeFromName("This will fail") != GRIDIO_TYPE_UNKNOWN)
 		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -69,11 +69,11 @@ gridIO_getNameFromType_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	if (strcmp("bov", gridIO_getNameFromType(IO_TYPE_BOV)) != 0)
+	if (strcmp("bov", gridIO_getNameFromType(GRIDIO_TYPE_BOV)) != 0)
 		hasPassed = false;
-	if (strcmp("silo", gridIO_getNameFromType(IO_TYPE_SILO)) != 0)
+	if (strcmp("silo", gridIO_getNameFromType(GRIDIO_TYPE_SILO)) != 0)
 		hasPassed = false;
-	if (strcmp("unknown", gridIO_getNameFromType(IO_TYPE_UNKNOWN)) != 0)
+	if (strcmp("unknown", gridIO_getNameFromType(GRIDIO_TYPE_UNKNOWN)) != 0)
 		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)

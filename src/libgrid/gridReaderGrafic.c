@@ -48,7 +48,7 @@ gridReaderGrafic_newFromIni(parse_ini_t ini, const char *sectionName)
 	char               *graficFileName;
 
 	reader       = xmalloc(sizeof(struct gridReaderGrafic_struct));
-	reader->type = IO_TYPE_GRAFIC;
+	reader->type = GRIDIO_TYPE_GRAFIC;
 	reader->func = (gridReader_func_t)&local_func;
 
 	getFromIni(&graficFileName, parse_ini_get_string,
@@ -68,7 +68,7 @@ gridReaderGrafic_del(gridReader_t *reader)
 
 	assert(reader != NULL && *reader != NULL);
 	tmp = (gridReaderGrafic_t)*reader;
-	assert(tmp->type == IO_TYPE_GRAFIC);
+	assert(tmp->type == GRIDIO_TYPE_GRAFIC);
 
 	grafic_del(&(tmp->grafic));
 	xfree(*reader);
@@ -82,7 +82,7 @@ gridReaderGrafic_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 	dataVar_t var;
 	int       idxOfVar;
 
-	assert(reader->type == IO_TYPE_GRAFIC);
+	assert(reader->type == GRIDIO_TYPE_GRAFIC);
 	assert(patch != NULL);
 
 	var      = local_getNewVar((gridReaderGrafic_t)reader);
@@ -106,7 +106,7 @@ gridReaderGrafic_readIntoPatchForVar(gridReader_t reader,
 	uint32_t       dims[3];
 	uint32_t       idxLo[3];
 
-	assert(reader->type == IO_TYPE_GRAFIC);
+	assert(reader->type == GRIDIO_TYPE_GRAFIC);
 	assert(patch != NULL);
 	assert(idxOfVar >= 0 && idxOfVar < gridPatch_getNumVars(patch));
 

@@ -76,7 +76,7 @@ gridWriterGrafic_new(const char *prefix, bool isWhiteNoise)
 	assert(prefix != NULL);
 
 	writer              = xmalloc(sizeof(struct gridWriterGrafic_struct));
-	writer->type        = IO_TYPE_GRAFIC;
+	writer->type        = GRIDIO_TYPE_GRAFIC;
 	writer->func        = (gridWriter_func_t)&local_func;
 	writer->grafic      = grafic_new(isWhiteNoise);
 	writer->isActive    = false;
@@ -147,7 +147,7 @@ gridWriterGrafic_del(gridWriter_t *writer)
 
 	assert(writer != NULL && *writer != NULL);
 	tmp = (gridWriterGrafic_t)*writer;
-	assert(tmp->type == IO_TYPE_GRAFIC);
+	assert(tmp->type == GRIDIO_TYPE_GRAFIC);
 
 	if (tmp->isActive)
 		gridWriterGrafic_deactivate(*writer);
@@ -174,7 +174,7 @@ gridWriterGrafic_activate(gridWriter_t writer)
 	gridWriterGrafic_t tmp = (gridWriterGrafic_t)writer;
 
 	assert(tmp != NULL);
-	assert(tmp->type == IO_TYPE_GRAFIC);
+	assert(tmp->type == GRIDIO_TYPE_GRAFIC);
 #ifdef WITH_MPI
 	assert(tmp->groupi != NULL);
 #endif
@@ -196,7 +196,7 @@ gridWriterGrafic_deactivate(gridWriter_t writer)
 	gridWriterGrafic_t tmp = (gridWriterGrafic_t)writer;
 
 	assert(tmp != NULL);
-	assert(tmp->type == IO_TYPE_GRAFIC);
+	assert(tmp->type == GRIDIO_TYPE_GRAFIC);
 #ifdef WITH_MPI
 	assert(tmp->groupi != NULL);
 #endif
@@ -227,7 +227,7 @@ gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
 	graficFormat_t     format;
 
 	assert(tmp != NULL);
-	assert(tmp->type == IO_TYPE_GRAFIC);
+	assert(tmp->type == GRIDIO_TYPE_GRAFIC);
 	assert(tmp->isActive);
 	assert(tmp->grafic != NULL);
 	assert(patch != NULL);
@@ -254,7 +254,7 @@ gridWriterGrafic_writeGridRegular(gridWriter_t  writer,
 	gridPatch_t patch;
 
 	assert(writer != NULL);
-	assert(((gridWriterGrafic_t)writer)->type == IO_TYPE_GRAFIC);
+	assert(((gridWriterGrafic_t)writer)->type == GRIDIO_TYPE_GRAFIC);
 	assert(((gridWriterGrafic_t)writer)->isActive);
 	assert(grid != NULL);
 
@@ -270,7 +270,7 @@ gridWriterGrafic_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 	gridWriterGrafic_t tmp = (gridWriterGrafic_t)writer;
 
 	assert(tmp != NULL);
-	assert(tmp->type == IO_TYPE_GRAFIC);
+	assert(tmp->type == GRIDIO_TYPE_GRAFIC);
 
 	tmp->groupi = groupi_new(1, mpiComm, LOCAL_MPI_TAG,
 	                         GROUPI_MODE_BLOCK);
