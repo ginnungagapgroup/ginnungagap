@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -8,15 +8,18 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#include "gridReader_adt.h"
+#ifdef WITH_SILO
+#  include "gridReader_adt.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct gridReaderSilo_struct {
 	GRIDREADER_T_CONTENT
-	char *prefix;
-	int dbType;
+	char          *varName;
+	dataVarType_t varType;
+	int           varNumComponents;
 };
 
 
+#endif /* WITH_SILO */
 #endif
