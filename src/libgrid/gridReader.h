@@ -87,6 +87,9 @@ gridReader_del(gridReader_t *reader);
 /**
  * @brief  Reads from the file and fills a provided patch.
  *
+ * This will create a new variable, attach it to the patch and fill it
+ * with the data from the file.
+ *
  * @param[in,out]  reader
  *                    The reader that should be used.
  * @param[in,out]  patch
@@ -102,8 +105,8 @@ gridReader_readIntoPatch(gridReader_t reader, gridPatch_t patch);
  * @brief  Reads from the file and fills only a specific variable of the
  *         patch.
  *
- * This works like gridReader_readIntoPatch() but only one variable
- * (a patch can hold multiple variables) is read from the file.
+ * This works like gridReader_readIntoPatch() but an already existing
+ * variable is filled.
  *
  * @param[in,out]  reader
  *                    The reader that should be used.
