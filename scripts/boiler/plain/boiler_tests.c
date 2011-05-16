@@ -23,7 +23,7 @@
 /*--- Prototypes of local functions -------------------------------------*/
 
 
-/*--- Implementations of exported functios ------------------------------*/
+/*--- Implementations of exported functions -----------------------------*/
 extern bool
 boiler_EXAMPLE_test(void)
 {

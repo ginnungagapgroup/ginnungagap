@@ -17,7 +17,7 @@
 #endif
 
 
-/*--- Implemention of main structure ------------------------------------*/
+/*--- Implementation of main structure ----------------------------------*/
 #include "boiler_adt.h"
 
 
@@ -27,7 +27,7 @@
 /*--- Prototypes of local functions -------------------------------------*/
 
 
-/*--- Implementations of exported functios ------------------------------*/
+/*--- Implementations of exported functions -----------------------------*/
 extern bool
 boiler_new_test(void)
 {

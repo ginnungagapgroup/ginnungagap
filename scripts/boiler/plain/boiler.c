@@ -16,7 +16,7 @@
 /*--- Prototypes of local functions -------------------------------------*/
 
 
-/*--- Implementations of exported functios ------------------------------*/
+/*--- Implementations of exported functions -----------------------------*/
 
 
 /*--- Implementations of local functions --------------------------------*/
