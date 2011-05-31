@@ -2,31 +2,32 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-/*
- * IMPORTANT
- * IMPORTANT  This files contains no useful code.  It only contains part
- * IMPORTANT  of the package documentation in doxygen format.  The file
- * IMPORTANT  only has the .h extension to ensure that doxygen uses the
- * IMPORTANT  correct language parser for this file and to enable
- * IMPORTANT  automatic syntax highlighting.
- * IMPORTANT
+/**
+ * @file doc/doc.h
+ * @brief  Contains the package documentation in doxygen format.
+ *
+ *
+ * This files contains no useful code.  It only contains part of the
+ * package documentation in doxygen format.  The file only has the .h
+ * extension to ensure that doxygen uses the correct language parser for
+ * this file and to enable automatic syntax highlighting.
  */
 
 /**
- * \mainpage Reference documentation for ginnungagap
+ * @mainpage Reference documentation for ginnungagap
  *
- * \author  Steffen Knollmann\n Grupo de Astrofísica\n Departamento de
+ * @author  Steffen Knollmann\n Grupo de Astrofísica\n Departamento de
  * Física Teórica C-15\n Universidad Autónoma de Madrid\n Cantoblanco
  * 28049, Madrid\n steffen.knollmann@uam.es
  *
- * \n
+ * @n
  *
- * \section intro Introduction
+ * @section intro Introduction
  *
  * Ginnungagap is a code for generating cosmological initial conditions.
  * It is aimed at high scalability and ease of use.
  *
- * \section requirements  Requirements
+ * @section requirements  Requirements
  *
  * To successfully compile ginnungagap, the following prerequisites must
  * be met:
@@ -78,7 +79,7 @@
  * - <b>MPItrace</b> - Tracing utilities can be used to generate trace
  *   files of ginnungagap runs
  *
- * \section history History
+ * @section history History
  *
  * Here is a chronological overview of the different versions of
  * ginnungagap:
