@@ -22,26 +22,28 @@ all:
 doc:
 	@../scripts/make_doxyfile.sh
 	@mkdir -p ref/
-	# This is a bit stupid, but doxygen needs to be executed from the
-	# main directory so that $PWD during its execution is set in such a
-	# way that the identical leading part of all investigated files is
-	# set correctly; i.e. it should strip everything up to the main
-	# directory and only lists the files as, e.g., src/libcosmos/bla.h
-	# instead of /full/path/to/ginnungagap/src/libcosmo/bla.h.
-	# For more details see documentation of FULL_PATH_NAMES and
-	# STRIP_FROM_PATH of doxygen.
-	@cd .. ; $(DOXYGEN) doc/Doxyfile ; cd doc
+#	This is a bit stupid, but doxygen needs to be executed from the
+#	main directory so that $PWD during its execution is set in such a
+#	way that the identical leading part of all investigated files is
+#	set correctly; i.e. it should strip everything up to the main
+#	directory and only lists the files as, e.g., src/libcosmos/bla.h
+#	instead of /full/path/to/ginnungagap/src/libcosmo/bla.h.
+#	For more details see documentation of FULL_PATH_NAMES and
+#	STRIP_FROM_PATH of doxygen.
+	@echo "Running doxygen."
+	@echo "  logfile is at doc/doxygen.log"
+	@echo "  warnings are at doc/doxygen.warning"
 	@echo ""
-	@echo "List of warnings:"
-	@cat doxygen.warning
+	@echo -n "  This will now take a while, go fetch a coffee...  "
+	@cd .. ; $(DOXYGEN) doc/Doxyfile > doc/doxygen.log ; cd doc
+	@echo "done!"
 	@echo ""
-	@echo ""
-	@echo "Total number of warnings"
+	@echo -n "  Total number of warnings:  "
 	@cat doxygen.warning | wc -l
 	@echo ""
 
 clean:
-	rm -f Doxyfile doxygen.warning
+	rm -f Doxyfile doxygen.warning doxygen.log
 	rm -rf ref/
 
 dist-clean:
