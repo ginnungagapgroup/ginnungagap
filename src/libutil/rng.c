@@ -149,7 +149,7 @@ rng_getGauss(const rng_t  rng,
 		x  = -1.0 + 2.0 * sprng(rng->streams[streamNumber]);
 		y  = -1.0 + 2.0 * sprng(rng->streams[streamNumber]);
 		r2 = x * x + y * y;
-	} while ((r2 > 1.0) || (r2 < DBL_EPSILON));
+	} while ((r2 > 1.0) || (r2 == 0.0));
 #else
 	diediedie(EXIT_FAILURE);
 #endif
