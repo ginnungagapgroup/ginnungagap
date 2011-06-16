@@ -95,6 +95,8 @@ bov_newFromFile(const char *fileName);
  *                    deletion the external variable is set to point to
  *                    NULL, removing access to the now invalid memory
  *                    region.
+ *
+ * @return  Returns nothing.
  */
 extern void
 bov_del(bov_t *bov);
