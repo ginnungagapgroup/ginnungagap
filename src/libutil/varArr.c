@@ -138,4 +138,12 @@ varArr_replace(varArr_t arr, int numElement, void *newElement)
 	return replacedElement;
 }
 
+extern void
+varArr_truncate(varArr_t arr)
+{
+	assert(arr != NULL);
+
+	arr->numUsed = 0;
+}
+
 /*--- Implementations of local functions --------------------------------*/

@@ -49,6 +49,7 @@ typedef struct varArr_struct *varArr_t;
 extern varArr_t
 varArr_new(int numElements);
 
+
 /**
  * @brief  Deletes a variable length array and free all associated
  *         memory.
@@ -90,6 +91,7 @@ varArr_del(varArr_t *arr);
 extern int
 varArr_getLength(const varArr_t arr);
 
+
 /**
  * @brief Gets the handle of a specific element.
  *
@@ -128,6 +130,7 @@ varArr_getElementHandle(const varArr_t arr, int numElement);
 extern int
 varArr_insert(varArr_t arr, void *element);
 
+
 /**
  * @brief  Removes an element from the array.
  *
@@ -144,6 +147,7 @@ varArr_insert(varArr_t arr, void *element);
 extern void *
 varArr_remove(varArr_t arr, int numElement);
 
+
 /**
  * @brief  Replaces an element in the array.
  *
@@ -158,6 +162,20 @@ varArr_remove(varArr_t arr, int numElement);
  */
 extern void *
 varArr_replace(varArr_t arr, int numElement, void *newElement);
+
+
+/**
+ * @brief  This will truncate the array to zero size.
+ *
+ * All elements are simply discarded, be careful when using this
+ * function, you might easily loose access to memory regions if you do
+ * not retrieve the objects that are stored in the array first.
+ *
+ * @param[in,out]  arr
+ *                    The array that should be truncated.
+ */
+extern void
+varArr_truncate(varArr_t arr);
 
 
 /** @} */
