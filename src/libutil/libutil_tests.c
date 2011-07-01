@@ -21,7 +21,7 @@
 #  include <mpi.h>
 #endif
 #ifdef XMEM_TRACK_MEM
-#  include "../libutil/xmem.h"
+#  include "xmem.h"
 #endif
 
 /*--- Local defines -----------------------------------------------------*/
@@ -50,12 +50,14 @@
 
 /*--- Prototypes of loceal functions ------------------------------------*/
 static bool
-local_runtest(bool (*f)(void));
+local_runtest(bool       (*f
+                       )(void));
 
 
 #ifdef WITH_MPI
 static bool
-local_runtestMPI(bool (*f)(void));
+local_runtestMPI(bool       (*f
+                          )(void));
 
 #endif
 
@@ -95,8 +97,12 @@ main(int argc, char **argv)
 
 	if (rank == 0) {
 		printf("\nRunning tests for endian:\n");
+		RUNTEST(&endian_getFileEndianessByBlock_test, hasFailed);
+		RUNTEST(&endian_getFileEndianessByBlockF_test, hasFailed);
 		RUNTEST(&endian_fileIsLittleByBlock_test, hasFailed);
 		RUNTEST(&endian_fileIsBigByBlock_test, hasFailed);
+		RUNTEST(&endian_fileIsLittleByBlockF_test, hasFailed);
+		RUNTEST(&endian_fileIsBigByBlockF_test, hasFailed);
 	}
 
 	if (rank == 0) {
@@ -214,7 +220,8 @@ main(int argc, char **argv)
 
 /*--- Implementations of local functions --------------------------------*/
 static bool
-local_runtest(bool (*f)(void))
+local_runtest(bool       (*f
+                       )(void))
 {
 	bool hasPassed = f();
 	int  rank      = 0;
@@ -232,7 +239,8 @@ local_runtest(bool (*f)(void))
 
 #ifdef WITH_MPI
 static bool
-local_runtestMPI(bool (*f)(void))
+local_runtestMPI(bool       (*f
+                          )(void))
 {
 	bool hasPassed   = f();
 	int  rank        = 0;
