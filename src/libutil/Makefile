@@ -1,6 +1,6 @@
-# Copyright (C) 2010, 2011 Steffen Knollmann
+# Copyright (C) 2011 Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
-# This file is part of `ginnungagap'.
+# This file is part of `voelva'.
 
 LIBNAME = util
 
@@ -23,7 +23,11 @@ sources = xmem.c \
           gadget.c \
           gadgetHeader.c \
           gadgetUtil.c \
-          varArr.c
+          art.c \
+          artHeader.c \
+          stai.c \
+          varArr.c \
+          myTest.c
 
 ifeq ($(WITH_MPI), "true")
 sources += commScheme.c \
@@ -37,6 +41,7 @@ sourcesTests = lib${LIBNAME}_tests.c \
                endian_tests.c \
                bov_tests.c \
                grafic_tests.c \
+               stai_tests.c \
                varArr_tests.c
 
 ifeq ($(WITH_MPI), "true")
@@ -60,7 +65,7 @@ dist-clean:
 	rm -f $(sources:.c=.d) $(sourcesTests:.c=.d)
 
 # The MPI tests must be run with 16 processes, otherwise the tests will
-# prodouce bogus results
+# produce bogus results
 tests:
 	$(MAKE) lib${LIBNAME}_tests
 ifeq ($(WITH_MPI), "true")

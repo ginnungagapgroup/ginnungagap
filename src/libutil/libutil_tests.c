@@ -6,6 +6,7 @@
 #include "util_config.h"
 #include "refCounter_tests.h"
 #include "xstring_tests.h"
+#include "stai_tests.h"
 #include "varArr_tests.h"
 #include "endian_tests.h"
 #include "bov_tests.h"
@@ -103,6 +104,18 @@ main(int argc, char **argv)
 		RUNTEST(&endian_fileIsBigByBlock_test, hasFailed);
 		RUNTEST(&endian_fileIsLittleByBlockF_test, hasFailed);
 		RUNTEST(&endian_fileIsBigByBlockF_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for stai:\n");
+		RUNTEST(&stai_new_test, hasFailed);
+		RUNTEST(&stai_cloneWithDifferentBase_test, hasFailed);
+		RUNTEST(&stai_del_test, hasFailed);
+		RUNTEST(&stai_setElement_test, hasFailed);
+		RUNTEST(&stai_setElementsMulti_test, hasFailed);
+		RUNTEST(&stai_getElement_test, hasFailed);
+		RUNTEST(&stai_getElementsMulti_test, hasFailed);
+		RUNTEST(&stai_isLinear_test, hasFailed);
 	}
 
 	if (rank == 0) {

@@ -34,15 +34,15 @@ struct cmdline_struct {
 	 * The number of arguments and the allocated length of the argument
 	 * lists.
 	 */
-	int  numArgs;
+	int            numArgs;
 	/** The descriptions of the arguments. */
-	char **argDescription;
+	char           **argDescription;
 	/** The data types of the arguments. */
-	int  *argType;
+	cmdline_type_t *argType;
 	/** The values of the arguments. */
-	void **argValue;
+	void           **argValue;
 	/** A flag indicating whether this argument has been parsed. */
-	bool *argParsed;
+	bool           *argParsed;
 
 	/**
 	 * This gives the number of arguments actually used in the ADT,
@@ -54,13 +54,13 @@ struct cmdline_struct {
 	 * The number of options and the allocated length of the option
 	 * lists.
 	 */
-	int  numOpts;
+	int            numOpts;
 	/** The name of the option. */
-	char **optName;
+	char           **optName;
 	/** The description of this option. */
-	char **optDescription;
+	char           **optDescription;
 	/** The data types of the arguments. */
-	int  *optType;
+	cmdline_type_t *optType;
 
 	/**
 	 * A flag indicating whether this option requires a value or
@@ -191,11 +191,11 @@ cmdline_del(cmdline_t *cmdline)
 } /* cmdline_del */
 
 extern int
-cmdline_addOpt(cmdline_t  cmdline,
-               const char *optName,
-               const char *optDescription,
-               bool       optValueRequired,
-               int        optType)
+cmdline_addOpt(cmdline_t      cmdline,
+               const char     *optName,
+               const char     *optDescription,
+               bool           optValueRequired,
+               cmdline_type_t optType)
 {
 	int optNum = -1;
 
@@ -212,6 +212,7 @@ cmdline_addOpt(cmdline_t  cmdline,
 	switch (optType) {
 	case CMDLINE_TYPE_NONE:
 	case CMDLINE_TYPE_INT:
+	case CMDLINE_TYPE_LONG:
 	case CMDLINE_TYPE_DOUBLE:
 	case CMDLINE_TYPE_STRING:
 		break;
@@ -246,6 +247,10 @@ cmdline_addOpt(cmdline_t  cmdline,
 		cmdline->optValue[optNum]             = xmalloc(sizeof(int));
 		*((int *)(cmdline->optValue[optNum])) = -666;
 		break;
+	case CMDLINE_TYPE_LONG:
+		cmdline->optValue[optNum]             = xmalloc(sizeof(long));
+		*((int *)(cmdline->optValue[optNum])) = -666;
+		break;
 	case CMDLINE_TYPE_DOUBLE:
 		cmdline->optValue[optNum]                = xmalloc(sizeof(double));
 		*((double *)(cmdline->optValue[optNum])) = -1e20;
@@ -265,9 +270,9 @@ cmdline_addOpt(cmdline_t  cmdline,
 } /* cmdline_addOpt */
 
 extern int
-cmdline_addArg(cmdline_t  cmdline,
-               const char *argDescription,
-               int        argType)
+cmdline_addArg(cmdline_t      cmdline,
+               const char     *argDescription,
+               cmdline_type_t argType)
 {
 	int argNum = -1;
 
@@ -282,6 +287,7 @@ cmdline_addArg(cmdline_t  cmdline,
 	}
 	switch (argType) {
 	case CMDLINE_TYPE_INT:
+	case CMDLINE_TYPE_LONG:
 	case CMDLINE_TYPE_DOUBLE:
 	case CMDLINE_TYPE_STRING:
 		break;
@@ -314,6 +320,10 @@ cmdline_addArg(cmdline_t  cmdline,
 	case CMDLINE_TYPE_INT:
 		cmdline->argValue[argNum]             = xmalloc(sizeof(int));
 		*((int *)(cmdline->argValue[argNum])) = -666;
+		break;
+	case CMDLINE_TYPE_LONG:
+		cmdline->argValue[argNum]              = xmalloc(sizeof(long));
+		*((long *)(cmdline->argValue[argNum])) = -666L;
 		break;
 	case CMDLINE_TYPE_DOUBLE:
 		cmdline->argValue[argNum]                = xmalloc(sizeof(double));
@@ -370,12 +380,17 @@ cmdline_printHelp(cmdline_t cmdline,
 			case CMDLINE_TYPE_INT:
 				fprintf(fout, "  (integer)\n");
 				break;
+			case CMDLINE_TYPE_LONG:
+				fprintf(fout, "  (long integer)\n");
+				break;
 			case CMDLINE_TYPE_DOUBLE:
 				fprintf(fout, "  (double)\n");
 				break;
 			case CMDLINE_TYPE_STRING:
 				fprintf(fout, "  (string)\n");
 				break;
+			default:
+				;
 			}
 			fprintf(fout, "    %s\n", cmdline->argDescription[i]);
 		}
@@ -396,12 +411,17 @@ cmdline_printHelp(cmdline_t cmdline,
 				case CMDLINE_TYPE_INT:
 					fprintf(fout, "<value (integer)>");
 					break;
+				case CMDLINE_TYPE_LONG:
+					fprintf(fout, "<value (long integer)>");
+					break;
 				case CMDLINE_TYPE_DOUBLE:
 					fprintf(fout, "<value (double)>");
 					break;
 				case CMDLINE_TYPE_STRING:
 					fprintf(fout, "<value (string)>");
 					break;
+				default:
+					;
 				}
 				if (!cmdline->optValueRequired[i])
 					fprintf(fout, "]");
@@ -461,12 +481,17 @@ cmdline_parse(cmdline_t cmdline,
 				case CMDLINE_TYPE_INT:
 					*(int *)(cmdline->optValue[j]) = atoi(argv[i]);
 					break;
+				case CMDLINE_TYPE_LONG:
+					*(long *)(cmdline->optValue[j]) = atol(argv[i]);
+					break;
 				case CMDLINE_TYPE_DOUBLE:
 					*(double *)(cmdline->optValue[j]) = atof(argv[i]);
 					break;
 				case CMDLINE_TYPE_STRING:
 					*(char **)(cmdline->optValue[j]) = xstrdup(argv[i]);
 					break;
+				default:
+					;
 				}
 				i++;
 			}
@@ -484,12 +509,17 @@ cmdline_parse(cmdline_t cmdline,
 			case CMDLINE_TYPE_INT:
 				*(int *)(cmdline->argValue[j]) = atoi(argv[i]);
 				break;
+			case CMDLINE_TYPE_LONG:
+				*(long *)(cmdline->argValue[j]) = atol(argv[i]);
+				break;
 			case CMDLINE_TYPE_DOUBLE:
 				*(double *)(cmdline->argValue[j]) = atof(argv[i]);
 				break;
 			case CMDLINE_TYPE_STRING:
 				*(char **)(cmdline->argValue[j]) = xstrdup(argv[i]);
 				break;
+			default:
+				;
 			}
 			cmdline->argParsed[j] = true;
 			i++;
@@ -541,12 +571,17 @@ cmdline_getOptValueByNum(cmdline_t cmdline, int optNum, void *val)
 	case CMDLINE_TYPE_INT:
 		*(int *)val = *(int *)(cmdline->optValue[optNum]);
 		break;
+	case CMDLINE_TYPE_LONG:
+		*(long *)val = *(long *)(cmdline->optValue[optNum]);
+		break;
 	case CMDLINE_TYPE_DOUBLE:
 		*(double *)val = *(double *)(cmdline->optValue[optNum]);
 		break;
 	case CMDLINE_TYPE_STRING:
 		*(char **)val = xstrdup(*(char **)(cmdline->optValue[optNum]));
 		break;
+	default:
+		;
 	}
 
 	return true;
@@ -576,12 +611,17 @@ cmdline_getArgValueByNum(cmdline_t cmdline, int argNum, void *val)
 	case CMDLINE_TYPE_INT:
 		*(int *)val = *(int *)(cmdline->argValue[argNum]);
 		break;
+	case CMDLINE_TYPE_LONG:
+		*(long *)val = *(long *)(cmdline->argValue[argNum]);
+		break;
 	case CMDLINE_TYPE_DOUBLE:
 		*(double *)val = *(double *)(cmdline->argValue[argNum]);
 		break;
 	case CMDLINE_TYPE_STRING:
 		*(char **)val = xstrdup(*(char **)(cmdline->argValue[argNum]));
 		break;
+	default:
+		;
 	}
 
 	return true;

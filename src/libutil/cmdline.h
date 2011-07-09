@@ -22,11 +22,15 @@
 #include <stdio.h>
 
 
-/*--- Exported defines --------------------------------------------------*/
-#define CMDLINE_TYPE_NONE   0
-#define CMDLINE_TYPE_INT    1
-#define CMDLINE_TYPE_DOUBLE 2
-#define CMDLINE_TYPE_STRING 3
+/*--- Typedefs ----------------------------------------------------------*/
+
+typedef enum {
+	CMDLINE_TYPE_NONE,
+	CMDLINE_TYPE_INT,
+	CMDLINE_TYPE_LONG,
+	CMDLINE_TYPE_DOUBLE,
+	CMDLINE_TYPE_STRING
+} cmdline_type_t;
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -83,11 +87,11 @@ cmdline_del(cmdline_t *cmdline);
  *          errors.
  */
 extern int
-cmdline_addOpt(cmdline_t  cmdline,
-               const char *optName,
-               const char *optDescription,
-               bool       optValueRequired,
-               int        optType);
+cmdline_addOpt(cmdline_t      cmdline,
+               const char     *optName,
+               const char     *optDescription,
+               bool           optValueRequired,
+               cmdline_type_t optType);
 
 
 /**
@@ -101,9 +105,9 @@ cmdline_addOpt(cmdline_t  cmdline,
  *          errors.
  */
 extern int
-cmdline_addArg(cmdline_t  cmdline,
-               const char *argDescription,
-               int        argType);
+cmdline_addArg(cmdline_t      cmdline,
+               const char     *argDescription,
+               cmdline_type_t argType);
 
 
 /**

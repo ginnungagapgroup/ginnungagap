@@ -3,7 +3,7 @@
 // This file is part of `ginnungagap'.
 
 #ifndef ENDIAN_H
-#  define ENDIAN_H
+#define ENDIAN_H
 
 
 /*--- Doxygen file description ------------------------------------------*/
@@ -16,9 +16,9 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#  include "util_config.h"
-#  include <stdbool.h>
-#  include <stdio.h>
+#include "util_config.h"
+#include <stdbool.h>
+#include <stdio.h>
 
 
 /*--- Typedefs ----------------------------------------------------------*/
@@ -231,7 +231,5 @@ endian_fileIsBigByBlockF(FILE *f);
  * @brief Provides functionality to deal with endian issues.
  */
 
-
-#endif
 
 #endif

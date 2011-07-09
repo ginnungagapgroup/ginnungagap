@@ -150,6 +150,7 @@ endian_getFileEndianessByBlockF(FILE *f)
 {
 	int      b1, b2, b1Swapped;
 	endian_t fileEndianess;
+	long     pos = ftell(f);
 
 	assert(f != NULL);
 
@@ -157,6 +158,8 @@ endian_getFileEndianessByBlockF(FILE *f)
 	b1Swapped     = b1;
 	byteswap(&b1Swapped, sizeof(int));
 	b2            = local_findBlockEnd(b1, b1Swapped, f);
+
+	xfseek(f, pos, SEEK_SET);
 
 	fileEndianess = local_decideOnFileEndian(b1, b1Swapped, b2);
 
