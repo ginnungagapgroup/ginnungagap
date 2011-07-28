@@ -29,9 +29,29 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  Starts the receiving.
+ *
+ * @param[in,out]  scheme
+ *                    The communication scheme for which to start the
+ *                    receiving process.
+ *
+ * @return  Returns nothing.
+ */
 inline static void
 local_startReceiving(commScheme_t scheme);
 
+
+/**
+ * @brief  Starts the sending.
+ *
+ * @param[in,out]  scheme
+ *                    The communication scheme for which to start the
+ *                    sending process.
+ *
+ * @return  Returns nothing.
+ */
 inline static void
 local_startSending(commScheme_t scheme);
 

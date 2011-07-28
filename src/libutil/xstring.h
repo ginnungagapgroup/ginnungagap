@@ -66,10 +66,29 @@ xgetline(char **line, size_t *n, FILE *f);
 extern char *
 xstrmerge(const char *s1, const char *s2);
 
-
+/**
+ * @brief  Returns a new string holding the directory part of the input
+ *         argument.
+ *
+ * This approximately clones the POSIX dirname().
+ *
+ * @param[in]  *path
+ *                The string that should be parsed.
+ *
+ * @return  Returns a new string holding the directory part of the input
+ *          string.
+ */
 extern char *
 xdirname(const char *path);
 
+/**
+ * @brief  Approximately clones the behaviour of the GNU basename().
+ *
+ * @param[in]  *path
+ *                The string that should be parsed.
+ *
+ * @return  Returns a new string holding the basename the path.
+ */
 extern char *
 xbasename(const char *path);
 

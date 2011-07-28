@@ -33,7 +33,7 @@
 #include "artHeader_adt.h"
 
 
-/*--- Local dedines -----------------------------------------------------*/
+/*--- Local defines -----------------------------------------------------*/
 
 /**
  * @brief  Gives the critical density in (M_sun/h)/(Mpc/h)^3
@@ -660,7 +660,7 @@ artHeader_getFactorFileVelocityToKms(const artHeader_t header)
 {
 	assert(header != NULL);
 
-	return header->factorFilePositionToMpch;
+	return header->factorFileVelocityToKms;
 }
 
 extern endian_t
@@ -771,6 +771,10 @@ artHeader_prettyPrint(const artHeader_t header,
 	        header->factorFilePositionToMpch);
 	fprintf(f, "%s  velocity to km/s  :  %g\n", actualPrefix,
 	        header->factorFileVelocityToKms);
+
+	fprintf(f, "%s\n%sExtra Informations\n", actualPrefix, actualPrefix);
+	fprintf(f, "%s  file endianess  :  %s\n", actualPrefix,
+	        endian_toString(header->fileEndianess));
 } /* artHeader_prettyPrint */
 
 /*--- Implementation of local functions ---------------------------------*/

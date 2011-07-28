@@ -24,11 +24,18 @@
 
 
 /*--- Implemention of local structures ----------------------------------*/
-typedef struct local_section_struct local_section_struct_t;
-typedef local_section_struct_t      *local_section_t;
-typedef struct local_key_struct     local_key_struct_t;
-typedef local_key_struct_t          *local_key_t;
 
+/** @brief  Short name for the section structure. */
+typedef struct local_section_struct local_section_struct_t;
+
+/** @brief  Handle to the section structure. */
+typedef local_section_struct_t      *local_section_t;
+
+/** @brief  Short name for the key structure. */
+typedef struct local_key_struct     local_key_struct_t;
+
+/** @brief  Handle to a key structure. */
+typedef local_key_struct_t          *local_key_t;
 
 /**
  * \brief  Helper structure for the sections.

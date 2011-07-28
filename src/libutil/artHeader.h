@@ -1007,7 +1007,7 @@ artHeader_write(artHeader_t header, const char *headerFileName);
  *                    A string that should be each line should be
  *                    prefixed with.  The may be @c NULL, which is
  *                    treated as an empty string.
- * @parm[in,out]  *f
+ * @param[in,out]  *f
  *                    The file to print to.  This must be a proper
  *                    stream opened for writing.  Passing @c NULL is
  *                    undefined.

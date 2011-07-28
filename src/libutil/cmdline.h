@@ -24,16 +24,24 @@
 
 /*--- Typedefs ----------------------------------------------------------*/
 
+/** @brief  The different type of the command line arguments. */
 typedef enum {
+	/** @brief  No type. */
 	CMDLINE_TYPE_NONE,
+	/** @brief  Integer type. */
 	CMDLINE_TYPE_INT,
+	/** @brief  Long integer type. */
 	CMDLINE_TYPE_LONG,
+	/** @brief  Double type. */
 	CMDLINE_TYPE_DOUBLE,
+	/** @brief  String type. */
 	CMDLINE_TYPE_STRING
 } cmdline_type_t;
 
 
 /*--- ADT handle --------------------------------------------------------*/
+
+/** @brief  The handle of the command line structure. */
 typedef struct cmdline_struct *cmdline_t;
 
 

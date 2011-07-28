@@ -126,6 +126,37 @@ art_new(const char *pathToFiles, const char *fileNameSuffix, int numFiles);
 extern void
 art_del(art_t *art);
 
+/** @} */
+
+/**
+ * @name Setter
+ *
+ * @{
+ */
+
+/**
+ * @brief  Sets whether nrowc should be limited in calculating the page
+ *         size.
+ *
+ * This will trigger a re-calculation of the page size and number of
+ * particle and all these things if a header is already available.  If
+ * no header is available, the numbers are not touched, but the
+ * truncation mode is taken into account once the numbers are calculated
+ * (by adding a header).
+ *
+ * @param[in,out]  art
+ *                    The ART object to set the truncation for.  Passing
+ *                    @c NULL is undefined.
+ * @param[in]      value
+ *                    If this is @c true, then @c nrowc will be limited
+ *                    to #ART_MAX_NROWC in the calculation of the page
+ *                    size, otherwise the @c nrowc value from the file
+ *                    is used.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+art_setTruncateNrowc(art_t art, bool value);
 
 /** @} */
 
@@ -147,6 +178,19 @@ art_del(art_t *art);
 extern int
 art_getNumFiles(const art_t art);
 
+/**
+ * @brief  Retrieves the trunctation mode of @c nrwoc.
+ *
+ * @param[in]  art
+ *                The ART file object to query.  Passing @c NULL is
+ *                undefined.
+ *
+ * @return  Returns @c true if @c nrowc should be truncated in the
+ *          calculation of the page size and @c false, if the value from
+ *          the header should be used as-is.
+ */
+extern bool
+art_getTruncateNrowc(const art_t art);
 
 /**
  * @brief  Gets the name of the header file associated with this file.

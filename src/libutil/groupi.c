@@ -28,19 +28,54 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+
+/** @brief  Indicates no process. */
 #define LOCAL_NOPROCESS -1
 
 
 /*--- Prototypes of local functions -------------------------------------*/
-static void
-local_calcGroupDistribCommon(groupi_t groupi,
-                             int      *rank,
-                             int      *size,
-                             int      *numLargeGroups);
 
+/**
+ * @brief  Calculates the common number for the distribution.
+ *
+ * @param[in]   groupi
+ *                 The group interface to work on.
+ * @param[out]  *rank
+ *                 The rank of this process.
+ * @param[out]  *size
+ *                 The size of the communicator.
+ * @param[out]  *numLargeGroups
+ *                 The number of groups that have to have an extra task.
+ *
+ * @return  Returns nothing.
+ */
+static void
+local_calcGroupDistribCommon(const groupi_t groupi,
+                             int            *rank,
+                             int            *size,
+                             int            *numLargeGroups);
+
+
+/**
+ * @brief  Calculates the distribution of the tasks in a block mode.
+ *
+ * @param[in,out]  groupi
+ *                    The group interface to work with.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_calcGroupiDistribBlock(groupi_t groupi);
 
+
+/**
+ * @brief  Calculates the distribution of the tasks in a round-robin mode.
+ *
+ * @param[in,out]  groupi
+ *                    The group interface to work with.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_calcGroupiDistribRoundRobin(groupi_t groupi);
 
@@ -250,10 +285,10 @@ groupi_release(groupi_t groupi)
 
 /*--- Implementations of local functions --------------------------------*/
 static void
-local_calcGroupDistribCommon(groupi_t groupi,
-                             int      *rank,
-                             int      *size,
-                             int      *numLargeGroups)
+local_calcGroupDistribCommon(const groupi_t groupi,
+                             int            *rank,
+                             int            *size,
+                             int            *numLargeGroups)
 {
 	MPI_Comm_size(groupi->mpiComm, size);
 	MPI_Comm_rank(groupi->mpiComm, rank);

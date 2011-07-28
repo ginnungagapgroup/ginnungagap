@@ -427,6 +427,7 @@ art_new(const char *pathToFiles, const char *fileNameSuffix, int numFiles)
 	                                                fileNameSuffix,
 	                                                numFiles);
 	art->numFiles               = numFiles;
+	art->truncateNrowc          = true;
 	art->f                      = NULL;
 	art->mode                   = ART_MODE_READ;
 	art->lastOpened             = -1;
@@ -466,12 +467,30 @@ art_del(art_t *art)
 	art = NULL;
 }
 
+extern void
+art_setTruncateNrowc(art_t art, bool value)
+{
+	assert(art != NULL);
+
+	art->truncateNrowc = value;
+	if (art->header != NULL)
+		local_updateNumbers(art);
+}
+
 extern int
 art_getNumFiles(const art_t art)
 {
 	assert(art != NULL);
 
 	return art->numFiles;
+}
+
+extern bool
+art_getTruncateNrowc(const art_t art)
+{
+	assert(art != NULL);
+
+	return art->truncateNrowc;
 }
 
 extern const char *
@@ -924,7 +943,7 @@ local_updateNumbers(art_t art)
 	uint64_t numParticles = artHeader_getNumParticlesTotal(art->header);
 	int      nrowc        = artHeader_getNrowc(art->header);
 
-	if (nrowc > ART_MAX_NROWC)
+	if (art->truncateNrowc && nrowc > ART_MAX_NROWC)
 		nrowc = ART_MAX_NROWC;
 
 	art->numParticlesInPage = nrowc * nrowc;

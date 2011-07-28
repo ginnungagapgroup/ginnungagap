@@ -271,7 +271,7 @@ parse_ini_get_stringlist(parse_ini_t ini,
  * \param  *key_name      The key name to look for.
  * \param  *section_name  The section in which to look.
  * \param  num_values     The numer of values expected in this key.
- * \param  **value        A pointer to the variable that will hold the
+ * \param  **values       A pointer to the variable that will hold the
  *                        result. This will only be set if the function
  *                        returns true.
  *

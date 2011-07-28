@@ -16,8 +16,8 @@ sources = xmem.c \
           endian.c \
           cmdline.c \
           timer.c \
-          refCounter.c \
           rng.c \
+          refCounter.c \
           bov.c \
           grafic.c \
           gadget.c \
@@ -25,6 +25,7 @@ sources = xmem.c \
           gadgetUtil.c \
           art.c \
           artHeader.c \
+          cubepm.c \
           stai.c \
           varArr.c \
           myTest.c
@@ -41,6 +42,7 @@ sourcesTests = lib${LIBNAME}_tests.c \
                endian_tests.c \
                bov_tests.c \
                grafic_tests.c \
+               cubepm_tests.c \
                stai_tests.c \
                varArr_tests.c
 
@@ -82,7 +84,7 @@ lib${LIBNAME}_tests: lib${LIBNAME}.a \
                      $(sourcesTests:.c=.o)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o lib${LIBNAME}_tests \
 	   $(sourcesTests:.c=.o) \
-	   lib${LIBNAME}.a
+	   lib${LIBNAME}.a -lm
 
 lib${LIBNAME}.a: $(sources:.c=.o)
 	$(AR) -rs lib${LIBNAME}.a $(sources:.c=.o)

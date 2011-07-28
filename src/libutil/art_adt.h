@@ -19,6 +19,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include "artHeader.h"
+#include <stdbool.h>
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -28,11 +29,17 @@
  */
 struct art_struct {
 	/** @brief  Stores the filename of the PMcrd.DAT header file. */
-	char        *fileNameHeader;
+	char *fileNameHeader;
 	/** @brief  Stores the filenames of the PMcrsX.DAT data files. */
-	char        **fileNamesData;
+	char **fileNamesData;
 	/** @brief  Stores the number of PMcrsX.DAT files in this set. */
-	int         numFiles;
+	int  numFiles;
+
+	/**
+	 * @brief  Toggles whether the nrowc is truncated to a maximum size
+	 *         when calculating the page size.
+	 */
+	bool        truncateNrowc;
 	/** @brief  Stores the file pointer. */
 	FILE        *f;
 	/** @brief  Keeps track of the current mode of the file. */

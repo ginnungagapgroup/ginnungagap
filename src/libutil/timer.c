@@ -28,6 +28,10 @@
 
 /*--- Local variables ---------------------------------------------------*/
 #if (!defined WITH_MPI && !defined _OPENMP)
+
+/**
+ * @brief  The conversion factor from the result of clock() to seconds.
+ */
 static double CPS_INV = 1. / ((double)CLOCKS_PER_SEC);
 #endif
 

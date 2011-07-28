@@ -77,8 +77,20 @@
 
 
 /*--- Exported Macros ---------------------------------------------------*/
+
+/**
+ * @brief  Calculates the square of a value.
+ */
 #define POW2(a) ((a) * (a))
+
+/**
+ * @brief  Calculates the cube of a value.
+ */
 #define POW3(a) ((a) * (a) * (a))
+
+/**
+ * @brief  Calculates the fourth power of a value.
+ */
 #define POW4(a) ((a) * (a) * (a) * (a))
 
 

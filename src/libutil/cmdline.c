@@ -78,6 +78,8 @@ struct cmdline_struct {
 	 */
 	int numOptsUsed;
 };
+
+/** @brief  Short name for the command line structure. */
 typedef struct cmdline_struct cmdline_struct_t;
 
 

@@ -22,8 +22,14 @@
 
 
 /*--- Implementation of exported variables ------------------------------*/
+
+/** @brief  Holds the currently allocated number of bytes. */
 size_t  global_allocated_bytes     = 0;
+
+/** @brief  Holds the largest number of bytes allocated. */
 size_t  global_max_allocated_bytes = 0;
+
+/** @brief  Holds the balance of malloc/free calls. */
 int64_t global_malloc_vs_free      = 0;
 
 

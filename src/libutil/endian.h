@@ -222,6 +222,26 @@ endian_fileIsBigByBlockF(FILE *f);
 
 /** @} */
 
+/**
+ * @name  Extras
+ *
+ * @{
+ */
+
+/**
+ * @brief  Converts an endian to a string usable for printing.
+ *
+ * @param[in]  endian
+ *                The endianess to convert to a string.
+ *
+ * @return  Returns a constant string holding a string version of the
+ *          endianess.
+ */
+extern const char *
+endian_toString(const endian_t endian);
+
+/** @} */
+
 
 /*--- Doxygen group definitions -----------------------------------------*/
 

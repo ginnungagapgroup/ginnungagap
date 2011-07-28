@@ -24,7 +24,13 @@
 #include "byteswap.h"
 
 
-/*--- Local defines -----------------------------------------------------*/
+/*--- Static variables --------------------------------------------------*/
+
+/** @brief  Holds the string version for little endian. */
+static char endian_str_little[] = "little endian";
+
+/** @brief  Holds the string version for big endian. */
+static char endian_str_big[] = "big endian";
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -155,9 +161,9 @@ endian_getFileEndianessByBlockF(FILE *f)
 	assert(f != NULL);
 
 	xfread(&b1, sizeof(int), 1, f);
-	b1Swapped     = b1;
+	b1Swapped = b1;
 	byteswap(&b1Swapped, sizeof(int));
-	b2            = local_findBlockEnd(b1, b1Swapped, f);
+	b2        = local_findBlockEnd(b1, b1Swapped, f);
 
 	xfseek(f, pos, SEEK_SET);
 
@@ -188,6 +194,15 @@ endian_fileIsBigByBlockF(FILE *f)
 	fileEndianess = endian_getFileEndianessByBlockF(f);
 
 	return (fileEndianess == ENDIAN_BIG) ? true : false;
+}
+
+extern const char *
+endian_toString(const endian_t endian)
+{
+	if (endian == ENDIAN_LITTLE)
+		return endian_str_little;
+
+	return endian_str_big;
 }
 
 /*--- Implementations of local functions --------------------------------*/

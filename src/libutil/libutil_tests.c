@@ -11,6 +11,7 @@
 #include "endian_tests.h"
 #include "bov_tests.h"
 #include "grafic_tests.h"
+#include "cubepm_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -187,6 +188,12 @@ main(int argc, char **argv)
 		RUNTEST(&grafic_readWindowed_test, hasFailed);
 		RUNTEST(&grafic_write_test, hasFailed);
 		RUNTEST(&grafic_writeWindowed_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for cubepm:\n");
+		RUNTEST(&cubepm_new_test, hasFailed);
+		RUNTEST(&cubepm_del_test, hasFailed);
 	}
 
 #ifdef WITH_MPI
