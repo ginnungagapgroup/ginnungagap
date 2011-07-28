@@ -42,7 +42,9 @@ WITH_OPENMP = "__WITH_OPENMP__"
 WITH_MPI = "__WITH_MPI__"
 MPICC = __MPICC__
 WITH_SPRNG = "__WITH_SPRNG__"
-WITH_SPRNG_DIR = "__WITH_SPRNG_DIR__"
+WITH_SPRNG_PREFIX = "__WITH_SPRNG_PREFIX__"
+WITH_SPRNG_INC_DIR = "__WITH_SPRNG_INC_DIR__"
+WITH_SPRNG_LIB_DIR = "__WITH_SPRNG_LIB_DIR__"
 WITH_FFT = "__WITH_FFT__"
 WITH_FFT_DIR = "__WITH_FFT_DIR__"
 WITH_SILO = "__WITH_SILO__"
@@ -71,28 +73,52 @@ LDFLAGS = __LDFLAGS__
 AR = __AR__
 MAKE = __MAKE__
 
-ifneq ($(WITH_SPRNG_DIR), "auto")
-  CPPFLAGS += -I$(WITH_SPRNG_DIR)/include
-  LDFLAGS += -L$(WITH_SPRNG_DIR)/lib
+# Deals with the include/lib dir for SPRNG
+ifneq ($(WITH_SPRNG_PREFIX), "auto")
+  ifeq ($(WITH_SPRNG_INC_DIR), "auto")
+    WITH_SPRNG_INC_DIR = $(WITH_SPRNG_PREFIX)/include
+  endif
+  CPPFLAGS += -I$(WITH_SPRNG_INC_DIR)
+  ifeq ($(WITH_SPRNG_LIB_DIR), "auto")
+    WITH_SPRNG_LIB_DIR = $(WITH_SPRNG_PREFIX)/lib
+  endif
+  LDFLAGS += -L$(WITH_SPRNG_LIB_DIR)
+else
+  ifneq ($(WITH_SPRNG_INC_DIR), "auto")
+    CPPFLAGS += -I$(WITH_SPRNG_INC_DIR)
+  endif
+  ifneq ($(WITH_SPRNG_LIB_DIR), "auto")
+    LDFLAGS += -L$(WITH_SPRNG_LIB_DIR)
+  endif
 endif
+
+# Deals with the include/lib dir for the FFT library
 ifneq ($(WITH_FFT_DIR), "auto")
   CPPFLAGS += -I$(WITH_FFT_DIR)/include
   LDFLAGS += -L$(WITH_FFT_DIR)/lib
 endif
+
+# Deals with the include/lib dir for SILO
 ifneq ($(WITH_SILO_DIR), "auto")
   CPPFLAGS += -I$(WITH_SILO_DIR)/include
   LDFLAGS += -L$(WITH_SILO_DIR)/lib
 endif
+
+# Deals with the include/lib dir for HDF5
 ifneq ($(WITH_HDF5_DIR), "auto")
   ifeq ($(WITH_HDF5), "true")
     CPPFLAGS += -I$(WITH_HDF5_DIR)/include
     LDFLAGS += -L$(WITH_HDF5_DIR)/lib
   endif
 endif
+
+# Deals with the include/lib dir for GSL
 ifneq ($(WITH_GSL_DIR), "auto")
   CPPFLAGS += -I$(WITH_GSL_DIR)/include
   LDFLAGS += -L$(WITH_GSL_DIR)/lib
 endif
+
+# Deals with the include/lib dir for MPITrace
 ifneq ($(WITH_MPITRACE_DIR), "auto")
   CPPFLAGS += -I$(WITH_MPITRACE_DIR)/include
   LDFLAGS += -L$(WITH_MPITRACE_DIR)/lib

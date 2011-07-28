@@ -34,7 +34,9 @@ TOOLCHAIN=gnu
 WITH_OPENMP=false
 WITH_MPI=false
 WITH_SPRNG=true
-WITH_SPRNG_DIR=auto
+WITH_SPRNG_PREFIX=auto
+WITH_SPRNG_INC_DIR=auto
+WITH_SPRNG_LIB_DIR=auto
 WITH_SPRNG_LIBS=auto
 WITH_FFT=fftw3
 WITH_FFT_DIR=auto
@@ -117,12 +119,26 @@ do
 		--without-sprng | --without-sprng=*)
 			WITH_SPRNG=false
 			;;
-		--with-sprng-dir)
-			$ECHO "Error:  --with-sprng-dir requires an argument."
+		--with-sprng-prefix)
+			$ECHO "Error:  --with-sprng-prefix requires an argument."
 			exit 1
 			;;
-		--with-sprng-dir=*)
-			WITH_SPRNG_DIR="$ac_optarg"
+		--with-sprng-prefix=*)
+			WITH_SPRNG_PREFIX="$ac_optarg"
+			;;
+		--with-sprng-inc-dir)
+			$ECHO "Error:  --with-sprng-inc-dir requires an argument."
+			exit 1
+			;;
+		--with-sprng-inc-dir=*)
+			WITH_SPRNG_INC_DIR="$ac_optarg"
+			;;
+		--with-sprng-lib-dir)
+			$ECHO "Error:  --with-sprng-lib-dir requires an argument."
+			exit 1
+			;;
+		--with-sprng-lib-dir=*)
+			WITH_SPRNG_LIB_DIR="$ac_optarg"
 			;;
 		--with-sprng-libs)
 			$ECHO "Error:  --with-sprng-libs requires an argument."
@@ -375,79 +391,89 @@ Build options:
                            help screen concerning environment variables.
 
 Optional features:
-  --with-FEATURE[=ARG]     Use FEATURE. [ARG=yes]
-  --without-FEATURE        Do not use FEATURE.  This is the same as
-                           --with-FEATURE=no.
-  --with-openmp            Uses the OpenMP directives.  Default: no.
-  --with-mpi[=COMPILER]    Use MPI [COMPILER=mpicc].  Note that if you
-                           use MPI, it is your duty to make sure that
-                           mpicc uses a C compiler that fits to your
-                           selected toolchain.  Default: no.
-  --with-sprng             This can be used to toggle the usage of SPRNG
-                           to generate random numbers.  Note that if
-                           SPRNG is not used, than random numbers have
-                           to be provided by means of a white noise
-                           file.  Default: yes.
-  --with-sprng-dir=DIR     Use this to direct to the directory where
-                           SPRNG is installed on your system.  This
-                           assumes that header files are in DIR/include
-                           and libraries are in DIR/lib.  You can
-                           specify the special value 'auto', it is
-                           then presumed that everything can be found
-                           using the CPPFLAGS/LDFLAGS environment
-                           variables.  Default: auto.
-  --with-sprng-libs=LIBS   Can be used to specify the SPRNG libraries,
-                           it should normally not be required and
-                           defaults to:
-                             -lsprng
-  --with-fft-backend=ARG   This selects the FFT backend that will be
-                           used.  Possible options are (note that single
-                           and double precision versions are required):
-                             fftw2       Version 2 of FFTW
-                             fftw3  (*)  Version 3 of FFTW
-                           The default choice is marked.
-  --with-fft-dir=DIR       See description of --with-sprng-dir.
-                           Default: auto.
-  --with-fft-libs=LIBS     See description of --with-sprng-libs.
-                           Default: auto.
-  --with-silo              Use the SILO library to write visualisation
-                           outputs.  Default: no.
-  --with-silo-dir=DIR      See description of --with-sprng-dir.  This is
-                           the same for the SILO directory.
-                           Default: auto.
-  --with-silo-libs=LIBS    This can be used to specify the required
-                           libraries for using Silo.  If Silo is
-                           actually used, it defaults to:
-                             -lsilo -lz
-                           in the non-HDF5 situation and to
-                             -lsiloh5 -lhdf5 -lstdc++ -lz
-                           for HDF5 enabled code (see --with-hdf5).
-  --with-hdf5              Specify this if you want to use (nor not use)
-                           the HDF5 backend of Silo.
-                           Default: false.
-  --with-hdf5-dir=DIR      If you are using the HDF5 version of SILO
-                           then you may want to specify the directory
-                           where the HDF5 that SILO was built against is
-                           installed.  As in --with-sprng-dir this can
-                           be 'auto'.
-                           Default: auto.
-  --with-gsl-dir=DIR       See description of --with-sprng-dir.  Note
-                           that this can be used to specify which
-                           gsl-config will be used.
-                           Default: auto.
-  --with gsl-libs=LIBS     See description of --with-sprng-libs.  This
-                           should not be necessary, as gsl-config will
-                           be queried to provide the required libraries.
-                           Default: auto.
-  --with-mpitrace          Instrument the code with MPItrace calls.
-                           Default: no.
-  --with-mpitrace-dir=DIR  Give the directory where MPItrace is
-                           installed.  Default: auto.
-  --with-proc-dir          If the code can use /proc/self/statm to query
-                           its memory usage (true at least on Linux),
-                           the you may use this option to allow the code
-                           to retrieve memory information at runtime.
-                           Default: no.
+  --with-FEATURE[=ARG]      Use FEATURE. [ARG=yes]
+  --without-FEATURE         Do not use FEATURE.  This is the same as
+                            --with-FEATURE=no.
+  --with-openmp             Uses the OpenMP directives.  Default: no.
+  --with-mpi[=COMPILER]     Use MPI [COMPILER=mpicc].  Note that if you
+                            use MPI, it is your duty to make sure that
+                            mpicc uses a C compiler that fits to your
+                            selected toolchain.  Default: no.
+  --with-sprng              This can be used to toggle the usage of SPRNG
+                            to generate random numbers.  Note that if
+                            SPRNG is not used, than random numbers have
+                            to be provided by means of a white noise
+                            file.  Default: yes.
+  --with-sprng-prefix=DIR   Use this to direct to the directory where
+                            SPRNG is installed on your system.  This
+                            assumes that header files are in DIR/include
+                            and libraries are in DIR/lib.  You can
+                            specify the special value 'auto', it is
+                            then presumed that everything can be found
+                            using the CPPFLAGS/LDFLAGS environment
+                            variables.  Default: auto.
+  --with-sprng-inc-dir=DIR  This can be used to directly set the
+                            directory where the include files for SPRNG
+                            can be found.  If the argument is 'auto',
+                            the include directory is either constructed
+                            from the install prefix, or, if this is also
+                            'auto', it is assumed that the include dir
+                            is provided in the CPPFLAGS.  Default: auto.
+  --with-sprng-lib-dir=DIR  This is like --with-sprng-inc-dir, but for
+                            the directory which contains the library.
+                            The same rules apply.  Default: auto.
+  --with-sprng-libs=LIBS    Can be used to specify the SPRNG libraries,
+                            it should normally not be required and
+                            defaults to:
+                              -lsprng
+  --with-fft-backend=ARG    This selects the FFT backend that will be
+                            used.  Possible options are (note that single
+                            and double precision versions are required):
+                              fftw2       Version 2 of FFTW
+                              fftw3  (*)  Version 3 of FFTW
+                            The default choice is marked.
+  --with-fft-dir=DIR        See description of --with-sprng-dir.
+                            Default: auto.
+  --with-fft-libs=LIBS      See description of --with-sprng-libs.
+                            Default: auto.
+  --with-silo               Use the SILO library to write visualisation
+                            outputs.  Default: no.
+  --with-silo-dir=DIR       See description of --with-sprng-dir.  This is
+                            the same for the SILO directory.
+                            Default: auto.
+  --with-silo-libs=LIBS     This can be used to specify the required
+                            libraries for using Silo.  If Silo is
+                            actually used, it defaults to:
+                              -lsilo -lz
+                            in the non-HDF5 situation and to
+                              -lsiloh5 -lhdf5 -lstdc++ -lz
+                            for HDF5 enabled code (see --with-hdf5).
+  --with-hdf5               Specify this if you want to use (nor not use)
+                            the HDF5 backend of Silo.
+                            Default: false.
+  --with-hdf5-dir=DIR       If you are using the HDF5 version of SILO
+                            then you may want to specify the directory
+                            where the HDF5 that SILO was built against is
+                            installed.  As in --with-sprng-dir this can
+                            be 'auto'.
+                            Default: auto.
+  --with-gsl-dir=DIR        See description of --with-sprng-dir.  Note
+                            that this can be used to specify which
+                            gsl-config will be used.
+                            Default: auto.
+  --with gsl-libs=LIBS      See description of --with-sprng-libs.  This
+                            should not be necessary, as gsl-config will
+                            be queried to provide the required libraries.
+                            Default: auto.
+  --with-mpitrace           Instrument the code with MPItrace calls.
+                            Default: no.
+  --with-mpitrace-dir=DIR   Give the directory where MPItrace is
+                            installed.  Default: auto.
+  --with-proc-dir           If the code can use /proc/self/statm to query
+                            its memory usage (true at least on Linux),
+                            the you may use this option to allow the code
+                            to retrieve memory information at runtime.
+                            Default: no.
 
 Code properties:
   --enable-FEATURE[=ARG]   Switch on a feature. [ARG=YES]
@@ -628,7 +654,9 @@ sed -i.bak -e "s@__LD__@$LD@" Makefile.config
 sed -i.bak -e "s@__LDFLAGS__@$LDFLAGS@" Makefile.config
 sed -i.bak -e "s@__AR__@$AR@" Makefile.config
 sed -i.bak -e "s@__MAKE__@$MAKE@" Makefile.config
-sed -i.bak -e "s@__WITH_SPRNG_DIR__@$WITH_SPRNG_DIR@" Makefile.config
+sed -i.bak -e "s@__WITH_SPRNG_PREFIX__@$WITH_SPRNG_PREFIX@" Makefile.config
+sed -i.bak -e "s@__WITH_SPRNG_INC_DIR__@$WITH_SPRNG_INC_DIR@" Makefile.config
+sed -i.bak -e "s@__WITH_SPRNG_LIB_DIR__@$WITH_SPRNG_LIB_DIR@" Makefile.config
 sed -i.bak -e "s@__WITH_SPRNG_LIBS__@$WITH_SPRNG_LIBS@" Makefile.config
 sed -i.bak -e "s@__WITH_FFT_DIR__@$WITH_FFT_DIR@" Makefile.config
 sed -i.bak -e "s@__WITH_FFT_LIBS__@$WITH_FFT_LIBS@" Makefile.config
