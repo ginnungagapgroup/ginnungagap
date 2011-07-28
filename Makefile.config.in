@@ -46,12 +46,20 @@ WITH_SPRNG_PREFIX = "__WITH_SPRNG_PREFIX__"
 WITH_SPRNG_INC_DIR = "__WITH_SPRNG_INC_DIR__"
 WITH_SPRNG_LIB_DIR = "__WITH_SPRNG_LIB_DIR__"
 WITH_FFT = "__WITH_FFT__"
-WITH_FFT_DIR = "__WITH_FFT_DIR__"
+WITH_FFT_PREFIX = "__WITH_FFT_PREFIX__"
+WITH_FFT_INC_DIR = "__WITH_FFT_INC_DIR__"
+WITH_FFT_LIB_DIR = "__WITH_FFT_LIB_DIR__"
 WITH_SILO = "__WITH_SILO__"
-WITH_SILO_DIR = "__WITH_SILO_DIR__"
+WITH_SILO_PREFIX = "__WITH_SILO_PREFIX__"
+WITH_SILO_INC_DIR = "__WITH_SILO_INC_DIR__"
+WITH_SILO_LIB_DIR = "__WITH_SILO_LIB_DIR__"
 WITH_HDF5 = "__WITH_HDF5__"
-WITH_HDF5_DIR = "__WITH_HDF5_DIR__"
-WITH_GSL_DIR = "__WITH_GSL_DIR__"
+WITH_HDF5_PREFIX = "__WITH_HDF5_PREFIX__"
+WITH_HDF5_INC_DIR = "__WITH_HDF5_INC_DIR__"
+WITH_HDF5_LIB_DIR = "__WITH_HDF5_LIB_DIR__"
+WITH_GSL_PREFIX = "__WITH_GSL_PREFIX__"
+WITH_GSL_INC_DIR = "__WITH_GSL_INC_DIR__"
+WITH_GSL_LIB_DIR = "__WITH_GSL_LIB_DIR__"
 WITH_MPITRACE = "__WITH_MPITRACE__"
 WITH_MPITRACE_DIR = "__WITH_MPITRACE_DIR__"
 ENABLE_DEBUG = "__ENABLE_DEBUG__"
@@ -74,48 +82,116 @@ AR = __AR__
 MAKE = __MAKE__
 
 # Deals with the include/lib dir for SPRNG
-ifneq ($(WITH_SPRNG_PREFIX), "auto")
-  ifeq ($(WITH_SPRNG_INC_DIR), "auto")
-    WITH_SPRNG_INC_DIR = $(WITH_SPRNG_PREFIX)/include
-  endif
-  CPPFLAGS += -I$(WITH_SPRNG_INC_DIR)
-  ifeq ($(WITH_SPRNG_LIB_DIR), "auto")
-    WITH_SPRNG_LIB_DIR = $(WITH_SPRNG_PREFIX)/lib
-  endif
-  LDFLAGS += -L$(WITH_SPRNG_LIB_DIR)
-else
-  ifneq ($(WITH_SPRNG_INC_DIR), "auto")
+ifeq ($(WITH_SPRNG), "true")
+  ifneq ($(WITH_SPRNG_PREFIX), "auto")
+    ifeq ($(WITH_SPRNG_INC_DIR), "auto")
+      WITH_SPRNG_INC_DIR = $(WITH_SPRNG_PREFIX)/include
+    endif
     CPPFLAGS += -I$(WITH_SPRNG_INC_DIR)
-  endif
-  ifneq ($(WITH_SPRNG_LIB_DIR), "auto")
+    ifeq ($(WITH_SPRNG_LIB_DIR), "auto")
+      WITH_SPRNG_LIB_DIR = $(WITH_SPRNG_PREFIX)/lib
+    endif
     LDFLAGS += -L$(WITH_SPRNG_LIB_DIR)
+  else
+    ifneq ($(WITH_SPRNG_INC_DIR), "auto")
+      CPPFLAGS += -I$(WITH_SPRNG_INC_DIR)
+    endif
+    ifneq ($(WITH_SPRNG_LIB_DIR), "auto")
+      LDFLAGS += -L$(WITH_SPRNG_LIB_DIR)
+    endif
   endif
+else
+  WITH_SPRNG_PREFIX = 
+  WITH_SPRNG_INC_DIR = 
+  WITH_SPRNG_LIB_DIR = 
 endif
 
 # Deals with the include/lib dir for the FFT library
-ifneq ($(WITH_FFT_DIR), "auto")
-  CPPFLAGS += -I$(WITH_FFT_DIR)/include
-  LDFLAGS += -L$(WITH_FFT_DIR)/lib
-endif
-
-# Deals with the include/lib dir for SILO
-ifneq ($(WITH_SILO_DIR), "auto")
-  CPPFLAGS += -I$(WITH_SILO_DIR)/include
-  LDFLAGS += -L$(WITH_SILO_DIR)/lib
-endif
-
-# Deals with the include/lib dir for HDF5
-ifneq ($(WITH_HDF5_DIR), "auto")
-  ifeq ($(WITH_HDF5), "true")
-    CPPFLAGS += -I$(WITH_HDF5_DIR)/include
-    LDFLAGS += -L$(WITH_HDF5_DIR)/lib
+ifneq ($(WITH_FFT_PREFIX), "auto")
+  ifeq ($(WITH_FFT_INC_DIR), "auto")
+    WITH_FFT_INC_DIR = $(WITH_FFT_PREFIX)/include
+  endif
+  CPPFLAGS += -I$(WITH_FFT_INC_DIR)
+  ifeq ($(WITH_FFT_LIB_DIR), "auto")
+    WITH_FFT_LIB_DIR = $(WITH_FFT_PREFIX)/lib
+  endif
+  LDFLAGS += -L$(WITH_FFT_LIB_DIR)
+else
+  ifneq ($(WITH_FFT_INC_DIR), "auto")
+    CPPFLAGS += -I$(WITH_FFT_INC_DIR)
+  endif
+  ifneq ($(WITH_FFT_LIB_DIR), "auto")
+    LDFLAGS += -L$(WITH_FFT_LIB_DIR)
   endif
 endif
 
+# Deals with the include/lib dir for SILO
+ifeq ($(WITH_SILO), "true")
+  ifneq ($(WITH_SILO_PREFIX), "auto")
+    ifeq ($(WITH_SILO_INC_DIR), "auto")
+      WITH_SILO_INC_DIR = $(WITH_SILO_PREFIX)/include
+    endif
+    CPPFLAGS += -I$(WITH_SILO_INC_DIR)
+    ifeq ($(WITH_SILO_LIB_DIR), "auto")
+      WITH_SILO_LIB_DIR = $(WITH_SILO_PREFIX)/lib
+    endif
+    LDFLAGS += -L$(WITH_SILO_LIB_DIR)
+  else
+    ifneq ($(WITH_SILO_INC_DIR), "auto")
+      CPPFLAGS += -I$(WITH_SILO_INC_DIR)
+    endif
+    ifneq ($(WITH_SILO_LIB_DIR), "auto")
+      LDFLAGS += -L$(WITH_SILO_LIB_DIR)
+    endif
+  endif
+else
+  WITH_SILO_PREFIX = 
+  WITH_SILO_INC_DIR =
+  WITH_SILO_LIB_DIR = 
+endif
+
+# Deals with the include/lib dir for HDF5
+ifeq ($(WITH_HDF5), "true")
+  ifneq ($(WITH_HDF5_PREFIX), "auto")
+    ifeq ($(WITH_HDF5_INC_DIR), "auto")
+      WITH_HDF5_INC_DIR = $(WITH_HDF5_PREFIX)/include
+    endif
+    CPPFLAGS += -I$(WITH_HDF5_INC_DIR)
+    ifeq ($(WITH_HDF5_LIB_DIR), "auto")
+      WITH_HDF5_LIB_DIR = $(WITH_HDF5_PREFIX)/lib
+    endif
+    LDFLAGS += -L$(WITH_HDF5_LIB_DIR)
+  else
+    ifneq ($(WITH_HDF5_INC_DIR), "auto")
+      CPPFLAGS += -I$(WITH_HDF5_INC_DIR)
+    endif
+    ifneq ($(WITH_HDF5_LIB_DIR), "auto")
+      LDFLAGS += -L$(WITH_HDF5_LIB_DIR)
+    endif
+  endif
+else
+  WITH_HDF5_PREFIX =
+  WITH_HDF5_INC_DIR = 
+  WITH_HDF5_LIB_DIR =
+endif
+
 # Deals with the include/lib dir for GSL
-ifneq ($(WITH_GSL_DIR), "auto")
-  CPPFLAGS += -I$(WITH_GSL_DIR)/include
-  LDFLAGS += -L$(WITH_GSL_DIR)/lib
+ifneq ($(WITH_GSL_PREFIX), "auto")
+  ifeq ($(WITH_GSL_INC_DIR), "auto")
+    WITH_GSL_INC_DIR = $(WITH_GSL_PREFIX)/include
+  endif
+  CPPFLAGS += -I$(WITH_GSL_INC_DIR)
+  ifeq ($(WITH_GSL_LIB_DIR), "auto")
+    WITH_GSL_LIB_DIR = $(WITH_GSL_PREFIX)/lib
+  endif
+  LDFLAGS += -L$(WITH_GSL_LIB_DIR)
+else
+  ifneq ($(WITH_GSL_INC_DIR), "auto")
+    CPPFLAGS += -I$(WITH_GSL_INC_DIR)
+  endif
+  ifneq ($(WITH_GSL_LIB_DIR), "auto")
+    LDFLAGS += -L$(WITH_GSL_LIB_DIR)
+  endif
 endif
 
 # Deals with the include/lib dir for MPITrace
