@@ -689,7 +689,7 @@ then
 	then
 		if test "x$WITH_GSL_BIN_DIR" = "xauto"
 		then
-			THIS_GSL_CONFIG=gsl-config
+			THIS_GSL_CONFIG=`gsl-config --prefix`/bin/gsl-config
 		else
 			THIS_GSL_CONFIG=$WITH_GSL_BIN_DIR/gsl-config
 		fi
