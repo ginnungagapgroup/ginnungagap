@@ -136,6 +136,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 
 	local_doWhiteNoise(ginnungagap, true);
 	local_doDeltaK(ginnungagap);
+	local_doDeltaKPk(ginnungagap);
 	local_doDeltaX(ginnungagap);
 	local_doStatistics(ginnungagap, 0);
 	if (ginnungagap->rank == 0)
@@ -145,7 +146,6 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 	local_doWhiteNoise(ginnungagap, false);
 	local_doWhiteNoisePk(ginnungagap);
 	local_doDeltaK(ginnungagap);
-	local_doDeltaKPk(ginnungagap);
 	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VX);
 	local_doStatistics(ginnungagap, 0);
 	if (ginnungagap->rank == 0)
