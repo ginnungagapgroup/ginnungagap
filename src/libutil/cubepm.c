@@ -670,7 +670,7 @@ cubepm_setTau(cubepm_t cubepm, float tau)
 }
 
 extern void
-cubepm_setNts(cubepm_t cubepm, float nts)
+cubepm_setNts(cubepm_t cubepm, int32_t nts)
 {
 	assert(cubepm != NULL);
 
@@ -766,7 +766,7 @@ cubepm_getTau(const cubepm_t cubepm)
 	return cubepm->tau;
 }
 
-extern float
+extern int32_t
 cubepm_getNts(const cubepm_t cubepm)
 {
 	assert(cubepm != NULL);

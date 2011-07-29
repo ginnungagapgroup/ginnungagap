@@ -340,7 +340,7 @@ cubepm_setTau(cubepm_t cubepm, float tau);
  * @return  Returns nothing.
  */
 extern void
-cubepm_setNts(cubepm_t cubepm, float nts);
+cubepm_setNts(cubepm_t cubepm, int32_t nts);
 
 
 /**
@@ -525,7 +525,7 @@ cubepm_getTau(const cubepm_t cubepm);
  *
  * @return  Returns cubepm_t::nts.
  */
-extern float
+extern int32_t
 cubepm_getNts(const cubepm_t cubepm);
 
 
