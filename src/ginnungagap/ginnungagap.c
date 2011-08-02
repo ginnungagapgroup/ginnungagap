@@ -135,6 +135,7 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 		printf("\nGenerating IC:\n\n");
 
 	local_doWhiteNoise(ginnungagap, true);
+	local_doWhiteNoisePk(ginnungagap);
 	local_doDeltaK(ginnungagap);
 	local_doDeltaKPk(ginnungagap);
 	local_doDeltaX(ginnungagap);
@@ -144,7 +145,6 @@ ginnungagap_run(ginnungagap_t ginnungagap)
 
 	ginnungagapWN_reset(ginnungagap->whiteNoise);
 	local_doWhiteNoise(ginnungagap, false);
-	local_doWhiteNoisePk(ginnungagap);
 	local_doDeltaK(ginnungagap);
 	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VX);
 	local_doStatistics(ginnungagap, 0);
