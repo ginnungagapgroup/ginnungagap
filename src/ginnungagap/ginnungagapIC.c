@@ -151,6 +151,10 @@ ginnungagapIC_calcVelFromDelta(gridRegularFFT_t    gridFFT,
 				kCellSqr  = (double)(k0 * k0 + k1 * k1 + k2 * k2);
 				kCellSqr *= wavenumToFreq * wavenumToFreq;
 
+				/*
+				 * WARNING:  This is only valid in MPI mode, where the grid
+				 *           is permuted in the given way.
+				 */
 				if ((k0 == 0) && (k1 == 0) && (k2 == 0)) {
 					data[idx] = 0.0;
 				} else if (mode == GINNUNGAGAPIC_MODE_VX) {
@@ -220,7 +224,7 @@ ginnungagapIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
 					P[kCell - 1]   += creal(data[idx]) * creal(data[idx])
 					                  + cimag(data[idx]) * cimag(data[idx]);
 					freq[kCell - 1] = kCell * wavenumToFreq;
-					numFreqHits[kCell -1]++;
+					numFreqHits[kCell - 1]++;
 				}
 			}
 		}
