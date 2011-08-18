@@ -27,6 +27,9 @@ extern uint32_t
 lare_getNumElements(const lare_t lare);
 
 extern void
+lare_getDims(const lare_t lare, gridPointUint32_t dims);
+
+extern void
 lare_getElement(const lare_t      lare,
                 gridPointUint32_t element,
                 uint32_t          idxOfElement);

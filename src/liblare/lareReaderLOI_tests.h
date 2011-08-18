@@ -2,8 +2,8 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef LAREIO_H
-#define LAREIO_H
+#ifndef LAREREADERLOI_TESTS_H
+#define LAREREADERLOI_TESTS_H
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -11,18 +11,15 @@
 #include <stdbool.h>
 
 
-/*--- Exported types ----------------------------------------------------*/
-typedef enum {
-	LAREIO_TYPE_LEGACY,
-	LAREIO_TYPE_LOI,
-	LAREIO_TYPE_UNKNOWN
-} lareIO_type_t;
-
 /*--- Prototypes of exported functions ----------------------------------*/
-extern lareIO_type_t
-lareIO_getTypeFromName(const char *name);
+extern bool
+lareReaderLOI_new_test(void);
 
-extern const char *
-lareIO_getNameFromType(lareIO_type_t type);
+extern bool
+lareReaderLOI_del_test(void);
+
+extern bool
+lareReaderLOI_read_test(void);
+
 
 #endif

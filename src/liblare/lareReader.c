@@ -9,6 +9,7 @@
 #include "lare.h"
 #include "lareIO.h"
 #include "lareReaderLegacy.h"
+#include "lareReaderLOI.h"
 #include <assert.h>
 #include "../libutil/xmem.h"
 #include "../libutil/parse_ini.h"
@@ -83,6 +84,8 @@ local_newFromIniWrapper(parse_ini_t   ini,
 
 	if (type == LAREIO_TYPE_LEGACY) {
 		reader = (lareReader_t)lareReaderLegacy_newFromIni(ini, secName);
+	} else if (type == LAREIO_TYPE_LOI) {
+		reader = (lareReader_t)lareReaderLOI_newFromIni(ini, secName);
 	} else {
 		fprintf(stderr, "Cannot create lare reader for %s\n",
 		        lareIO_getNameFromType(type));

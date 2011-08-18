@@ -17,6 +17,7 @@
 
 /*--- Local variables ---------------------------------------------------*/
 static const char *local_typeLegacyStr  = "legacy";
+static const char *local_typeLOIStr     = "loi";
 static const char *local_typeUnknownStr = "unknown";
 
 
@@ -33,6 +34,8 @@ lareIO_getTypeFromName(const char *name)
 
 	if (strcmp(name, local_typeLegacyStr) == 0)
 		rtn = LAREIO_TYPE_LEGACY;
+	else if (strcmp(name, local_typeLOIStr) == 0)
+		rtn = LAREIO_TYPE_LOI;
 	else
 		rtn = LAREIO_TYPE_UNKNOWN;
 
@@ -46,6 +49,8 @@ lareIO_getNameFromType(lareIO_type_t type)
 
 	if (type == LAREIO_TYPE_LEGACY)
 		rtn = local_typeLegacyStr;
+	else if (type == LAREIO_TYPE_LOI)
+		rtn = local_typeLOIStr;
 	else
 		rtn = local_typeUnknownStr;
 

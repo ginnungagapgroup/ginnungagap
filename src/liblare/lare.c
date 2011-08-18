@@ -69,6 +69,16 @@ lare_getNumElements(const lare_t lare)
 }
 
 extern void
+lare_getDims(const lare_t lare, gridPointUint32_t dims)
+{
+	assert(lare != NULL);
+	assert(dims != NULL);
+
+	for (int i = 0; i < NDIM; i++)
+		dims[i] = lare->dims[i];
+}
+
+extern void
 lare_getElement(const lare_t      lare,
                 gridPointUint32_t element,
                 uint32_t          idxOfElement)

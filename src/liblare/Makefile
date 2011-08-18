@@ -11,7 +11,8 @@ include ../../Makefile.config
 sources = lare.c \
           lareIO.c \
           lareReader.c \
-          lareReaderLegacy.c
+          lareReaderLegacy.c \
+          lareReaderLOI.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
                lare_tests.c
