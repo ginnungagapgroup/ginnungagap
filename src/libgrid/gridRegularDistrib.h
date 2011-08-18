@@ -6,6 +6,16 @@
 #define GRIDREGULARDISTRIB_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridRegularDistrib.h
+ * @ingroup libgridRegularDistrib
+ * @brief  Provides the interface to the regular grid distribution
+ *         object.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridRegular.h"
@@ -17,12 +27,32 @@
 
 
 /*--- ADT handle --------------------------------------------------------*/
+
+/// @brief  The handle for the regular grid distribution object.
 typedef struct gridRegularDistrib_struct *gridRegularDistrib_t;
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
+
+/**
+ * @brief  Creates a new regular grid distribution objects.
+ *
+ * @param[in,out]  grid
+ *                    The grid that should be distributed.  A valid
+ *                    regular grid must be passed.  The distribution
+ *                    object stores a reference to the grid, the calling
+ *                    function keeps the responsibility to dispose of
+ *                    its reference to the grid.
+ * @param[in]      nProcs
+ *                    The processor grid used for distribution.  This
+ *                    may be @c NULL indicating that the grid is
+ *                    distributed on only one CPU, this is identical to
+ *                    passing <code>nProc[i] = 0</code>.
+ *
+ * @return  Returns a new distribution object.
+ */
 extern gridRegularDistrib_t
-gridRegularDistrib_new(gridRegular_t grid, gridPointInt_t nProcs);
+gridRegularDistrib_new(gridRegular_t grid, const gridPointInt_t nProcs);
 
 extern void
 gridRegularDistrib_del(gridRegularDistrib_t *distrib);
@@ -59,6 +89,29 @@ gridRegularDistrib_getNProcs(gridRegularDistrib_t distrib,
 extern gridRegular_t
 gridRegularDistrib_getGridHandle(const gridRegularDistrib_t distrib);
 
+/**
+ * @brief  Calculates the min and max indices of a given processes in
+ *         one dimension.
+ *
+ * @param[in]   nCells
+ *                 The number of cells in the investigated dimension.
+ * @param[in]   nProcs
+ *                 The number of processors used to distribute the
+ *                 @c nCells cells over.  This must be a positive number
+ *                 less or equal to @c nCells.
+ * @param[in]   rank
+ *                 The number of the process to find the minimun and
+ *                 maximum indices for.  This must be a value between
+ *                 (inclusive) @c 0 and (exclusive) @c nProcs.
+ * @param[out]  *idxLo
+ *                 Pointer to the external storage position that will
+ *                 receive the minimum index.  Passing @c NULL is
+ *                 undefined.
+ * @param[out]  *idxHi
+ *                 Like @c IdxLo but for the maximum index.
+ *
+ * @return  Returns nothing.
+ */
 extern void
 gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
                                      int      nProcs,
@@ -66,10 +119,37 @@ gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
                                      uint32_t *idxLo,
                                      uint32_t *idxHi);
 
+/**
+ * @brief  Performs a transposition of the distributed grid.
+ *
+ * @param[in]  distrib
+ *                The distribution object to work with.  
+ * @param[in]  dimA
+ *                The dimension to exchange.
+ * @param[in]  dimB
+ *                The dimension to exchange with.
+ *
+ * @return  Returns nothing.
+ */
 extern void
 gridRegularDistrib_transpose(gridRegularDistrib_t distrib,
                              int                  dimA,
                              int                  dimB);
 
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridRegularDistribg
+ * @ingroup libgridRegular
+ * @brief  Provides a module to distribute a logical grid onto an MPI
+ *         processor grid.
+ *
+ * This works also in non-MPI mode, albeit with reduced functionality.
+ * The main functionality implemented in this module is to calculate the
+ * according grid patch that a given process holds and to deal with grid
+ * transposition (which is why the interface also must be used in the
+ * non-MPI case).
+ */
 
 #endif

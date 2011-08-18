@@ -128,7 +128,7 @@ local_layoutElement_new(gridPointUint32_t idxLo,
 
 /*--- Implementations of exported functios ------------------------------*/
 extern gridRegularDistrib_t
-gridRegularDistrib_new(gridRegular_t grid, gridPointInt_t nProcs)
+gridRegularDistrib_new(gridRegular_t grid, const gridPointInt_t nProcs)
 {
 	gridRegularDistrib_t distrib;
 
