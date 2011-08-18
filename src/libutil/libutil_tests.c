@@ -9,6 +9,7 @@
 #include "stai_tests.h"
 #include "varArr_tests.h"
 #include "endian_tests.h"
+#include "tile_tests.h"
 #include "bov_tests.h"
 #include "grafic_tests.h"
 #include "cubepm_tests.h"
@@ -105,6 +106,16 @@ main(int argc, char **argv)
 		RUNTEST(&endian_fileIsBigByBlock_test, hasFailed);
 		RUNTEST(&endian_fileIsLittleByBlockF_test, hasFailed);
 		RUNTEST(&endian_fileIsBigByBlockF_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for tile:\n");
+		RUNTEST(&tile_calcIdxsELAE_test, hasFailed);
+		RUNTEST(&tile_calcIdxsELAB_test, hasFailed);
+		RUNTEST(&tile_calcNumLargeTilesEven_test, hasFailed);
+		RUNTEST(&tile_calcNumSmallTilesEven_test, hasFailed);
+		RUNTEST(&tile_calcMinTileSizeEven_test, hasFailed);
+		RUNTEST(&tile_calcMaxTileSizeEven_test, hasFailed);
 	}
 
 	if (rank == 0) {

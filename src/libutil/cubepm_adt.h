@@ -17,6 +17,8 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
+#include "endian.h"
+#include "cubepm.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
