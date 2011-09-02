@@ -882,7 +882,7 @@ $ECHO -e "\to features in use/code properties:" \
 	| tee -a config.log \
 	| tee -a summary.$$
 grep '#define' config.h \
-	| grep -v CONFIG_H \ \
+	| grep -v CONFIG_H \
 	| grep -v CONFIG_SUMMARY_STRING \
 	| awk '{print "\t\t"$2"\t"$3}' \
 	| tee -a config.log \
