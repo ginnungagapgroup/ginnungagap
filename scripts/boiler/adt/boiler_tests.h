@@ -6,6 +6,15 @@
 #define BOILER_TESTS_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file boiler_tests.h
+ * @ingroup  GROUP
+ * @brief  SHORT DESC
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "CONF_HEADER"
 #include <stdbool.h>

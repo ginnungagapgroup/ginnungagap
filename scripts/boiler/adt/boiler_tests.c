@@ -3,6 +3,15 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file boiler_tests.c
+ * @ingroup  GROUP
+ * @brief  SHORT DESC
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "CONF_HEADER"
 #include "boiler_tests.h"

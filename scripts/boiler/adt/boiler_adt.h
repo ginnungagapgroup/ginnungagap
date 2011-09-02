@@ -6,6 +6,15 @@
 #define BOILER_ADT_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file boiler_adt.h
+ * @ingroup  GROUP
+ * @brief  SHORT DESC
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "CONF_HEADER"
 
