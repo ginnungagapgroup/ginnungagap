@@ -22,6 +22,20 @@
 #define NDIM __NDIM_VALUE__
 
 
+/*--- Exported define values --------------------------------------------*/
+
+/**
+ * @def CONFIG_SUMMARY_STRING
+ * @brief  This holds the summary of the code documentation as shown
+ *         when running configure.
+ *
+ * This string can be used within the code to report the capabilities
+ * with which it was compiled at runtime.  That is tremendously useful
+ * to identify a binary.
+ */
+#define CONFIG_SUMMARY_STRING "__SUMMARYSTRING__"
+
+
 /*--- Consequences of the Code Features (do NOT change) -----------------*/
 #ifdef ENABLE_DEBUG
 #  undef NDEBUG

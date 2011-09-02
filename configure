@@ -873,18 +873,32 @@ find tools -name \*.d -exec rm {} +
 find tools -name \*.d.\* -exec rm {} +
 
 # Summarize the configuration
+#   This will also generate a file named summary.PID which will then be
+#   used to generate a static string usable from within the code to
+#   print the compilation configuration summary during runtime.
 $ECHO "" | tee -a config.log
-$ECHO "Summary" | tee -a config.log
-$ECHO -e "\to features in use/code properties:" | tee -a config.log
+$ECHO "Summary" | tee -a config.log | tee summary.$$
+$ECHO -e "\to features in use/code properties:" \
+	| tee -a config.log \
+	| tee -a summary.$$
 grep '#define' config.h \
-	| grep -v CONFIG_H \
+	| grep -v CONFIG_H \ \
+	| grep -v CONFIG_SUMMARY_STRING \
 	| awk '{print "\t\t"$2"\t"$3}' \
-	| tee -a config.log
+	| tee -a config.log \
+	| tee -a summary.$$
 
-$ECHO -e "\to features NOT in use:" | tee -a config.log
-grep '#undef' config.h | awk '{print "\t\t"$2}' | tee -a config.log
+$ECHO -e "\to features NOT in use:" \
+	| tee -a config.log \
+	| tee -a summary.$$
+grep '#undef' config.h \
+	| awk '{print "\t\t"$2}' \
+	| tee -a config.log \
+	| tee -a summary.$$
 
-$ECHO -e "\to programs and program options:" | tee -a config.log
+$ECHO -e "\to programs and program options:" \
+	| tee -a config.log \
+	| tee -a summary.$$
 cat <<_BLA_EOF >> bla.$$
 include Makefile.config
 
@@ -901,8 +915,19 @@ check:
 	@$ECHO -e "\t\tAR       = \$(AR)"
 	@$ECHO -e "\t\tMAKE     = \$(MAKE)"
 _BLA_EOF
-make -f bla.$$ check | tee -a config.log
+make -f bla.$$ check | tee -a config.log | tee -a summary.$$
 rm -f bla.$$
+
+cat summary.$$ \
+	| sed -e 's/$/\\n/' -e 's/\t/\\t/g' \
+	| tr -d '\n' \
+	| sed -e 's/\\/\\\\/g' \
+	> bla.$$
+sed -i.bak -e "s@__SUMMARYSTRING__@`cat bla.$$`@" config.h
+rm -f config.h.bak
+rm -f summary.$$ bla.$$
+
+# Now we are done
 $ECHO ""
 cat <<_END_EOF
 To build $PACKAGE_NAME, run \`make all'.

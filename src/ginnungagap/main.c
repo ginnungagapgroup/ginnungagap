@@ -191,8 +191,11 @@ local_checkForPrematureTermination(cmdline_t cmdline)
 	// This relies on the knowledge of which number is which option!
 	// Not nice style, but the respective calls are directly above.
 	if (cmdline_checkOptSetByNum(cmdline, 0)) {
-		if (rank == 0)
+		if (rank == 0) {
 			PRINT_VERSION_INFO(stdout);
+			PRINT_BUILT_INFO(stdout);
+			printf("%s", CONFIG_SUMMARY_STRING);
+		}
 		cmdline_del(&cmdline);
 		exit(EXIT_SUCCESS);
 	}

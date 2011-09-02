@@ -31,6 +31,7 @@ all:
 ifeq ($(GITDIR_AVAILABLE),true)
 	scripts/insert_revision.sh
 endif
+	scripts/insert_builtinfo.sh
 	$(MAKE) -C src
 	$(MAKE) -C tools
 

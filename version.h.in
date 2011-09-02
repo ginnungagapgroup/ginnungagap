@@ -5,16 +5,33 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#define PACKAGE_NAME             "ginnungagap"
-#define PACKAGE_OWNER            "Steffen Knollmann"
-#define PACKAGE_BUG_EMAIL        "steffen.knollmann@uam.es"
-#define PACKAGE_VERSION_MAJOR    0
-#define PACKAGE_VERSION_MINOR    4
-#define PACKAGE_VERSION_MICRO    0
+// States are 0: alpha, 1: beta, 2: release
+#define PACKAGE_STATE 0
+
+#define PACKAGE_NAME          "ginnungagap"
+#define PACKAGE_OWNER         "Steffen Knollmann"
+#define PACKAGE_BUG_EMAIL     "steffen.knollmann@uam.es"
+#define PACKAGE_VERSION_MAJOR 0
+#define PACKAGE_VERSION_MINOR 4
+#define PACKAGE_VERSION_MICRO 0
+#if (PACKAGE_STATE == 0)
+#  define PACKAGE_VERSION_EXTRA "(alpha)"
+#elif (PACKAGE_STATE == 1)
+#  define PACKAGE_VERSION_EXTRA "(beta)"
+#elif (PACKAGE_STATE == 2)
+#  define PACKAGE_VERSION_EXTRA "(release)"
+#else
+#  error "PACKAGE_STATE must be 0, 1, or 2"
+#endif
 #define PACKAGE_VERSION_REVISION "__REVISION__"
 
+#define PACKAGE_BUILT_USER "__BUILT_USER__"
+#define PACKAGE_BUILT_DATE "__BUILT_DATE__"
+#define PACKAGE_BUILT_HOST "__BUILT_HOST__"
+#define PACKAGE_BUILT_DIR  "__BUILT_DIR__"
+
 #define PRINT_VERSION_INFO(f)                                         \
-    fprintf((f), "\nThis is %s %i.%i.%i   %s\n\n"                     \
+    fprintf((f), "\nThis is %s %i.%i.%i %s  %s\n\n"                   \
                  "Copyright (C) 2010, 2011 %s\n"                      \
                  "This is free software; see the source for copying " \
                  "conditions.  There is NO \n"                        \
@@ -25,12 +42,20 @@
             PACKAGE_VERSION_MAJOR,                                    \
             PACKAGE_VERSION_MINOR,                                    \
             PACKAGE_VERSION_MICRO,                                    \
+            PACKAGE_VERSION_EXTRA,                                    \
             PACKAGE_VERSION_REVISION,                                 \
             PACKAGE_OWNER,                                            \
             PACKAGE_BUG_EMAIL);
 
+#define PRINT_BUILT_INFO(f)                                             \
+    fprintf((f), "\nBinary built by %s@%s (%s)\nfrom directory %s\n\n", \
+            PACKAGE_BUILT_USER,                                         \
+            PACKAGE_BUILT_HOST,                                         \
+            PACKAGE_BUILT_DATE,                                         \
+            PACKAGE_BUILT_DIR);
+
 #define PRINT_VERSION_INFO2(f, progname)                              \
-    fprintf((f), "\nThis is %s of %s %i.%i.%i   %s\n\n"               \
+    fprintf((f), "\nThis is %s of %s %i.%i.%i %s  %s\n\n"             \
                  "Copyright (C) 2010, 2011 %s\n"                      \
                  "This is free software; see the source for copying " \
                  "conditions.  There is NO \n"                        \
@@ -42,6 +67,7 @@
             PACKAGE_VERSION_MAJOR,                                    \
             PACKAGE_VERSION_MINOR,                                    \
             PACKAGE_VERSION_MICRO,                                    \
+            PACKAGE_VERSION_EXTRA,                                    \
             PACKAGE_VERSION_REVISION,                                 \
             PACKAGE_OWNER,                                            \
             PACKAGE_BUG_EMAIL);
