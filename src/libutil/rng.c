@@ -150,11 +150,13 @@ rng_getGauss(const rng_t  rng,
 		y  = -1.0 + 2.0 * sprng(rng->streams[streamNumber]);
 		r2 = x * x + y * y;
 	} while ((r2 > 1.0) || (r2 == 0.0));
-#else
-	diediedie(EXIT_FAILURE);
-#endif
 
 	return sigma * y * sqrt(-2.0 * log(r2) / r2) + mean;
+
+#else
+	diediedie(EXIT_FAILURE);
+	return 0.0;
+#endif
 }
 
 extern double
