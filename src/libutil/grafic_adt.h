@@ -24,6 +24,8 @@
 
 
 /*--- ADT implementation ------------------------------------------------*/
+
+/** @brief  Main structure for the Grafic object. */
 struct grafic_struct {
 	// Handling information
 	char     *graficFileName;

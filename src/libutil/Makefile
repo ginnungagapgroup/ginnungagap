@@ -27,6 +27,7 @@ sources = xmem.c \
           art.c \
           artHeader.c \
           cubepm.c \
+          cubepmFactory.c \
           stai.c \
           varArr.c \
           myTest.c

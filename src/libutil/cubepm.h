@@ -52,7 +52,7 @@ typedef enum {
 /*--- ADT handle --------------------------------------------------------*/
 
 /**
- * @brief  Defiens the handle for an CUBEPM object.
+ * @brief  Defines the handle for an CUBEPM object.
  */
 typedef struct cubepm_struct *cubepm_t;
 

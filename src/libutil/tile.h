@@ -64,6 +64,11 @@ tile_calcIdxsELAE(uint32_t           numGridCells,
                   uint32_t *restrict idxLo,
                   uint32_t *restrict idxHi);
 
+extern inline uint32_t
+tile_calcTileNumberForIdxELAE(uint32_t numGridCells,
+                              uint32_t numTiles,
+                              uint32_t idx);
+
 
 /** @} */
 

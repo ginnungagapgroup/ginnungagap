@@ -21,6 +21,8 @@
 
 
 /*--- ADT implementation ------------------------------------------------*/
+
+/** @brief  Main structure for the Gadget Header object. */
 struct gadgetHeader_struct {
 	/** The number of particles of each type in the file. */
 	uint32_t np[6];

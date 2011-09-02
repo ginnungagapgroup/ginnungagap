@@ -70,6 +70,47 @@ tile_calcIdxsELAE_test(void)
 }
 
 extern bool
+tile_calcTileNumberForIdxELAE_test(void)
+{
+	bool hasPassed = true;
+	int  rank      = 0;
+	uint32_t tileNumber,correct, idx;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	// Grid of 20 in 4 tiles (5 cells in each tile)
+	for (idx = 0, correct = 0; correct < 4; correct++) {
+		for (int i = 0; i < 5; i++) {
+			tileNumber = tile_calcTileNumberForIdxELAE(20, 4, idx++);
+			if (tileNumber != correct)
+				hasPassed = false;
+		}
+	}
+
+	// Grid of 27 in 5 tiles, 3x5 + 2x6
+	for (idx = 0, correct = 0; correct < 3; correct++) {
+		for (int i=0; i < 5; i++) {
+			tileNumber = tile_calcTileNumberForIdxELAE(27, 5, idx++);
+			if (tileNumber != correct)
+				hasPassed = false;
+		}
+	}
+	for (; correct < 5; correct++) {
+		for (int i=0; i < 6; i++) {
+			tileNumber = tile_calcTileNumberForIdxELAE(27, 5, idx++);
+			if (tileNumber != correct)
+				hasPassed = false;
+		}
+	}
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 tile_calcIdxsELAB_test(void)
 {
 	bool hasPassed = true;
@@ -110,6 +151,47 @@ tile_calcIdxsELAB_test(void)
 	tile_calcIdxsELAB(12, 4, 3, &idxLo, &idxHi);
 	if ((idxLo != 9) || (idxHi != 11))
 		hasPassed = false;
+
+	return hasPassed ? true : false;
+}
+
+extern bool
+tile_calcTileNumberForIdxELAB_test(void)
+{
+	bool hasPassed = true;
+	int  rank      = 0;
+	uint32_t tileNumber,correct, idx;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	// Grid of 20 in 4 tiles (5 cells in each tile)
+	for (idx = 0, correct = 0; correct < 4; correct++) {
+		for (int i = 0; i < 5; i++) {
+			tileNumber = tile_calcTileNumberForIdxELAB(20, 4, idx++);
+			if (tileNumber != correct)
+				hasPassed = false;
+		}
+	}
+
+	// Grid of 27 in 5 tiles, 2x6 + 3x5
+	for (idx = 0, correct = 0; correct < 2; correct++) {
+		for (int i=0; i < 6; i++) {
+			tileNumber = tile_calcTileNumberForIdxELAB(27, 5, idx++);
+			if (tileNumber != correct)
+				hasPassed = false;
+		}
+	}
+	for (; correct < 5; correct++) {
+		for (int i=0; i < 5; i++) {
+			tileNumber = tile_calcTileNumberForIdxELAB(27, 5, idx++);
+			if (tileNumber != correct)
+				hasPassed = false;
+		}
+	}
 
 	return hasPassed ? true : false;
 }

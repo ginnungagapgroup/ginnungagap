@@ -32,6 +32,15 @@ extern bool
 tile_calcIdxsELAE_test(void);
 
 /**
+ * @brief  This will test tile_calcTileNumberForIdxELAE().
+ *
+ * @return  Returns @c true if the test succeeded and @c false
+ *          otherwise.
+ */
+extern bool
+tile_calcTileNumberForIdxELAE_test(void);
+
+/**
  * @brief  This will test tile_calcIdxsELAB().
  *
  * @return  Returns @c true if the test succeeded and @c false
@@ -39,6 +48,15 @@ tile_calcIdxsELAE_test(void);
  */
 extern bool
 tile_calcIdxsELAB_test(void);
+
+/**
+ * @brief  This will test tile_calcTileNumberForIdxELAB().
+ *
+ * @return  Returns @c true if the test succeeded and @c false
+ *          otherwise.
+ */
+extern bool
+tile_calcTileNumberForIdxELAB_test(void);
 
 /**
  * @brief  This will test tile_calcNumLargeTilesEven().

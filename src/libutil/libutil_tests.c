@@ -111,7 +111,9 @@ main(int argc, char **argv)
 	if (rank == 0) {
 		printf("\nRunning tests for tile:\n");
 		RUNTEST(&tile_calcIdxsELAE_test, hasFailed);
+		RUNTEST(&tile_calcTileNumberForIdxELAE_test, hasFailed);
 		RUNTEST(&tile_calcIdxsELAB_test, hasFailed);
+		RUNTEST(&tile_calcTileNumberForIdxELAB_test, hasFailed);
 		RUNTEST(&tile_calcNumLargeTilesEven_test, hasFailed);
 		RUNTEST(&tile_calcNumSmallTilesEven_test, hasFailed);
 		RUNTEST(&tile_calcMinTileSizeEven_test, hasFailed);
