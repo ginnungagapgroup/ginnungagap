@@ -31,9 +31,20 @@ VER_MINOR=$(  grep 'define PACKAGE_VERSION_MINOR' version.h.in \
             | awk '{print $3}')
 VER_MICRO=$(  grep 'define PACKAGE_VERSION_MICRO' version.h.in \
             | awk '{print $3}')
+PACKAGE_STATE=$(  grep 'define PACKAGE_STATE' version.h.in \
+                | awk '{print $3}')
 
 # Get the tarball name prefix
-TARBALLNAME=$NAME-$VER_MAJOR.$VER_MINOR.$VER_MICRO
+case $PACKAGE_STATE in
+	0)
+		TARBALLNAME=$NAME-$VER_MAJOR.$VER_MINOR.$VER_MICRO-alpha
+		;;
+	1)
+		TARBALLNAME=$NAME-$VER_MAJOR.$VER_MINOR.$VER_MICRO-beta
+		;;
+	*)
+		TARBALLNAME=$NAME-$VER_MAJOR.$VER_MINOR.$VER_MICRO
+esac
 
 # Get a temporary name
 TMPNAME=$(date +"%y%m%M-%H%M%S")
