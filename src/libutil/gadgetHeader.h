@@ -576,7 +576,6 @@ gadgetHeader_getOmega0(const gadgetHeader_t gadgetHeader);
  *
  * @param[in]  gadgetHeader
  *                The header object to query.
- * @param[out]
  *
  * @return  Returns the density of the cosmological constant @$ z = 0.0
  *          @$ in units of the critical density.
@@ -642,7 +641,6 @@ gadgetHeader_getFlagEntropy(const gadgetHeader_t gadgetHeader);
  *
  * @param[in]  gadgetHeader
  *                The header object to query.
- * @param[out]
  *
  * @return  Returns the flag stored in the header, this should be 0 if
  *          single precision is used.

@@ -18,6 +18,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
 #include <stdint.h>
+#include <assert.h>
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
@@ -35,8 +36,7 @@
  */
 
 /**
- * @brief  Calculates the indices for a given tile using the ELAE
- *         method.
+ * @brief  Calculates the indices for a given tile.
  *
  * @param[in]   numGridCells
  *                 The number of cells.  This must be a positive value.
@@ -57,14 +57,26 @@
  *
  * @return  Returns nothing.
  */
-extern inline void
+extern void
 tile_calcIdxsELAE(uint32_t           numGridCells,
                   uint32_t           numTiles,
                   uint32_t           tileNumber,
                   uint32_t *restrict idxLo,
                   uint32_t *restrict idxHi);
 
-extern inline uint32_t
+/**
+ * @brief  Calculates the tile a given index is located in.
+ *
+ * @param[in]  numGridCells
+ *                The number of cells.
+ * @param[in]  numTiles
+ *                The number of tiles.
+ * @param[in]  idx
+ *                The index for which to locate the tile.
+ *
+ * @return  Returns the corresponding tile number.
+ */
+extern uint32_t
 tile_calcTileNumberForIdxELAE(uint32_t numGridCells,
                               uint32_t numTiles,
                               uint32_t idx);
@@ -84,12 +96,19 @@ tile_calcTileNumberForIdxELAE(uint32_t numGridCells,
  * @{
  */
 
-extern inline void
+/** \copydoc tile_calcIdxsELAE() */
+extern void
 tile_calcIdxsELAB(uint32_t           numGridCells,
                   uint32_t           numTiles,
                   uint32_t           tileNumber,
                   uint32_t *restrict idxLo,
                   uint32_t *restrict idxHi);
+
+/** \copydoc tile_calcTileNumberForIdxELAE() */
+extern uint32_t
+tile_calcTileNumberForIdxELAB(uint32_t numGridCells,
+                              uint32_t numTiles,
+                              uint32_t idx);
 
 
 /** @} */
@@ -113,9 +132,14 @@ tile_calcIdxsELAB(uint32_t           numGridCells,
  *
  * @return  Returns the number of cells in a large tile.
  */
-extern inline uint32_t
-tile_calcNumLargeTilesEven(uint32_t numGridCells, uint32_t numTiles);
+static inline uint32_t
+tile_calcNumLargeTilesEven(uint32_t numGridCells, uint32_t numTiles)
+{
+	assert(numGridCells > 0);
+	assert(numTiles > 0 && numTiles <= numGridCells);
 
+	return numGridCells % numTiles;
+}
 
 /**
  * @brief  Calculates the number of cells in the small tiles for evenly
@@ -130,26 +154,11 @@ tile_calcNumLargeTilesEven(uint32_t numGridCells, uint32_t numTiles);
  *
  * @return  Returns the number of cells in a small tile.
  */
-extern inline uint32_t
-tile_calcNumSmallTilesEven(uint32_t numGridCells, uint32_t numTiles);
-
-
-/**
- * @brief  Calculates the size of the small tiles for evenly tiled
- *         methods.
- *
- * @param[in]  numGridCells
- *                 The number of cells.  This must be a positive value.
- * @param[in]   numTiles
- *                 The number of tiles the @c nCells cells are spread
- *                 over.  This must be a positive number less or equal
- *                 to @c numGridCells.
- *
- * @return  Returns the number of cells in the smallest tile.
- */
-extern inline uint32_t
-tile_calcMinTileSizeEven(uint32_t numGridCells, uint32_t numTiles);
-
+static inline uint32_t
+tile_calcNumSmallTilesEven(uint32_t numGridCells, uint32_t numTiles)
+{
+	return numTiles - tile_calcNumLargeTilesEven(numGridCells, numTiles);
+}
 
 /**
  * @brief  Calculates the size of the small tiles for evenly tiled
@@ -164,9 +173,36 @@ tile_calcMinTileSizeEven(uint32_t numGridCells, uint32_t numTiles);
  *
  * @return  Returns the number of cells in the smallest tile.
  */
-extern inline uint32_t
-tile_calcMaxTileSizeEven(uint32_t numGridCells, uint32_t numTiles);
+static inline uint32_t
+tile_calcMinTileSizeEven(uint32_t numGridCells, uint32_t numTiles)
+{
+	assert(numGridCells > 0);
+	assert(numTiles >= 0 && numTiles < numGridCells);
 
+	return numGridCells / numTiles;
+}
+
+/**
+ * @brief  Calculates the size of the small tiles for evenly tiled
+ *         methods.
+ *
+ * @param[in]  numGridCells
+ *                 The number of cells.  This must be a positive value.
+ * @param[in]   numTiles
+ *                 The number of tiles the @c nCells cells are spread
+ *                 over.  This must be a positive number less or equal
+ *                 to @c numGridCells.
+ *
+ * @return  Returns the number of cells in the smallest tile.
+ */
+static inline uint32_t
+tile_calcMaxTileSizeEven(uint32_t numGridCells, uint32_t numTiles)
+{
+	if (tile_calcNumLargeTilesEven(numGridCells, numTiles) != 0)
+		return tile_calcMinTileSizeEven(numGridCells, numTiles) + 1;
+	else
+		return tile_calcMinTileSizeEven(numGridCells, numTiles);
+}
 
 /** @} */
 

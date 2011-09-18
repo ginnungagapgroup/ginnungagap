@@ -21,7 +21,7 @@
 
 /*--- Implementations of exported functions -----------------------------*/
 extern uint64_t
-lIdx_fromCoordNd(const uint32_t *restrict coord,
+lIdx_fromCoordNd(const uint32_t *restrict coords,
                  const uint32_t *restrict dims,
                  uint32_t                 nd)
 {
@@ -29,7 +29,7 @@ lIdx_fromCoordNd(const uint32_t *restrict coord,
 	uint64_t offset = 1;
 
 	for (uint32_t i = 0; i < nd; i++) {
-		idx    += coord[i] * offset;
+		idx    += coords[i] * offset;
 		offset *= dims[i];
 	}
 

@@ -21,7 +21,7 @@
 
 
 /*--- Implementations of exported functios ------------------------------*/
-extern inline void
+extern void
 tile_calcIdxsELAE(uint32_t           numGridCells,
                   uint32_t           numTiles,
                   uint32_t           tileNumber,
@@ -47,7 +47,7 @@ tile_calcIdxsELAE(uint32_t           numGridCells,
 	*idxHi += (tileNumber < numSmallTiles ? minTileSize - 1 : minTileSize);
 }
 
-extern inline uint32_t
+extern uint32_t
 tile_calcTileNumberForIdxELAE(uint32_t numGridCells,
                               uint32_t numTiles,
                               uint32_t idx)
@@ -77,7 +77,7 @@ tile_calcTileNumberForIdxELAE(uint32_t numGridCells,
 	return tileNumber;
 }
 
-extern inline void
+extern void
 tile_calcIdxsELAB(uint32_t           numGridCells,
                   uint32_t           numTiles,
                   uint32_t           tileNumber,
@@ -105,7 +105,7 @@ tile_calcIdxsELAB(uint32_t           numGridCells,
 	*idxHi += (tileNumber < numLargeTiles ? minTileSize : minTileSize - 1);
 }
 
-extern inline uint32_t
+extern uint32_t
 tile_calcTileNumberForIdxELAB(uint32_t numGridCells,
                               uint32_t numTiles,
                               uint32_t idx)
@@ -133,37 +133,4 @@ tile_calcTileNumberForIdxELAB(uint32_t numGridCells,
 	}
 
 	return tileNumber;
-}
-
-extern inline uint32_t
-tile_calcNumLargeTilesEven(uint32_t numGridCells, uint32_t numTiles)
-{
-	assert(numGridCells > 0);
-	assert(numTiles > 0 && numTiles <= numGridCells);
-
-	return numGridCells % numTiles;
-}
-
-extern inline uint32_t
-tile_calcNumSmallTilesEven(uint32_t numGridCells, uint32_t numTiles)
-{
-	return numTiles - tile_calcNumLargeTilesEven(numGridCells, numTiles);
-}
-
-extern inline uint32_t
-tile_calcMinTileSizeEven(uint32_t numGridCells, uint32_t numTiles)
-{
-	assert(numGridCells > 0);
-	assert(numTiles >= 0 && numTiles < numGridCells);
-
-	return numGridCells / numTiles;
-}
-
-extern inline uint32_t
-tile_calcMaxTileSizeEven(uint32_t numGridCells, uint32_t numTiles)
-{
-	if (tile_calcNumLargeTilesEven(numGridCells, numTiles) != 0)
-		return tile_calcMinTileSizeEven(numGridCells, numTiles) + 1;
-	else
-		return tile_calcMinTileSizeEven(numGridCells, numTiles);
 }
