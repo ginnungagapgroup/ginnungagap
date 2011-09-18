@@ -18,6 +18,7 @@ sources = xmem.c \
           timer.c \
           rng.c \
           tile.c \
+          lIdx.c \
           refCounter.c \
           bov.c \
           grafic.c \
@@ -43,6 +44,7 @@ sourcesTests = lib${LIBNAME}_tests.c \
                xstring_tests.c \
                endian_tests.c \
                tile_tests.c \
+               lIdx_tests.c \
                bov_tests.c \
                grafic_tests.c \
                cubepm_tests.c \

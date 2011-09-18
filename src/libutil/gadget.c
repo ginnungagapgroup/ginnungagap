@@ -28,8 +28,17 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+
+/**
+ * @brief  Gives the maximum amount of digits allowed in the file
+ *         numbers.
+ */
 #define LOCAL_MAX_FILEDIGITS 7
-#define LOCAL_MAX_NUMFILES   10000000
+
+/**
+ * @brief  Gives the largest amount of physical files allowed.
+ */
+#define LOCAL_MAX_NUMFILES 10000000
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -46,11 +55,12 @@ gadget_new(const char *fileNameStem, int numFiles)
 	assert(fileNameStem != NULL);
 	assert(numFiles > 0 && numFiles < LOCAL_MAX_NUMFILES);
 
-	gadget            = xmalloc(sizeof(struct gadget_struct));
-	gadget->numFiles  = numFiles;
-	gadget->fileNames = xmalloc(sizeof(char *) * numFiles);
-	gadget->f         = xmalloc(sizeof(FILE *) * numFiles);
-	gadget->headers   = xmalloc(sizeof(gadgetHeader_t) * numFiles);
+	gadget              = xmalloc(sizeof(struct gadget_struct));
+	gadget->numFiles    = numFiles;
+	gadget->fileVersion = 2;
+	gadget->fileNames   = xmalloc(sizeof(char *) * numFiles);
+	gadget->f           = xmalloc(sizeof(FILE *) * numFiles);
+	gadget->headers     = xmalloc(sizeof(gadgetHeader_t) * numFiles);
 	local_constructFileNames(gadget, fileNameStem);
 	for (int i = 0; i < gadget->numFiles; i++) {
 		gadget->f[i]       = NULL;
@@ -82,8 +92,25 @@ gadget_del(gadget_t *gadget)
 	*gadget = NULL;
 }
 
+extern void
+gadget_setFileVersion(gadget_t gadget, int version)
+{
+	assert(gadget != NULL);
+	assert(version == 1 || version == 2);
+
+	gadget->fileVersion = version;
+}
+
 extern int
-gadget_getNumFiles(gadget_t gadget)
+gadget_getFileVersion(const gadget_t gadget)
+{
+	assert(gadget != NULL);
+
+	return gadget->fileVersion;
+}
+
+extern int
+gadget_getNumFiles(const gadget_t gadget)
 {
 	assert(gadget != NULL);
 
@@ -128,11 +155,11 @@ gadget_close(gadget_t gadget, int numFile)
 }
 
 extern void
-gadget_write(gadget_t gadget,
-             int      numFile,
-             float    *pos,
-             float    *vel,
-             uint32_t *id)
+gadget_write(gadget_t                 gadget,
+             int                      numFile,
+             const float *restrict    pos,
+             const float *restrict    vel,
+             const uint32_t *restrict id)
 {
 	uint32_t block;
 	uint32_t numPartWrite;
@@ -145,26 +172,31 @@ gadget_write(gadget_t gadget,
 
 	numPartWrite = gadgetHeader_getNumPartsInFile(gadget->headers[numFile]);
 
-	gadgetUtil_writeBlock(gadget->f[numFile], "HEAD", GADGETHEADER_SIZE);
+	if (gadget->fileVersion >= 2)
+		gadgetUtil_writeBlock(gadget->f[numFile], "HEAD",
+		                      GADGETHEADER_SIZE);
 	gadgetHeader_write(gadget->headers[numFile], gadget->f[numFile]);
 
 	block = numPartWrite * 3 * sizeof(float);
-	gadgetUtil_writeBlock(gadget->f[numFile], "POS ", block);
+	if (gadget->fileVersion >= 2)
+		gadgetUtil_writeBlock(gadget->f[numFile], "POS ", block);
 	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
 	xfwrite(pos, sizeof(float) * 3, numPartWrite, gadget->f[numFile]);
 	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
 
-	gadgetUtil_writeBlock(gadget->f[numFile], "VEL ", block);
+	if (gadget->fileVersion >= 2)
+		gadgetUtil_writeBlock(gadget->f[numFile], "VEL ", block);
 	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
 	xfwrite(vel, sizeof(float) * 3, numPartWrite, gadget->f[numFile]);
 	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
 
 	block = numPartWrite * sizeof(float);
-	gadgetUtil_writeBlock(gadget->f[numFile], "ID  ", block);
+	if (gadget->fileVersion >= 2)
+		gadgetUtil_writeBlock(gadget->f[numFile], "ID  ", block);
 	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
 	xfwrite(id, sizeof(int), numPartWrite, gadget->f[numFile]);
 	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
-}
+} /* gadget_write */
 
 /*--- Implementations of local functions --------------------------------*/
 static void

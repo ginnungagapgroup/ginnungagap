@@ -10,6 +10,7 @@
 #include "varArr_tests.h"
 #include "endian_tests.h"
 #include "tile_tests.h"
+#include "lIdx_tests.h"
 #include "bov_tests.h"
 #include "grafic_tests.h"
 #include "cubepm_tests.h"
@@ -118,6 +119,16 @@ main(int argc, char **argv)
 		RUNTEST(&tile_calcNumSmallTilesEven_test, hasFailed);
 		RUNTEST(&tile_calcMinTileSizeEven_test, hasFailed);
 		RUNTEST(&tile_calcMaxTileSizeEven_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for lIdx:\n");
+		RUNTEST(&lIdx_fromCoord2d_test, hasFailed);
+		RUNTEST(&lIdx_toCoord2d_test, hasFailed);
+		RUNTEST(&lIdx_fromCoord3d_test, hasFailed);
+		RUNTEST(&lIdx_toCoord3d_test, hasFailed);
+		RUNTEST(&lIdx_fromCoordNd_test, hasFailed);
+		RUNTEST(&lIdx_toCoordNd_test, hasFailed);
 	}
 
 	if (rank == 0) {

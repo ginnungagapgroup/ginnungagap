@@ -29,6 +29,8 @@
 struct gadget_struct {
 	/** @brief The number of files comprising the snapshot. */
 	int            numFiles;
+	/** @brief Indicates the Gadget file version (Gadget v1 vs. v2). */
+	int            fileVersion;
 	/** @brief An array of length #numFiles holding the file names. */
 	char           **fileNames;
 	/** @brief An array of length #numFiles holding the file pointer. */
