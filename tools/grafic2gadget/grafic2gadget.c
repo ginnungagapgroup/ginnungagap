@@ -131,6 +131,7 @@ grafic2gadget_run(grafic2gadget_t g2g)
 	gvz    = grafic_newFromFile(g2g->graficFileNameVz);
 
 	gadget = gadget_new(g2g->gadgetFileStem, g2g->numGadgetFiles);
+	gadget_setFileVersion(gadget, 1);
 
 	local_getFactors(gvx, np, &dx, &boxsize, &vFact, &aInit, &model);
 	baseHeader = local_getBaseHeader(gadget, boxsize, aInit, model, np);
