@@ -190,13 +190,57 @@ gadget_write(gadget_t                 gadget,
 	xfwrite(vel, sizeof(float) * 3, numPartWrite, gadget->f[numFile]);
 	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
 
-	block = numPartWrite * sizeof(float);
+	block = numPartWrite * sizeof(uint32_t);
 	if (gadget->fileVersion >= 2)
 		gadgetUtil_writeBlock(gadget->f[numFile], "ID  ", block);
 	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
-	xfwrite(id, sizeof(int), numPartWrite, gadget->f[numFile]);
+	xfwrite(id, sizeof(uint32_t), numPartWrite, gadget->f[numFile]);
 	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
 } /* gadget_write */
+
+extern void
+gadget_writeLong(gadget_t                 gadget,
+                 int                      numFile,
+                 const float *restrict    pos,
+                 const float *restrict    vel,
+                 const uint64_t *restrict id)
+{
+	uint32_t block;
+	uint32_t numPartWrite;
+
+	assert(gadget != NULL);
+	assert(numFile >= 0 && numFile < gadget->numFiles);
+	assert(gadget->f[numFile] != NULL);
+	assert(gadget->mode == GADGET_MODE_WRITE);
+	assert(gadget->headers[numFile] != NULL);
+
+	numPartWrite = gadgetHeader_getNumPartsInFile(gadget->headers[numFile]);
+
+	if (gadget->fileVersion >= 2)
+		gadgetUtil_writeBlock(gadget->f[numFile], "HEAD",
+		                      GADGETHEADER_SIZE);
+	gadgetHeader_write(gadget->headers[numFile], gadget->f[numFile]);
+
+	block = numPartWrite * 3 * sizeof(float);
+	if (gadget->fileVersion >= 2)
+		gadgetUtil_writeBlock(gadget->f[numFile], "POS ", block);
+	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
+	xfwrite(pos, sizeof(float) * 3, numPartWrite, gadget->f[numFile]);
+	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
+
+	if (gadget->fileVersion >= 2)
+		gadgetUtil_writeBlock(gadget->f[numFile], "VEL ", block);
+	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
+	xfwrite(vel, sizeof(float) * 3, numPartWrite, gadget->f[numFile]);
+	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
+
+	block = numPartWrite * sizeof(uint64_t);
+	if (gadget->fileVersion >= 2)
+		gadgetUtil_writeBlock(gadget->f[numFile], "ID  ", block);
+	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
+	xfwrite(id, sizeof(uint64_t), numPartWrite, gadget->f[numFile]);
+	xfwrite(&block, sizeof(uint32_t), 1, gadget->f[numFile]);
+} /* gadget_writeLong */
 
 /*--- Implementations of local functions --------------------------------*/
 static void

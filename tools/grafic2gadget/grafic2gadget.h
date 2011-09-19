@@ -22,7 +22,8 @@ grafic2gadget_new(const char *graficFileNameVx,
                   const char *graficFileNameVz,
                   const char *outputFileStem,
                   int        numOutFiles,
-                  bool       force);
+                  bool       force,
+                  bool       useLong);
 
 extern void
 grafic2gadget_run(grafic2gadget_t g2g);

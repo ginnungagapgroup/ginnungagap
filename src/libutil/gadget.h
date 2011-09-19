@@ -224,6 +224,13 @@ gadget_write(gadget_t                 gadget,
              const float *restrict    vel,
              const uint32_t *restrict id);
 
+extern void
+gadget_writeLong(gadget_t                 gadget,
+                 int                      numFile,
+                 const float *restrict    pos,
+                 const float *restrict    vel,
+                 const uint64_t *restrict id);
+
 
 /** @} */
 

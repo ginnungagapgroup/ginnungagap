@@ -61,6 +61,14 @@ local_initposid(float    *pos,
                 double   dx);
 
 static void
+local_initposidLong(float    *pos,
+                    uint64_t *id,
+                    uint32_t np[3],
+                    int      zStart,
+                    int      zEnd,
+                    double   dx);
+
+static void
 local_vel2pos(float    *vel,
               float    *pos,
               uint64_t num,
@@ -70,6 +78,9 @@ local_vel2pos(float    *vel,
 static void
 local_convertVel(float *vel, uint64_t num, double aInit);
 
+static void
+local_checkForIDOverflow(uint32_t np[3], bool useLongIDs);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern grafic2gadget_t
@@ -78,7 +89,8 @@ grafic2gadget_new(const char *graficFileNameVx,
                   const char *graficFileNameVz,
                   const char *outputFileStem,
                   int        numOutFiles,
-                  bool       force)
+                  bool       force,
+                  bool       useLong)
 {
 	grafic2gadget_t g2g;
 
@@ -95,6 +107,7 @@ grafic2gadget_new(const char *graficFileNameVx,
 	g2g->numGadgetFiles   = numOutFiles;
 	g2g->gadgetFileStem   = xstrdup(outputFileStem);
 	g2g->force            = force;
+	g2g->useLongIDs       = useLong;
 
 	return g2g;
 }
@@ -134,6 +147,7 @@ grafic2gadget_run(grafic2gadget_t g2g)
 	gadget_setFileVersion(gadget, 1);
 
 	local_getFactors(gvx, np, &dx, &boxsize, &vFact, &aInit, &model);
+	local_checkForIDOverflow(np, g2g->useLongIDs);
 	baseHeader = local_getBaseHeader(gadget, boxsize, aInit, model, np);
 
 	numPlane   = np[0] * np[1];
@@ -141,8 +155,8 @@ grafic2gadget_run(grafic2gadget_t g2g)
 		int            numSlabStart, numSlabEnd, numSlabs;
 		int64_t        numLocal;
 		float          *vel, *pos;
-		uint32_t       *id;
-		uint32_t       npLocal[6] = { 0, 0, 0, 0, 0, 0 };
+		void           *id;
+		uint32_t       npLocal[6] = {0, 0, 0, 0, 0, 0};
 		gadgetHeader_t myHeader;
 
 		local_getSlabNumbers(i, g2g->numGadgetFiles, np[2],
@@ -155,7 +169,10 @@ grafic2gadget_run(grafic2gadget_t g2g)
 
 		vel = xmalloc(sizeof(float) * numLocal * 3);
 		pos = xmalloc(sizeof(float) * numLocal * 3);
-		id  = xmalloc(sizeof(uint32_t) * numLocal);
+		if (g2g->useLongIDs)
+			id = xmalloc(sizeof(uint64_t) * numLocal);
+		else
+			id = xmalloc(sizeof(uint32_t) * numLocal);
 
 		for (int j = numSlabStart; j <= numSlabEnd; j++) {
 			grafic_readSlab(gvx, vel + 3 * (j - numSlabStart) * numPlane,
@@ -167,12 +184,20 @@ grafic2gadget_run(grafic2gadget_t g2g)
 			                vel + 3 * (j - numSlabStart) * numPlane + 2,
 			                GRAFIC_FORMAT_FLOAT, 3, j);
 		}
-		local_initposid(pos, id, np, numSlabStart, numSlabEnd, dx);
+		if (g2g->useLongIDs)
+			local_initposid(pos, (uint32_t *)id, np,
+			                numSlabStart, numSlabEnd, dx);
+		else
+			local_initposidLong(pos, (uint64_t *)id, np,
+			                    numSlabStart, numSlabEnd, dx);
 		local_vel2pos(vel, pos, numLocal, boxsize, vFact);
 		local_convertVel(vel, numLocal, aInit);
 
 		gadget_open(gadget, GADGET_MODE_WRITE, i);
-		gadget_write(gadget, i, pos, vel, id);
+		if (g2g->useLongIDs)
+			gadget_writeLong(gadget, i, pos, vel, (uint64_t *)id);
+		else
+			gadget_write(gadget, i, pos, vel, (uint32_t *)id);
 		gadget_close(gadget, i);
 
 		xfree(id);
@@ -304,6 +329,30 @@ local_initposid(float    *pos,
 }
 
 static void
+local_initposidLong(float    *pos,
+                    uint64_t *id,
+                    uint32_t np[3],
+                    int      zStart,
+                    int      zEnd,
+                    double   dx)
+{
+#ifdef _OPENMP
+#  pragma omp parallel for
+#endif
+	for (uint64_t k = zStart; k <= zEnd; k++) {
+		for (uint64_t j = 0; j < np[1]; j++) {
+			for (uint64_t i = 0; i < np[0]; i++) {
+				size_t idx = i + j * np[0] + (k - zStart) * np[1] * np[0];
+				id[idx]          = i + j * np[0] + k * np[1] * np[0];
+				pos[idx * 3]     = (float)((i + .5) * dx);
+				pos[idx * 3 + 1] = (float)((j + .5) * dx);
+				pos[idx * 3 + 2] = (float)((k + .5) * dx);
+			}
+		}
+	}
+}
+
+static void
 local_vel2pos(float    *vel,
               float    *pos,
               uint64_t num,
@@ -341,5 +390,19 @@ local_convertVel(float *vel, uint64_t num, double aInit)
 		vel[i * 3]     *= (float)fac;
 		vel[i * 3 + 1] *= (float)fac;
 		vel[i * 3 + 2] *= (float)fac;
+	}
+}
+
+static void
+local_checkForIDOverflow(uint32_t np[3], bool useLongIDs)
+{
+	uint64_t numParticles;
+
+	numParticles = np[0];
+	numParticles *= np[1];
+	numParticles *= np[2];
+
+	if (numParticles > UINT32_MAX && !useLongIDs) {
+		fprintf(stderr, "WARNING:  IDs are overflowing!\n");
 	}
 }

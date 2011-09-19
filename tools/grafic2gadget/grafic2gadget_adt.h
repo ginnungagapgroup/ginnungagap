@@ -19,6 +19,7 @@ struct grafic2gadget_struct {
 	int  numGadgetFiles;
 	char *gadgetFileStem;
 	bool force;
+	bool useLongIDs;
 };
 
 

@@ -28,6 +28,7 @@ static char *localGraficFileNameVz = NULL;
 static char *localOutputFileStem   = NULL;
 static int  localNumGadgetFiles    = 1;
 static bool localForce             = false;
+static bool localUseLong           = false;
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -78,7 +79,8 @@ local_initEnvironment(int *argc, char ***argv)
 	cmdline = local_cmdlineSetup();
 	cmdline_parse(cmdline, *argc, *argv);
 	local_checkForPrematureTermination(cmdline);
-	localForce = cmdline_checkOptSetByNum(cmdline, 2);
+	localForce   = cmdline_checkOptSetByNum(cmdline, 2);
+	localUseLong = cmdline_checkOptSetByNum(cmdline, 4);
 	cmdline_getArgValueByNum(cmdline, 0, &localGraficFileNameVx);
 	cmdline_getArgValueByNum(cmdline, 1, &localGraficFileNameVy);
 	cmdline_getArgValueByNum(cmdline, 2, &localGraficFileNameVz);
@@ -133,7 +135,7 @@ local_cmdlineSetup(void)
 {
 	cmdline_t cmdline;
 
-	cmdline = cmdline_new(4, 5, THIS_PROGNAME);
+	cmdline = cmdline_new(4, 6, THIS_PROGNAME);
 	(void)cmdline_addOpt(cmdline, "version",
 	                     "This will output a version information.",
 	                     false, CMDLINE_TYPE_NONE);
@@ -146,6 +148,9 @@ local_cmdlineSetup(void)
 	(void)cmdline_addOpt(cmdline, "numFiles",
 	                     "Number of output files (defaults to 1).",
 	                     true, CMDLINE_TYPE_INT);
+	(void)cmdline_addOpt(cmdline, "longIDs",
+	                     "Set this to use 64bit IDs.",
+	                     false, CMDLINE_TYPE_NONE);
 	(void)cmdline_addArg(cmdline, "The grafic file containing vx.",
 	                     CMDLINE_TYPE_STRING);
 	(void)cmdline_addArg(cmdline, "The grafic file containing vy.",
@@ -159,7 +164,7 @@ local_cmdlineSetup(void)
 	                     CMDLINE_TYPE_STRING);
 
 	return cmdline;
-}
+} /* local_cmdlineSetup */
 
 static void
 local_checkForPrematureTermination(cmdline_t cmdline)
@@ -193,7 +198,8 @@ local_getG2g(void)
 	                        localGraficFileNameVz,
 	                        localOutputFileStem,
 	                        localNumGadgetFiles,
-	                        localForce);
+	                        localForce,
+	                        localUseLong);
 
 	return g2g;
 }
