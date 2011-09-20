@@ -24,7 +24,23 @@
 
 
 /*--- Local variables ---------------------------------------------------*/
+
+/** @brief  Stores the name of the ini file used for the run.  */
 char *localIniFname = NULL;
+
+/**
+ * @brief  Switches between full run mode (standard) and verify mode.
+ *
+ * Verify mode will stop after setting up the run.
+ */
+bool localVerify = false;
+
+/**
+ * @brief  Switches between full run mode (standard) and only init.
+ *
+ * If this is @c true, the code will stop after initialization.
+ */
+bool localInitOnly = false;
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -67,7 +83,13 @@ main(int argc, char **argv)
 	local_registerCleanUpFunctions();
 
 	ginnungagap = local_getGinnungagap();
+	if (localVerify)
+		return EXIT_SUCCESS;
+
 	ginnungagap_init(ginnungagap);
+	if (localInitOnly)
+		return EXIT_SUCCESS;
+
 	ginnungagap_run(ginnungagap);
 	ginnungagap_del(&ginnungagap);
 
@@ -91,6 +113,8 @@ local_initEnvironment(int *argc, char ***argv)
 	cmdline_parse(cmdline, *argc, *argv);
 	local_checkForPrematureTermination(cmdline);
 	cmdline_getArgValueByNum(cmdline, 0, &localIniFname);
+	localVerify   = cmdline_checkOptSetByNum(cmdline, 2);
+	localInitOnly = cmdline_checkOptSetByNum(cmdline, 3);
 	cmdline_del(&cmdline);
 }
 
@@ -167,12 +191,18 @@ local_cmdlineSetup(void)
 {
 	cmdline_t cmdline;
 
-	cmdline = cmdline_new(1, 2, PACKAGE_NAME);
+	cmdline = cmdline_new(1, 4, PACKAGE_NAME);
 	(void)cmdline_addOpt(cmdline, "version",
 	                     "This will output a version information.",
 	                     false, CMDLINE_TYPE_NONE);
 	(void)cmdline_addOpt(cmdline, "help",
 	                     "This will print this help text.",
+	                     false, CMDLINE_TYPE_NONE);
+	(void)cmdline_addOpt(cmdline, "verify",
+	                     "This will stop after reading the ini file.",
+	                     false, CMDLINE_TYPE_NONE);
+	(void)cmdline_addOpt(cmdline, "initOnly",
+	                     "This will stop after initialisation.",
 	                     false, CMDLINE_TYPE_NONE);
 	(void)cmdline_addArg(cmdline,
 	                     "An ini file containing the configuration.",
