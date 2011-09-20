@@ -1,13 +1,22 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GINNUNGAGAPSETUP_H
-#define GINNUNGAGAPSETUP_H
+#ifndef G9PSETUP_H
+#define G9PSETUP_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file g9pSetup.h
+ * @ingroup  ginnungagapSetup
+ * @brief  Provides the interface to the setup routine.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
+#include "g9pConfig.h"
 #include "g9pNorm.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -17,13 +26,13 @@
 /*--- ADT handle --------------------------------------------------------*/
 
 /** @brief  Defines the handle to the setup structure. */
-typedef struct ginnungagapSetup_struct *ginnungagapSetup_t;
+typedef struct g9pSetup_struct *g9pSetup_t;
 
 
 /*--- Implementation of main structure ----------------------------------*/
 
 /** @brief  The setup structure */
-struct ginnungagapSetup_struct {
+struct g9pSetup_struct {
 	/** @brief  The size of the target grid. */
 	uint32_t       dim1D;
 	/** @brief  Size of the simulation box in Mpc/h. */
@@ -51,8 +60,8 @@ struct ginnungagapSetup_struct {
  *
  * @return  Returns a new setup structure.
  */
-extern ginnungagapSetup_t
-ginnungagapSetup_new(parse_ini_t ini);
+extern g9pSetup_t
+g9pSetup_new(parse_ini_t ini);
 
 
 /**
@@ -66,7 +75,16 @@ ginnungagapSetup_new(parse_ini_t ini);
  * @return  Returns nothing.
  */
 extern void
-ginnungagapSetup_del(ginnungagapSetup_t *setup);
+g9pSetup_del(g9pSetup_t *setup);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup ginnungagapSetup
+ * @ingroup ginnungagap
+ * @brief Provides the setup of ginnungagap (from an ini file).
+ */
 
 
 #endif

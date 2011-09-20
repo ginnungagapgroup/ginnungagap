@@ -8,12 +8,13 @@ include ../../Makefile.config
 
 progName = ginnungagap
 
+# g9p is short for ginnungagap; g, 9 other characters, p
 sources = main.c \
           $(progName).c \
-          ginnungagapSetup.c \
-          ginnungagapInit.c \
-          ginnungagapWN.c \
-          ginnungagapIC.c \
+          g9pSetup.c \
+          g9pInit.c \
+          g9pWN.c \
+          g9pIC.c \
           g9pNorm.c
 
 include ../../Makefile.rules

@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -6,10 +6,19 @@
 #define GINNUNGAGAP_ADT_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file ginnungagap_adt.h
+ * @ingroup  ginnungagap
+ * @brief  Provides implementation of the main structure.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
-#include "ginnungagapSetup.h"
-#include "ginnungagapWN.h"
+#include "g9pConfig.h"
+#include "g9pSetup.h"
+#include "g9pWN.h"
 #include "../libcosmo/cosmoModel.h"
 #include "../libcosmo/cosmoPk.h"
 #include "../libgrid/gridRegular.h"
@@ -20,10 +29,10 @@
 
 /*--- Implemention of main structure ------------------------------------*/
 struct ginnungagap_struct {
-	ginnungagapSetup_t   setup;
+	g9pSetup_t           setup;
 	cosmoModel_t         model;
 	cosmoPk_t            pk;
-	ginnungagapWN_t      whiteNoise;
+	g9pWN_t              whiteNoise;
 	gridRegular_t        grid;
 	gridRegularDistrib_t gridDistrib;
 	gridRegularFFT_t     gridFFT;

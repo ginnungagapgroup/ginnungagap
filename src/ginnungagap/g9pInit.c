@@ -1,11 +1,20 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file g9pInit.c
+ * @ingroup  ginnungagapInit
+ * @brief  Provides the implementation of the initialistion routine.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
-#include "ginnungagapInit.h"
+#include "g9pConfig.h"
+#include "g9pInit.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -62,12 +71,12 @@ local_calcSigmaBox(localFreqs_t k, cosmoPk_t pk, int rank);
 
 /*--- Implementations of exported functios ------------------------------*/
 extern void
-ginnungagapInit_init(double         boxsizeInMpch,
-                     uint32_t       dim1D,
-                     double         zInit,
-                     cosmoPk_t      pk,
-                     cosmoModel_t   model,
-                     g9pNorm_mode_t normalisationMode)
+g9pInit_init(double         boxsizeInMpch,
+             uint32_t       dim1D,
+             double         zInit,
+             cosmoPk_t      pk,
+             cosmoModel_t   model,
+             g9pNorm_mode_t normalisationMode)
 {
 	localFreqs_struct_t k;
 	int                 rank = 0;

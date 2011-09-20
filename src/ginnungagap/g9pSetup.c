@@ -1,11 +1,20 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file g9pSetup.c
+ * @ingroup  ginnungagapSetup
+ * @brief  Provides the implemenation of the setup structure.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
-#include "ginnungagapSetup.h"
+#include "g9pConfig.h"
+#include "g9pSetup.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -43,20 +52,20 @@ local_getNormModeFromIni(parse_ini_t ini);
  * @return  Returns nothing.
  */
 static void
-local_parseMPIStuff(ginnungagapSetup_t setup, parse_ini_t ini);
+local_parseMPIStuff(g9pSetup_t setup, parse_ini_t ini);
 
 #endif
 
 
 /*--- Implementations of exported functios ------------------------------*/
-extern ginnungagapSetup_t
-ginnungagapSetup_new(parse_ini_t ini)
+extern g9pSetup_t
+g9pSetup_new(parse_ini_t ini)
 {
-	ginnungagapSetup_t setup;
+	g9pSetup_t setup;
 
 	assert(ini != NULL);
 
-	setup = xmalloc(sizeof(struct ginnungagapSetup_struct));
+	setup = xmalloc(sizeof(struct g9pSetup_struct));
 	getFromIni(&(setup->dim1D), parse_ini_get_uint32,
 	           ini, "dim1D", "Ginnungagap");
 	getFromIni(&(setup->boxsizeInMpch), parse_ini_get_double,
@@ -74,7 +83,7 @@ ginnungagapSetup_new(parse_ini_t ini)
 }
 
 extern void
-ginnungagapSetup_del(ginnungagapSetup_t *setup)
+g9pSetup_del(g9pSetup_t *setup)
 {
 	assert(setup != NULL && *setup != NULL);
 
@@ -106,7 +115,7 @@ local_getNormModeFromIni(parse_ini_t ini)
 
 #ifdef WITH_MPI
 static void
-local_parseMPIStuff(ginnungagapSetup_t setup, parse_ini_t ini)
+local_parseMPIStuff(g9pSetup_t setup, parse_ini_t ini)
 {
 	int32_t *nProcs;
 	bool    rtn;

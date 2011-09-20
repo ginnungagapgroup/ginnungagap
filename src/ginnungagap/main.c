@@ -1,9 +1,19 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file main.c
+ * @ingroup  ginnungagapMain
+ * @brief  Implements the main routine for ginnungagap.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
+#include "g9pConfig.h"
 #include "../../config.h"
 #include "../../version.h"
 #include "ginnungagap.h"
@@ -77,21 +87,21 @@ local_verifyCloseOfStdout(void);
 int
 main(int argc, char **argv)
 {
-	ginnungagap_t ginnungagap;
+	ginnungagap_t g9p;
 
 	local_initEnvironment(&argc, &argv);
 	local_registerCleanUpFunctions();
 
-	ginnungagap = local_getGinnungagap();
+	g9p = local_getGinnungagap();
 	if (localVerify)
 		return EXIT_SUCCESS;
 
-	ginnungagap_init(ginnungagap);
+	ginnungagap_init(g9p);
 	if (localInitOnly)
 		return EXIT_SUCCESS;
 
-	ginnungagap_run(ginnungagap);
-	ginnungagap_del(&ginnungagap);
+	ginnungagap_run(g9p);
+	ginnungagap_del(&g9p);
 
 	return EXIT_SUCCESS;
 }
@@ -245,7 +255,7 @@ local_checkForPrematureTermination(cmdline_t cmdline)
 static ginnungagap_t
 local_getGinnungagap(void)
 {
-	ginnungagap_t ginnungagap;
+	ginnungagap_t g9p;
 	parse_ini_t   ini;
 
 	ini = parse_ini_open(localIniFname);
@@ -255,9 +265,17 @@ local_getGinnungagap(void)
 		exit(EXIT_FAILURE);
 	}
 
-	ginnungagap = ginnungagap_new(ini);
+	g9p = ginnungagap_new(ini);
 
 	parse_ini_close(&ini);
 
-	return ginnungagap;
+	return g9p;
 }
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup ginnungagapMain
+ * @ingroup ginnungagap
+ * @brief Provides the driver routine for ginnungagap.
+ */

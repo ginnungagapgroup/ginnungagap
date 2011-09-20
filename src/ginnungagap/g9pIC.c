@@ -1,11 +1,20 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file g9pIC.c
+ * @ingroup  ginnungagapIC
+ * @brief  Provides the implementation of the actual IC generation.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
-#include "ginnungagapIC.h"
+#include "g9pConfig.h"
+#include "g9pIC.h"
 #include <assert.h>
 #include <stdint.h>
 #include <math.h>
@@ -22,8 +31,6 @@
 #include "../libcosmo/cosmoPk.h"
 #include "../libcosmo/cosmoModel.h"
 
-
-/*--- Local defines -----------------------------------------------------*/
 
 /*--- Local variables ---------------------------------------------------*/
 static const char *local_modeVxStr = "velx";
@@ -54,10 +61,10 @@ local_getDisplacementToVelocityFactor(cosmoModel_t model, double aInit);
 
 /*--- Implementations of exported functios ------------------------------*/
 extern void
-ginnungagapIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
-                              uint32_t         dim1D,
-                              double           boxsizeInMpch,
-                              cosmoPk_t        pk)
+g9pIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
+                      uint32_t         dim1D,
+                      double           boxsizeInMpch,
+                      cosmoPk_t        pk)
 {
 	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
 	fpvComplex_t      *data;
@@ -112,12 +119,12 @@ ginnungagapIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
 } /* ginnungagapIC_calcDeltaFromWN */
 
 extern void
-ginnungagapIC_calcVelFromDelta(gridRegularFFT_t    gridFFT,
-                               uint32_t            dim1D,
-                               double              boxsizeInMpch,
-                               cosmoModel_t        model,
-                               double              aInit,
-                               ginnungagapICMode_t mode)
+g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
+                       uint32_t         dim1D,
+                       double           boxsizeInMpch,
+                       cosmoModel_t     model,
+                       double           aInit,
+                       g9pICMode_t      mode)
 {
 	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
 	fpvComplex_t      *data;
@@ -157,12 +164,12 @@ ginnungagapIC_calcVelFromDelta(gridRegularFFT_t    gridFFT,
 				 */
 				if ((k0 == 0) && (k1 == 0) && (k2 == 0)) {
 					data[idx] = 0.0;
-				} else if (mode == GINNUNGAGAPIC_MODE_VX) {
+				} else if (mode == G9PIC_MODE_VX) {
 					data[idx] *= (fpv_t)(norm * k1 * wavenumToFreq
 					                     / kCellSqr) * I;
 					data[idx]  = (k1 == kMaxGrid[1]) ?
 					             FPV_C(0.0) : data[idx];
-				} else if (mode == GINNUNGAGAPIC_MODE_VY) {
+				} else if (mode == G9PIC_MODE_VY) {
 					data[idx] *= (fpv_t)(norm * k2 * wavenumToFreq
 					                     / kCellSqr) * I;
 					data[idx]  = (k2 == kMaxGrid[2]) ?
@@ -179,9 +186,9 @@ ginnungagapIC_calcVelFromDelta(gridRegularFFT_t    gridFFT,
 } /* ginnungagapIC_calcVelFromDelta */
 
 extern cosmoPk_t
-ginnungagapIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
-                              uint32_t         dim1D,
-                              double           boxsizeInMpch)
+g9pIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
+                      uint32_t         dim1D,
+                      double           boxsizeInMpch)
 {
 	cosmoPk_t         pk;
 	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
@@ -249,15 +256,15 @@ ginnungagapIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
 } /* ginnungagapIC_calcPowerSpectrum */
 
 extern const char *
-ginnungagapIC_getModeStr(ginnungagapICMode_t mode)
+g9pIC_getModeStr(g9pICMode_t mode)
 {
 	const char *s;
 
-	if (mode == GINNUNGAGAPIC_MODE_VX)
+	if (mode == G9PIC_MODE_VX)
 		s = local_modeVxStr;
-	else if (mode == GINNUNGAGAPIC_MODE_VY)
+	else if (mode == G9PIC_MODE_VY)
 		s = local_modeVyStr;
-	else if (mode == GINNUNGAGAPIC_MODE_VZ)
+	else if (mode == G9PIC_MODE_VZ)
 		s = local_modeVzStr;
 	else
 		diediedie(EXIT_FAILURE);

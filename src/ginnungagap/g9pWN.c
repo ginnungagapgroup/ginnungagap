@@ -1,11 +1,20 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file g9pWN.c
+ * @ingroup  ginnungagapWN
+ * @brief  Provides the implementation of the WN routines.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
-#include "ginnungagapWN.h"
+#include "g9pConfig.h"
+#include "g9pWN.h"
 #include <assert.h>
 #include "../libutil/parse_ini.h"
 #include "../libutil/xmem.h"
@@ -16,7 +25,7 @@
 
 
 /*--- Implemention of main structure ------------------------------------*/
-#include "ginnungagapWN_adt.h"
+#include "g9pWN_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -24,31 +33,31 @@
 
 /*--- Prototypes of local functions -------------------------------------*/
 static void
-local_newGetInput(ginnungagapWN_t wn,
-                  parse_ini_t     ini,
-                  const char      *sectionName);
+local_newGetInput(g9pWN_t     wn,
+                  parse_ini_t ini,
+                  const char  *sectionName);
 
 static void
-local_newGetOutput(ginnungagapWN_t wn,
-                   parse_ini_t     ini,
-                   const char      *sectionName);
+local_newGetOutput(g9pWN_t     wn,
+                   parse_ini_t ini,
+                   const char  *sectionName);
 
 static void
-local_setupFromRNG(ginnungagapWN_t wn,
-                   gridPatch_t     patch,
-                   int             idxOfDensVar);
+local_setupFromRNG(g9pWN_t     wn,
+                   gridPatch_t patch,
+                   int         idxOfDensVar);
 
 
 /*--- Implementations of exported functios ------------------------------*/
-extern ginnungagapWN_t
-ginnungagapWN_newFromIni(parse_ini_t ini, const char *sectionName)
+extern g9pWN_t
+g9pWN_newFromIni(parse_ini_t ini, const char *sectionName)
 {
-	ginnungagapWN_t wn;
+	g9pWN_t wn;
 
 	assert(ini != NULL);
 	assert(sectionName != NULL);
 
-	wn = xmalloc(sizeof(struct ginnungagapWN_struct));
+	wn = xmalloc(sizeof(struct g9pWN_struct));
 	getFromIni(&(wn->useFile), parse_ini_get_bool,
 	           ini, "useFile", sectionName);
 	getFromIni(&(wn->dumpWhiteNoise), parse_ini_get_bool,
@@ -65,7 +74,7 @@ ginnungagapWN_newFromIni(parse_ini_t ini, const char *sectionName)
 }
 
 extern void
-ginnungagapWN_del(ginnungagapWN_t *wn)
+g9pWN_del(g9pWN_t *wn)
 {
 	assert(wn != NULL && *wn != NULL);
 
@@ -81,9 +90,9 @@ ginnungagapWN_del(ginnungagapWN_t *wn)
 }
 
 extern void
-ginnungagapWN_setup(ginnungagapWN_t wn,
-                    gridRegular_t   grid,
-                    int             idxOfDensVar)
+g9pWN_setup(g9pWN_t       wn,
+            gridRegular_t grid,
+            int           idxOfDensVar)
 {
 	gridPatch_t patch;
 
@@ -98,7 +107,7 @@ ginnungagapWN_setup(ginnungagapWN_t wn,
 }
 
 extern void
-ginnungagapWN_reset(ginnungagapWN_t wn)
+g9pWN_reset(g9pWN_t wn)
 {
 	if (!wn->useFile) {
 		rng_reset(wn->rng);
@@ -106,7 +115,7 @@ ginnungagapWN_reset(ginnungagapWN_t wn)
 }
 
 extern void
-ginnungagapWN_dump(ginnungagapWN_t wn, gridRegular_t grid)
+g9pWN_dump(g9pWN_t wn, gridRegular_t grid)
 {
 	if (wn->dumpWhiteNoise) {
 		gridWriter_activate(wn->writer);
@@ -117,9 +126,9 @@ ginnungagapWN_dump(ginnungagapWN_t wn, gridRegular_t grid)
 
 /*--- Implementations of local functions --------------------------------*/
 static void
-local_newGetInput(ginnungagapWN_t wn,
-                  parse_ini_t     ini,
-                  const char      *sectionName)
+local_newGetInput(g9pWN_t     wn,
+                  parse_ini_t ini,
+                  const char  *sectionName)
 {
 	if (wn->useFile) {
 		wn->reader = gridReader_newFromIni(ini, sectionName);
@@ -138,9 +147,9 @@ local_newGetInput(ginnungagapWN_t wn,
 }
 
 static void
-local_newGetOutput(ginnungagapWN_t wn,
-                   parse_ini_t     ini,
-                   const char      *sectionName)
+local_newGetOutput(g9pWN_t     wn,
+                   parse_ini_t ini,
+                   const char  *sectionName)
 {
 	if (wn->dumpWhiteNoise) {
 		wn->writer = gridWriter_newFromIni(ini, sectionName);
@@ -153,9 +162,9 @@ local_newGetOutput(ginnungagapWN_t wn,
 }
 
 static void
-local_setupFromRNG(ginnungagapWN_t wn,
-                   gridPatch_t     patch,
-                   int             idxOfDensVar)
+local_setupFromRNG(g9pWN_t     wn,
+                   gridPatch_t patch,
+                   int         idxOfDensVar)
 {
 	int      numStreams;
 	fpv_t    *data;

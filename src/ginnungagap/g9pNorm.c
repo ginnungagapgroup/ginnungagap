@@ -13,7 +13,7 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
+#include "g9pConfig.h"
 #include "g9pNorm.h"
 #include <string.h>
 #include <assert.h>

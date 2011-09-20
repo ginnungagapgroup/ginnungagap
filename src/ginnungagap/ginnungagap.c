@@ -3,12 +3,21 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file ginnungagap.c
+ * @ingroup  ginnungagap
+ * @brief  Provides the implementation of ginnungagap.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
+#include "g9pConfig.h"
 #include "ginnungagap.h"
-#include "ginnungagapInit.h"
-#include "ginnungagapWN.h"
-#include "ginnungagapIC.h"
+#include "g9pInit.h"
+#include "g9pWN.h"
+#include "g9pIC.h"
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
@@ -44,151 +53,153 @@
 
 /*--- Prototypes of local functions -------------------------------------*/
 static gridRegular_t
-local_getGrid(ginnungagap_t ginnungagap);
+local_getGrid(ginnungagap_t g9p);
 
 static gridRegularDistrib_t
-local_getGridDistrib(ginnungagap_t ginnungagap);
+local_getGridDistrib(ginnungagap_t g9p);
 
 static void
-local_initGrid(ginnungagap_t ginnungagap);
+local_initGrid(ginnungagap_t g9p);
 
 static gridRegularFFT_t
-local_getFFT(ginnungagap_t ginnungagap);
+local_getFFT(ginnungagap_t g9p);
 
 static void
-local_doWhiteNoise(ginnungagap_t ginnungagap, bool doDumpOfWhiteNoise);
+local_doWhiteNoise(ginnungagap_t g9p, bool doDumpOfWhiteNoise);
 
 static void
-local_doWhiteNoisePk(ginnungagap_t ginnungagap);
+local_doWhiteNoisePk(ginnungagap_t g9p);
 
 static void
-local_doDeltaK(ginnungagap_t ginnungagap);
+local_doDeltaK(ginnungagap_t g9p);
 
 static void
-local_doDeltaKPk(ginnungagap_t ginnungagap);
+local_doDeltaKPk(ginnungagap_t g9p);
 
 static void
-local_doDeltaX(ginnungagap_t ginnungagap);
+local_doDeltaX(ginnungagap_t g9p);
 
 static void
-local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode);
+local_doVelocities(ginnungagap_t g9p, g9pICMode_t mode);
 
 static void
-local_doStatistics(ginnungagap_t ginnungagap, int idxOfVar);
+local_doStatistics(ginnungagap_t g9p, int idxOfVar);
 
 
 /*--- Implementations of exported functios ------------------------------*/
 extern ginnungagap_t
 ginnungagap_new(parse_ini_t ini)
 {
-	ginnungagap_t ginnungagap;
+	ginnungagap_t g9p;
 
 	assert(ini != NULL);
 
-	ginnungagap              = xmalloc(sizeof(struct ginnungagap_struct));
-	ginnungagap->setup       = ginnungagapSetup_new(ini);
-	ginnungagap->model       = cosmoModel_newFromIni(ini, "Cosmology");
-	ginnungagap->pk          = cosmoPk_newFromIni(ini, "Cosmology");
-	ginnungagap->whiteNoise  = ginnungagapWN_newFromIni(ini,
-	                                                    "WhiteNoise");
-	ginnungagap->grid        = local_getGrid(ginnungagap);
-	ginnungagap->gridDistrib = local_getGridDistrib(ginnungagap);
-	local_initGrid(ginnungagap);
-	ginnungagap->gridFFT     = local_getFFT(ginnungagap);
-	ginnungagap->finalWriter = gridWriter_newFromIni(ini, "Output");
-	ginnungagap->rank        = 0;
-	ginnungagap->size        = 1;
-	ginnungagap->numThreads  = 1;
+	g9p              = xmalloc(sizeof(struct ginnungagap_struct));
+	g9p->setup       = g9pSetup_new(ini);
+	g9p->model       = cosmoModel_newFromIni(ini, "Cosmology");
+	g9p->pk          = cosmoPk_newFromIni(ini, "Cosmology");
+	g9p->whiteNoise  = g9pWN_newFromIni(ini,
+	                                    "WhiteNoise");
+	g9p->grid        = local_getGrid(g9p);
+	g9p->gridDistrib = local_getGridDistrib(g9p);
+	local_initGrid(g9p);
+	g9p->gridFFT     = local_getFFT(g9p);
+	g9p->finalWriter = gridWriter_newFromIni(ini, "Output");
+	g9p->rank        = 0;
+	g9p->size        = 1;
+	g9p->numThreads  = 1;
 #ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &(ginnungagap->rank));
-	MPI_Comm_rank(MPI_COMM_WORLD, &(ginnungagap->size));
-	gridWriter_initParallel(ginnungagap->finalWriter, MPI_COMM_WORLD);
+	MPI_Comm_rank(MPI_COMM_WORLD, &(g9p->rank));
+	MPI_Comm_rank(MPI_COMM_WORLD, &(g9p->size));
+	gridWriter_initParallel(g9p->finalWriter, MPI_COMM_WORLD);
 #endif
 #ifdef WITH_OPENMP
-	ginnungagap->numThreads = omp_get_num_threads();
+	g9p->numThreads = omp_get_num_threads();
 #endif
 
-	return ginnungagap;
+	return g9p;
 }
 
 extern void
-ginnungagap_init(ginnungagap_t ginnungagap)
+ginnungagap_init(ginnungagap_t g9p)
 {
-	if (ginnungagap->rank == 0)
+	assert(g9p != NULL);
+
+	if (g9p->rank == 0)
 		printf("\nInitialising:\n");
-	ginnungagapInit_init(ginnungagap->setup->boxsizeInMpch,
-	                     ginnungagap->setup->dim1D,
-	                     ginnungagap->setup->zInit,
-	                     ginnungagap->pk,
-	                     ginnungagap->model,
-	                     ginnungagap->setup->normalisationMode);
-	if (ginnungagap->rank == 0)
+	g9pInit_init(g9p->setup->boxsizeInMpch,
+	             g9p->setup->dim1D,
+	             g9p->setup->zInit,
+	             g9p->pk,
+	             g9p->model,
+	             g9p->setup->normalisationMode);
+	if (g9p->rank == 0)
 		printf("\n");
 }
 
 extern void
-ginnungagap_run(ginnungagap_t ginnungagap)
+ginnungagap_run(ginnungagap_t g9p)
 {
-	assert(ginnungagap != NULL);
+	assert(g9p != NULL);
 
-	if (ginnungagap->rank == 0)
+	if (g9p->rank == 0)
 		printf("\nGenerating IC:\n\n");
 
-	local_doWhiteNoise(ginnungagap, true);
-	local_doWhiteNoisePk(ginnungagap);
-	local_doDeltaK(ginnungagap);
-	local_doDeltaKPk(ginnungagap);
-	local_doDeltaX(ginnungagap);
-	local_doStatistics(ginnungagap, 0);
-	if (ginnungagap->rank == 0)
+	local_doWhiteNoise(g9p, true);
+	local_doWhiteNoisePk(g9p);
+	local_doDeltaK(g9p);
+	local_doDeltaKPk(g9p);
+	local_doDeltaX(g9p);
+	local_doStatistics(g9p, 0);
+	if (g9p->rank == 0)
 		printf("\n");
 
-	ginnungagapWN_reset(ginnungagap->whiteNoise);
-	local_doWhiteNoise(ginnungagap, false);
-	local_doDeltaK(ginnungagap);
-	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VX);
-	local_doStatistics(ginnungagap, 0);
-	if (ginnungagap->rank == 0)
+	g9pWN_reset(g9p->whiteNoise);
+	local_doWhiteNoise(g9p, false);
+	local_doDeltaK(g9p);
+	local_doVelocities(g9p, G9PIC_MODE_VX);
+	local_doStatistics(g9p, 0);
+	if (g9p->rank == 0)
 		printf("\n");
 
-	ginnungagapWN_reset(ginnungagap->whiteNoise);
-	local_doWhiteNoise(ginnungagap, false);
-	local_doDeltaK(ginnungagap);
-	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VY);
-	local_doStatistics(ginnungagap, 0);
-	if (ginnungagap->rank == 0)
+	g9pWN_reset(g9p->whiteNoise);
+	local_doWhiteNoise(g9p, false);
+	local_doDeltaK(g9p);
+	local_doVelocities(g9p, G9PIC_MODE_VY);
+	local_doStatistics(g9p, 0);
+	if (g9p->rank == 0)
 		printf("\n");
 
-	ginnungagapWN_reset(ginnungagap->whiteNoise);
-	local_doWhiteNoise(ginnungagap, false);
-	local_doDeltaK(ginnungagap);
-	local_doVelocities(ginnungagap, GINNUNGAGAPIC_MODE_VZ);
-	local_doStatistics(ginnungagap, 0);
-	if (ginnungagap->rank == 0)
+	g9pWN_reset(g9p->whiteNoise);
+	local_doWhiteNoise(g9p, false);
+	local_doDeltaK(g9p);
+	local_doVelocities(g9p, G9PIC_MODE_VZ);
+	local_doStatistics(g9p, 0);
+	if (g9p->rank == 0)
 		printf("\n");
 } /* ginnungagap_run */
 
 extern void
-ginnungagap_del(ginnungagap_t *ginnungagap)
+ginnungagap_del(ginnungagap_t *g9p)
 {
-	assert(ginnungagap != NULL);
-	assert(*ginnungagap != NULL);
+	assert(g9p != NULL);
+	assert(*g9p != NULL);
 
-	cosmoPk_del(&((*ginnungagap)->pk));
-	cosmoModel_del(&((*ginnungagap)->model));
-	ginnungagapWN_del(&((*ginnungagap)->whiteNoise));
-	gridRegularFFT_del(&((*ginnungagap)->gridFFT));
-	gridRegularDistrib_del(&((*ginnungagap)->gridDistrib));
-	gridRegular_del(&((*ginnungagap)->grid));
-	gridWriter_del(&((*ginnungagap)->finalWriter));
-	ginnungagapSetup_del(&((*ginnungagap)->setup));
-	xfree(*ginnungagap);
-	*ginnungagap = NULL;
+	cosmoPk_del(&((*g9p)->pk));
+	cosmoModel_del(&((*g9p)->model));
+	g9pWN_del(&((*g9p)->whiteNoise));
+	gridRegularFFT_del(&((*g9p)->gridFFT));
+	gridRegularDistrib_del(&((*g9p)->gridDistrib));
+	gridRegular_del(&((*g9p)->grid));
+	gridWriter_del(&((*g9p)->finalWriter));
+	g9pSetup_del(&((*g9p)->setup));
+	xfree(*g9p);
+	*g9p = NULL;
 }
 
 /*--- Implementations of local functions --------------------------------*/
 static gridRegular_t
-local_getGrid(ginnungagap_t ginnungagap)
+local_getGrid(ginnungagap_t g9p)
 {
 	gridRegular_t     grid;
 	gridPointDbl_t    origin;
@@ -197,11 +208,11 @@ local_getGrid(ginnungagap_t ginnungagap)
 
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
-		extent[i] = ginnungagap->setup->boxsizeInMpch;
-		dims[i]   = ginnungagap->setup->dim1D;
+		extent[i] = g9p->setup->boxsizeInMpch;
+		dims[i]   = g9p->setup->dim1D;
 	}
 
-	grid = gridRegular_new(ginnungagap->setup->gridName,
+	grid = gridRegular_new(g9p->setup->gridName,
 	                       origin, extent, dims);
 
 
@@ -209,13 +220,13 @@ local_getGrid(ginnungagap_t ginnungagap)
 }
 
 static gridRegularDistrib_t
-local_getGridDistrib(ginnungagap_t ginnungagap)
+local_getGridDistrib(ginnungagap_t g9p)
 {
 	gridRegularDistrib_t distrib;
 
-	distrib = gridRegularDistrib_new(ginnungagap->grid, NULL);
+	distrib = gridRegularDistrib_new(g9p->grid, NULL);
 #ifdef WITH_MPI
-	gridRegularDistrib_initMPI(distrib, ginnungagap->setup->nProcs,
+	gridRegularDistrib_initMPI(distrib, g9p->setup->nProcs,
 	                           MPI_COMM_WORLD);
 #endif
 
@@ -223,18 +234,18 @@ local_getGridDistrib(ginnungagap_t ginnungagap)
 }
 
 static void
-local_initGrid(ginnungagap_t ginnungagap)
+local_initGrid(ginnungagap_t g9p)
 {
 	int         localRank = 0;
 	gridPatch_t patch;
 	dataVar_t   dens;
 
 #ifdef WITH_MPI
-	localRank = gridRegularDistrib_getLocalRank(ginnungagap->gridDistrib);
+	localRank = gridRegularDistrib_getLocalRank(g9p->gridDistrib);
 #endif
-	patch     = gridRegularDistrib_getPatchForRank(ginnungagap->gridDistrib,
+	patch     = gridRegularDistrib_getPatchForRank(g9p->gridDistrib,
 	                                               localRank);
-	gridRegular_attachPatch(ginnungagap->grid, patch);
+	gridRegular_attachPatch(g9p->grid, patch);
 
 	dens = dataVar_new("density", DATAVARTYPE_FPV, 1);
 #ifdef WITH_FFT_FFTW3
@@ -244,107 +255,107 @@ local_initGrid(ginnungagap_t ginnungagap)
 	dataVar_setMemFuncs(dens, &fftwf_malloc, &fftwf_free);
 #  endif
 #endif
-	ginnungagap->posOfDens = gridRegular_attachVar(ginnungagap->grid, dens);
+	g9p->posOfDens = gridRegular_attachVar(g9p->grid, dens);
 }
 
 static gridRegularFFT_t
-local_getFFT(ginnungagap_t ginnungagap)
+local_getFFT(ginnungagap_t g9p)
 {
 	gridRegularFFT_t fft;
 
-	fft = gridRegularFFT_new(ginnungagap->grid,
-	                         ginnungagap->gridDistrib,
-	                         ginnungagap->posOfDens);
+	fft = gridRegularFFT_new(g9p->grid,
+	                         g9p->gridDistrib,
+	                         g9p->posOfDens);
 
 	return fft;
 }
 
 static void
-local_doWhiteNoise(ginnungagap_t ginnungagap, bool doDumpOfWhiteNoise)
+local_doWhiteNoise(ginnungagap_t g9p, bool doDumpOfWhiteNoise)
 {
 	double timing;
 
 	timing = timer_start("  Setting up white noise");
-	ginnungagapWN_setup(ginnungagap->whiteNoise,
-	                    ginnungagap->grid,
-	                    ginnungagap->posOfDens);
+	g9pWN_setup(g9p->whiteNoise,
+	            g9p->grid,
+	            g9p->posOfDens);
 	timing = timer_stop(timing);
 
 	if (doDumpOfWhiteNoise) {
 		timing = timer_start("  Writing white noise to file");
-		ginnungagapWN_dump(ginnungagap->whiteNoise, ginnungagap->grid);
+		g9pWN_dump(g9p->whiteNoise, g9p->grid);
 		timing = timer_stop(timing);
 	}
 
 	timing = timer_start("  Going to k-space");
-	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_FORWARD);
+	gridRegularFFT_execute(g9p->gridFFT, GRIDREGULARFFT_FORWARD);
 	timing = timer_stop(timing);
 }
 
 static void
-local_doWhiteNoisePk(ginnungagap_t ginnungagap)
+local_doWhiteNoisePk(ginnungagap_t g9p)
 {
-	double timing;
+	double    timing;
 	cosmoPk_t pk;
 
 	timing = timer_start("  Calculating P(k) for white noise");
-	pk = ginnungagapIC_calcPkFromDelta(ginnungagap->gridFFT,
-	                                   ginnungagap->setup->dim1D,
-	                                   ginnungagap->setup->boxsizeInMpch);
+	pk     = g9pIC_calcPkFromDelta(g9p->gridFFT,
+	                               g9p->setup->dim1D,
+	                               g9p->setup->boxsizeInMpch);
 	cosmoPk_dumpToFile(pk, "wn.pk.dat", 1);
 	cosmoPk_del(&pk);
 	timing = timer_stop(timing);
 }
 
 static void
-local_doDeltaK(ginnungagap_t ginnungagap)
+local_doDeltaK(ginnungagap_t g9p)
 {
 	double timing;
 
 	timing = timer_start("  Generating delta(k)");
-	ginnungagapIC_calcDeltaFromWN(ginnungagap->gridFFT,
-	                              ginnungagap->setup->dim1D,
-	                              ginnungagap->setup->boxsizeInMpch,
-	                              ginnungagap->pk);
+	g9pIC_calcDeltaFromWN(g9p->gridFFT,
+	                      g9p->setup->dim1D,
+	                      g9p->setup->boxsizeInMpch,
+	                      g9p->pk);
 	timing = timer_stop(timing);
 }
 
 static void
-local_doDeltaKPk(ginnungagap_t ginnungagap)
+local_doDeltaKPk(ginnungagap_t g9p)
 {
-	double timing;
+	double    timing;
 	cosmoPk_t pk;
 
 	timing = timer_start("  Calculating P(k) for delta(k)");
-	pk = ginnungagapIC_calcPkFromDelta(ginnungagap->gridFFT,
-	                                   ginnungagap->setup->dim1D,
-	                                   ginnungagap->setup->boxsizeInMpch);
+	pk     = g9pIC_calcPkFromDelta(g9p->gridFFT,
+	                               g9p->setup->dim1D,
+	                               g9p->setup->boxsizeInMpch);
 	cosmoPk_dumpToFile(pk, "deltak.pk.dat", 1);
 	cosmoPk_del(&pk);
 	timing = timer_stop(timing);
 }
 
 static void
-local_doDeltaX(ginnungagap_t ginnungagap)
+local_doDeltaX(ginnungagap_t g9p)
 {
 	double timing;
 
 	timing = timer_start("  Going back to real space");
-	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_BACKWARD);
+	gridRegularFFT_execute(g9p->gridFFT, GRIDREGULARFFT_BACKWARD);
 	timing = timer_stop(timing);
 
 #ifdef ENABLE_WRITING
 	timing = timer_start("  Writing delta(x) to file");
-	gridWriter_activate(ginnungagap->finalWriter);
-	gridWriter_writeGridRegular(ginnungagap->finalWriter,
-	                            ginnungagap->grid);
-	gridWriter_deactivate(ginnungagap->finalWriter);
+	gridWriter_activate(g9p->finalWriter);
+	gridWriter_writeGridRegular(g9p->finalWriter,
+	                            g9p->grid);
+	gridWriter_deactivate(g9p->finalWriter);
 	timing = timer_stop(timing);
 #endif
 }
 
 static void
-local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
+local_doVelocities(ginnungagap_t g9p, g9pICMode_t mode)
 {
 	double    timing;
 	char      *msg = NULL, *msg2 = NULL;
@@ -352,34 +363,34 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 	dataVar_t var;
 #endif
 
-	msg    = xstrmerge("  Generating ", ginnungagapIC_getModeStr(mode));
+	msg    = xstrmerge("  Generating ", g9pIC_getModeStr(mode));
 	msg2   = xstrmerge(msg, "(k)");
 	timing = timer_start(msg2);
-	ginnungagapIC_calcVelFromDelta(ginnungagap->gridFFT,
-	                               ginnungagap->setup->dim1D,
-	                               ginnungagap->setup->boxsizeInMpch,
-	                               ginnungagap->model,
-	                               cosmo_z2a(ginnungagap->setup->zInit),
-	                               mode);
+	g9pIC_calcVelFromDelta(g9p->gridFFT,
+	                       g9p->setup->dim1D,
+	                       g9p->setup->boxsizeInMpch,
+	                       g9p->model,
+	                       cosmo_z2a(g9p->setup->zInit),
+	                       mode);
 	timing = timer_stop(timing);
 	xfree(msg2);
 	xfree(msg);
 
 	timing = timer_start("  Going back to real space");
-	gridRegularFFT_execute(ginnungagap->gridFFT, GRIDREGULARFFT_BACKWARD);
+	gridRegularFFT_execute(g9p->gridFFT, GRIDREGULARFFT_BACKWARD);
 	timing = timer_stop(timing);
 
 #ifdef ENABLE_WRITING
-	msg    = xstrmerge("  Writing ", ginnungagapIC_getModeStr(mode));
+	msg    = xstrmerge("  Writing ", g9pIC_getModeStr(mode));
 	msg2   = xstrmerge(msg, "(x) to file");
 	timing = timer_start(msg2);
-	var    = gridRegular_getVarHandle(ginnungagap->grid,
-	                                  ginnungagap->posOfDens);
-	dataVar_rename(var, ginnungagapIC_getModeStr(mode));
-	gridWriter_activate(ginnungagap->finalWriter);
-	gridWriter_writeGridRegular(ginnungagap->finalWriter,
-	                            ginnungagap->grid);
-	gridWriter_deactivate(ginnungagap->finalWriter);
+	var    = gridRegular_getVarHandle(g9p->grid,
+	                                  g9p->posOfDens);
+	dataVar_rename(var, g9pIC_getModeStr(mode));
+	gridWriter_activate(g9p->finalWriter);
+	gridWriter_writeGridRegular(g9p->finalWriter,
+	                            g9p->grid);
+	gridWriter_deactivate(g9p->finalWriter);
 	timing = timer_stop(timing);
 	xfree(msg2);
 	xfree(msg);
@@ -387,17 +398,17 @@ local_doVelocities(ginnungagap_t ginnungagap, ginnungagapICMode_t mode)
 } /* local_doVelocities */
 
 static void
-local_doStatistics(ginnungagap_t ginnungagap, int idxOfVar)
+local_doStatistics(ginnungagap_t g9p, int idxOfVar)
 {
-	double timing;
+	double           timing;
 	gridStatistics_t stat;
 
 	timing = timer_start("  Calculating statistics");
-	stat = gridStatistics_new();
-	gridStatistics_calcGridRegularDistrib(stat, ginnungagap->gridDistrib,
+	stat   = gridStatistics_new();
+	gridStatistics_calcGridRegularDistrib(stat, g9p->gridDistrib,
 	                                      idxOfVar);
 	timing = timer_stop(timing);
-	if (ginnungagap->rank == 0)
+	if (g9p->rank == 0)
 		gridStatistics_printPretty(stat, stdout, "  ");
 	gridStatistics_del(&stat);
 }

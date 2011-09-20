@@ -1,13 +1,22 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef GINNUNGAGAPINIT_H
-#define GINNUNGAGAPINIT_H
+#ifndef G9PINIT_H
+#define G9PINIT_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file g9pInit.h
+ * @ingroup  ginnungagapInit
+ * @brief  Provides the interface to the intialisation routines.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
+#include "g9pConfig.h"
 #include "g9pNorm.h"
 #include <stdbool.h>
 #include "../libcosmo/cosmoPk.h"
@@ -16,12 +25,21 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern void
-ginnungagapInit_init(double         boxsizeInMpch,
-                     uint32_t       dim1D,
-                     double         zInit,
-                     cosmoPk_t      pk,
-                     cosmoModel_t   model,
-                     g9pNorm_mode_t normalisationMode);
+g9pInit_init(double         boxsizeInMpch,
+             uint32_t       dim1D,
+             double         zInit,
+             cosmoPk_t      pk,
+             cosmoModel_t   model,
+             g9pNorm_mode_t normalisationMode);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup ginnungagapInit
+ * @ingroup ginnungagap
+ * @brief Provides initialisation of ginnungagap.
+ */
 
 
 #endif

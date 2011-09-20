@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -6,8 +6,17 @@
 #define GINNUNGAGAP_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file ginnungagap.h
+ * @ingroup  ginnungagap
+ * @brief  Provides the interface to the ginnungagap code.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
-#include "ginnungagapConfig.h"
+#include "g9pConfig.h"
 #include "../libutil/parse_ini.h"
 
 
@@ -20,13 +29,21 @@ extern ginnungagap_t
 ginnungagap_new(parse_ini_t ini);
 
 extern void
-ginnungagap_init(ginnungagap_t ginnungagap);
+ginnungagap_init(ginnungagap_t g9p);
 
 extern void
-ginnungagap_run(ginnungagap_t ginnungagap);
+ginnungagap_run(ginnungagap_t g9p);
 
 extern void
-ginnungagap_del(ginnungagap_t *ginnungagap);
+ginnungagap_del(ginnungagap_t *g9p);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup ginnungagap
+ * @brief Provides the ginnungagap code.
+ */
 
 
 #endif
