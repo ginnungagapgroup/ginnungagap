@@ -44,11 +44,11 @@ local_calcAndCheckFreqs(localFreqs_t k,
                         int          rank);
 
 static inline void
-local_renormalizePk(localFreqs_t k,
-                    cosmoPk_t    pk,
-                    cosmoModel_t model,
-                    bool         force,
-                    int          rank);
+local_renormalizePk(localFreqs_t   k,
+                    cosmoPk_t      pk,
+                    cosmoModel_t   model,
+                    g9pNorm_mode_t mode,
+                    int            rank);
 
 static inline void
 local_shiftPkToAInit(cosmoModel_t model,
@@ -62,12 +62,12 @@ local_calcSigmaBox(localFreqs_t k, cosmoPk_t pk, int rank);
 
 /*--- Implementations of exported functios ------------------------------*/
 extern void
-ginnungagapInit_init(double       boxsizeInMpch,
-                     uint32_t     dim1D,
-                     double       zInit,
-                     cosmoPk_t    pk,
-                     cosmoModel_t model,
-                     bool         forceNormalisation)
+ginnungagapInit_init(double         boxsizeInMpch,
+                     uint32_t       dim1D,
+                     double         zInit,
+                     cosmoPk_t      pk,
+                     cosmoModel_t   model,
+                     g9pNorm_mode_t normalisationMode)
 {
 	localFreqs_struct_t k;
 	int                 rank = 0;
@@ -84,7 +84,7 @@ ginnungagapInit_init(double       boxsizeInMpch,
 
 	local_calcAndCheckFreqs(&k, boxsizeInMpch, dim1D, pk, rank);
 	cosmoPk_dumpToFile(pk, "Pk.input.dat", 10);
-	local_renormalizePk(&k, pk, model, forceNormalisation, rank);
+	local_renormalizePk(&k, pk, model, normalisationMode, rank);
 	cosmoPk_dumpToFile(pk, "Pk.input_rescaled_z0.dat", 10);
 	local_shiftPkToAInit(model, pk, cosmo_z2a(zInit), rank);
 	cosmoPk_dumpToFile(pk, "Pk.input_rescaled_zinit.dat", 10);
@@ -129,19 +129,21 @@ local_calcAndCheckFreqs(localFreqs_t k,
 }
 
 static inline void
-local_renormalizePk(localFreqs_t k,
-                    cosmoPk_t    pk,
-                    cosmoModel_t model,
-                    bool         force,
-                    int          rank)
+local_renormalizePk(localFreqs_t   k,
+                    cosmoPk_t      pk,
+                    cosmoModel_t   model,
+                    g9pNorm_mode_t mode,
+                    int            rank)
 {
 	double s8Orig, s8Trgt, s8Pk, s8Pk2, s8Box, error;
 
 	s8Orig = cosmoPk_calcSigma8(pk, k->minPk, k->maxPk, &error);
 	s8Trgt = cosmoModel_getSigma8(model);
 
-	if (force)
+	if (mode == G9PNORM_MODE_SIGMA8)
 		(void)cosmoPk_forceSigma8(pk, s8Trgt, k->minPk, k->maxPk, &error);
+	else if (mode == G9PNORM_MODE_SIGMA8BOX)
+		(void)cosmoPk_forceSigma8(pk, s8Trgt, k->minBox, k->maxBox, &error);
 
 	s8Pk  = cosmoPk_calcSigma8(pk, k->minPk, k->maxPk, &error);
 	s8Pk2 = cosmoPk_calcSigma8(pk, 1.05 * k->minPk, .95 * k->maxPk, &error);
@@ -154,6 +156,8 @@ local_renormalizePk(localFreqs_t k,
 		printf("  sigma8 in window2      :  %.7f\n", s8Pk2);
 		printf("  rel. difference w/w2-1 :  %e\n", s8Pk / s8Pk2 - 1.);
 		printf("  sigma8 in box          :  %.7f\n", s8Box);
+		printf("  normalisation mode     :  %s\n",
+		       g9pNorm_getNameFromMode(mode));
 	}
 }
 

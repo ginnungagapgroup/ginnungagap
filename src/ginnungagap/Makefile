@@ -13,7 +13,8 @@ sources = main.c \
           ginnungagapSetup.c \
           ginnungagapInit.c \
           ginnungagapWN.c \
-          ginnungagapIC.c
+          ginnungagapIC.c \
+          g9pNorm.c
 
 include ../../Makefile.rules
 

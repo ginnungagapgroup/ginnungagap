@@ -8,6 +8,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "ginnungagapConfig.h"
+#include "g9pNorm.h"
 #include <stdbool.h>
 #include "../libcosmo/cosmoPk.h"
 #include "../libcosmo/cosmoModel.h"
@@ -15,12 +16,12 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern void
-ginnungagapInit_init(double       boxsizeInMpch,
-                     uint32_t     dim1D,
-                     double       zInit,
-                     cosmoPk_t    pk,
-                     cosmoModel_t model,
-                     bool         forceNormalisation);
+ginnungagapInit_init(double         boxsizeInMpch,
+                     uint32_t       dim1D,
+                     double         zInit,
+                     cosmoPk_t      pk,
+                     cosmoModel_t   model,
+                     g9pNorm_mode_t normalisationMode);
 
 
 #endif

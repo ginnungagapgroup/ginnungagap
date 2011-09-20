@@ -121,7 +121,7 @@ ginnungagap_init(ginnungagap_t ginnungagap)
 	                     ginnungagap->setup->zInit,
 	                     ginnungagap->pk,
 	                     ginnungagap->model,
-	                     ginnungagap->setup->forceSigma8InBox);
+	                     ginnungagap->setup->normalisationMode);
 	if (ginnungagap->rank == 0)
 		printf("\n");
 }
