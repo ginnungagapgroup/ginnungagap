@@ -202,4 +202,35 @@ local_getTest(void)
  * @defgroup toolsRealSpaceConstraintsMain Driver routine
  * @ingroup  toolsRealSpaceConstraints
  * @brief  Provides the driver for @ref toolsRealSpaceConstraints.
+ *
+ * This page describes how to run realSpaceConstraints from the command
+ * line.
+ *
+ * @section toolsRSCSynopsis Synopsis
+ * <code>realSpaceConstraints [--version] [--help] arg0</code>
+ *
+ * @section toolsRSCArgument Argument
+ *
+ * The argument <code>arg0</code> has to be a string giving the name of (and
+ * path to) the ini file that contains the configuration of the real space
+ * contraints that should be executed.  The structure of that file is
+ * described in more detail @link toolsRSCSetupIniFormat here @endlink
+ *
+ * @section toolsRSCOptions  Options
+ *
+ * @subsection toolsRSCOptionsVersion --version
+ *
+ * This will simply print a detailed version information to the screen and
+ * then successfully terminate.
+
+ * @subsection toolsRSCOptionsHelp --help
+ *
+ * This will print a help page to the screen (effectively this page).
+ *
+ * @section toolsRSCSA  See Also
+ *
+ * The actual parsing of the command line parameters is done in
+ * tools/realSpaceConstraints/main.c, please check that file for the latest
+ * take on the actual synopsis of this program (the documentation might be
+ * out of date).
  */

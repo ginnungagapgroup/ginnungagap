@@ -3,6 +3,15 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file realSpaceConstraints/realSpaceConstraintsSetup.c
+ * @ingroup  toolsRealSpaceConstraintsSetup
+ * @brief  Provides the implementation of the setup of the
+ *         realSpaceConstraints tool.
+ */
+
 /*--- Includes ----------------------------------------------------------*/
 #include "realSpaceConstraintsConfig.h"
 #include "realSpaceConstraintsSetup.h"

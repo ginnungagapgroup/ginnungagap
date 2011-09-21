@@ -72,6 +72,39 @@ realSpaceConstraints_del(realSpaceConstraints_t *rsc);
  * @defgroup toolsRealSpaceConstraints realSpaceConstraints
  * @ingroup  tools
  * @brief  Provides the realSpaceConstraints tool.
+ *
+ * This is a tool that can either downsample a given white noise field, or
+ * impose a given white noise field on a (generated on the fly) larger white
+ * noise field.  Please see @ref toolsRSCSynopsis for how to use the program
+ * and @ref toolsRSCSetupIniFormat for how to write input files.
+ *
+ * The following gives a sample application (imposing the constraints of a
+ * given white noise field on a larger white noise field).
+ *
+ * @code
+ * [Setup]
+ * boxsizeInMpch = 200.
+ * inputDim1D = 512
+ * outputDim1D = 1024
+ * useFileForInput = true
+ * readerSecName = inputReader
+ * writerSecName = outputWriter
+ * seedIn = 124
+ * seedOut = 6553
+ *
+ * [inputReader]
+ * readerType = grafic
+ * readerSection = inputReader
+ * graficFileName = ../00512/wn_delta
+ *
+ * [outputWriter]
+ * writerType = grafic
+ * writerSection = outputWriter
+ * prefix = wn_
+ * isWhiteNoise = true
+ * size = 1024, 1024, 1024
+ * iseed = 6553
+ * @endcode
  */
 
 
