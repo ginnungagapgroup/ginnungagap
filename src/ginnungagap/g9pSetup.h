@@ -47,6 +47,28 @@ struct g9pSetup_struct {
 	/** @brief  The process grid. */
 	int nProcs[NDIM];
 #endif
+	/** @brief  Flags whether the density field should be written. */
+	bool writeDensityField; ///< Defaults to @c true.
+	/** @brief  Gives the name of the P(k) of the white noise. */
+	char *namePkWN; ///< Defaults to #local_namePkWn.
+	/** @brief  Gives the name of the P(k) of the overdensity field. */
+	char *namePkDeltak; ///< Defaults to #local_namePkDeltak.
+	/** @brief  Gives the name of the P(k) of the input P(k). */
+	char *namePkInput; ///< Defaults to #local_namePkInput.
+	/** @brief  Gives the name of the P(k) of the input P(k) at z_init. */
+	char *namePkInputZinit; ///< Defaults to #local_namePkInputZinit.
+	/** @brief  Gives the name of the P(k) of the input P(k) at z=0. */
+	char *namePkInputZ0; ///< Defaults to #local_namePkInputZ0.
+	/** @brief  Flags whether histograms should be calculated. */
+	bool doHistograms; ///< Defaults to @c true.
+	/** @brief  The name for the density histogram. */
+	char *nameHistogramDens; ///< Defaults to #local_nameHistoDens;
+	/** @brief  The name for the x-velocity histogram. */
+	char *nameHistogramVelx; ///< Defaults to #local_nameHistoVelx.
+	/** @brief  The name for the y-velocity histogram. */
+	char *nameHistogramVely; ///< Defaults to #local_nameHistoVely.
+	/** @brief  The name for the z-velocity histogram. */
+	char *nameHistogramVelz; ///< Defaults to #local_nameHistoVelz.
 };
 
 

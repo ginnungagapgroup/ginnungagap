@@ -22,10 +22,69 @@
 #include <string.h>
 #include <stdbool.h>
 #include "../libutil/xmem.h"
+#include "../libutil/xstring.h"
 #include "../libutil/diediedie.h"
 
 
+/*--- Local variables ---------------------------------------------------*/
+
+/** @brief  Default name for the WN P(k). */
+static const char *local_namePkWN = "Pk.wn.dat";
+
+/** @brief  Default name for the delta P(k). */
+static const char *local_namePkDeltak = "Pk.deltak.dat";
+
+/** @brief  Default name for the input P(k). */
+static const char *local_namePkInput = "Pk.input.dat";
+
+/** @brief  Default name for the input P(k) at z_init. */
+static const char *local_namePkInputZinit = "Pk.input_zinit.dat";
+
+/** @brief  Default name for the input P(k) at z_0. */
+static const char *local_namePkInputZ0 = "Pk.input_z0.dat";
+
+/** @brief  Default name for the density histogram. */
+static const char *local_nameHistoDens = "histogram.dens.dat";
+
+/** @brief  Default name for the x-velocity histogram. */
+static const char *local_nameHistoVelx = "histogram.velx.dat";
+
+/** @brief  Default name for the y-velocity histogram. */
+static const char *local_nameHistoVely = "histogram.vely.dat";
+
+/** @brief  Default name for the z-velocity histogram. */
+static const char *local_nameHistoVelz = "histogram.velz.dat";
+
+
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  Parses the required parameters.
+ *
+ * @param[in,out]  s
+ *                    The setup structure to be filled.
+ * @param[in,out]  ini
+ *                    The ini file to use.
+ *
+ * @return Returns nothing.
+ */
+static void
+local_parseRequired(g9pSetup_t s, parse_ini_t ini);
+
+
+/**
+ * @brief  Parses the optinal parameters.
+ *
+ * @param[in,out]  s
+ *                    The setup structure to be filled.
+ * @param[in,out]  ini
+ *                    The ini file to use.
+ *
+ * @return Returns nothing.
+ */
+static void
+local_parseOptional(g9pSetup_t s, parse_ini_t ini);
+
 
 /**
  * @brief  Retrieves the normalisation mode from an ini file.
@@ -66,18 +125,11 @@ g9pSetup_new(parse_ini_t ini)
 	assert(ini != NULL);
 
 	setup = xmalloc(sizeof(struct g9pSetup_struct));
-	getFromIni(&(setup->dim1D), parse_ini_get_uint32,
-	           ini, "dim1D", "Ginnungagap");
-	getFromIni(&(setup->boxsizeInMpch), parse_ini_get_double,
-	           ini, "boxsizeInMpch", "Ginnungagap");
-	getFromIni(&(setup->zInit), parse_ini_get_double,
-	           ini, "zInit", "Ginnungagap");
-	getFromIni(&(setup->gridName), parse_ini_get_string,
-	           ini, "gridName", "Ginnungagap");
-	setup->normalisationMode = local_getNormModeFromIni(ini);
+	local_parseRequired(setup, ini);
 #ifdef WITH_MPI
 	local_parseMPIStuff(setup, ini);
 #endif
+	local_parseOptional(setup, ini);
 
 	return setup;
 }
@@ -87,6 +139,11 @@ g9pSetup_del(g9pSetup_t *setup)
 {
 	assert(setup != NULL && *setup != NULL);
 
+	xfree((*setup)->namePkWN);
+	xfree((*setup)->namePkDeltak);
+	xfree((*setup)->namePkInput);
+	xfree((*setup)->namePkInputZinit);
+	xfree((*setup)->namePkInputZ0);
 	xfree((*setup)->gridName);
 
 	xfree(*setup);
@@ -94,6 +151,60 @@ g9pSetup_del(g9pSetup_t *setup)
 }
 
 /*--- Implementations of local functions --------------------------------*/
+static void
+local_parseRequired(g9pSetup_t s, parse_ini_t ini)
+{
+	getFromIni(&(s->dim1D), parse_ini_get_uint32,
+	           ini, "dim1D", "Ginnungagap");
+	getFromIni(&(s->boxsizeInMpch), parse_ini_get_double,
+	           ini, "boxsizeInMpch", "Ginnungagap");
+	getFromIni(&(s->zInit), parse_ini_get_double,
+	           ini, "zInit", "Ginnungagap");
+	getFromIni(&(s->gridName), parse_ini_get_string,
+	           ini, "gridName", "Ginnungagap");
+	s->normalisationMode = local_getNormModeFromIni(ini);
+}
+
+static void
+local_parseOptional(g9pSetup_t s, parse_ini_t ini)
+{
+	if (!(parse_ini_get_bool(ini, "writeDensityField", "Ginnungagap",
+	                         &(s->writeDensityField))))
+		s->writeDensityField = true;
+
+	if (!(parse_ini_get_string(ini, "namePkWN", "Ginnungagap",
+	                           &(s->namePkWN))))
+		s->namePkWN = xstrdup(local_namePkWN);
+	if (!(parse_ini_get_string(ini, "namePkDeltak", "Ginnungagap",
+	                           &(s->namePkDeltak))))
+		s->namePkDeltak = xstrdup(local_namePkDeltak);
+	if (!(parse_ini_get_string(ini, "namePkInput", "Ginnungagap",
+	                           &(s->namePkInput))))
+		s->namePkInput = xstrdup(local_namePkInput);
+	if (!(parse_ini_get_string(ini, "namePkInputZinit", "Ginnungagap",
+	                           &(s->namePkInputZinit))))
+		s->namePkInputZinit = xstrdup(local_namePkInputZinit);
+	if (!(parse_ini_get_string(ini, "namePkInputZ0", "Ginnungagap",
+	                           &(s->namePkInputZ0))))
+		s->namePkInputZ0 = xstrdup(local_namePkInputZ0);
+
+	if (!(parse_ini_get_bool(ini, "doHistograms", "Ginnungagap",
+	                         &(s->doHistograms))))
+		s->doHistograms = true;
+	if (!(parse_ini_get_string(ini, "nameHistogramDens", "Ginnungagap",
+	                           &(s->nameHistogramDens))))
+		s->nameHistogramDens = xstrdup(local_nameHistoDens);
+	if (!(parse_ini_get_string(ini, "nameHistogramVelx", "Ginnungagap",
+	                           &(s->nameHistogramVelx))))
+		s->nameHistogramVelx = xstrdup(local_nameHistoVelx);
+	if (!(parse_ini_get_string(ini, "nameHistogramVely", "Ginnungagap",
+	                           &(s->nameHistogramVely))))
+		s->nameHistogramVely = xstrdup(local_nameHistoVely);
+	if (!(parse_ini_get_string(ini, "nameHistogramVelz", "Ginnungagap",
+	                           &(s->nameHistogramVelz))))
+		s->nameHistogramVelz = xstrdup(local_nameHistoVelz);
+} /* local_parseOptional */
+
 static g9pNorm_mode_t
 local_getNormModeFromIni(parse_ini_t ini)
 {

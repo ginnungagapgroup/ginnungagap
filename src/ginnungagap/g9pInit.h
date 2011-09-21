@@ -30,7 +30,10 @@ g9pInit_init(double         boxsizeInMpch,
              double         zInit,
              cosmoPk_t      pk,
              cosmoModel_t   model,
-             g9pNorm_mode_t normalisationMode);
+             g9pNorm_mode_t normalisationMode,
+             const char     *namePkInput,
+             const char     *namePkInputZ0,
+             const char     *namePkInputZinit);
 
 
 /*--- Doxygen group definitions -----------------------------------------*/

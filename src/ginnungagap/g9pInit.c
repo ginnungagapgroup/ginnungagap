@@ -76,7 +76,10 @@ g9pInit_init(double         boxsizeInMpch,
              double         zInit,
              cosmoPk_t      pk,
              cosmoModel_t   model,
-             g9pNorm_mode_t normalisationMode)
+             g9pNorm_mode_t normalisationMode,
+             const char     *namePkInput,
+             const char     *namePkInputZ0,
+             const char     *namePkInputZinit)
 {
 	localFreqs_struct_t k;
 	int                 rank = 0;
@@ -92,11 +95,11 @@ g9pInit_init(double         boxsizeInMpch,
 #endif
 
 	local_calcAndCheckFreqs(&k, boxsizeInMpch, dim1D, pk, rank);
-	cosmoPk_dumpToFile(pk, "Pk.input.dat", 10);
+	cosmoPk_dumpToFile(pk, namePkInput, 10);
 	local_renormalizePk(&k, pk, model, normalisationMode, rank);
-	cosmoPk_dumpToFile(pk, "Pk.input_rescaled_z0.dat", 10);
+	cosmoPk_dumpToFile(pk, namePkInputZ0, 10);
 	local_shiftPkToAInit(model, pk, cosmo_z2a(zInit), rank);
-	cosmoPk_dumpToFile(pk, "Pk.input_rescaled_zinit.dat", 10);
+	cosmoPk_dumpToFile(pk, namePkInputZinit, 10);
 	local_calcSigmaBox(&k, pk, rank);
 }
 
