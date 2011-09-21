@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libcosmo/cosmoModel.c
+ * @ingroup  libcosmoModel
+ * @brief  Provides the implementation of the cosmological model object.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -22,10 +31,15 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
-#define LOCAL_DEFAULT_OMEGARAD0    0.0
+
+/** @brief  The default value of OmegaRad0. */
+#define LOCAL_DEFAULT_OMEGARAD0 0.0
+/** @brief  The default value of OmegaBaryon0. */
 #define LOCAL_DEFAULT_OMEGABARYON0 0.0
-#define LOCAL_DEFAULT_TEMPCMB      2.75
-#define LOCAL_DEFAULT_NS           1.0
+/** @brief  The default value of the temperature of the CMB in K. */
+#define LOCAL_DEFAULT_TEMPCMB 2.75
+/** @brief  The default value of the slope of the primordial power spectrum. */
+#define LOCAL_DEFAULT_NS 1.0
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -112,7 +126,7 @@ cosmoModel_newFromIni(parse_ini_t ini, const char *sectionName)
 		model->ns = LOCAL_DEFAULT_NS;
 	if (!parse_ini_get_double(ini, "modelTempCMB", sectionName,
 	                          &(model->tempCMB)))
-		model->omegaBaryon0 = LOCAL_DEFAULT_TEMPCMB;
+		model->tempCMB = LOCAL_DEFAULT_TEMPCMB;
 
 	return model;
 }

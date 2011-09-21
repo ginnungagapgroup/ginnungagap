@@ -376,5 +376,83 @@ cosmoPk_findKWindowForSigma8(cosmoPk_t pk, double *kmin, double *kmax);
 
 /** @} */
 
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libcosmoPowerspectrum Power Spectrum
+ * @ingroup libcosmo
+ * @brief This provides an abstract interface to a power spectrum.
+ *
+ * The power spectrum is given in a tabulated form between two frequency
+ * values.  This tabulated form is then interpolated with a cubic spline
+ * (utilizing the GSL) so that any k between kmin and kmax can be found
+ * relatively fast and precise.  Additionally, a power spectrum has two
+ * slope values (left and right of the tabulated area) that can be used
+ * to extrapolate the power spectrum beyond the tabulated range.
+ *
+ * This whole structure is hence essentially build around two arrays,
+ * the frequency array and the power array.  Both are required to have a
+ * minimum (and of course identical) number of points
+ * (#LOCAL_MINPOINTS).  As the spline interpolation tends to oscillate
+ * at the boundaries of the arrays, the first and last
+ * #LOCAL_IGNOREPOINTS are not used in the evaluation of the spline
+ * (they are used for the construction though).
+ *
+ * Having this infrastructure, a number of operation can be implemented,
+ * most notably a way to calculate certain integrals of the power
+ * spectrum and a way to normalize the power spectrum with a given
+ * methods.
+ *
+ * @section libcosmoPowerspectrumIniFormat Ini Format for Power Spectra
+ *
+ * The following describes the ini file structure (actually, the content
+ * of a section) as expected by cosmoPk_newFromIni().  There are
+ * basically two ways to create a power spectrum from an ini file,
+ * either the P(k) is read from a data file, or it is tabulated from a
+ * theoretical transfer function.  To construct the power spectrum from
+ * a data file, the section should look like this:
+ *
+ * @code
+ * [SectionName]
+ * #
+ * #################
+ * # Required keys #
+ * #################
+ * #
+ * # The name (and path) to the data file containing the power spectrum.
+ * powerSpectrumFileName = <string>
+ * @encode
+ *
+ * The file name will then be passed to cosmoPk_newFromFile() and the
+ * power spectrum constructed in this manner.  However, to construct a
+ * power spectrum from a cosmological model, the following is required:
+ *
+ * @code
+ * [SectionName]
+ * #
+ * #################
+ * # Required keys #
+ * #################
+ * #
+ * # The smallest k value from which to start to tabulate the power
+ * # spectrum.
+ * powerSpectrumKmin = <double>
+ * # 
+ * # The largest k valur up to which to tabulate the power specturm.
+ * powerSpectrumKmax = <double>
+ * # 
+ * # The number of points that should be use for the tabulation, i.e. the
+ * # transfer function will be evaluated at this many points which are
+ * # distributed evenly in log(k) over the interval given by k_min and
+ * # k_max.
+ * powerSpectrumNumPoints = <unsigned integer>
+ * #
+ * # The type of the transfer function.  Currently only EisensteinHu1998
+ * # is supported.
+ * transferFunctionType = <string>
+ * #
+ * @endcode
+ *
+ */
 
 #endif

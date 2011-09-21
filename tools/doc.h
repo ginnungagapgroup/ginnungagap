@@ -14,6 +14,6 @@
  */
 
 /**
- * @defgroup tools
+ * @defgroup tools  Tools
  * @brief  Provides various small tools.
  */

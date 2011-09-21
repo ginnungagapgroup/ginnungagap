@@ -25,6 +25,18 @@ typedef struct ginnungagap_struct *ginnungagap_t;
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
+
+/**
+ * @brief  Creates a new ginnungagap application object.
+ *
+ * @param[in,out]  ini
+ *                    The ini file to use.  See 
+ *                    @ref pageInputfile_Sections for information as to
+ *                    how the file should be written.
+ *
+ * @return  Returns a new ginnungagap application initialised from an
+ *         ini file.
+ */
 extern ginnungagap_t
 ginnungagap_new(parse_ini_t ini);
 
@@ -43,6 +55,9 @@ ginnungagap_del(ginnungagap_t *g9p);
 /**
  * @defgroup ginnungagap Ginnungagap
  * @brief Provides the ginnungagap code.
+ *
+ * See @ref pageInputfile for a tutorial on how to write ini files
+ * for ginnungagap.
  */
 
 

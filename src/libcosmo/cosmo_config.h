@@ -57,30 +57,6 @@
  * of power spectra (\ref libcosmoPowerspectrum), the encapsulation of
  * the composition of the universe and the calculation of expansion
  * factors et al. (\ref libcosmoModel)
- *
- * @defgroup libcosmoPowerspectrum Power Spectrum
- * @ingroup libcosmo
- * @brief This provides an abstract interface to a power spectrum.
- *
- * The power spectrum is given in a tabulated form between two frequency
- * values.  This tabulated form is then interpolated with a cubic spline
- * (utilizing the GSL) so that any k between kmin and kmax can be found
- * relatively fast and precise.  Additionally, a power spectrum has two
- * slope values (left and right of the tabulated area) that can be used
- * to extrapolate the power spectrum beyond the tabulated range.
- *
- * This whole structure is hence essentially build around two arrays,
- * the frequency array and the power array.  Both are required to have a
- * minimum (and of course identical) number of points
- * (#LOCAL_MINPOINTS).  As the spline interpolation tends to oscillate
- * at the boundaries of the arrays, the first and last
- * #LOCAL_IGNOREPOINTS are not used in the evaluation of the spline
- * (they are used for the construction though).
- *
- * Having this infrastructure, a number of operation can be implemented,
- * most notably a way to calculate certain integrals of the power
- * spectrum and a way to normalize the power spectrum with a given
- * methods.
  */
 
 #endif

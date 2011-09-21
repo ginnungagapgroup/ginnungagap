@@ -484,6 +484,7 @@ Build options:
                            modifying Makefile.config.in accordingly.
                            Please note the comment at the end of this
                            help screen concerning environment variables.
+                           Possible values: gnu, intel, ibm
 
 Optional features:
   --with-FEATURE[=ARG]         Use FEATURE. [ARG=yes]

@@ -10,7 +10,7 @@
 
 /**
  * @file libutil/rng.h
- * @ingroup libutilMisc
+ * @ingroup libutilMiscRNG
  * @brief  This file provides the interface of the RNG.
  */
 
@@ -151,5 +151,18 @@ rng_getGaussUnit(const rng_t rng, const int streamNumber);
 
 
 /** @} */
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libutilMiscRNG
+ * @ingroup libutilMisc
+ * @brief Provides the RNG.
+ *
+ * @section libutilMiscRNGIniFormat  Ini Format for RNG
+ *
+ */
+
 
 #endif

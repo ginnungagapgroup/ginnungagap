@@ -33,18 +33,25 @@
  * @ingroup libgrid
  * @brief This provides functionality to read and write grids to and
  *        from files.
- *
- *
+ */
+
+/**
  * @defgroup libgridIOOut Writing
  * @ingroup libgridIO
  * @brief This provides functionality to write grids.
  *
- *
+ * @section libgridIOOutIniFormat Ini Format for Grid Writer
+ */
+
+/**
  * @defgroup libgridIOIn Reading
  * @ingroup libgridIO
  * @brief This provides functionality to read grids.
  *
- *
+ * @section libgridIOInIniFormat Ini Format for Grid Reader
+ */
+
+/**
  * @defgroup libgridRegular Regular Grids
  * @ingroup libgrid
  * @brief This provides regular grids (i.e. grids that rectangular and

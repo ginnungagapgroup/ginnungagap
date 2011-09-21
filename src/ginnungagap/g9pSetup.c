@@ -190,7 +190,15 @@ local_parseOptional(g9pSetup_t s, parse_ini_t ini)
 
 	if (!(parse_ini_get_bool(ini, "doHistograms", "Ginnungagap",
 	                         &(s->doHistograms))))
-		s->doHistograms = true;
+		s->doHistograms = false;
+	if (s->doHistograms) {
+		getFromIni(&(s->histogramNumBins), parse_ini_get_uint32,
+		           ini, "histogramNumBins", "Ginnungagap");
+		getFromIni(&(s->histogramExtremeDens), parse_ini_get_double,
+		           ini, "histogramExtremeDens", "Ginnungagap");
+		getFromIni(&(s->histogramExtremeVel), parse_ini_get_double,
+		           ini, "histogramExtremeVel", "Ginnungagap");
+	}
 	if (!(parse_ini_get_string(ini, "nameHistogramDens", "Ginnungagap",
 	                           &(s->nameHistogramDens))))
 		s->nameHistogramDens = xstrdup(local_nameHistoDens);
