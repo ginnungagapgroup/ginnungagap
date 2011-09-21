@@ -84,6 +84,9 @@ local_initEnvironment(int *argc, char ***argv)
 {
 	cmdline_t cmdline;
 
+#ifdef WITH_MPI
+	MPI_Init(argc, argv);
+#endif
 	cmdline = local_cmdlineSetup();
 	cmdline_parse(cmdline, *argc, *argv);
 	local_checkForPrematureTermination(cmdline);
