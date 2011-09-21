@@ -55,6 +55,7 @@
 static gridRegular_t
 local_getGrid(double boxsizeInMpch, uint32_t dim1D, const char *name);
 
+
 /**
  * @brief  Fill the input grid, either from a file or via RNG.
  *
@@ -71,6 +72,7 @@ local_getGrid(double boxsizeInMpch, uint32_t dim1D, const char *name);
  */
 static void
 local_fillInputGrid(gridRegular_t grid, gridReader_t reader, int seed);
+
 
 /**
  * @brief  Fills the output grid from the input grid.
@@ -97,6 +99,7 @@ local_fillOutputGrid(gridRegular_t       gridOut,
                      const gridRegular_t gridIn,
                      int                 seedOut);
 
+
 /**
  * @brief  This will simply fill a patch with white noise.
  *
@@ -109,6 +112,7 @@ local_fillOutputGrid(gridRegular_t       gridOut,
  */
 static void
 local_fillPatchWithWhiteNoise(gridPatch_t patch, int seed);
+
 
 /**
  * @brief  Does the heavy lifting for degrading a data cube.
@@ -151,6 +155,7 @@ local_degrade(fpv_t             *dataOut,
               gridPointUint32_t dimsOut,
               gridPointUint32_t dimsIn);
 
+
 /**
  * @brief  Will enforce constraints of a lowRes grid onto a highRes grid.
  *
@@ -171,6 +176,7 @@ local_enforceConstraints(fpv_t             *dataOut,
                          gridPointUint32_t dimsOut,
                          gridPointUint32_t dimsIn);
 
+
 /**
  * @brief  This will sum over a subvolume.
  *
@@ -187,6 +193,7 @@ inline static long double
 local_sumSV(const fpv_t       *data,
             gridPointUint32_t dimsIn,
             gridPointUint32_t dimsSV);
+
 
 /**
  * @brief  Adds a scalar value to a subvolume.
@@ -229,8 +236,8 @@ realSpaceConstraints_newFromIni(parse_ini_t ini)
 	                            te->setup->outputDim1D,
 	                            "Output");
 	if (te->setup->useFileForInput) {
-		te->reader = gridReader_newFromIni(ini, te->setup->readerSecName);
-		te->writer = NULL;
+		te->reader   = gridReader_newFromIni(ini, te->setup->readerSecName);
+		te->writerIn = NULL;
 	} else {
 		te->reader   = NULL;
 		te->writerIn = gridWriter_newFromIni(ini,
