@@ -297,7 +297,7 @@ parse_ini_dump(parse_ini_t ini, FILE *f)
 		for (j = 0; j < sec->num_keys; j++) {
 			key = sec->keys + j;
 			if (!key->requested)
-				fprintf(f, "IGNORED:");
+				fprintf(f, "# IGNORED:  ");
 			fprintf(f, "%s = %s\n", key->key_name, key->value);
 		}
 		fprintf(f, "\n");
