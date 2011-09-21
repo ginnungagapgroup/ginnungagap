@@ -1,0 +1,48 @@
+diff -Naur sprng2.0/make.CHOICES sprng2.0_patched/make.CHOICES
+--- sprng2.0/make.CHOICES	1999-06-29 18:42:11.000000000 +0200
++++ sprng2.0_patched/make.CHOICES	2011-03-23 22:49:46.740897412 +0100
+@@ -62,8 +62,8 @@
+ # comment out if you want to exclude generator pmlcg which needs libgmp 
+ #---------------------------------------------------------------------------
+ 
+-PMLCGDEF = -DUSE_PMLCG
+-GMPLIB = -lgmp
++#PMLCGDEF = -DUSE_PMLCG
++#GMPLIB = -lgmp
+ 
+ ############################################################################
+ 
+diff -Naur sprng2.0/SRC/make.INTEL sprng2.0_patched/SRC/make.INTEL
+--- sprng2.0/SRC/make.INTEL	2007-01-26 17:30:06.000000000 +0100
++++ sprng2.0_patched/SRC/make.INTEL	2011-03-23 22:49:19.000872424 +0100
+@@ -6,7 +6,7 @@
+ CC = gcc
+ CLD = $(CC)
+ # Set f77 to echo if you do not have a FORTRAN compiler
+-F77 = g77
++F77 = echo
+ #F77 = echo
+ F77LD = $(F77)
+ FFXN = -DAdd__
+@@ -27,8 +27,8 @@
+ # Please include mpi header file path, if needed
+ 
+ #CFLAGS = -O3 -DLittleEndian $(PMLCGDEF) $(MPIDEF) -D$(PLAT)  -I/usr/local/mpi/include -I/usr/local/mpi/build/LINUX/ch_p4/include
+-CFLAGS = -O3 -DLittleEndian $(PMLCGDEF) $(MPIDEF) -D$(PLAT)  
+-CLDFLAGS =  -O3 
++CFLAGS = -O3 -DLittleEndian $(PMLCGDEF) $(MPIDEF) -D$(PLAT) 
++CLDFLAGS =  -O3
+ #FFLAGS = -O3 $(PMLCGDEF) $(MPIDEF) -D$(PLAT)  -I/usr/local/mpi/include -I/usr/local/mpi/build/LINUX/ch_p4/include -I.
+ FFLAGS = -O3 $(PMLCGDEF) $(MPIDEF) -D$(PLAT)
+ F77LDFLAGS =  -O3 
+diff -Naur sprng2.0/SRC/mlfg/mlfg.c sprng2.0_patched/SRC/mlfg/mlfg.c
+--- sprng2.0/SRC/mlfg/mlfg.c	1999-06-29 18:42:11.000000000 +0200
++++ sprng2.0_patched/SRC/mlfg/mlfg.c	2011-03-23 22:50:07.220875451 +0100
+@@ -490,6 +490,7 @@
+     genptr = p[0]; 
+     free(p);
+   }
++  free(nstart);
+   
+ /*      update si array to allow for future spawning of generators       */
+   si = genptr->si;
