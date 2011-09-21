@@ -303,6 +303,7 @@ local_dumpIniFile(parse_ini_t ini)
 	f       = xfopen(iniDump, "w");
 	parse_ini_dump(ini, f);
 	xfclose(&f);
+	xfree(iniDump);
 }
 
 /*--- Doxygen group definitions -----------------------------------------*/

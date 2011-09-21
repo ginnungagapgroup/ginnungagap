@@ -66,6 +66,9 @@ static gridRegularFFT_t
 local_getFFT(ginnungagap_t g9p);
 
 static void
+local_newHistograms(ginnungagap_t g9p);
+
+static void
 local_doWhiteNoise(ginnungagap_t g9p, bool doDumpOfWhiteNoise);
 
 static void
@@ -84,12 +87,12 @@ static void
 local_doVelocities(ginnungagap_t g9p, g9pICMode_t mode);
 
 static void
-local_doStatistics(ginnungagap_t g9p, int idxOfVar, const char *histoName);
+local_doStatistics(ginnungagap_t g9p, int idxOfVar);
 
 static void
 local_doHistogram(ginnungagap_t          g9p,
                   int                    idxOfVar,
-                  const gridStatistics_t stat,
+                  const gridHistogram_t  stat,
                   const char             *histoName);
 
 
@@ -115,6 +118,7 @@ ginnungagap_new(parse_ini_t ini)
 	g9p->rank        = 0;
 	g9p->size        = 1;
 	g9p->numThreads  = 1;
+	local_newHistograms(g9p);
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &(g9p->rank));
 	MPI_Comm_rank(MPI_COMM_WORLD, &(g9p->size));
@@ -160,7 +164,8 @@ ginnungagap_run(ginnungagap_t g9p)
 	local_doDeltaK(g9p);
 	local_doDeltaKPk(g9p);
 	local_doDeltaX(g9p);
-	local_doStatistics(g9p, 0, g9p->setup->nameHistogramDens);
+	local_doStatistics(g9p, 0);
+	local_doHistogram(g9p, 0, g9p->histoDens, g9p->setup->nameHistogramDens);
 	if (g9p->rank == 0)
 		printf("\n");
 
@@ -168,7 +173,8 @@ ginnungagap_run(ginnungagap_t g9p)
 	local_doWhiteNoise(g9p, false);
 	local_doDeltaK(g9p);
 	local_doVelocities(g9p, G9PIC_MODE_VX);
-	local_doStatistics(g9p, 0, g9p->setup->nameHistogramVelx);
+	local_doStatistics(g9p, 0);
+	local_doHistogram(g9p, 0, g9p->histoVel, g9p->setup->nameHistogramVelx);
 	if (g9p->rank == 0)
 		printf("\n");
 
@@ -176,7 +182,8 @@ ginnungagap_run(ginnungagap_t g9p)
 	local_doWhiteNoise(g9p, false);
 	local_doDeltaK(g9p);
 	local_doVelocities(g9p, G9PIC_MODE_VY);
-	local_doStatistics(g9p, 0, g9p->setup->nameHistogramVely);
+	local_doStatistics(g9p, 0);
+	local_doHistogram(g9p, 0, g9p->histoVel, g9p->setup->nameHistogramVely);
 	if (g9p->rank == 0)
 		printf("\n");
 
@@ -184,7 +191,8 @@ ginnungagap_run(ginnungagap_t g9p)
 	local_doWhiteNoise(g9p, false);
 	local_doDeltaK(g9p);
 	local_doVelocities(g9p, G9PIC_MODE_VZ);
-	local_doStatistics(g9p, 0, g9p->setup->nameHistogramVelz);
+	local_doStatistics(g9p, 0);
+	local_doHistogram(g9p, 0, g9p->histoVel, g9p->setup->nameHistogramVelz);
 	if (g9p->rank == 0)
 		printf("\n");
 } /* ginnungagap_run */
@@ -195,6 +203,10 @@ ginnungagap_del(ginnungagap_t *g9p)
 	assert(g9p != NULL);
 	assert(*g9p != NULL);
 
+	if ((*g9p)->histoVel != NULL)
+		gridHistogram_del(&((*g9p)->histoVel));
+	if ((*g9p)->histoDens != NULL)
+		gridHistogram_del(&((*g9p)->histoDens));
 	cosmoPk_del(&((*g9p)->pk));
 	cosmoModel_del(&((*g9p)->model));
 	g9pWN_del(&((*g9p)->whiteNoise));
@@ -278,6 +290,21 @@ local_getFFT(ginnungagap_t g9p)
 	                         g9p->posOfDens);
 
 	return fft;
+}
+
+static void
+local_newHistograms(ginnungagap_t g9p)
+{
+	if (g9p->setup->doHistograms) {
+		uint32_t numBins = g9p->setup->histogramNumBins;
+		double   extreme = g9p->setup->histogramExtremeDens;
+		g9p->histoDens = gridHistogram_new(numBins, -extreme, extreme);
+		extreme        = g9p->setup->histogramExtremeVel;
+		g9p->histoVel  = gridHistogram_new(numBins, -extreme, extreme);
+	} else {
+		g9p->histoDens = NULL;
+		g9p->histoVel  = NULL;
+	}
 }
 
 static void
@@ -410,7 +437,7 @@ local_doVelocities(ginnungagap_t g9p, g9pICMode_t mode)
 } /* local_doVelocities */
 
 static void
-local_doStatistics(ginnungagap_t g9p, int idxOfVar, const char *histoName)
+local_doStatistics(ginnungagap_t g9p, int idxOfVar)
 {
 	double           timing;
 	gridStatistics_t stat;
@@ -422,47 +449,23 @@ local_doStatistics(ginnungagap_t g9p, int idxOfVar, const char *histoName)
 	timing = timer_stop(timing);
 	if (g9p->rank == 0)
 		gridStatistics_printPretty(stat, stdout, "  ");
-
-	if (g9p->setup->doHistograms)
-		local_doHistogram(g9p, idxOfVar, stat, histoName);
 	gridStatistics_del(&stat);
 }
 
 static void
 local_doHistogram(ginnungagap_t          g9p,
                   int                    idxOfVar,
-                  const gridStatistics_t stat,
+                  const gridHistogram_t  histo,
                   const char             *histoName)
 {
 	double          timing;
-	gridHistogram_t histo;
-	double          extreme, tmp;
-	uint32_t        numBins;
-	uint64_t        numCells;
 
 	timing   = timer_start("  Calculating histogram");
-
-	extreme  = fabs(gridStatistics_getMin(stat));
-	tmp      = fabs(gridStatistics_getMax(stat));
-	extreme  = (extreme < tmp) ? tmp : extreme;
-	numCells = gridRegular_getNumCellsTotal(g9p->grid);
-	numBins  = gridHistogram_estimateNumBinsFromCells(numCells);
-	if (numBins % 2 == 0)
-		numBins++;
-
-	histo = gridHistogram_new(numBins, -extreme, extreme);
 	gridHistogram_calcGridRegularDistrib(histo, g9p->gridDistrib, idxOfVar);
-
 	timing = timer_stop(timing);
-
-	if (g9p->rank == 0)
-		printf("    Using %" PRIu32 " bins from %7e to %7e.\n",
-		       numBins, -extreme, extreme);
 
 	if (g9p->rank == 0) {
 		gridHistogram_printPrettyFile(histo, histoName, false, "");
 		printf("    Histogram written to %s.\n", histoName);
 	}
-
-	gridHistogram_del(&histo);
-} /* local_doHistogram */
+} 

@@ -25,6 +25,7 @@
 #include "../libgrid/gridRegularDistrib.h"
 #include "../libgrid/gridRegularFFT.h"
 #include "../libgrid/gridWriter.h"
+#include "../libgrid/gridHistogram.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -55,6 +56,8 @@ struct ginnungagap_struct {
 	int                  size; ///< Will be 1 for non-MPI situations.
 	/** @brief  The number of OpenMP threads used. */
 	int                  numThreads; ///< Will be 1 for non-OpenMP situations
+	gridHistogram_t      histoDens;
+	gridHistogram_t      histoVel;
 };
 
 

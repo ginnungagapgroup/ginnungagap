@@ -139,6 +139,10 @@ g9pSetup_del(g9pSetup_t *setup)
 {
 	assert(setup != NULL && *setup != NULL);
 
+	xfree((*setup)->nameHistogramVelz);
+	xfree((*setup)->nameHistogramVely);
+	xfree((*setup)->nameHistogramVelx);
+	xfree((*setup)->nameHistogramDens);
 	xfree((*setup)->namePkWN);
 	xfree((*setup)->namePkDeltak);
 	xfree((*setup)->namePkInput);
