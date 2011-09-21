@@ -103,8 +103,8 @@ main(int argc, char **argv)
 {
 	ginnungagap_t g9p;
 
-	local_initEnvironment(&argc, &argv);
 	local_registerCleanUpFunctions();
+	local_initEnvironment(&argc, &argv);
 
 	g9p = local_getGinnungagap();
 	if (localVerify)
