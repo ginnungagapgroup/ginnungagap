@@ -46,6 +46,8 @@
  *     precision versions of FFTW3 and you might want to enable the
  *     OpenMP parallelization of FFTW3 if you plan to also use the
  *     OpenMP features of ginnungagap.
+ *   See @ref pageDeps_FFTW3 for instruction on how to build FFTW on
+ *   your system.
  * - <b>Build tools</b> - A make command should be available.
  *   Ginnugagap has been tested with GNU make and other makes might not
  *   support all features used in the Makefiles.  In case make is not
@@ -62,7 +64,7 @@
  *   library, the only way to not use it, is to use a pre-generated
  *   white noise field.  The required version is SPRNG2.0b and please
  *   note that you only need the serial version, i.e. do not build SPRNG
- *   with MPI support.
+ *   with MPI support.  See @ref pageDeps_SPRNG for build instructions.
  * - <b>MPI</b> - To get distributed memory parallelization you need the
  *   MPI libraries.  Please use MPI-2 and above.
  *
@@ -73,9 +75,11 @@
  *   provides an easy and quick way to write large data-sets that can
  *   directly be visualized (using Visit or Paraview).  This is mostly
  *   of use for debugging and testing purposes.
+ *   See @ref pageDeps_Silo for instructions on how to build Silo.
  * - <b>HDF5</b> - This is not a library used directly by ginnungagap,
  *   but Silo can be compiled to use HDF5 as a file backend.  This is
  *   highly advised.
+ *   See @ref pageDeps_HDF5 for instructions on how to build HDF5.
  * - <b>MPItrace</b> - Tracing utilities can be used to generate trace
  *   files of ginnungagap runs
  *
@@ -279,5 +283,151 @@
  * # The seed for the random numbers.
  * randomSeed = 1
  *
+ * @endcode
+ */
+
+/**
+ * @page pageDeps External Dependencies.
+ *
+ * Silo can be found here: https://wci.llnl.gov/codes/silo/ 
+ *
+ * @section pageDeps_SPRNG  Building SPRNG
+ *
+ * You just use this tarball:
+ *
+ * @code
+ * $ md5sum sprng2.0b.tar.gz
+ * cf825f9333d07acdcaa599f29f281b8d sprng2.0b.tar.gz
+ * @endcode
+ *
+ * And also look in the you ginnungagap sources, there will be these
+ * files:
+ *
+ * @code
+ * $ ls doc/devel/patches/
+ * sprng2.0.fixMemoryLeak.patch  sprng2.0.fixMemoryLeak.patch.txt
+ * @endcode
+ *
+ * This is a small patch that resolves a memory hole in SPRNG.  It
+ * shouldn't be too critical if you don't patch the code, but a hole is
+ * a hole...  Anyhow, you are now set to build SPRNG:
+ *
+ * @code
+ * $ tar xf sprng2.0b.tar.gz
+ * $ cd sprng2.0/
+ * $ patch -p1 -i ../sprng2.0.fixMemoryLeak.patch
+ * patching file make.CHOICES
+ * patching file SRC/make.INTEL
+ * patching file SRC/mlfg/mlfg.c
+ * $ pwd
+ * /home/me/software/sprng2.0
+ * $ make src
+ * [.. lots of output .. should end with:]
+ * make[1]: Leaving directory `/home/me/software/sprng2.0/SRC'
+ * $ ls lib/
+ * libsprng.a  Makefile  Makefile~
+ * $ chmod 644 include/*h
+ * $ ls include/
+ * d~  interface.h  sprng_f.h  sprng.h
+ * @endcode
+ *
+ * You can now compile Ginnungagap with using
+ * @code
+ * --with-sprng-prefix=/home/me/software/sprng2.0
+ * @endcode
+ *
+ * @section pageDeps_FFTW3  Building FFTW3
+ *
+ * This is single precision version compiled with the standard compiler
+ * (must likely gcc):
+ *
+ * @code
+ * ./configure --prefix=/opt/fftw/fftw-3.2.2-gcc \
+ *             --enable-sse \
+ *             --enable-float \
+ *             --disable-fortran \
+ *             --enable-openmp
+ * make -j && make install
+ * @endcode
+ *
+ * This is double precision version compiled with the standard compiler
+ * (must likely gcc):
+ *
+ * @code
+ * ./configure --prefix=/opt/fftw/fftw-3.2.2-gcc \
+ *             --enable-sse2 \
+ *             --disable-fortran \
+ *             --enable-openmp
+ * make -j && make install
+ * @endcode
+ *
+ * This is single precision version compiled with icc:
+ *
+ * @code
+ * CC=icc ./configure --prefix=/opt/fftw/fftw-3.2.2-intel \
+ *                    --enable-sse \
+ *                    --enable-float \
+ *                    --disable-fortran \
+ *                    --enable-openmp
+ * make -j && make install
+ * @endcode
+ *
+ * This is double precision version compiled with icc:
+ *
+ * @code
+ * CC=icc ./configure --prefix=/opt/fftw/fftw-3.2.2-intel \
+ *                 --enable-sse2 \
+ *                    --disable-fortran \
+ *                    --enable-openmp
+ * make -j && make install
+ * @endcode
+ *
+ * Depending on whether you are using icc or gcc, you can select the
+ * appropriate FFTW version when configuring ginnungagap:
+ *
+ * @code
+ * --with-fft-prefix=/opt/fftw/fftw-3.2.2-intel
+ * @endcode
+ *
+ * or
+ *
+ * @code
+ * --with-fft-prefix=/opt/fftw/fftw-3.2.2-gcc
+ * @endcode
+ *
+ * Of course, you can use whatever --prefix you like when configuring
+ * FFTW.
+ *
+ *
+ * @section pageDeps_HDF5  Building HDF5
+ *
+ * @code
+ * ./configure --prefix=/opt/hdf5/hdf5-1.8.4p1-gcc
+ * make -j && make install
+ *
+ * CC=icc LD=xild AR=xiar ./configure --prefix=/opt/hdf5/hdf5-1.8.4p1-intel
+ * make -j && make install
+ * @endcode
+ *
+ *
+ * @section pageDeps_Silo  Building Silo
+ *
+ * @code
+ * export HDF5=/opt/hdf5/hdf5-1.8.4p1-gcc
+ * ./configure --prefix=/opt/silo/silo-4.7.2-gcc \
+ *             --with-hdf5=$HDF5/include,$HDF5/lib \
+ *             --enable-portable-binary \
+ *             --disable-fortran \
+ *             --without-qt
+ * make -j && make install
+ *
+ * export HDF5=/opt/hdf5/hdf5-1.8.4p1-intel
+ * CC=icc CXX=icpc LD=xild AR=xiar CFLAGS=-fast ./configure \
+ *      --prefix=/opt/silo/silo-4.7.2-intel \
+ *      --with-hdf5=$HDF5/include,$HDF5/lib \
+ *      --enable-portable-binary \
+ *      --disable-fortran \
+ *      --without-qt
+ * make -j && make install
  * @endcode
  */
