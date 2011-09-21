@@ -43,3 +43,4 @@ tmp/
 doc/Doxyfile
 doc/ref/
 doc/doxygen.warning
+doc/doxygen.log
