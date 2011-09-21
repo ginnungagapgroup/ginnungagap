@@ -81,53 +81,7 @@
  *   highly advised.
  *   See @ref pageDeps_HDF5 for instructions on how to build HDF5.
  * - <b>MPItrace</b> - Tracing utilities can be used to generate trace
- *   files of ginnungagap runs
- *
- * @section history History
- *
- * Here is a chronological overview of the different versions of
- * ginnungagap:
- *
- * - 2011/02/16 <b>ginnungagap-0.3.5</b>  @n
- *   The memory estimate tools is updated to include the file size of
- *   the velocity fields.
- * - 2011/02/03 <b>ginnungagap-0.3.4</b> @n
- *   A new tool to generate masks that will be needed for the
- *   resimulation setup is added.  Support for the legacy format of the
- *   Lagrangian regions is implemented.  Also various updates and
- *   improvements of the code.
- * - 2010/09/15 <b>ginnungagap-0.3.3</b> @n
- *   Bug-fixes to allow compiling on IBM machines.  The grid now can
- *   calculate simple statistics and prints them.
- * - 2010/08/04 <b>ginnungagap-0.3.2</b> @n
- *   A new tool to convert Grafic files into Gadget.
- * - 2010/07/27 <b>ginnungagap-0.3.1</b> @n
- *   Adding a tool to estimate the memory requirements of the code.
- *   Some minor bug-fixes and thread support for the FFTW3 back-end.
- * - 2010/07/22 <b>ginnungagap-0.3.0</b> @n
- *   Some code clean-up, the fields are now correctly calculated.
- * - 2010/07/19 <b>ginnungagap-0.2.6</b> @n
- *   The velocity field is now calculated, albeit not correctly
- *   normalized.
- * - 2010/07/19 <b>ginnungagap-0.2.5</b> @n
- *   Modifying the handling of the power spectrum and correcting the
- *   units of the density field.
- * - 2010/07/17 <b>ginnungagap-0.2.4</b> @n
- *   The grid writing is moved to an abstract interface to allow
- *   different output formats accessible with a common interface.  A
- *   small tool to convert Grafics files to bov is added.
- * - 2010/07/15 <b>ginnungagap-0.2.3</b> @n
- *   Renormalization of the power spectrum is included, allowing to read
- *   grids from a bov.
- * - 2010/06/23 <b>ginnungagap-0.2.2</b> @n
- *   A tool to generate a master file for the SILO output that allows
- *   visualisation of datasets split over multiple domains.
- * - 2010/06/02 <b>ginnungagap-0.2.1</b> @n
- *   Added functionality to calculate the power spectrum according to
- *   the Eisenstein & Hu fitting formula.
- * - 2010/05/21 <b>ginnungagap-0.2.0</b> @n
- *   First version.  Laid the groundwork of the grid infrastructure and
- *   the FFT.  The density field is calculated in Fourier space.
+ *   files of ginnungagap runs.
  */
 
 /**
