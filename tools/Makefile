@@ -19,6 +19,7 @@ all:
 	$(MAKE) -C grafic2bov all
 	$(MAKE) -C showFreqs all
 	$(MAKE) -C makeMask all
+	$(MAKE) -C realSpaceConstraints all
 	@echo ""
 	@echo "+-------------------------------+"
 	@echo "|   Done with the tools         |"
@@ -33,6 +34,7 @@ clean:
 	$(MAKE) -C makeSiloRoot clean
 	$(MAKE) -C showFreqs clean
 	$(MAKE) -C makeMask clean
+	$(MAKE) -C realSpaceConstraints clean
 
 tests:
 	$(MAKE) -C estimateMemReq tests
@@ -41,6 +43,7 @@ tests:
 	$(MAKE) -C makeSiloRoot tests
 	$(MAKE) -C showFreqs tests
 	$(MAKE) -C makeMask tests
+	$(MAKE) -C realSpaceConstraints tests
 
 tests-clean:
 	$(MAKE) -C estimateMemReq tests-clean
@@ -49,6 +52,7 @@ tests-clean:
 	$(MAKE) -C makeSiloRoot tests-clean
 	$(MAKE) -C showFreqs tests-clean
 	$(MAKE) -C makeMask tests-clean
+	$(MAKE) -C realSpaceConstraints tests-clean
 
 dist-clean:
 	$(MAKE) -C estimateMemReq dist-clean
@@ -57,3 +61,4 @@ dist-clean:
 	$(MAKE) -C makeSiloRoot dist-clean
 	$(MAKE) -C showFreqs dist-clean
 	$(MAKE) -C makeMask dist-clean
+	$(MAKE) -C realSpaceConstraints dist-clean
