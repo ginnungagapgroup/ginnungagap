@@ -62,4 +62,7 @@ gridHistogram_printPrettyFile(const gridHistogram_t histo,
                               bool                  append,
                               const char            *prefix);
 
+extern uint32_t
+gridHistogram_estimateNumBinsFromCells(uint64_t numCells);
+
 #endif

@@ -28,6 +28,9 @@
 
 /*--- Local defines -----------------------------------------------------*/
 
+/** @brief  Gives the largest amount of bins that are support. */
+#define LOCAL_NUMBINS_MAX 4096
+
 
 /*--- Prototypes of local functions -------------------------------------*/
 static gridHistogram_t
@@ -68,6 +71,7 @@ gridHistogram_new(uint32_t numBins, double min, double max)
 	double          delta;
 
 	assert(numBins > 0);
+	assert(numBins <= LOCAL_NUMBINS_MAX);
 	assert(min < max);
 
 	histo               = local_mallocHistogram(numBins);
@@ -197,6 +201,23 @@ gridHistogram_printPrettyFile(const gridHistogram_t histo,
 
 	xfclose(&f);
 }
+
+extern uint32_t
+gridHistogram_estimateNumBinsFromCells(uint64_t numCells)
+{
+	uint32_t numBins;
+	double tmp;
+
+	tmp = log((double)numCells) * log(pow(numCells, 1./((double)NDIM)));
+	numBins = (uint32_t)floor(tmp);
+	if (numBins < 1)
+		numBins = 1;
+	if (numBins > LOCAL_NUMBINS_MAX)
+		numBins = LOCAL_NUMBINS_MAX;
+
+	return numBins;
+}
+
 
 /*--- Implementations of local functions --------------------------------*/
 static gridHistogram_t
