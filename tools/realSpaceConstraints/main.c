@@ -22,6 +22,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/xstring.h"
 #include "../../src/libutil/cmdline.h"
@@ -195,7 +198,6 @@ local_getTest(void)
 	return te;
 }
 
-
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
@@ -222,7 +224,7 @@ local_getTest(void)
  *
  * This will simply print a detailed version information to the screen and
  * then successfully terminate.
-
+ *
  * @subsection toolsRSCOptionsHelp --help
  *
  * This will print a help page to the screen (effectively this page).
