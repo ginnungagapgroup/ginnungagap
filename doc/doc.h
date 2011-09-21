@@ -53,8 +53,9 @@
  *   support all features used in the Makefiles.  In case make is not
  *   GNU make, your system has most likely gmake available.
  * - <b>Shell</b> - A couple of Shell scripts need to be executed during
- *   the build process, most prominently the configure script.  They are
- *   supposed to work on POSIX shells and are tested on bash and dash.
+ *   the build process, most prominently the @link pageConfigureScript
+ *   configure script @endlink.  They are supposed to work on POSIX shells
+ *   and are tested on bash and dash.
  *
  * Additionally, the following libraries should be available to make
  * full use of ginnungagap:
@@ -82,6 +83,10 @@
  *   See @ref pageDeps_HDF5 for instructions on how to build HDF5.
  * - <b>MPItrace</b> - Tracing utilities can be used to generate trace
  *   files of ginnungagap runs.
+ */
+
+/**
+ * @page pageConfigureScript Configuring the Build of Ginnungagap
  */
 
 /**

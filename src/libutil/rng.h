@@ -156,7 +156,7 @@ rng_getGaussUnit(const rng_t rng, const int streamNumber);
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup libutilMiscRNG
+ * @defgroup libutilMiscRNG (Parallel) Random Number Generation
  * @ingroup libutilMisc
  * @brief Provides the RNG.
  *
