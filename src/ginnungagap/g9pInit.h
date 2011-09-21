@@ -11,7 +11,7 @@
 /**
  * @file g9pInit.h
  * @ingroup  ginnungagapInit
- * @brief  Provides the interface to the intialisation routines.
+ * @brief  Provides the interface to the initialisation routines.
  */
 
 
@@ -36,7 +36,7 @@ g9pInit_init(double         boxsizeInMpch,
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup ginnungagapInit
+ * @defgroup ginnungagapInit  Initialisation
  * @ingroup ginnungagap
  * @brief Provides initialisation of ginnungagap.
  */

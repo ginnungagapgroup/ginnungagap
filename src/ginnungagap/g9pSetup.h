@@ -81,7 +81,7 @@ g9pSetup_del(g9pSetup_t *setup);
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup ginnungagapSetup
+ * @defgroup ginnungagapSetup  Setup
  * @ingroup ginnungagap
  * @brief Provides the setup of ginnungagap (from an ini file).
  */

@@ -6,7 +6,7 @@
 /*--- Doxygen file description ------------------------------------------*/
 
 /**
- * @file main.c
+ * @file ginnungagap/main.c
  * @ingroup  ginnungagapMain
  * @brief  Implements the main routine for ginnungagap.
  */
@@ -29,6 +29,8 @@
 #  include <fftw3.h>
 #endif
 #include "../libutil/xmem.h"
+#include "../libutil/xstring.h"
+#include "../libutil/xfile.h"
 #include "../libutil/cmdline.h"
 #include "../libutil/parse_ini.h"
 
@@ -81,6 +83,18 @@ local_finalMessage(void);
 
 static void
 local_verifyCloseOfStdout(void);
+
+
+/**
+ * @brief  Dumps the ini file that was read to a file.
+ *
+ * @param[in]  ini
+ *                The ini file to dump.
+ *
+ * @return  Returns nothing.
+ */
+static void
+local_dumpIniFile(parse_ini_t ini);
 
 
 /*--- M A I N -----------------------------------------------------------*/
@@ -257,6 +271,10 @@ local_getGinnungagap(void)
 {
 	ginnungagap_t g9p;
 	parse_ini_t   ini;
+	int           rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
 
 	ini = parse_ini_open(localIniFname);
 	if (ini == NULL) {
@@ -267,15 +285,88 @@ local_getGinnungagap(void)
 
 	g9p = ginnungagap_new(ini);
 
+	if (rank == 0)
+		local_dumpIniFile(ini);
+
 	parse_ini_close(&ini);
 
 	return g9p;
 }
 
+static void
+local_dumpIniFile(parse_ini_t ini)
+{
+	char *iniDump;
+	FILE *f;
+
+	iniDump = xstrmerge(localIniFname, ".dump");
+	f       = xfopen(iniDump, "w");
+	parse_ini_dump(ini, f);
+	xfclose(&f);
+}
+
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup ginnungagapMain
+ * @defgroup ginnungagapMain Driver Routine
  * @ingroup ginnungagap
  * @brief Provides the driver routine for ginnungagap.
+ *
+ * This page describes how to run Ginnungagap from the command line.
+ *
+ * @section g9pMainSynopsis Synopsis
+ * <code>ginnungagap [--version] [--help] [--verify] [--initOnly]
+ * arg0</code>
+ *
+ * @section g9pMainSynopsisArgument Argument
+ *
+ * The argument <code>arg0</code> has to be a string giving the name of
+ * (and path to) the ini file that should be used for the run.  The
+ * structure of that file is described @link pageG9pInputFile here
+ * @endlink and @link ginnungagapSetup here @endlink.
+ *
+ * @section g9pMainSynopsisOptions Options
+ *
+ * Ginnungagap supports the following options:
+ *
+ * @subsection g9pMainSynopsisOptionsVersion --version
+ *
+ * This will print a detailed version information to the screen
+ * (including the exact configuration settings that were used to compile
+ * the code) and then immediately exists.
+ *
+ * @subsection g9pMainSynopsisOptionsHelp --help
+ *
+ * This will print a help screen summarizing the usage of the binary and
+ * then terminate the program.
+ *
+ * @subsection g9pMainSynopsisOptionsVerify --verify
+ *
+ * This will start the program and run through the setup routine, ie.
+ * read the ini file.  After this has been done, the program exists.
+ * This is meant as a quick check to see if the provided ini file parses
+ * correctly and the code can set itself up.  It is annoying if the job
+ * is sitting in the queue for a long time and when it finally executes
+ * it immediately terminates because something is missing from the ini
+ * file.  The code uses minimal memory during the setup, so it can be
+ * safely executed on the head node and does not need the full MPI
+ * environment.
+ *
+ * @subsection g9pMainSynopsisOptionsInitOnly --initOnly
+ *
+ * This is somewhat similar to the previous options: the code will now
+ * continue to the initialisation phase (which mainly includes the
+ * normalisation of the power spectrum and the calculation of a few
+ * interesting quantities).  Then the code terminates.
+ *
+ * No large scale memory allocation is done during the initialisation
+ * phase, thus the code can safely be executed on the head node.  This
+ * is of interest to play around with different settings of the starting
+ * redshift, or normalisation methods.
+ *
+ * @section g9pMainSynopsisSeeAlso See Also
+ *
+ * The actual parsing of the command line parameters is done in
+ * src/ginnungagap/main.c, please look at the documentation of this
+ * file for the latest information on the details of the invocation.
  */

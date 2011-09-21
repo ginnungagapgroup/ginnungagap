@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file makeSiloRoot/main.c
+ * @ingroup  toolsMakeSiloRoot
+ * @brief  Implements the main routine for makeSiloRoot.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -190,3 +199,12 @@ local_getMsr(void)
 
 	return msr;
 }
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup toolsMakeSiloRootMain Driver routine
+ * @ingroup  toolsMakeSiloRoot
+ * @brief  Provides the driver for @ref toolsMakeSiloRoot.
+ */

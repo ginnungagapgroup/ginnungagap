@@ -24,11 +24,18 @@
 
 
 /*--- ADT implementation ------------------------------------------------*/
+
+/** @brief Main structure. */
 struct g9pWN_struct {
+	/** @brief  Flags whether the WN is read from a file.  */
 	bool         useFile;
+	/** @brief  Gives, if appropriate, the WN reader.  */
 	gridReader_t reader;
+	/** @brief  The RNG to use. */
 	rng_t        rng;
+	/** @brief  Flags whether the WN should be written to file. */
 	bool         dumpWhiteNoise;
+	/** @brief  Provides the reader, if appropriate. */
 	gridWriter_t writer;
 };
 

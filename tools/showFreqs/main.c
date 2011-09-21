@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file showFreqs/main.c
+ * @ingroup  toolsShowFreqsMain
+ * @brief  Implements the main routine for showFreqs.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -172,3 +181,12 @@ local_checkForPrematureTermination(cmdline_t cmdline)
 		exit(EXIT_FAILURE);
 	}
 }
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup toolsShowFreqsMain Driver routine
+ * @ingroup  toolsShowFreqs
+ * @brief  Provides the driver for @ref toolsShowFreqs.
+ */

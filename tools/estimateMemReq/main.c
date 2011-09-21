@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file estimateMemReq/main.c
+ * @ingroup  toolsEstimateMemReqMain
+ * @brief  Implements the main routine for estimateMemReq.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -19,20 +28,41 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+
+/** @brief  Provides the name of this program. */
 #define THIS_PROGNAME "estimateMemReq"
 
 
 /*--- Local variables ---------------------------------------------------*/
+
+/** @brief  Gives the dimensions of the grid. */
 static int    localDim1D             = 0;
+/** @brief  Gives total number of MPI processes. */
 static int    localNpTot             = 0;
+/** @brief  Gives the number of MPI processes in the y-direction. */
 static int    localNpY               = 0;
+/** @brief  Gives the number of MPI processes in the z-direction. */
 static int    localNpZ               = 0;
+/** @brief  Gives the number of bytes of RAM for each MPI process. */
 static size_t localMemPerProcInBytes = 0;
+/** @brief  Gives the total number of processes put on one node. */
 static int    localProcessesPerNode  = 1;
+/** @brief  Selects if the IC are to be generated in double precision. */
 static bool   localIsDouble          = false;
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  Initializes the environment.
+ *
+ * @param[in,out]  *argc
+ *                    The number of command line parameters.
+ * @param[in,out]  ***argv
+ *                    The actual command line parameters.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_initEnvironment(int *argc, char ***argv);
 
@@ -206,3 +236,11 @@ local_getEmr(void)
 
 	return emr;
 }
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup toolsEstimateMemReqMain Driver routine
+ * @ingroup  toolsEstimateMemReq
+ * @brief  Provides the driver for @ref toolsEstimateMemReq.
+ */

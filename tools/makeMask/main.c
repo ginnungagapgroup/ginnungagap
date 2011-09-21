@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file makeMask/main.c
+ * @ingroup  toolsMakeMaskMain
+ * @brief  Implements the main routine for makeMask.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -204,3 +213,12 @@ local_getMama(void)
 
 	return mama;
 }
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup toolsMakeMaskMain Driver routine
+ * @ingroup  toolsMakeMask
+ * @brief  Provides the driver for @ref toolsMakeMask.
+ */

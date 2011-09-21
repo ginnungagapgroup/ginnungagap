@@ -58,7 +58,7 @@ g9pIC_getModeStr(g9pICMode_t mode);
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup ginnungagapIC
+ * @defgroup ginnungagapIC  Calculation of Initial Conditions
  * @ingroup ginnungagap
  * @brief Provides the actual IC calculations.
  */

@@ -65,9 +65,9 @@ g9pNorm_getNameFromMode(g9pNorm_mode_t mode);
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup ginnungagapNorm
+ * @defgroup ginnungagapNorm  Normalisation
  * @ingroup ginnungagap
- * @brief Provides various normalization methods for ginnungagap.
+ * @brief Provides various normalisation methods for ginnungagap.
  */
 
 

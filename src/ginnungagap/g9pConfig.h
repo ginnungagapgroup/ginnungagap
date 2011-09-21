@@ -23,7 +23,7 @@
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup ginnungagapConfig
+ * @defgroup ginnungagapConfig  Configuration
  * @ingroup ginnungagap
  * @brief Provides the code configuration.
  */

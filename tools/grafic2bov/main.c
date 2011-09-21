@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file grafic2bov/main.c
+ * @ingroup  toolsGrafic2BovMain
+ * @brief  Implements the main routine for grafiv2bov.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -178,3 +187,12 @@ local_getG2b(void)
 
 	return g2b;
 }
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup toolsGrafic2BovMain Driver routine
+ * @ingroup  toolsGrafic2Bov
+ * @brief  Provides the driver for @ref toolsGrafic2Bov.
+ */

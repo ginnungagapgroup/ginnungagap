@@ -28,19 +28,33 @@
 
 
 /*--- Implemention of main structure ------------------------------------*/
+
+/** @brief Main structure */
 struct ginnungagap_struct {
+	/** @brief  The code setup. */
 	g9pSetup_t           setup;
+	/** @brief  The cosmological model used. */
 	cosmoModel_t         model;
+	/** @brief  The power spectrum used. */
 	cosmoPk_t            pk;
+	/** @brief  The white noise module. */
 	g9pWN_t              whiteNoise;
+	/** @brief  The main grid. */
 	gridRegular_t        grid;
+	/** @brief  The distribution of the main grid (parallel interface). */
 	gridRegularDistrib_t gridDistrib;
+	/** @brief  The FFT module for the grid. */
 	gridRegularFFT_t     gridFFT;
+	/** @brief  The writer used to write the velocity fields. */
 	gridWriter_t         finalWriter;
+	/** @brief  The position of the density variable in the grid. */
 	int                  posOfDens;
-	int                  rank;
-	int                  size;
-	int                  numThreads;
+	/** @brief  The MPI rank of this tasks. */
+	int                  rank; ///< Will be 0 for non-MPI situations.
+	/** @brief  The total number of MPI tasks. */
+	int                  size; ///< Will be 1 for non-MPI situations.
+	/** @brief  The number of OpenMP threads used. */
+	int                  numThreads; ///< Will be 1 for non-OpenMP situations
 };
 
 

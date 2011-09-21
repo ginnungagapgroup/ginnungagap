@@ -47,7 +47,7 @@ g9pWN_reset(g9pWN_t wn);
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup ginnungagapWN
+ * @defgroup ginnungagapWN  White Noise
  * @ingroup ginnungagap
  * @brief Provides the WN functionality.
  */

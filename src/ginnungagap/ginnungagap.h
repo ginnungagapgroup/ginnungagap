@@ -41,7 +41,7 @@ ginnungagap_del(ginnungagap_t *g9p);
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup ginnungagap
+ * @defgroup ginnungagap Ginnungagap
  * @brief Provides the ginnungagap code.
  */
 

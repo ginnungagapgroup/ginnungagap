@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef ESTIMATEMEMREQ_H
 #define ESTIMATEMEMREQ_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file estimateMemReq/estimateMemReq.h
+ * @ingroup  toolsEstimateMemReq
+ * @brief  Provides the interface to the estimateMemReq tool.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -30,6 +39,15 @@ estimateMemReq_run(estimateMemReq_t emr,
                    int              npZ,
                    size_t           memPerProcessInBytes,
                    int              processesPerNode);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup toolsEstimateMemReq estimateMemReq
+ * @ingroup  tools
+ * @brief  Provides the estimateMemReq tool.
+ */
 
 
 #endif

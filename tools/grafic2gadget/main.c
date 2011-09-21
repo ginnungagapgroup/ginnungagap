@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file grafic2gadget/main.c
+ * @ingroup  toolsGrafic2GadgetMain
+ * @brief  Implements the main routine for grafic2gadget.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -203,3 +212,12 @@ local_getG2g(void)
 
 	return g2g;
 }
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup toolsGrafic2GadgetMain Driver routine
+ * @ingroup  toolsGrafic2Gadget
+ * @brief  Provides the driver for @ref toolsGrafic2Gadget.
+ */

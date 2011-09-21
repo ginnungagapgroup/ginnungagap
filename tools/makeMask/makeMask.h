@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef MAKEMASK_H
 #define MAKEMASK_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file makeMask/makeMask.h
+ * @ingroup  toolsMakeMask
+ * @brief  Provides the interface to the makeMask tool.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -24,6 +33,15 @@ makeMask_run(makeMask_t msr);
 
 extern void
 makeMask_del(makeMask_t *msr);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup toolsMakeMask makeMask
+ * @ingroup  tools
+ * @brief  Provides the makeMask tool.
+ */
 
 
 #endif
