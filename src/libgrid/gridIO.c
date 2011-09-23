@@ -19,6 +19,7 @@
 static const char *local_typeBovStr     = "bov";
 static const char *local_typeSiloStr    = "silo";
 static const char *local_typeGraficStr  = "grafic";
+static const char *local_typeHDF5Str    = "hdf5";
 static const char *local_typeUnknownStr = "unknown";
 
 
@@ -39,6 +40,8 @@ gridIO_getTypeFromName(const char *name)
 		rtn = GRIDIO_TYPE_SILO;
 	else if (strcmp(name, local_typeGraficStr) == 0)
 		rtn = GRIDIO_TYPE_GRAFIC;
+	else if (strcmp(name, local_typeHDF5Str) == 0)
+		rtn = GRIDIO_TYPE_HDF5;
 	else
 		rtn = GRIDIO_TYPE_UNKNOWN;
 
@@ -56,6 +59,8 @@ gridIO_getNameFromType(gridIO_type_t type)
 		rtn = local_typeSiloStr;
 	else if (type == GRIDIO_TYPE_GRAFIC)
 		rtn = local_typeGraficStr;
+	else if (type == GRIDIO_TYPE_HDF5)
+		rtn = local_typeHDF5Str;
 	else
 		rtn = local_typeUnknownStr;
 

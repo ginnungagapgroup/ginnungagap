@@ -33,6 +33,8 @@ typedef enum {
 	GRIDIO_TYPE_SILO,
 	/** Corresponds to the grafic file format. */
 	GRIDIO_TYPE_GRAFIC,
+	/** Corresponds to HDF5 format. */
+	GRIDIO_TYPE_HDF5,
 	/** Stands for an unknown file format. */
 	GRIDIO_TYPE_UNKNOWN
 } gridIO_type_t;
