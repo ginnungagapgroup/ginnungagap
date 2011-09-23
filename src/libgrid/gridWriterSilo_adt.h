@@ -7,12 +7,11 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#ifdef WITH_SILO
-#  include "gridWriter_adt.h"
-#  include <silo.h>
-#  ifdef WITH_MPI
-#    include <pmpio.h>
-#  endif
+#include "gridWriter_adt.h"
+#include <silo.h>
+#ifdef WITH_MPI
+#  include <pmpio.h>
+#endif
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -24,13 +23,12 @@ struct gridWriterSilo_struct {
 	DBfile        *f;
 	char          *fileName;
 	char          *dirName;
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	PMPIO_baton_t *baton;
 	int           groupRank;
 	int           rankInGroup;
 	int           globalRank;
-#  endif
+#endif
 };
 
-#endif /* WITH_SILO */
 #endif

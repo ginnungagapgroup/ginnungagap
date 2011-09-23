@@ -8,14 +8,13 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#ifdef WITH_SILO
-#  include "gridWriter.h"
-#  include "gridRegular.h"
-#  include "gridPatch.h"
-#  include "gridPoint.h"
-#  ifdef WITH_MPI
-#    include <mpi.h>
-#  endif
+#include "gridWriter.h"
+#include "gridRegular.h"
+#include "gridPatch.h"
+#include "gridPoint.h"
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -50,11 +49,10 @@ gridWriterSilo_writeGridRegular(gridWriter_t  writer,
                                 gridRegular_t grid);
 
 
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 extern void
 gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
 
-#  endif
-
 #endif
+
 #endif

@@ -17,9 +17,8 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#ifdef WITH_SILO
-#  include "gridReader.h"
-#  include "../libutil/parse_ini.h"
+#include "gridReader.h"
+#include "../libutil/parse_ini.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -112,5 +111,4 @@ gridReaderSilo_readIntoPatchForVar(gridReader_t reader,
 
 /** @} */
 
-#endif /* WITH_SILO */
 #endif

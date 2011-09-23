@@ -5,27 +5,26 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#ifdef WITH_SILO
-#  include "gridWriterSilo_tests.h"
-#  include "gridWriterSilo.h"
-#  include <stdio.h>
-#  include <string.h>
-#  include <silo.h>
-#  ifdef WITH_MPI
-#    include <mpi.h>
-#  endif
-#  ifdef XMEM_TRACK_MEM
-#    include "../libutil/xmem.h"
-#  endif
+#include "gridWriterSilo_tests.h"
+#include "gridWriterSilo.h"
+#include <stdio.h>
+#include <string.h>
+#include <silo.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
+#ifdef XMEM_TRACK_MEM
+#  include "../libutil/xmem.h"
+#endif
 
 
 /*--- Implemention of main structure ------------------------------------*/
-#  include "gridWriterSilo_adt.h"
+#include "gridWriterSilo_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
-#  define LOCAL_TESTPREFIX       "siloTest"
-#  define LOCAL_TESTPREFIX_PATCH "siloTestPatch"
+#define LOCAL_TESTPREFIX       "siloTest"
+#define LOCAL_TESTPREFIX_PATCH "siloTestPatch"
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -40,12 +39,12 @@ gridWriterSilo_new_test(void)
 	bool             hasPassed = true;
 	int              rank      = 0;
 	gridWriterSilo_t writer;
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	size_t           allocatedBytes = global_allocated_bytes;
-#  endif
-#  ifdef WITH_MPI
+#endif
+#ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#  endif
+#endif
 
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
@@ -56,10 +55,10 @@ gridWriterSilo_new_test(void)
 	if (writer->dbType != DB_HDF5)
 		hasPassed = false;
 	gridWriterSilo_del((gridWriter_t *)&writer);
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
-#  endif
+#endif
 
 	return hasPassed ? true : false;
 }
@@ -67,35 +66,35 @@ gridWriterSilo_new_test(void)
 extern bool
 gridWriterSilo_del_test(void)
 {
-	bool             hasPassed = true;
-	int              rank      = 0;
+	bool         hasPassed = true;
+	int          rank      = 0;
 	gridWriter_t writer;
-#  ifdef XMEM_TRACK_MEM
-	size_t           allocatedBytes = global_allocated_bytes;
-#  endif
-#  ifdef WITH_MPI
+#ifdef XMEM_TRACK_MEM
+	size_t       allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#  endif
+#endif
 
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
 	writer = (gridWriter_t)gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
-#  endif
+#endif
 	gridWriterSilo_del(&writer);
 	if (writer != NULL)
 		hasPassed = false;
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
-#  endif
+#endif
 
 	return hasPassed ? true : false;
 }
 
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 extern bool
 gridWriterSilo_initParallel_test(void)
 {
@@ -103,9 +102,9 @@ gridWriterSilo_initParallel_test(void)
 	int              rank      = 0;
 	int              size;
 	gridWriterSilo_t writer;
-#    ifdef XMEM_TRACK_MEM
+#  ifdef XMEM_TRACK_MEM
 	size_t           allocatedBytes = global_allocated_bytes;
-#    endif
+#  endif
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
@@ -122,7 +121,7 @@ gridWriterSilo_initParallel_test(void)
 		hasPassed = false;
 	gridWriterSilo_del((gridWriter_t *)&writer);
 
-	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
+	writer           = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
 	writer->numFiles = size;
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 	if (writer->baton == NULL)
@@ -133,15 +132,15 @@ gridWriterSilo_initParallel_test(void)
 		hasPassed = false;
 	gridWriterSilo_del((gridWriter_t *)&writer);
 
-#    ifdef XMEM_TRACK_MEM
+#  ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
-#    endif
+#  endif
 
 	return hasPassed ? true : false;
 } /* gridWriterSilo_initParallel_test */
 
-#  endif
+#endif
 
 extern bool
 gridWriterSilo_activate_test(void)
@@ -149,20 +148,20 @@ gridWriterSilo_activate_test(void)
 	bool             hasPassed = true;
 	int              rank      = 0;
 	gridWriterSilo_t writer;
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	size_t           allocatedBytes = global_allocated_bytes;
-#  endif
-#  ifdef WITH_MPI
+#endif
+#ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#  endif
+#endif
 
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
-#  endif
+#endif
 	gridWriterSilo_activate((gridWriter_t)writer);
 	if (writer->isActive != true)
 		hasPassed = false;
@@ -170,10 +169,10 @@ gridWriterSilo_activate_test(void)
 		hasPassed = false;
 	gridWriterSilo_deactivate((gridWriter_t)writer);
 	gridWriterSilo_del((gridWriter_t *)&writer);
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
-#  endif
+#endif
 
 	return hasPassed ? true : false;
 }
@@ -184,20 +183,20 @@ gridWriterSilo_deactivate_test(void)
 	bool             hasPassed = true;
 	int              rank      = 0;
 	gridWriterSilo_t writer;
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	size_t           allocatedBytes = global_allocated_bytes;
-#  endif
-#  ifdef WITH_MPI
+#endif
+#ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#  endif
+#endif
 
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
-#  endif
+#endif
 	gridWriterSilo_activate((gridWriter_t)writer);
 	gridWriterSilo_deactivate((gridWriter_t)writer);
 	if (writer->isActive != false)
@@ -205,10 +204,10 @@ gridWriterSilo_deactivate_test(void)
 	if (writer->f != NULL)
 		hasPassed = false;
 	gridWriterSilo_del((gridWriter_t *)&writer);
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
-#  endif
+#endif
 
 	return hasPassed ? true : false;
 }
@@ -227,12 +226,12 @@ gridWriterSilo_writeGridPatch_test(void)
 	gridPointUint32_t hi2;
 	gridPointDbl_t    origin;
 	gridPointDbl_t    delta;
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
-#  endif
-#  ifdef WITH_MPI
+#endif
+#ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#  endif
+#endif
 
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
@@ -249,9 +248,9 @@ gridWriterSilo_writeGridPatch_test(void)
 	patch2 = gridPatch_new(lo2, hi2);
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX_PATCH, DB_HDF5);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
-#  endif
+#endif
 	gridWriterSilo_activate((gridWriter_t)writer);
 	gridWriterSilo_writeGridPatch((gridWriter_t)writer, patch,
 	                              "patch_00", origin, delta);
@@ -262,10 +261,10 @@ gridWriterSilo_writeGridPatch_test(void)
 
 	gridPatch_del(&patch2);
 	gridPatch_del(&patch);
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
-#  endif
+#endif
 
 	return hasPassed ? true : false;
 } /* gridWriterSilo_writeGridPatch_test */
@@ -277,23 +276,23 @@ gridWriterSilo_writeGridRegular_test(void)
 	int              rank      = 0;
 	gridWriterSilo_t writer;
 	gridRegular_t    grid;
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	size_t           allocatedBytes = global_allocated_bytes;
-#  endif
-#  ifdef WITH_MPI
+#endif
+#ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#  endif
+#endif
 
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grid   = local_getFakeGridRegular();
+	grid = local_getFakeGridRegular();
 	// TODO Initialize memory areas
 
 	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
-#  endif
+#endif
 	gridWriterSilo_activate((gridWriter_t)writer);
 	gridWriterSilo_writeGridRegular((gridWriter_t)writer, grid);
 	gridWriterSilo_deactivate((gridWriter_t)writer);
@@ -303,13 +302,13 @@ gridWriterSilo_writeGridRegular_test(void)
 
 	gridRegular_del(&grid);
 
-#  ifdef XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
-#  endif
+#endif
 
 	return hasPassed ? true : false;
-}
+} /* gridWriterSilo_writeGridRegular_test */
 
 /*--- Implementations of local functions --------------------------------*/
 static gridRegular_t
@@ -321,11 +320,11 @@ local_getFakeGridRegular(void)
 	gridPointUint32_t dims;
 	gridPointUint32_t lo;
 	gridPointUint32_t hi;
-	gridPatch_t patch;
-	dataVar_t var;
-	int rank = 0;
-	int size = 1;
-	int perRank;
+	gridPatch_t       patch;
+	dataVar_t         var;
+	int               rank = 0;
+	int               size = 1;
+	int               perRank;
 #ifdef WITH_MPI
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -335,20 +334,20 @@ local_getFakeGridRegular(void)
 		origin[i] = 0.0;
 		extent[i] = 1.0;
 		dims[i]   = 128;
-		lo[i] = 0;
-		hi[i] = 127;
+		lo[i]     = 0;
+		hi[i]     = 127;
 	}
-	perRank = 128/size;
+	perRank = 128 / size;
 
-	grid = gridRegular_new("TestGrid", origin, extent, dims);
+	grid    = gridRegular_new("TestGrid", origin, extent, dims);
 
-	lo[0] = rank * perRank;
-	hi[0] = lo[0] + perRank/2 - 1;
-	patch = gridPatch_new(lo, hi);
+	lo[0]   = rank * perRank;
+	hi[0]   = lo[0] + perRank / 2 - 1;
+	patch   = gridPatch_new(lo, hi);
 	gridRegular_attachPatch(grid, patch);
-	lo[0] += perRank/2;
-	hi[0] = lo[0] + perRank/2 - 1;
-	patch = gridPatch_new(lo, hi);
+	lo[0]  += perRank / 2;
+	hi[0]   = lo[0] + perRank / 2 - 1;
+	patch   = gridPatch_new(lo, hi);
 	gridRegular_attachPatch(grid, patch);
 
 	var = dataVar_new("var1", DATAVARTYPE_DOUBLE, 1);
@@ -357,6 +356,4 @@ local_getFakeGridRegular(void)
 	gridRegular_attachVar(grid, var);
 
 	return grid;
-}
-
-#endif
+} /* local_getFakeGridRegular */

@@ -5,43 +5,42 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#ifdef WITH_SILO
-#  include "gridWriterSilo.h"
-#  include <assert.h>
-#  include <string.h>
-#  include <silo.h>
-#  ifdef WITH_MPI
-#    include <mpi.h>
-#    include <pmpio.h>
-#  endif
-#  include "../libutil/xmem.h"
-#  include "../libutil/xstring.h"
-#  include "../libutil/diediedie.h"
+#include "gridWriterSilo.h"
+#include <assert.h>
+#include <string.h>
+#include <silo.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#  include <pmpio.h>
+#endif
+#include "../libutil/xmem.h"
+#include "../libutil/xstring.h"
+#include "../libutil/diediedie.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
-#  include "gridWriterSilo_adt.h"
+#include "gridWriterSilo_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
-#  define LOCAL_FILESUFFIX ".silo"
-#  ifdef WITH_MPI
-#    define LOCAL_DIRPREFIX     "domain_"
-#    define LOCAL_NUMFILEDIGITS 3
-#    define LOCAL_NUMDIRDIGITS  5
-#    define LOCAL_MPI_TAG       987
-#  endif
+#define LOCAL_FILESUFFIX ".silo"
+#ifdef WITH_MPI
+#  define LOCAL_DIRPREFIX     "domain_"
+#  define LOCAL_NUMFILEDIGITS 3
+#  define LOCAL_NUMDIRDIGITS  5
+#  define LOCAL_MPI_TAG       987
+#endif
 
 /*--- Local variables ---------------------------------------------------*/
 static struct gridWriter_func_struct local_func
-    = { &gridWriterSilo_del,
-	    &gridWriterSilo_activate,
-	    &gridWriterSilo_deactivate,
-	    &gridWriterSilo_writeGridPatch,
-	    &gridWriterSilo_writeGridRegular,
-#  ifdef WITH_MPI
-	    &gridWriterSilo_initParallel
-#  endif
+    = {&gridWriterSilo_del,
+	   &gridWriterSilo_activate,
+	   &gridWriterSilo_deactivate,
+	   &gridWriterSilo_writeGridPatch,
+	   &gridWriterSilo_writeGridRegular,
+#ifdef WITH_MPI
+	   &gridWriterSilo_initParallel
+#endif
 	};
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -49,14 +48,14 @@ static void *
 local_createDB(const char *fname, const char *dname, void *udata);
 
 
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 static void *
 local_openDB(const char     *fname,
              const char     *dname,
              PMPIO_iomode_t iomode,
              void           *udata);
 
-#  endif
+#endif
 
 static void
 local_closeDB(void *file, void *udata);
@@ -98,22 +97,22 @@ gridWriterSilo_new(const char *prefix, int dbType)
 	gridWriterSilo_t writer;
 
 	assert(prefix != NULL);
-#  ifdef WITH_HDF5
+#ifdef WITH_HDF5
 	assert(dbType == DB_HDF5 || dbType == DB_PDB);
-#  else
+#else
 	assert(dbType == DB_PDB);
-#  endif
+#endif
 
 	writer              = xmalloc(sizeof(struct gridWriterSilo_struct));
 	writer->type        = GRIDIO_TYPE_SILO;
 	writer->func        = (gridWriter_func_t)&local_func;
 	writer->isActive    = false;
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	writer->baton       = NULL;
 	writer->groupRank   = -1;
 	writer->rankInGroup = -1;
 	writer->globalRank  = -1;
-#  endif
+#endif
 	writer->prefix      = xstrdup(prefix);
 	writer->dbType      = dbType;
 	writer->numFiles    = 1;
@@ -142,10 +141,10 @@ gridWriterSilo_newFromIni(parse_ini_t ini, const char *sectionName)
 
 	if (strcmp(dbTypeStr, "DB_PDB") == 0)
 		dbType = DB_PDB;
-#  ifdef WITH_HDF5
+#ifdef WITH_HDF5
 	else if (strcmp(dbTypeStr, "DB_HDF5") == 0)
 		dbType = DB_HDF5;
-#  endif
+#endif
 	else {
 		fprintf(stderr, "Unknown or unsupported Silo DB type: %s\n",
 		        dbTypeStr);
@@ -179,10 +178,10 @@ gridWriterSilo_del(gridWriter_t *writer)
 	if (tmp->dirName != NULL)
 		xfree(tmp->dirName);
 	xfree(tmp->prefix);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	if (tmp->baton != NULL)
 		PMPIO_Finish(tmp->baton);
-#  endif
+#endif
 	xfree(*writer);
 
 	*writer = NULL;
@@ -195,20 +194,20 @@ gridWriterSilo_activate(gridWriter_t writer)
 
 	assert(tmp != NULL);
 	assert(tmp->type == GRIDIO_TYPE_SILO);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	assert(tmp->baton != NULL);
-#  endif
+#endif
 
 	if (!tmp->isActive) {
 		local_createFileName(tmp);
 		local_createDirName(tmp);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 		tmp->f = PMPIO_WaitForBaton(tmp->baton, tmp->fileName,
 		                            tmp->dirName);
-#  else
+#else
 		tmp->f = local_createDB(tmp->fileName, tmp->dirName,
 		                        tmp);
-#  endif
+#endif
 		tmp->isActive = true;
 	}
 }
@@ -220,16 +219,16 @@ gridWriterSilo_deactivate(gridWriter_t writer)
 
 	assert(tmp != NULL);
 	assert(tmp->type == GRIDIO_TYPE_SILO);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	assert(tmp->baton != NULL);
-#  endif
+#endif
 
 	if (tmp->isActive) {
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 		PMPIO_HandOffBaton(tmp->baton, tmp->f);
-#  else
+#else
 		local_closeDB(tmp->f, tmp);
-#  endif
+#endif
 		tmp->isActive = false;
 	}
 }
@@ -287,12 +286,12 @@ gridWriterSilo_writeGridRegular(gridWriter_t  writer,
 	assert(tmp->isActive);
 	assert(grid != NULL);
 
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	gridName = local_getGridName(tmp->rankInGroup,
 	                             gridRegular_getName(grid));
-#  else
+#else
 	gridName   = local_getGridName(0, gridRegular_getName(grid));
-#  endif
+#endif
 	numPatches = gridRegular_getNumPatches(grid);
 	meshTypes  = xmalloc(sizeof(int) * numPatches);
 	patchNames = local_getPatchNames(gridName, numPatches);
@@ -312,7 +311,7 @@ gridWriterSilo_writeGridRegular(gridWriter_t  writer,
 	xfree(gridName);
 } /* gridWriterSilo_writeGridRegular */
 
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 extern void
 gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 {
@@ -334,7 +333,7 @@ gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 	tmp->globalRank  = rank;
 }
 
-#  endif
+#endif
 
 
 /*--- Implementations of local functions --------------------------------*/
@@ -361,7 +360,7 @@ local_createDB(const char *fname, const char *dname, void *udata)
 	return writer->f;
 }
 
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 static void *
 local_openDB(const char     *fname,
              const char     *dname,
@@ -387,7 +386,7 @@ local_openDB(const char     *fname,
 	return writer->f;
 }
 
-#  endif
+#endif
 
 static void
 local_closeDB(void *file, void *udata)
@@ -410,17 +409,17 @@ local_createFileName(gridWriterSilo_t writer)
 
 	charsToAlloc    += strlen(writer->prefix);
 	charsToAlloc    += strlen(LOCAL_FILESUFFIX);
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	charsToAlloc    += 1 + LOCAL_NUMFILEDIGITS;
-#  endif
+#endif
 	writer->fileName = xmalloc(charsToAlloc * sizeof(char));
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	sprintf(writer->fileName, "%s_%0*i%s",
 	        writer->prefix, LOCAL_NUMFILEDIGITS,
 	        writer->groupRank, LOCAL_FILESUFFIX);
-#  else
+#else
 	sprintf(writer->fileName, "%s%s", writer->prefix, LOCAL_FILESUFFIX);
-#  endif
+#endif
 }
 
 static void
@@ -432,16 +431,16 @@ local_createDirName(gridWriterSilo_t writer)
 		xfree(writer->dirName);
 
 	charsToAlloc    = 1;
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	charsToAlloc   += strlen(LOCAL_DIRPREFIX) + LOCAL_NUMDIRDIGITS;
-#  endif
+#endif
 	writer->dirName = xmalloc(charsToAlloc * sizeof(char));
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 	sprintf(writer->dirName, "%s%0*i",
 	        LOCAL_DIRPREFIX, LOCAL_NUMDIRDIGITS, writer->globalRank);
-#  else
+#else
 	writer->dirName[0] = '\0';
-#  endif
+#endif
 }
 
 static char *
@@ -565,5 +564,3 @@ local_dirExistsInFile(DBfile *db, const char *dname)
 
 	return dirExists ? true : false;
 }
-
-#endif

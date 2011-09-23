@@ -8,8 +8,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#ifdef WITH_SILO
-#  include <stdbool.h>
+#include <stdbool.h>
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
@@ -32,12 +31,11 @@ extern bool
 gridWriterSilo_writeGridRegular_test(void);
 
 
-#  ifdef WITH_MPI
+#ifdef WITH_MPI
 extern bool
 gridWriterSilo_initParallel_test(void);
 
-#  endif
-
-
 #endif
+
+
 #endif

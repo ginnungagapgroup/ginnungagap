@@ -5,23 +5,22 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#ifdef WITH_SILO
-#  include "gridReaderSilo.h"
-#  include <assert.h>
-#  include <stdio.h>
-#  include <stdlib.h>
-#  include <silo.h>
-#  include "gridPatch.h"
-#  include "../libdata/dataVar.h"
-#  include "../libdata/dataVarType.h"
-#  include "../libutil/xmem.h"
-#  include "../libutil/parse_ini.h"
-#  include "../libutil/diediedie.h"
+#include "gridReaderSilo.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <silo.h>
+#include "gridPatch.h"
+#include "../libdata/dataVar.h"
+#include "../libdata/dataVarType.h"
+#include "../libutil/xmem.h"
+#include "../libutil/parse_ini.h"
+#include "../libutil/diediedie.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
-#  include "gridReader_adt.h"
-#  include "gridReaderSilo_adt.h"
+#include "gridReader_adt.h"
+#include "gridReaderSilo_adt.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -29,9 +28,9 @@
 
 /*--- Local variables ---------------------------------------------------*/
 static struct gridReader_func_struct local_func
-    = { &gridReaderSilo_del,
-	    &gridReaderSilo_readIntoPatch,
-	    &gridReaderSilo_readIntoPatchForVar };
+    = {&gridReaderSilo_del,
+	   &gridReaderSilo_readIntoPatch,
+	   &gridReaderSilo_readIntoPatchForVar};
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -75,9 +74,9 @@ gridReaderSilo_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 	assert(reader->type == GRIDIO_TYPE_SILO);
 	assert(patch != NULL);
 
-#  define r ((gridReaderSilo_t)reader)
+#define r ((gridReaderSilo_t)reader)
 	var      = dataVar_new(r->varName, r->varType, r->varNumComponents);
-#  undef r
+#undef r
 	idxOfVar = gridPatch_attachVar(patch, var);
 	dataVar_del(&var);
 
@@ -140,5 +139,3 @@ local_translateGridTypeToSiloType(dataVarType_t type)
 
 	return typeAsSiloType;
 }
-
-#endif /* WITH_SILO */

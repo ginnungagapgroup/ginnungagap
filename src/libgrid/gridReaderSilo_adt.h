@@ -8,8 +8,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
-#ifdef WITH_SILO
-#  include "gridReader_adt.h"
+#include "gridReader_adt.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -21,5 +20,4 @@ struct gridReaderSilo_struct {
 };
 
 
-#endif /* WITH_SILO */
 #endif

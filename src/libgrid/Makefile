@@ -18,9 +18,7 @@ sources = gridRegular.c \
           gridReader.c \
           gridReaderBov.c \
           gridReaderGrafic.c \
-          gridReaderSilo.c \
           gridWriter.c \
-          gridWriterSilo.c \
           gridWriterGrafic.c \
           gridUtil.c
 
@@ -34,9 +32,15 @@ sourcesTests = lib${LIBNAME}_tests.c \
                gridIO_tests.c \
                gridReader_tests.c \
                gridReaderBov_tests.c \
-               gridReaderSilo_tests.c \
-               gridWriterSilo_tests.c \
                gridUtil_tests.c
+
+ifeq ($(WITH_SILO), "true")
+sources += gridWriterSilo.c \
+           gridReaderSilo.c
+
+sourcesTests += gridReaderSilo_tests.c \
+                gridWriterSilo_tests.c
+endif
 
 include ../../Makefile.rules
 
