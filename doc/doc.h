@@ -368,6 +368,20 @@
  * make -j && make install
  * @endcode
  *
+ * There are some hidden configure options.  To exclude deprecated
+ * symbols from being exported, use
+ * <code>--disable-deprecated-symbols</code>.  Here is the full line for
+ * HDF5-1.8.7:
+ *
+ * @code
+ * ./configure --prefix=/opt/hdf5/hdf5-1.8.7-gcc \
+ *             --disable-fortran
+ *             --disable-cxx \
+ *             --with-pthread \
+ *             --enable-production \
+ *             --disable-deprecated-symbols
+ * @endcode
+ *
  *
  * @section pageDeps_Silo  Building Silo
  *
