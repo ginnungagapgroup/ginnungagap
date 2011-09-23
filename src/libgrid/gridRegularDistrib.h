@@ -35,6 +35,12 @@ typedef struct gridRegularDistrib_struct *gridRegularDistrib_t;
 /*--- Prototypes of exported functions ----------------------------------*/
 
 /**
+ * @name  Creating an deleting
+ *
+ * @{
+ */
+
+/**
  * @brief  Creates a new regular grid distribution objects.
  *
  * @param[in,out]  grid
@@ -54,14 +60,57 @@ typedef struct gridRegularDistrib_struct *gridRegularDistrib_t;
 extern gridRegularDistrib_t
 gridRegularDistrib_new(gridRegular_t grid, const gridPointInt_t nProcs);
 
+/**
+ * @brief  Deletes a distribution object.
+ *
+ * This will generally only decrease the reference count to this object.
+ * Only when the last reference is deleted, the object is destroyed and the
+ * memory is freed.
+ *
+ * @param[in,out]  *distrib
+ *                    Pointer to the external variable holding the reference
+ *                    to the distribution object that should be deleted.
+ *                    The external variable will be set to @c NULL.  Passing
+ *                    @c NULL or a @c NULL reference is undefined.
+ *
+ * @return  Returns nothing.
+ */
 extern void
 gridRegularDistrib_del(gridRegularDistrib_t *distrib);
 
+/** @} */
+
+/**
+ * @brief  Creates a new reference to a distribution object.
+ *
+ * @param[in,out]  distrib
+ *                    The distribution object that should be referenced.
+ *                    Passing @c NULL is undefined.
+ *
+ * @return  Returns a reference to @c distrib.
+ */
 extern gridRegularDistrib_t
 gridRegularDistrib_getRef(gridRegularDistrib_t distrib);
 
 
 #ifdef WITH_MPI
+
+/**
+ * @brief  This sets up the MPI details for this distribution object.
+ *
+ * @param[in,out]  distrib
+ *                    The distribution object for which to set up the MPI
+ *                    details.  Passing @c NULL is undefined.
+ * @param[in]      nProcs
+ *                    The number of MPI tasks in each dimension.  All values
+ *                    in the vector must be either 0 or positive.  Passing
+ *                    @c NULL is valid, in which case the already set values
+ *                    for @c nProcs (from gridRegularDistrib_new()) are
+ *                    used.
+ * @param[in]      comm
+ *                    The MPI communicator that should be used for the
+ *                    distribution.
+ */
 extern void
 gridRegularDistrib_initMPI(gridRegularDistrib_t distrib,
                            gridPointInt_t       nProcs,
