@@ -38,6 +38,8 @@ tools/showFreqs/showFreqs
 
 tools/makeMask/makeMask
 
+tools/realSpaceConstraints/realSpaceConstraints
+
 tmp/
 
 doc/Doxyfile
