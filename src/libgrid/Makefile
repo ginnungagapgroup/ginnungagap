@@ -42,6 +42,14 @@ sourcesTests += gridReaderSilo_tests.c \
                 gridWriterSilo_tests.c
 endif
 
+ifeq ($(WITH_HDF5), "true")
+sources += gridWriterHDF5.c \
+           gridReaderHDF5.c
+
+sourcesTests += gridReaderHDF5_tests.c \
+                gridWriterHDF5_tests.c
+endif
+
 include ../../Makefile.rules
 
 all:
