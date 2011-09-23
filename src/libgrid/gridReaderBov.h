@@ -6,6 +6,15 @@
 #define GRIDREADERBOV_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridReaderBov.h
+ * @ingroup  libgridIOInBov
+ * @brief  Provides the interface for the BOV reader.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridReader.h"
@@ -30,6 +39,21 @@ extern void
 gridReaderBov_readIntoPatchForVar(gridReader_t reader,
                                   gridPatch_t  patch,
                                   int          idxOfVar);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridIOInBov BOV Reader
+ * @ingroup libgridIOIn
+ * @brief  Provides the BOV reader.
+ * 
+ * @section libgridIOInBovIniFormat  Expected Format for Ini Files
+ *
+ * @code
+ * [SectionName]
+ * @endcode
+ */
 
 
 #endif

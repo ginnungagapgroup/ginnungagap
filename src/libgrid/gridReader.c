@@ -3,6 +3,21 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridReader.c
+ * @ingroup libgridIOIn
+ * @brief  This file implements the abstract reader.
+ */
+
+
+/*--- Includes ----------------------------------------------------------*/
+#include "gridConfig.h"
+#include "gridPatch.h"
+#include "../libutil/parse_ini.h"
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridReader.h"

@@ -6,6 +6,21 @@
 #define GRIDREADER_ADT_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridReader_adt.h
+ * @ingroup libgridIOIn
+ * @brief  Implements the main reader structure.
+ */
+
+
+/*--- Includes ----------------------------------------------------------*/
+#include "gridConfig.h"
+#include "gridPatch.h"
+#include "../libutil/parse_ini.h"
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridReader.h"

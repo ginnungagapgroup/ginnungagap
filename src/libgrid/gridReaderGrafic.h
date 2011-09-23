@@ -6,6 +6,15 @@
 #define GRIDREADERGRAFIC_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridReaderGrafic.h
+ * @ingroup  libgridIOInGrafic
+ * @brief  Provides the interface for the Grafic reader.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridReader.h"
@@ -31,5 +40,19 @@ gridReaderGrafic_readIntoPatchForVar(gridReader_t reader,
                                      gridPatch_t  patch,
                                      int          idxOfVar);
 
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridIOInGrafic Grafic Reader
+ * @ingroup libgridIOIn
+ * @brief  Provides the Grafic reader.
+ * 
+ * @section libgridIOInGraficIniFormat  Expected Format for Ini Files
+ *
+ * @code
+ * [SectionName]
+ * @endcode
+ */
 
 #endif

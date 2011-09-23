@@ -6,6 +6,15 @@
 #define GRIDWRITERGRAFIC_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridWriterGrafic.h
+ * @ingroup  libgridIOOutGrafic
+ * @brief  Provides the interface for the Grafic writer.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridWriter.h"
@@ -55,5 +64,21 @@ extern void
 gridWriterGrafic_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
 
 #endif
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridIOOutGrafic Grafic Writer
+ * @ingroup libgridIOOut
+ * @brief  Provides the Grafic Writer.
+ * 
+ * @section libgridIOOutGraficIniFormat  Expected Format for Ini Files
+ *
+ * @code
+ * [SectionName]
+ * @endcode
+ */
+
 
 #endif

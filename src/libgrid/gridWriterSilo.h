@@ -6,6 +6,15 @@
 #define GRIDWRITERSILO_H
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridWriterSilo.h
+ * @ingroup  libgridIOOutSilo
+ * @brief  Provides the interface for the Silo writer.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridWriter.h"
@@ -54,5 +63,21 @@ extern void
 gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
 
 #endif
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridIOOutSilo Silo Writer
+ * @ingroup libgridIOOut
+ * @brief  Provides the Silo Writer.
+ * 
+ * @section libgridIOOutSiloIniFormat  Expected Format for Ini Files
+ *
+ * @code
+ * [SectionName]
+ * @endcode
+ */
+
 
 #endif

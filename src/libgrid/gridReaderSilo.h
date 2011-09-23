@@ -10,7 +10,7 @@
 
 /**
  * @file libgrid/gridReaderSilo.h
- * @ingroup libgridIOIn
+ * @ingroup libgridIOInSilo
  * @brief  This file provides the SILO file reader definitions.
  */
 
@@ -110,5 +110,21 @@ gridReaderSilo_readIntoPatchForVar(gridReader_t reader,
 
 
 /** @} */
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridIOInSilo Silo Reader
+ * @ingroup libgridIOIn
+ * @brief  Provides the Silo Reader.
+ * 
+ * @section libgridIOInSiloIniFormat  Expected Format for Ini Files
+ *
+ * @code
+ * [SectionName]
+ * @endcode
+ */
+
 
 #endif
