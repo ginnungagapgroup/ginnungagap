@@ -1,0 +1,60 @@
+Copyright (C) 2010, 2011, Steffen Knollmann
+
+This file contains an overview of the major enhancement, bug fixes, or
+other things for each version of ginnungagap since version 0.5.0.  If
+relevant, the entries contain the short hash of the according commits to
+the repository, smaller changes will not be listed individually but
+paraphrased.
+
+
+Version 0.5.1-alpha
+-------------------
+
+This is the alpha release of ginnungagap-0.5.1.  The release focuses
+mainly on the build system and documentation updates.  The main addition
+to the code base is the framework for the HDF5 reader/writer for the
+grid library.
+Changes from 0.5.0-alpha:
+55 files changed, 1867 insertions(+), 402 deletions(-)
+
+* (2624744) Adds option for predefined systems to configure.
+    This now allows to use --system=SYSTEM with the configure script to 
+    configure the code according to a predefined set for a given machine. 
+    No actual predefined system is included yet, only the system 'full' is 
+    available, which will switch on all features the code has.
+
+    The users may define their own systems by means of writing their own 
+    definition in an extra file (configure.systems.own) that will be 
+    evaluated if it exists.  An example of this file is included in 
+    doc/examples/.
+
+* (b4192e4) Adds a file to collect useful git commands.
+    This is mainly meant to have a set of git commands related to querying
+    the history of the repository for writing change logs.  Before they are
+    forgotten yet again, it seems better to have a cheat sheet.
+
+* (fbfbeaa) Adds an install target to the Makefile.
+    This now allows to 'install' all generated binaries into a (possibly 
+    user-defined) directory.  The default is to move the binaries from
+    their respective source directory into bin/ in the top directory.
+
+* (816658f) Updates doxygen configuration.
+    Now also extracting static members (so that the call graph images work 
+    smoothly) and adding a tag line to the project documentation.
+
+* (b8fad9d) Adds stubs for the HDF5 libgrid-IO.
+    This only provides a compilable set of files which at the moment do not 
+    actually do anything.  They cause a bunch of compiler warnings about 
+    unused variables.
+
+* Numerous updates to the code documentation.
+
+
+Version 0.5.0-alpha
+-------------------
+
+This is the alpha release of ginnungagap-0.5.0.  This is essentially
+the version that was presented at the ginnungagap workshop in Madrid
+on the 21th of September 2011.  This version includes two small fixes
+to the realSpaceConstraints program that fix is to also work when
+compiled with MPI.
