@@ -33,12 +33,43 @@
 
 
 /*--- Local variables ---------------------------------------------------*/
+
+/** @brief  The name for the mode corresponding to vx. */
 static const char *local_modeVxStr = "velx";
+
+/** @brief  The name for the mode corresponding to vy. */
 static const char *local_modeVyStr = "vely";
+
+/** @brief  The name for the mode corresponding to vz. */
 static const char *local_modeVzStr = "velz";
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  Helper function to retrieve a variety of parameters from a
+ *         grid.
+ *
+ * @param[in]   gridFFT
+ *                 The grid to work with.
+ * @param[in]   dim1D
+ *                 The base dimension of the grid.
+ * @param[out]  **data
+ *                 External variable that will receive a handle to the
+ *                 actual data block in memory.
+ * @param[out]  dimsGrid
+ *                 The dimensions of the grid.
+ * @param[out]  dimsPatch
+ *                 The dimensions of the patch covered of the whole
+ *                 grid.
+ * @param[out]  idxLo
+ *                 The lower corner of the patch.
+ * @param[out]  kMaxGrid
+ *                 The maximal frequencies realized in the box in each
+ *                 dimension (actually, the largest wave-numbers).
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_getGridStuff(gridRegularFFT_t  gridFFT,
                    uint32_t          dim1D,
@@ -50,11 +81,44 @@ local_getGridStuff(gridRegularFFT_t  gridFFT,
 
 
 #ifdef WITH_MPI
+
+/**
+ * @brief  Helper function to calculate the power spectrum in MPI mode.
+ *
+ * @param[in,out]  *pK
+ *                    Holds the power calculated locally and will
+ *                    sum each bin up over all processes.  After the
+ *                    function returns, the array will hold the proper
+ *                    power on all tasks.
+ * @param[in,out]  *k
+ *                    As for @c pK, but the frequencies will be
+ *                    calculated.
+ * @param[in,out]  *nums
+ *                    As @c pK, only for the counts how often a certain
+ *                    frequency occurred.
+ * @param[in]      kMaxGrid
+ *                    The largest wave number for which to calculate the
+ *                    power spectrum.
+ *
+ * @return  Returns nothing.
+ */
 static void
-local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kNyquistGrid);
+local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kMaxGrid);
 
 #endif
 
+/**
+ * @brief  Helper function that calculates the normalisation factor for
+ *         the velocity field.
+ *
+ * @param[in]  model
+ *                The cosmological model to use.
+ * @param[in]  aInit
+ *                The initial expansion factor for which to calculate
+ *                the conversion factor.
+ *
+ * @return  Returns the conversion factor from displacement to velocity.
+ */
 static double
 local_getDisplacementToVelocityFactor(cosmoModel_t model, double aInit);
 
@@ -72,8 +136,6 @@ g9pIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
 //	double            maxFreq;
 
 	assert(gridFFT != NULL);
-
-
 	assert(pk != NULL);
 
 	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch, idxLo,
@@ -158,10 +220,6 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
 				kCellSqr  = (double)(k0 * k0 + k1 * k1 + k2 * k2);
 				kCellSqr *= wavenumToFreq * wavenumToFreq;
 
-				/*
-				 * WARNING:  This is only valid in MPI mode, where the grid
-				 *           is permuted in the given way.
-				 */
 				if ((k0 == 0) && (k1 == 0) && (k2 == 0)) {
 					data[idx] = 0.0;
 				} else if (mode == G9PIC_MODE_VX) {
