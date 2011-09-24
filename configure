@@ -30,13 +30,17 @@ PACKAGE_VERSION_MICRO=`  grep 'define PACKAGE_VERSION_MICRO' $VERSIONFILE \
                        | awk '{print $3}' | sed s/\"//g`
 
 # Initialise the options
-PREFIX=`pwd`
-EPREFIX=$PREFIX
-BINDIR=$EPREFIX/bin
+SHOW_HELP=false
+SHOW_VERSION=false
+SYSTEMTYPE=none
+PREFIX=auto
+EPREFIX=auto
+BINDIR=auto
 
 TOOLCHAIN=gnu
 WITH_OPENMP=false
 WITH_MPI=false
+WITH_MPICC=mpicc
 
 WITH_SPRNG=true
 WITH_SPRNG_PREFIX=auto
@@ -60,6 +64,7 @@ WITH_HDF5=false
 WITH_HDF5_PREFIX=auto
 WITH_HDF5_INC_DIR=auto
 WITH_HDF5_LIB_DIR=auto
+WITH_HDF5_LIBS=auto
 
 WITH_GSL_PREFIX=auto
 WITH_GSL_BIN_DIR=auto
@@ -77,8 +82,6 @@ ENABLE_DOUBLE=false
 ENABLE_WRITING=true
 ENABLE_DEBUG=false
 ENABLE_PROFILE=false
-SHOW_HELP=false
-SHOW_VERSION=false
 NDIM_VALUE=3
 
 # Parse the options
@@ -90,6 +93,21 @@ do
 	esac
 
 	case $ac_option in
+		--system)
+			$ECHO "Error: --system requires an argument"
+			exit 1
+			;;
+		--system=*)
+			SYSTEMTYPE=$ac_optarg
+			# Check for a pre-defined system
+			if test "x$SYSTEMTYPE" != "xnone"
+			then
+				# Sources the file that deals with the setting of
+				# predefined things, if the systemtype is unknown, this
+				# will terminate the configure script.
+				. ./configure.systems
+			fi
+			;;
 		--prefix)
 			$ECHO "Error: --prefix requires an argument"
 			exit 1
@@ -156,7 +174,7 @@ do
 			then
 				WITH_SPRNG=false
 			else
-				WITH_SILO=true
+				WITH_SPRNG=true
 			fi
 			;;
 		--without-sprng | --without-sprng=*)
@@ -313,6 +331,13 @@ do
 			;;
 		--with-hdf5-lib-dir=*)
 			WITH_HDF5_LIB_DIR="$ac_optarg"
+			;;
+		--with-hdf5-libs)
+			$ECHO "Error:  --with-hdf5-libs requires an argument."
+			exit 1
+			;;
+		--with-hdf5-libs=*)
+			WITH_HDF5_LIBS="$ac_optarg"
 			;;
 		# GSL stuff
 		--with-gsl-prefix)
@@ -499,6 +524,18 @@ Defaults for the options are specified in brackets.
 Configuration:
   -h, --help      Print this help screen.
   -V, --version   Print a version info and exit.
+  --system=SYS    Sets some configure options as required for given
+                  machines.  It is possible to specify any combination of
+                  SYS and other configure options, the ones appearing
+                  later will overwrite the earlier ones.
+                  See configure.systems for the actual definition of the
+                  systems and explanation for how to add your own
+                  systems.
+                  Note that this will only set compile time things, to
+                  execute the code, it might be required to source
+                  proper modules and/or set LD_LIBRARY_PATH to find
+                  shared libraries.  Try \`ldd EXECUTABLE' to check that
+                  all libraries are found.
 
 Installation directories:
   --prefix=PREFIX         Install architecture-independent files into
@@ -573,15 +610,18 @@ Optional features:
                                Default: auto.
   --with-silo                  Use the SILO library to write visualisation
                                outputs.  Default: no.
-  --with-silo-dir=DIR          See description of --with-sprng-dir.  This is
-                               the same for the SILO directory.
+  --with-silo-prefix=DIR       See description of --with-sprng-prefix.
+                               Default: auto.
+  --with-silo-inc-dir=DIR      See description of --with-sprng-inc-dir.
+                               Default: auto.
+  --with-silo-lib-dir=DIR      See description of --with-sprng-lib-dir.
                                Default: auto.
   --with-silo-libs=LIBS        This can be used to specify the required
                                libraries for using Silo.  If Silo is
                                actually used, it defaults to:
                                  -lsilo -lz
                                in the non-HDF5 situation and to
-                                 -lsiloh5 -lhdf5 -lstdc++ -lz
+                                 -lsiloh5 \$WITH_HDF5_LIBS -lstdc++
                                for HDF5 enabled code (see --with-hdf5).
   --with-hdf5                  Specify this if you want to use (nor not use)
                                the HDF5 backend of Silo.
@@ -596,6 +636,8 @@ Optional features:
                                Default: auto.
   --with-hdf5-lib-dir=DIR      See description of --with-sprng-lib-dir.
                                Default: auto.
+  --with-hdf5-libs=LIBS        See description of --with-sprng-lib-dir.
+                               Default: auto (-lhdf5 -lz -lm).
   --with-gsl-prefix=DIR        See description of --with-sprng-prefix.  Note
                                that this can be used to specify which
                                gsl-config will be used.
@@ -690,6 +732,20 @@ _VERSION_EOF
 	exit 0
 fi
 
+# Deal with install directories
+if test "x$PREFIX" = "xauto"
+then
+	PREFIX=`pwd`
+fi
+if test "x$EPREFIX" = "xauto"
+then
+	EPREFIX=$PREFIX
+fi
+if test "x$BINDIR" = "xauto"
+then
+	BINDIR=$EPREFIX/bin
+fi
+
 # Now set all the (possibly) deferred libraries
 if test "x$WITH_SPRNG_LIBS" = "xauto"
 then
@@ -710,11 +766,15 @@ then
 			WITH_FFT_LIBS="-ldrfftw -ldfftw -lsrfftw -lsfftw"
 	esac
 fi
+if test "x$WITH_HDF5_LIBS" = "xauto"
+then
+	WITH_HDF5_LIBS="-lhdf5 -lz -lm"
+fi
 if test "x$WITH_SILO_LIBS" = "xauto"
 then
 	if test "x$WITH_HDF5" = "xtrue"
 	then
-		WITH_SILO_LIBS="-lsiloh5 -lhdf5 -lstdc++ -lz"
+		WITH_SILO_LIBS="-lsiloh5 $WITH_HDF5_LIBS -lstdc++"
 	else
 		WITH_SILO_LIBS="-lsilo -lz"
 	fi

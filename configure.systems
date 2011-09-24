@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Copyright (C) 2011, Steffen Knollmann
+# Released under the terms of the GNU General Public License version 3.
+# This file is part of `ginnungagap'.
+#
+#  Note1: To extend the list of predefined systems please do NOT edit
+#         this file.  Instead put your systems in a separate file called
+#         `configure.systems.own',  use `doc/configure.systems.ownEXAMPLE'
+#         as a template.
+#         This script will check if the file `configure.systems.own'
+#         exist and source it.  In this way, you can use this file
+#         whereever you need it without the danger of it being
+#         overwritten when you update ginnungagap.  You may of course
+#         send additions to the list of systems to the maintainer asking
+#         to include it in the standard distribution.
+#
+#  Note2: This file is not actually executable, it will be (on request)
+#         sourced by ./configure.
+
+OWNSYSTEMTYPE=false
+if test -e configure.systems.own
+then
+	# This assumes that OWNSYSTEMTYPE is set to true if the system
+	# appeared in own systems.  This will prevent the standard systems
+	# to be checked again and potentially ending with an error.
+	. ./configure.systems.own
+fi
+
+if test "x$OWNSYSTEMTYPE" = "xfalse"
+then
+	case $SYSTEMTYPE in
+		full)
+            # This is simply a quick way to switch on all bells and
+            # whistles.
+			WITH_MPI=true
+			WITH_OPENMP=true
+			WITH_SILO=true
+			WITH_HDF5=true
+			;;
+		*)
+			$ECHO "Unknown system: $SYSTEMTYPE"
+			exit 1
+			;;
+	esac
+fi
