@@ -27,28 +27,6 @@
  * @defgroup libgrid Library for grids.
  * @brief This library provides functionality to handle a variety of
  *        computational grids.
- *
- *
- * @defgroup libgridIO Input/Output
- * @ingroup libgrid
- * @brief This provides functionality to read and write grids to and
- *        from files.
- */
-
-/**
- * @defgroup libgridIOOut Writing
- * @ingroup libgridIO
- * @brief This provides functionality to write grids.
- *
- * @section libgridIOOutIniFormat Ini Format for Grid Writer
- */
-
-/**
- * @defgroup libgridIOIn Reading
- * @ingroup libgridIO
- * @brief This provides functionality to read grids.
- *
- * @section libgridIOInIniFormat Ini Format for Grid Reader
  */
 
 /**
@@ -56,13 +34,13 @@
  * @ingroup libgrid
  * @brief This provides regular grids (i.e. grids that rectangular and
  *        spaced evenly).
- *
- *
- * @defgroup libdataVars Grid Variables
- * @ingroup libgrid
- * @brief This provides abstract descriptions of possible variables that
- *        can be attached to the grids.
  */
 
+/**
+ * @defgroup libgridIO Input/Output
+ * @ingroup libgrid
+ * @brief This provides functionality to read and write grids to and
+ *        from files.
+ */
 
 #endif

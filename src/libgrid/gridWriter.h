@@ -182,4 +182,33 @@ gridWriter_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
 #endif
 
 
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridIOOut Writing
+ * @ingroup libgridIO
+ * @brief This provides functionality to write grids.
+ *
+ * @section libgridIOOutIniFormat Ini Format for Grid Writer
+ *
+ * @code
+ * [SectionName]
+ * writerType = <string>
+ * writerSection = <string>
+ * @endcode
+ *
+ * <dl>
+ *  <dt>Grafic</dt>
+ *  <dd>The name is given by #local_typeGraficStr.  For further
+ *      constrution details see @ref libgridIOOutGraficIniFormat.</dd>
+ *  <dt>Silo</dt>
+ *  <dd>The name is given by #local_typeSiloStr.  For further
+ *      construction details see @ref libgridIOOutSiloIniFormat.</dd>
+ *  <dt>HDF5</dt>
+ *  <dd>The name is given by #local_typeHDF5Str.  For further
+ *      construction details see @ref libgridIOOutHDF5IniFormat.</dd>
+ * </dl>
+ */
+
+
 #endif

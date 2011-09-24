@@ -3,6 +3,15 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridIO.c
+ * @ingroup libgridIOTypes
+ * @brief  Implements the IO type functions.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridIO.h"
@@ -16,10 +25,20 @@
 
 
 /*--- Local variables ---------------------------------------------------*/
+
+/** @brief  The ASCII string for the BOV type. */
 static const char *local_typeBovStr     = "bov";
+
+/** @brief  The ASCII string for the Silo type. */
 static const char *local_typeSiloStr    = "silo";
+
+/** @brief  The ASCII string for the Grafic type. */
 static const char *local_typeGraficStr  = "grafic";
+
+/** @brief  The ASCII string for the HDF5 type. */
 static const char *local_typeHDF5Str    = "hdf5";
+
+/** @brief  ASCII string for unknown type. */
 static const char *local_typeUnknownStr = "unknown";
 
 

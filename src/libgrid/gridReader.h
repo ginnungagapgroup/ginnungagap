@@ -127,4 +127,36 @@ gridReader_readIntoPatchForVar(gridReader_t reader,
 /** @} */
 
 
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridIOIn Reading
+ * @ingroup libgridIO
+ * @brief This provides functionality to read grids.
+ *
+ * @section libgridIOInIniFormat Ini Format for Grid Reader
+ *
+ * @code
+ * [SectionName]
+ * readerType = <string>
+ * readerSection = <string>
+ * @endcode
+ *
+ * <dl>
+ *  <dt>Grafic</dt>
+ *  <dd>The name is given by @ref local_typeGraficStr.  For further
+ *      constrution details see @ref libgridIOInGraficIniFormat.</dd>
+ *  <dt>BOV</dt>
+ *  <dd>The name is given by #local_typeBovStr.  For further
+ *      construction details see @ref libgridIOInBovIniFormat.</dd>
+ *  <dt>Silo</dt>
+ *  <dd>The name is given by #local_typeSiloStr.  For further
+ *      construction details see @ref libgridIOInSiloIniFormat.</dd>
+ *  <dt>HDF5</dt>
+ *  <dd>The name is given by #local_typeHDF5Str.  For further
+ *      construction details see @ref libgridIOInHDF5IniFormat.</dd>
+ * </dl>
+ */
+
+
 #endif

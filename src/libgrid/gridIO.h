@@ -6,19 +6,18 @@
 #define GRIDIO_H
 
 
-/*--- Includes ----------------------------------------------------------*/
-#include "gridConfig.h"
-#include <stdbool.h>
-
-
 /*--- Doxygen file description ------------------------------------------*/
 
 /**
  * @file libgrid/gridIO.h
- * @ingroup libgridIO
- * @brief  Provides the file type definitions and utility functions for
- *         the IO functionality.
+ * @ingroup libgridIOTypes
+ * @brief  Provides the file type definitions and utility functions.
  */
+
+
+/*--- Includes ----------------------------------------------------------*/
+#include "gridConfig.h"
+#include <stdbool.h>
 
 
 /*--- Exported types ----------------------------------------------------*/
@@ -54,6 +53,7 @@ typedef enum {
 extern gridIO_type_t
 gridIO_getTypeFromName(const char *name);
 
+
 /**
  * @brief  Gives the ASCII name of a provided file type.
  *
@@ -67,5 +67,15 @@ gridIO_getTypeFromName(const char *name);
  */
 extern const char *
 gridIO_getNameFromType(gridIO_type_t type);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridIOTypes IO Types
+ * @ingroup libgridIO
+ * @brief Defines the supported IO types and translation to strings.
+ */
+
 
 #endif
