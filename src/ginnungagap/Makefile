@@ -29,6 +29,9 @@ dist-clean:
 	$(MAKE) clean
 	rm -f $(sources:.c=.d)
 
+install: $(progName)
+	mv -f $(progName) $(BINDIR)/
+
 $(progName): $(sources:.c=.o) \
 	                 ../libdata/libdata.a \
 	                 ../libgrid/libgrid.a \

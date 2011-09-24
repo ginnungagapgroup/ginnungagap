@@ -16,6 +16,13 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+# We first deal with the installation directories.
+# Gives the prefix into which the install is performed
+PREFIX = __PREFIX__
+# Same.
+EPREFIX = __EPREFIX__
+# Executables
+BINDIR = __BINDIR__
 
 # Select the used toolchain to generate the objects, executables, etc.
 # You can select a variety of predefined toolchains (see the end of the

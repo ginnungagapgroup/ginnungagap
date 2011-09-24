@@ -39,6 +39,9 @@ dist-clean:
 	rm -f $(sources:.c=.d)
 
 ifeq ($(WITH_SILO), "true")
+install: $(progName)
+	mv -f $(progName) $(BINDIR)/
+
 $(progName): $(sources:.c=.o) \
 	                 ../../src/libutil/libutil.a
 	$(CC) $(LDFLAGS) $(CFLAGS) \

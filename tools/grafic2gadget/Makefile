@@ -29,6 +29,9 @@ dist-clean:
 	$(MAKE) clean
 	rm -f $(sources:.c=.d)
 
+install: $(progName)
+	mv -f $(progName) $(BINDIR)/
+
 $(progName): $(sources:.c=.o) \
 	                 ../../src/libcosmo/libcosmo.a \
 	                 ../../src/libutil/libutil.a

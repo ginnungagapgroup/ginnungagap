@@ -4,7 +4,7 @@
 
 include ../Makefile.config
 
-.PHONY: all clean tests tests-clean dist-clean
+.PHONY: all clean tests tests-clean dist-clean install
 
 all:
 	@echo ""
@@ -62,3 +62,12 @@ dist-clean:
 	$(MAKE) -C showFreqs dist-clean
 	$(MAKE) -C makeMask dist-clean
 	$(MAKE) -C realSpaceConstraints dist-clean
+
+install:
+	$(MAKE) -C estimateMemReq install
+	$(MAKE) -C grafic2gadget install
+	$(MAKE) -C grafic2bov install
+	$(MAKE) -C makeSiloRoot install
+	$(MAKE) -C showFreqs install
+	$(MAKE) -C makeMask install
+	$(MAKE) -C realSpaceConstraints install

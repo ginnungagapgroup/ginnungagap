@@ -4,7 +4,7 @@
 
 include ../Makefile.config
 
-.PHONY: all clean tests tests-clean dist-clean
+.PHONY: all clean tests tests-clean dist-clean install
 
 all:
 	@echo ""
@@ -61,3 +61,5 @@ dist-clean:
 	$(MAKE) -C libcosmo dist-clean
 	$(MAKE) -C libutil dist-clean
 
+install:
+	$(MAKE) -C ginnungagap install

@@ -29,6 +29,9 @@ dist-clean:
 	$(MAKE) clean
 	rm -f $(sources:.c=.d)
 
+install: $(progName)
+	mv -f $(progName) $(BINDIR)/
+
 $(progName): $(sources:.c=.o) \
 	                 ../../src/libutil/libutil.a
 	$(CC) $(LDFLAGS) $(CFLAGS) \

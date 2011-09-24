@@ -44,7 +44,7 @@ doc:
 
 clean:
 	rm -f Doxyfile doxygen.warning doxygen.log
-	rm -rf ref/
 
 dist-clean:
 	$(MAKE) clean
+	rm -rf ref/

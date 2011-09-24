@@ -30,6 +30,9 @@ dist-clean:
 	$(MAKE) clean
 	rm -f $(sources:.c=.d)
 
+install: $(progName)
+	mv -f $(progName) $(BINDIR)/
+
 $(progName): $(sources:.c=.o) \
                      ../../src/liblare/liblare.a \
                      ../../src/libdata/libdata.a \

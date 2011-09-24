@@ -30,6 +30,10 @@ PACKAGE_VERSION_MICRO=`  grep 'define PACKAGE_VERSION_MICRO' $VERSIONFILE \
                        | awk '{print $3}' | sed s/\"//g`
 
 # Initialise the options
+PREFIX=`pwd`
+EPREFIX=$PREFIX
+BINDIR=$EPREFIX/bin
+
 TOOLCHAIN=gnu
 WITH_OPENMP=false
 WITH_MPI=false
@@ -86,6 +90,27 @@ do
 	esac
 
 	case $ac_option in
+		--prefix)
+			$ECHO "Error: --prefix requires an argument"
+			exit 1
+			;;
+		--prefix=*)
+			PREFIX=$ac_optarg
+			;;
+		--exec-prefix)
+			$ECHO "Error: --exec-prefix requires an argument"
+			exit 1
+			;;
+		--exec-prefix=*)
+			EPREFIX=$ac_optarg
+			;;
+		--bindir)
+			$ECHO "Error: --bindir requires an argument"
+			exit 1
+			;;
+		--bindir=*)
+			BINDIR=$ac_optarg
+			;;
 		--toolchain)
 			$ECHO -n "Error: --toolchain requires an argument; "
 			$ECHO "use, e.g., --toolchain=gnu"
@@ -475,6 +500,16 @@ Configuration:
   -h, --help      Print this help screen.
   -V, --version   Print a version info and exit.
 
+Installation directories:
+  --prefix=PREFIX         Install architecture-independent files into
+                          PREFIX.
+                          Default: $PREFIX
+  --exec-prefix=EPREFIX   Install architecture-dependent files into
+                          EPREFIX.
+                          Default: $PREFIX
+  --bindir=DIR            Directory for user-executables.
+                          Default: $EPREFIX/bin
+
 Build options:
   --toolchain[=TOOLCHAIN]  Sets the toolchain used to build $PACKAGE_NAME.
                            This defaults to \`gnu', using gcc, ld and ar.
@@ -655,7 +690,7 @@ _VERSION_EOF
 	exit 0
 fi
 
-# Now set all the (possibly) deferred libaries
+# Now set all the (possibly) deferred libraries
 if test "x$WITH_SPRNG_LIBS" = "xauto"
 then
 	WITH_SPRNG_LIBS="-lsprng"
@@ -721,6 +756,9 @@ $ECHO -ne "\to generating \`Makefile.config'... " | tee -a config.log
 $ECHO "# Makefile.config generated from Makefile.config.in by configure" > Makefile.config
 $ECHO "" >> Makefile.config
 cat Makefile.config.in >> Makefile.config
+sed -i.bak s@__PREFIX__@$PREFIX@ Makefile.config
+sed -i.bak s@__EPREFIX__@$EPREFIX@ Makefile.config
+sed -i.bak s@__BINDIR__@$BINDIR@ Makefile.config
 sed -i.bak s/__TOOLCHAIN__/$TOOLCHAIN/ Makefile.config
 if test "x$WITH_OPENMP" = "xtrue"
 then
