@@ -484,7 +484,7 @@ if test "x$SHOW_HELP" = "xtrue"
 then
 	cat <<_HELP_EOF
 \`configure' offers an easy way to configure the features and the build
-system of $PACKAGE_NAME $PACKAGE_VERSION_MAJOR.$PACKAGE_VERSION_MINOR.$PACKAGE_VERSION_MICRO-r$PACKAGE_VERSION_REVISION.
+system of $PACKAGE_NAME $PACKAGE_VERSION_MAJOR.$PACKAGE_VERSION_MINOR.$PACKAGE_VERSION_MICRO.
 
 This script will use the distributed Makefile.config.in and config.h.in
 to generate the actual Makefile.config and config.h, respectively.
