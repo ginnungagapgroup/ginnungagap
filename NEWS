@@ -15,7 +15,7 @@ mainly on the build system and documentation updates.  The main addition
 to the code base is the framework for the HDF5 reader/writer for the
 grid library.
 Changes from 0.5.0-alpha:
-55 files changed, 1867 insertions(+), 402 deletions(-)
+ 58 files changed, 1932 insertions(+), 404 deletions(-)
 
 * (2624744) Adds option for predefined systems to configure.
     This now allows to use --system=SYSTEM with the configure script to 
