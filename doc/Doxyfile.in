@@ -6,7 +6,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = __PROJECT_NAME__
 PROJECT_NUMBER         = __PROJECT_NUMBER__
-PROJECT_BRIEF          =
+PROJECT_BRIEF          = "Fast, scalable and versatile IC generator."
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = doc/ref/
 CREATE_SUBDIRS         = NO
@@ -46,7 +46,7 @@ SYMBOL_CACHE_SIZE      = 0
 #---------------------------------------------------------------------------
 EXTRACT_ALL            = NO
 EXTRACT_PRIVATE        = NO
-EXTRACT_STATIC         = NO
+EXTRACT_STATIC         = YES
 EXTRACT_LOCAL_CLASSES  = YES
 EXTRACT_LOCAL_METHODS  = NO
 EXTRACT_ANON_NSPACES   = NO
