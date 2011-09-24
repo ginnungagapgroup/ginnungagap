@@ -11,8 +11,11 @@ See the file ./BUILD for quick building instructions, however, it is
 recommended to built the code documentation for a detailed description
 of the code.
 
+See the file ./NEWS for an overview of the changes to the code between
+the different releases and hence a describtion of the latest changes.
+
 Home page:  -
 Contact:    steffen.knollmann@uam.es
 
 Ginnungagap is free software.  See the file COPYING for copying
-conditions. s
+conditions.
