@@ -16,73 +16,93 @@
 /**
  * @mainpage Reference documentation for ginnungagap
  *
- * @author  Steffen Knollmann\n Grupo de Astrofísica\n Departamento de
- * Física Teórica C-15\n Universidad Autónoma de Madrid\n Cantoblanco
- * 28049, Madrid\n steffen.knollmann@uam.es
- *
- * @n
- *
  * @section intro Introduction
  *
  * Ginnungagap is a code for generating cosmological initial conditions.
- * It is aimed at high scalability and ease of use.
+ * It is aimed at high scalability and ease of use.  The main code will
+ * generate the velocity field at the requested starting redshift, which
+ * is then used by extra tools to generated a particle representation.
+ *
+ * Furthermore, tools are provided to generate realisations at different
+ * resolution levels while keeping the large scale structure fixed (by
+ * means of refining the underlying white noise field).
  *
  * @section requirements  Requirements
  *
  * To successfully compile ginnungagap, the following prerequisites must
  * be met:
- *
- * - <b>C compiler</b> - Since ginnungagap uses features specific to
- *   C99, a compiler supporting this standard is required.
- *   Additionally, your compiler should support <b>OpenMP</b> to make use
- *   of the shared memory parallelization of ginnungagap.
- * - <b>GSL</b> - The GNU Scientific Library must be available.  GSL is
- *   used for numerical integration and spline interpolations.
- * - <b>FFT</b> - Generating initial conditions requires computing
- *   various Fast Fourier Transforms.  Basically, ginnungagap is written
- *   to support a variety of different FFT implementations, practically
- *   only FFTW3 is supported at the moment.
- *   - <b>FFTW3</b>: Please note that you will need single and double
- *     precision versions of FFTW3 and you might want to enable the
- *     OpenMP parallelization of FFTW3 if you plan to also use the
- *     OpenMP features of ginnungagap.
- *   See @ref pageDeps_FFTW3 for instruction on how to build FFTW on
- *   your system.
- * - <b>Build tools</b> - A make command should be available.
- *   Ginnugagap has been tested with GNU make and other makes might not
- *   support all features used in the Makefiles.  In case make is not
- *   GNU make, your system has most likely gmake available.
- * - <b>Shell</b> - A couple of Shell scripts need to be executed during
- *   the build process, most prominently the @link pageConfigureScript
- *   configure script @endlink.  They are supposed to work on POSIX shells
- *   and are tested on bash and dash.
+ * <dl>
+ *  <dt>C compiler</dt>
+ *  <dd>Since ginnungagap uses features specific to C99, a compiler
+ *      supporting this standard is required.  Additionally, your
+ *      compiler should support <b>OpenMP</b> to make use of the shared
+ *      memory parallelization of ginnungagap.</dd>
+ *  <dt>GSL</dt>
+ *  <dd>The GNU Scientific Library must be available.  GSL is used for
+ *      numerical integration and spline interpolations.</dd>
+ *  <dt>FFT</dt>
+ *  <dd>Generating initial conditions requires computing various Fast
+ *      Fourier Transforms.  Basically, ginnungagap is written to
+ *      support a variety of different FFT implementations, practically
+ *      only FFTW3 is supported at the moment.
+ *      - <b>FFTW3</b>: Please note that you will need single and double
+ *        precision versions of FFTW3 and you might want to enable the
+ *        OpenMP parallelization of FFTW3 if you plan to also use the
+ *        OpenMP features of ginnungagap.
+ *        See @ref pageDeps_FFTW3 for instruction on how to build FFTW on
+ *        your system.
+    </dd>
+ *  <dt>Build tools</dt>
+ *  <dd>A make command should be available.  Ginnugagap has been tested
+ *      with GNU make and other makes might not support all features
+ *      used in the Makefiles.  In case make is not GNU make, your
+ *      system has most likely gmake available.</dd>
+ *  <dt>Shell</dt>
+ *  <dd>A couple of Shell scripts need to be executed during the build
+ *      process, most prominently the @link pageConfigureScript
+ *      configure script @endlink.  They are supposed to work on POSIX
+ *      shells and are tested on bash and dash.</dd>
+ * </dl>
  *
  * Additionally, the following libraries should be available to make
  * full use of ginnungagap:
- *
- * - <b>SPRNG</b> - This library is used to generate random numbers of
- *   high quality in parallel. You will most likely want to use this
- *   library, the only way to not use it, is to use a pre-generated
- *   white noise field.  The required version is SPRNG2.0b and please
- *   note that you only need the serial version, i.e. do not build SPRNG
- *   with MPI support.  See @ref pageDeps_SPRNG for build instructions.
- * - <b>MPI</b> - To get distributed memory parallelization you need the
- *   MPI libraries.  Please use MPI-2 and above.
+ * <dl>
+ *  <dt>SPRNG</dt>
+ *   <dd>This library is used to generate random numbers of high quality
+ *       in parallel. You will most likely want to use this library, the
+ *       only way to not use it, is to use a pre-generated white noise
+ *       field.  The required version is SPRNG2.0b and please note that
+ *       you only need the serial version, i.e. do not build SPRNG with
+ *       MPI support.  See @ref pageDeps_SPRNG for build
+ *       instructions.</dd>
+ *  <dt>MPI</dt>
+ *  <dd>To get distributed memory parallelization you need the MPI
+ *      libraries.  Please use MPI-2 or above.</dd>
+ *  <dt>HDF5</dt>
+ *  <dd>This library can be used to provide a scalable and fast IO for
+ *      large initial condition.  This is the advised format for
+ *      writing initial condition data beyond a resolution of 1024^3, in
+ *      which case the parallel version of HDF5 (using MPI-IO under the
+ *      hood) is required.
+ *      See @ref pageDeps_HDF5 for instructions on how to build
+ *      HDF5.</dd>
+ * </dl>
  *
  * Furthermore the following libraries can be used to extend the
  * features of ginnungagap:
- *
- * - <b>Silo</b> - One of the output formats of ginnungagap is Silo.  It
- *   provides an easy and quick way to write large data-sets that can
- *   directly be visualized (using Visit or Paraview).  This is mostly
- *   of use for debugging and testing purposes.
- *   See @ref pageDeps_Silo for instructions on how to build Silo.
- * - <b>HDF5</b> - This is not a library used directly by ginnungagap,
- *   but Silo can be compiled to use HDF5 as a file backend.  This is
- *   highly advised.
- *   See @ref pageDeps_HDF5 for instructions on how to build HDF5.
- * - <b>MPItrace</b> - Tracing utilities can be used to generate trace
- *   files of ginnungagap runs.
+ * <dl>
+ *  <dt>Silo</dt>
+ *  <dd>One of the output formats of ginnungagap is Silo.  It
+ *      provides an easy and quick way to write large data-sets that
+ *      can directly be visualized (using Visit or Paraview).  This is
+ *      mostly of use for debugging and testing purposes.  Note that
+ *      only output is supported in Silo format.
+ *      See @ref pageDeps_Silo for instructions on how to build
+ *      Silo.</dd>
+ *  <dt>MPItrace</dt>
+ *  <dd>Tracing utilities can be used to generate trace files of
+ *      ginnungagap runs.</dd>
+ * </df>
  */
 
 /**
