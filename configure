@@ -55,6 +55,7 @@ WITH_FFT_LIB_DIR=auto
 WITH_FFT_LIBS=auto
 
 WITH_SILO=false
+WITH_SILO_BACKEND=standard
 WITH_SILO_PREFIX=auto
 WITH_SILO_INC_DIR=auto
 WITH_SILO_LIB_DIR=auto
@@ -258,11 +259,13 @@ do
 			if test "x$ac_optarg" = "xyes"
 			then
 				WITH_SILO=true
+				WITH_SILO_BACKEND=standard
 			elif test "x$ac_optarg" = "xno"
 			then
 				WITH_SILO=false
 			else
 				WITH_SILO=true
+				WITH_SILO_BACKEND=hdf5
 			fi
 			;;
 		--without-silo | --without-silo=*)
@@ -296,7 +299,7 @@ do
 		--with-silo-libs=*)
 			WITH_SILO_LIBS="$ac_optarg"
 			;;
-		# HDF5 stuff (related to Silo)
+		# HDF5 stuff
 		--with-hdf5 | --with-hdf5=*)
 			if test "x$ac_optarg" = "xyes"
 			then
@@ -608,8 +611,15 @@ Optional features:
                                Default: auto.
   --with-fft-libs=LIBS         See description of --with-sprng-libs.
                                Default: auto.
-  --with-silo                  Use the SILO library to write visualisation
-                               outputs.  Default: no.
+  --with-silo[=ARG]            Use the SILO library to write visualisation
+                               outputs.  If ARG is set to 'yes' Silo
+                               will be used without external
+                               dependencies, if ARG is 'hdf5', Silo
+                               needs to be compiled with the HDF5
+                               backend.  See '--with-hdf5-*' for details
+                               on how to select the proper HDF5
+                               installation.
+                               Default: no.  
   --with-silo-prefix=DIR       See description of --with-sprng-prefix.
                                Default: auto.
   --with-silo-inc-dir=DIR      See description of --with-sprng-inc-dir.
@@ -623,14 +633,9 @@ Optional features:
                                in the non-HDF5 situation and to
                                  -lsiloh5 \$WITH_HDF5_LIBS -lstdc++
                                for HDF5 enabled code (see --with-hdf5).
-  --with-hdf5                  Specify this if you want to use (nor not use)
-                               the HDF5 backend of Silo.
+  --with-hdf5                  Switches on (or off) HDF5 support.
                                Default: false.
-  --with-hdf5-prefix=DIR       If you are using the HDF5 version of SILO
-                               then you may want to specify the directory
-                               where the HDF5 that SILO was built against is
-                               installed.  As in --with-sprng-dir this can
-                               be 'auto'.
+  --with-hdf5-prefix=DIR       See description of --with-hdf5-prefix.
                                Default: auto.
   --with-hdf5-inc-dir=DIR      See description of --with-sprng-inc-dir.
                                Default: auto.
@@ -772,10 +777,11 @@ then
 fi
 if test "x$WITH_SILO_LIBS" = "xauto"
 then
-	if test "x$WITH_HDF5" = "xtrue"
+	if test "x$WITH_SILO_BACKEND" = "xhdf5"
 	then
 		WITH_SILO_LIBS="-lsiloh5 $WITH_HDF5_LIBS -lstdc++"
-	else
+	elif test "x$WITH_SILO_BACKEND" = "xstandard"
+	then
 		WITH_SILO_LIBS="-lsilo -lz"
 	fi
 fi
