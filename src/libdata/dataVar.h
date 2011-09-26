@@ -15,6 +15,9 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#ifdef WITH_HDF5
+#  include <hdf5.h>
+#endif
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -49,7 +52,7 @@ dataVar_getName(dataVar_t var);
 extern void
 dataVar_setMemFuncs(dataVar_t var,
                     void *(*mallocFunc)(size_t size),
-                    void      (*freeFunc)(void *ptr));
+                    void (*freeFunc)(void *ptr));
 
 extern void *
 dataVar_getMemory(dataVar_t var, uint64_t numElements);
@@ -84,12 +87,19 @@ dataVar_isComplexified(dataVar_t var);
 extern void
 dataVar_rename(dataVar_t var, const char *newName);
 
+
 #ifdef WITH_MPI
 extern MPI_Datatype
 dataVar_getMPIDatatype(dataVar_t var);
 
 extern int
 dataVar_getMPICount(dataVar_t var, uint64_t numElements);
+
+#endif
+
+#ifdef WITH_HDF5
+extern hid_t
+dataVar_getHDF5Datatype(const dataVar_t var);
 
 #endif
 

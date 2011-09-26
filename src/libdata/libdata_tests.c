@@ -80,6 +80,9 @@ main(int argc, char **argv)
 	RUNTEST(&dataVar_getMPIDatatype_test, hasFailed);
 	RUNTEST(&dataVar_getMPICount_test, hasFailed);
 #endif
+#ifdef WITH_HDF5
+	RUNTEST(&dataVar_getHDF5Datatype_test, hasFailed);
+#endif
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);

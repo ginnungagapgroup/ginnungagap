@@ -76,4 +76,15 @@ dataVar_getMPICount_test(void);
 
 #endif
 
+#ifdef WITH_HDF5
+
+/**
+ * @brief  Tests dataVar_getHDF5Datatype().
+ * @return  Returns @c true if the tests succeeded and @c false otherwise.
+ */
+extern bool
+dataVar_getHDF5Datatype_test(void);
+
+#endif
+
 #endif

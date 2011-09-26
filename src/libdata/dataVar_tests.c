@@ -14,6 +14,9 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#ifdef WITH_HDF5
+#  include <hdf5.h>
+#endif
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
@@ -99,7 +102,7 @@ dataVar_clone_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* dataVar_clone_test */
 
 extern bool
 dataVar_del_test(void)
@@ -652,6 +655,66 @@ dataVar_getMPICount_test(void)
 	return hasPassed ? true : false;
 }
 
+#endif
+
+#ifdef WITH_HDF5
+extern bool
+dataVar_getHDF5Datatype_test(void)
+{
+	bool      hasPassed = true;
+	int       rank      = 0;
+	dataVar_t dataVar;
+	hid_t     dt, dtBase;
+	hsize_t   dims[1];
+#  ifdef XMEM_TRACK_MEM
+	size_t    allocatedBytes = global_allocated_bytes;
+#  endif
+#  ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#  endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, 1);
+	dt      = dataVar_getHDF5Datatype(dataVar);
+	if (!H5Tequal(dt, H5T_NATIVE_DOUBLE))
+		hasPassed = false;
+	dataVar_del(&dataVar);
+
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_INT, 1);
+	dt      = dataVar_getHDF5Datatype(dataVar);
+	if (!H5Tequal(dt, H5T_NATIVE_INT))
+		hasPassed = false;
+	dataVar_del(&dataVar);
+
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_INT8, 1);
+	dt      = dataVar_getHDF5Datatype(dataVar);
+	if (!H5Tequal(dt, H5T_NATIVE_CHAR))
+		hasPassed = false;
+	dataVar_del(&dataVar);
+
+	dataVar = dataVar_new(LOCAL_TESTNAME, DATAVARTYPE_DOUBLE, 3);
+	dt      = dataVar_getHDF5Datatype(dataVar);
+	if (H5Tget_class(dt) != H5T_ARRAY)
+		hasPassed = false;
+	dtBase = H5Tget_super(dt);
+	if (!H5Tequal(dtBase, H5T_NATIVE_DOUBLE))
+		hasPassed = false;
+	if (H5Tget_array_ndims(dt) != 1)
+		hasPassed = false;
+	H5Tget_array_dims(dt, dims);
+	if (dims[0] != 3)
+		hasPassed = false;
+	dataVar_del(&dataVar);
+
+#  ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#  endif
+
+	return hasPassed ? true : false;
+} /* dataVar_getHDF5Datatype_test */
 #endif
 
 /*--- Implementations of local functions --------------------------------*/

@@ -12,6 +12,9 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
+#ifdef WITH_HDF5
+#  include <hdf5.h>
+#endif
 #include "../libutil/refCounter.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
@@ -301,6 +304,45 @@ dataVar_getMPICount(dataVar_t var, uint64_t numElements)
 
 	return count;
 }
+
+#endif
+
+#ifdef WITH_HDF5
+extern hid_t
+dataVar_getHDF5Datatype(const dataVar_t var)
+{
+	assert(var != NULL);
+
+	hid_t dt, baseDt;
+
+	switch (var->type) {
+	case DATAVARTYPE_DOUBLE:
+		baseDt = H5T_NATIVE_DOUBLE;
+		break;
+	case DATAVARTYPE_INT:
+		baseDt = H5T_NATIVE_INT;
+		break;
+	case DATAVARTYPE_INT8:
+		baseDt = H5T_NATIVE_CHAR;
+		break;
+	case DATAVARTYPE_FPV:
+#  ifdef ENABLE_DOUBLE
+		baseDt = H5T_NATIVE_DOUBLE;
+#  else
+		baseDt = H5T_NATIVE_FLOAT;
+#  endif
+		break;
+	}
+
+	if (var->numComponents == 1) {
+		dt = H5Tcopy(baseDt);
+	} else {
+		hsize_t tmp[1] = { var->numComponents };
+		dt = H5Tarray_create(baseDt, 1, tmp);
+	}
+
+	return dt;
+} /* dataVar_getHDF5Datatype */
 
 #endif
 
