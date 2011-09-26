@@ -102,7 +102,7 @@
  *  <dt>MPItrace</dt>
  *  <dd>Tracing utilities can be used to generate trace files of
  *      ginnungagap runs.</dd>
- * </df>
+ * </dl>
  */
 
 /**
