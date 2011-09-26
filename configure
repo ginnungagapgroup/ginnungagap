@@ -835,10 +835,10 @@ fi
 if test "x$WITH_MPI" = "xtrue"
 then
 	sed -i.bak s/__WITH_MPI__/true/ Makefile.config
-	sed -i.bak s/__MPICC__/$WITH_MPICC/ Makefile.config
+	sed -i.bak s@__MPICC__@$WITH_MPICC@ Makefile.config
 else
 	sed -i.bak s/__WITH_MPI__/false/ Makefile.config
-	sed -i.bak s/__MPICC__// Makefile.config
+	sed -i.bak s@__MPICC__@@ Makefile.config
 fi
 if test "x$WITH_SPRNG" = "xtrue"
 then
