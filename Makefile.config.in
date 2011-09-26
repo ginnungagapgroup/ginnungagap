@@ -215,6 +215,9 @@ endif
 ifeq ($(WITH_SILO), "true")
   LIBS += __WITH_SILO_LIBS__
 endif
+ifeq ($(WITH_HDF5), "true")
+  LIBS += __WITH_HDF5_LIBS__
+endif
 ifeq ($(WITH_MPITRACE), "true")
   LIBS += -lmpitrace
 endif

@@ -906,6 +906,7 @@ sed -i.bak -e "s@__WITH_SILO_LIBS__@$WITH_SILO_LIBS@" Makefile.config
 sed -i.bak -e "s@__WITH_HDF5_PREFIX__@$WITH_HDF5_PREFIX@" Makefile.config
 sed -i.bak -e "s@__WITH_HDF5_INC_DIR__@$WITH_HDF5_INC_DIR@" Makefile.config
 sed -i.bak -e "s@__WITH_HDF5_LIB_DIR__@$WITH_HDF5_LIB_DIR@" Makefile.config
+sed -i.bak -e "s@__WITH_HDF5_LIBS__@$WITH_HDF5_LIBS@" Makefile.config
 sed -i.bak -e "s@__WITH_GSL_PREFIX__@$WITH_GSL_PREFIX@" Makefile.config
 sed -i.bak -e "s@__WITH_GSL_INC_DIR__@$WITH_GSL_INC_DIR@" Makefile.config
 sed -i.bak -e "s@__WITH_GSL_LIB_DIR__@$WITH_GSL_LIB_DIR@" Makefile.config
