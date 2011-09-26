@@ -67,6 +67,10 @@ gridPatch_getVarHandle(const gridPatch_t patch, int idxOfVar);
 extern void *
 gridPatch_getVarDataHandle(const gridPatch_t patch, int idxOfVarData);
 
+extern void *
+gridPatch_getVarDataHandleByVar(const gridPatch_t patch,
+                                const dataVar_t   var);
+
 extern int
 gridPatch_getNumVars(gridPatch_t patch);
 

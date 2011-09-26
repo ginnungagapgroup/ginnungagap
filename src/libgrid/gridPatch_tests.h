@@ -61,6 +61,9 @@ extern bool
 gridPatch_getVarDataHandle_test(void);
 
 extern bool
+gridPatch_getVarDataHandleByVar_test(void);
+
+extern bool
 gridPatch_getNumVars_test(void);
 
 extern bool

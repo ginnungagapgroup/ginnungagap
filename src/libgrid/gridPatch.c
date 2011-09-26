@@ -305,6 +305,24 @@ gridPatch_getVarDataHandle(const gridPatch_t patch, int idxOfVarData)
 	return data;
 }
 
+extern void *
+gridPatch_getVarDataHandleByVar(const gridPatch_t patch,
+                                const dataVar_t   var)
+{
+	assert(patch != NULL);
+	assert(var != NULL);
+
+	int pos;
+	for (pos = 0; pos < varArr_getLength(patch->vars); pos++)
+		if (varArr_getElementHandle(patch->vars, pos) == var)
+			break;
+
+	if (pos >= varArr_getLength(patch->vars))
+		return NULL;
+
+	return gridPatch_getVarDataHandle(patch, pos);
+}
+
 extern int
 gridPatch_getNumVars(const gridPatch_t patch)
 {
