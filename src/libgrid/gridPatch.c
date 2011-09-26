@@ -3,6 +3,15 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridPatch.c
+ * @ingroup libgridPatch
+ * @brief  This file provides the implemenation of the grid patch.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPatch.h"
@@ -23,6 +32,21 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  Implements the tranpose operation for a given variable.
+ *
+ * @param[in,out]  patch
+ *                    The patch to use.
+ * @param[in]      idxOfVarData
+ *                    The variable data to transpose.
+ * @param[in]      dimA
+ *                    The dimension to exchange.
+ * @param[in]      dimB
+ *                    The dimension to exchange with.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_transposeVar(gridPatch_t patch,
                    int         idxOfVarData,
@@ -31,6 +55,20 @@ local_transposeVar(gridPatch_t patch,
 
 
 #if (NDIM == 2)
+/**
+ * @brief  Performs a 2d transposition.
+ *
+ * @param[in]      *data
+ *                    The original array to read from.
+ * @param[in,out]  *dataT
+ *                    The array to write the transposed array to.
+ * @param[in]      size
+ *                    The size of one element in the array.
+ * @param[in]      dimsT
+ *                    The size of the transposed array.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_transposeVar_2d(const void              *data,
                       void                    *dataT,
@@ -39,18 +77,60 @@ local_transposeVar_2d(const void              *data,
 
 
 #elif (NDIM == 3)
+/**
+ * @brief  Performs a 3d transposition of the first and second dimension.
+ *
+ * @param[in]      *data
+ *                    The original array to read from.
+ * @param[in,out]  *dataT
+ *                    The array to write the transposed array to.
+ * @param[in]      size
+ *                    The size of one element in the array.
+ * @param[in]      dimsT
+ *                    The size of the transposed array.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_transposeVar102_3d(const void              *data,
                          void                    *dataT,
                          const int               size,
                          const gridPointUint32_t dimsT);
 
+/**
+ * @brief  Performs a 3d transposition of the first and third dimension.
+ *
+ * @param[in]      *data
+ *                    The original array to read from.
+ * @param[in,out]  *dataT
+ *                    The array to write the transposed array to.
+ * @param[in]      size
+ *                    The size of one element in the array.
+ * @param[in]      dimsT
+ *                    The size of the transposed array.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_transposeVar210_3d(const void              *data,
                          void                    *dataT,
                          const int               size,
                          const gridPointUint32_t dimsT);
 
+/**
+ * @brief  Performs a 3d transposition of the second and third dimension.
+ *
+ * @param[in]      *data
+ *                    The original array to read from.
+ * @param[in,out]  *dataT
+ *                    The array to write the transposed array to.
+ * @param[in]      size
+ *                    The size of one element in the array.
+ * @param[in]      dimsT
+ *                    The size of the transposed array.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_transposeVar021_3d(const void              *data,
                          void                    *dataT,
@@ -59,6 +139,21 @@ local_transposeVar021_3d(const void              *data,
 
 #endif
 
+/**
+ * @brief  Translate the lower and upper corners into a size.
+ *
+ * @param[in]   idxLo
+ *                 The lower left corner.
+ * @param[in]   idxHi
+ *                 The upper right corner.
+ * @param[out]  windowDims
+ *                 Will receive the size of the window.
+ * @param[out]  *numCells
+ *                 If not @c NULL, will receive the number of cells in the
+ *                 window.
+ *
+ * @return  Returns nothing.
+ */
 static inline void
 local_getWindowDims(gridPointUint32_t idxLo,
                     gridPointUint32_t idxHi,
@@ -358,7 +453,7 @@ gridPatch_transpose(gridPatch_t patch,
 }
 
 extern void *
-gridPatch_getWindowedDataCopy(gridPatch_t       patch,
+gridPatch_getWindowedDataCopy(const gridPatch_t patch,
                               int               idxVar,
                               gridPointUint32_t idxLo,
                               gridPointUint32_t idxHi,
@@ -371,8 +466,6 @@ gridPatch_getWindowedDataCopy(gridPatch_t       patch,
 	size_t            sizePerElement;
 	size_t            offsetCopy = 0;
 	size_t            offsetData = 0;
-
-	// XXX Does not work with actualDim yet!
 
 	assert(patch != NULL);
 	assert((idxVar >= 0) && (idxVar < gridPatch_getNumVars(patch)));
@@ -429,7 +522,7 @@ gridPatch_putWindowedData(gridPatch_t       patch,
                           int               idxVar,
                           gridPointUint32_t idxLo,
                           gridPointUint32_t idxHi,
-                          void              *data)
+                          const void        *data)
 {
 	void              *dataTarget;
 	gridPointUint32_t windowDims;
@@ -461,7 +554,7 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 	               + (idxLo[1] - patch->idxLo[1]) * patch->dims[0];
 	for (uint32_t j = 0; j < windowDims[1]; j++) {
 		memcpy(((char *)dataTarget) + offsetTarget * sizePerElement,
-		       ((char *)data) + offsetData * sizePerElement,
+		       ((const char *)data) + offsetData * sizePerElement,
 		       windowDims[0] * sizePerElement);
 		offsetData   += windowDims[0];
 		offsetTarget += patch->dims[0];
@@ -474,7 +567,7 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 		               * patch->dims[0] * patch->dims[1];
 		for (uint32_t j = 0; j < windowDims[1]; j++) {
 			memcpy(((char *)dataTarget) + offsetTarget * sizePerElement,
-			       ((char *)data) + offsetData * sizePerElement,
+			       ((const char *)data) + offsetData * sizePerElement,
 			       windowDims[0] * sizePerElement);
 			offsetData   += windowDims[0];
 			offsetTarget += patch->dims[0];

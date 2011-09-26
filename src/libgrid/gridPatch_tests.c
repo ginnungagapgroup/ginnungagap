@@ -3,6 +3,15 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridPatch_tests.c
+ * @ingroup libgridPatch
+ * @brief  Provides the implementation of the tests of gridPatch.c.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPatch_tests.h"
@@ -25,22 +34,52 @@
 
 /*--- Prototypes of local functions -------------------------------------*/
 #if (NDIM == 2)
+/**
+ * @brief  Helper function for a 2d transpose test.
+ *
+ * @return  Returns @c true if the test succeeded and @c false otherwise.
+ */
 static bool
 local_tranposeVar_test_2d(void);
 
 
 #elif (NDIM == 3)
+/**
+ * @brief  Helper function for a 3d transpose test.
+ *
+ * @return  Returns @c true if the test succeeded and @c false otherwise.
+ */
 static bool
 local_tranposeVar_test_3d(void);
 
 #endif
 
+/**
+ * @brief  Helper function for create a fake patch for testing.
+ *
+ * @return  Returns a new patch usable for testing.
+ */
 static gridPatch_t
 local_getFakePatch(void);
 
+/**
+ * @brief Helper function to check if a patch is correctly transpose.
+ *
+ * @param[in]  patch
+ *                The patch to test.
+ * @param[in]  s
+ *                The permutation of the dimensions.
+ *
+ * @return  Returns @c true if the test succeeded and @c false otherwise.
+ */
 static bool
 local_verifyFakePatchTransposed(gridPatch_t patch, gridPointInt_t s);
 
+/**
+ * @brief  Creates a new patch for testing the copying.
+ *
+ * @return  Returns a new patch that can be used to test the copying.
+ */
 static gridPatch_t
 local_getFakePatchForCopy(void);
 
@@ -244,15 +283,15 @@ gridPatch_getDims_test(void)
 extern bool
 gridPatch_getDimsActual_test(void)
 {
-	bool   hasPassed      = true;
-	int    rank           = 0;
+	bool              hasPassed = true;
+	int               rank      = 0;
 	gridPatch_t       patch;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 	gridPointUint32_t dims;
-	dataVar_t var;
+	dataVar_t         var;
 #ifdef XMEM_TRACK_MEM
-	size_t allocatedBytes = global_allocated_bytes;
+	size_t            allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -266,11 +305,11 @@ gridPatch_getDimsActual_test(void)
 		idxHi[i] = 16;
 	}
 	patch = gridPatch_new(idxLo, idxHi);
-	var = dataVar_new("basd", DATAVARTYPE_INT, 1);
+	var   = dataVar_new("basd", DATAVARTYPE_INT, 1);
 	dataVar_setFFTWPadded(var);
 	gridPatch_attachVar(patch, var);
 	gridPatch_getDimsActual(patch, 0, dims);
-	if (dims[0] != (2 * ((idxHi[0] - idxLo[0] + 1)/2 + 1)))
+	if (dims[0] != (2 * ((idxHi[0] - idxLo[0] + 1) / 2 + 1)))
 		hasPassed = false;
 	for (int i = 1; i < NDIM; i++) {
 		if (dims[i] != (idxHi[i] - idxLo[i] + 1))
@@ -284,7 +323,7 @@ gridPatch_getDimsActual_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_getDimsActual_test */
 
 extern bool
 gridPatch_getNumCells_test(void)
@@ -515,7 +554,7 @@ gridPatch_allocateVarData_test(void)
 		idxLo[i] = 0;
 		idxHi[i] = 1;
 	}
-	gridPatch   = gridPatch_new(idxLo, idxHi);
+	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVar(gridPatch, var);
 
 	if (varArr_getElementHandle(gridPatch->varData, 0) != NULL)
@@ -532,7 +571,7 @@ gridPatch_allocateVarData_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_allocateVarData_test */
 
 extern bool
 gridPatch_freeVarData_test(void)
@@ -558,7 +597,7 @@ gridPatch_freeVarData_test(void)
 		idxLo[i] = 0;
 		idxHi[i] = 1;
 	}
-	gridPatch   = gridPatch_new(idxLo, idxHi);
+	gridPatch = gridPatch_new(idxLo, idxHi);
 	gridPatch_attachVar(gridPatch, var);
 
 	if (varArr_getElementHandle(gridPatch->varData, 0) != NULL)
@@ -578,7 +617,7 @@ gridPatch_freeVarData_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_freeVarData_test */
 
 extern bool
 gridPatch_replaceVarData_test(void)
@@ -705,7 +744,7 @@ gridPatch_getVarDataHandleByVar_test(void)
 	int               rank      = 0;
 	gridPatch_t       gridPatch;
 	dataVar_t         var1, var2, var3, var4;
-	int pos1, pos2, pos3;
+	int               pos1, pos2, pos3;
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
 #ifdef XMEM_TRACK_MEM
@@ -727,9 +766,9 @@ gridPatch_getVarDataHandleByVar_test(void)
 		idxHi[i] = 1;
 	}
 	gridPatch = gridPatch_new(idxLo, idxHi);
-	pos1 = gridPatch_attachVar(gridPatch, var1);
-	pos2 = gridPatch_attachVar(gridPatch, var2);
-	pos3 = gridPatch_attachVar(gridPatch, var3);
+	pos1      = gridPatch_attachVar(gridPatch, var1);
+	pos2      = gridPatch_attachVar(gridPatch, var2);
+	pos3      = gridPatch_attachVar(gridPatch, var3);
 	if (gridPatch_getVarDataHandleByVar(gridPatch, var1)
 	    != varArr_getElementHandle(gridPatch->varData, pos1))
 		hasPassed = false;
@@ -751,7 +790,7 @@ gridPatch_getVarDataHandleByVar_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_getVarDataHandleByVar_test */
 
 extern bool
 gridPatch_getNumVars_test(void)
@@ -886,19 +925,19 @@ gridPatch_getWindowedDataCopy_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_getWindowedDataCopy_test */
 
 extern bool
 gridPatch_putWindowedData_test(void)
 {
 	bool              hasPassed = true;
 	int               rank      = 0;
-	dataVar_t var;
+	dataVar_t         var;
 	gridPatch_t       patch;
 	gridPointUint32_t idxLoPatch, idxHiPatch;
 	gridPointUint32_t idxLoWindow, idxHiWindow;
 	double            *data, *dataWindow, *dataWindowCopy;
-	uint64_t numCellsPatch, numCellsWindow;
+	uint64_t          numCellsPatch, numCellsWindow;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -915,21 +954,21 @@ gridPatch_putWindowedData_test(void)
 		idxLoPatch[i] = 0;
 		idxHiPatch[i] = 15;
 	}
-	patch = gridPatch_new(idxLoPatch, idxHiPatch);
+	patch         = gridPatch_new(idxLoPatch, idxHiPatch);
 	gridPatch_attachVar(patch, var);
-	data = (double *)gridPatch_getVarDataHandle(patch, 0);
+	data          = (double *)gridPatch_getVarDataHandle(patch, 0);
 	numCellsPatch = gridPatch_getNumCells(patch);
-	for (uint64_t i=0; i<numCellsPatch; i++)
+	for (uint64_t i = 0; i < numCellsPatch; i++)
 		data[i] = 123.0;
 
-	numCellsWindow=1;
+	numCellsWindow = 1;
 	for (int i = 0; i < NDIM; i++) {
-		idxLoWindow[i] = 3;
-		idxHiWindow[i] = 5;
-		numCellsWindow *= 5-3+1;
+		idxLoWindow[i]  = 3;
+		idxHiWindow[i]  = 5;
+		numCellsWindow *= 5 - 3 + 1;
 	}
 	dataWindow = dataVar_getMemory(var, numCellsWindow);
-	for (uint64_t i=0; i<numCellsWindow; i++)
+	for (uint64_t i = 0; i < numCellsWindow; i++)
 		dataWindow[i] = -12.0;
 
 	gridPatch_putWindowedData(patch, 0, idxLoWindow, idxHiWindow,
@@ -938,7 +977,7 @@ gridPatch_putWindowedData_test(void)
 	dataWindowCopy = gridPatch_getWindowedDataCopy(patch, 0, idxLoWindow,
 	                                               idxHiWindow, NULL);
 
-	for (uint64_t i=0; i<numCellsWindow; i++) {
+	for (uint64_t i = 0; i < numCellsWindow; i++) {
 		if (islessgreater(dataWindow[i], dataWindowCopy[i]))
 			hasPassed = false;
 	}
@@ -953,7 +992,7 @@ gridPatch_putWindowedData_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* gridPatch_putWindowedData_test */
 
 /*--- Implementations of local functions --------------------------------*/
 #if (NDIM == 2)
