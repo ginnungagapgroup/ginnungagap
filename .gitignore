@@ -28,6 +28,10 @@ src/libcosmo/pk_from_tf.dat
 
 src/libpart/libpart_tests
 
+src/libdata/libdata_tests
+
+src/liblare/liblare_tests
+
 tools/makeSiloRoot/makeSiloRoot
 
 tools/grafic2bov/grafic2bov
