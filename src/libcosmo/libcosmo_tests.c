@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -10,6 +10,10 @@
 #include "cosmoModel_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+
+/*--- Local defines -----------------------------------------------------*/
+#define NAME "libcosmo"
 
 
 /*--- Macros ------------------------------------------------------------*/
@@ -30,7 +34,9 @@ main(void)
 {
 	bool hasFailed = false;
 
-	printf("Running tests for cosmoTF:\n");
+	printf("\nTesting %s\n", NAME);
+
+	printf("\nRunning tests for cosmoTF:\n");
 	RUNTEST(cosmoTF_eisensteinHu1998_test, hasFailed);
 	RUNTEST(cosmoTF_scaleFree_test, hasFailed);
 

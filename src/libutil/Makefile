@@ -57,6 +57,9 @@ sourcesTests += commScheme_tests.c \
                 groupi_tests.c
 endif
 
+ifeq ($(WITH_MPI), "true")
+CC=$(MPICC)
+endif
 
 include ../../Makefile.rules
 

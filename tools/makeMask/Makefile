@@ -12,6 +12,10 @@ sources = main.c \
           $(progName).c \
           makeMaskSetup.c
 
+ifeq ($(WITH_MPI), "true")
+CC=$(MPICC)
+endif
+
 include ../../Makefile.rules
 
 all:

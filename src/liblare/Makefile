@@ -32,11 +32,7 @@ dist-clean:
 
 tests:
 	$(MAKE) lib${LIBNAME}_tests
-ifeq ($(WITH_MPI), "true")
-	mpiexec -n 16 ./lib${LIBNAME}_tests
-else
 	./lib${LIBNAME}_tests
-endif
 
 tests-clean:
 	rm -f lib${LIBNAME}_tests $(sourcesTests:.c=.o) 

@@ -10,9 +10,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "../libgrid/gridPoint.h"
-#ifdef WITH_MPI
-#  include <mpi.h>
-#endif
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
@@ -33,18 +30,13 @@ extern bool
 lare_new_test(void)
 {
 	bool              hasPassed = true;
-	int               rank      = 0;
 	lare_t            lare;
 	gridPointUint32_t dims;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 	for (int i = 0; i < NDIM; i++)
 		dims[i] = 2048;
@@ -66,24 +58,19 @@ lare_new_test(void)
 #endif
 
 	return hasPassed ? true : false;
-} /* lare_new_test */
+}
 
 extern bool
 lare_del_test(void)
 {
 	bool              hasPassed = true;
-	int               rank      = 0;
 	lare_t            lare;
 	gridPointUint32_t dims;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 	for (int i = 0; i < NDIM; i++)
 		dims[i] = 2048;
@@ -103,29 +90,24 @@ extern bool
 lare_getElement_test(void)
 {
 	bool              hasPassed = true;
-	int               rank      = 0;
 	lare_t            lare;
 	gridPointUint32_t dims;
 	gridPointUint32_t element;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 	for (int i = 0; i < NDIM; i++)
 		dims[i] = 2048;
 	lare = lare_new(dims, 30);
-	for (int i=0 ;i<NDIM; i++)
+	for (int i = 0; i < NDIM; i++)
 		lare->elements[0][i] = 45;
 
 	lare_getElement(lare, element, 0);
 
-	for (int i=0 ;i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (element[i] != lare->elements[0][i])
 			hasPassed = false;
 	}
@@ -143,24 +125,19 @@ extern bool
 lare_setElement_test(void)
 {
 	bool              hasPassed = true;
-	int               rank      = 0;
 	lare_t            lare;
 	gridPointUint32_t dims;
 	gridPointUint32_t element, elementCheck;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 	for (int i = 0; i < NDIM; i++)
 		dims[i] = 2048;
 	lare = lare_new(dims, 30);
-	for (int i=0 ;i<NDIM; i++)
+	for (int i = 0; i < NDIM; i++)
 		element[i] = 45;
 
 	lare_setElement(lare, element, 0);
@@ -168,17 +145,17 @@ lare_setElement_test(void)
 	lare_setElement(lare, element, 29);
 
 	lare_getElement(lare, elementCheck, 0);
-	for (int i=0 ;i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (elementCheck[i] != element[i])
 			hasPassed = false;
 	}
 	lare_getElement(lare, elementCheck, 15);
-	for (int i=0 ;i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (elementCheck[i] != element[i])
 			hasPassed = false;
 	}
 	lare_getElement(lare, elementCheck, 29);
-	for (int i=0 ;i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (elementCheck[i] != element[i])
 			hasPassed = false;
 	}
@@ -190,30 +167,25 @@ lare_setElement_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* lare_setElement_test */
 
 extern bool
 lare_addElement_test(void)
 {
 	bool              hasPassed = true;
-	int               rank      = 0;
 	lare_t            lare;
 	gridPointUint32_t dims;
 	gridPointUint32_t element, elementCheck;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 	for (int i = 0; i < NDIM; i++)
 		dims[i] = 2048;
 	lare = lare_new(dims, 30);
-	for (int i=0 ;i<NDIM; i++)
+	for (int i = 0; i < NDIM; i++)
 		element[i] = 45;
 
 	lare_addElement(lare, element);
@@ -221,7 +193,7 @@ lare_addElement_test(void)
 	if (lare->numElements != 31)
 		hasPassed = false;
 	lare_getElement(lare, elementCheck, 30);
-	for (int i=0 ;i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (elementCheck[i] != element[i])
 			hasPassed = false;
 	}
@@ -233,6 +205,6 @@ lare_addElement_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* lare_addElement_test */
 
 /*--- Implementations of local functions --------------------------------*/

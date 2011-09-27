@@ -9,9 +9,6 @@
 #include "lareReaderLOI.h"
 #include <stdio.h>
 #include <string.h>
-#ifdef WITH_MPI
-#  include <mpi.h>
-#endif
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
@@ -32,17 +29,12 @@ extern bool
 lareReaderLOI_new_test(void)
 {
 	bool            hasPassed = true;
-	int             rank      = 0;
 	lareReaderLOI_t lareReaderLOI;
 #ifdef XMEM_TRACK_MEM
 	size_t          allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -56,17 +48,12 @@ extern bool
 lareReaderLOI_del_test(void)
 {
 	bool            hasPassed = true;
-	int             rank      = 0;
 	lareReaderLOI_t lareReaderLOI;
 #ifdef XMEM_TRACK_MEM
 	size_t          allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -80,17 +67,12 @@ extern bool
 lareReaderLOI_read_test(void)
 {
 	bool            hasPassed = true;
-	int             rank      = 0;
 	lareReaderLOI_t lareReaderLOI;
 #ifdef XMEM_TRACK_MEM
 	size_t          allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)

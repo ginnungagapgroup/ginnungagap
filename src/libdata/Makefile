@@ -17,6 +17,10 @@ sourcesTests = lib${LIBNAME}_tests.c \
                dataVarType_tests.c \
                dataParticle_tests.c
 
+ifeq ($(WITH_MPI), "true")
+CC=$(MPICC)
+endif
+
 include ../../Makefile.rules
 
 all:

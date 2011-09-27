@@ -17,6 +17,10 @@ sources = main.c \
           g9pIC.c \
           g9pNorm.c
 
+ifeq ($(WITH_MPI), "true")
+CC=$(MPICC)
+endif
+
 include ../../Makefile.rules
 
 all:

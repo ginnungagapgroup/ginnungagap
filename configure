@@ -38,9 +38,12 @@ EPREFIX=auto
 BINDIR=auto
 
 TOOLCHAIN=gnu
+
 WITH_OPENMP=false
+
 WITH_MPI=false
-WITH_MPICC=mpicc
+WITH_MPI_BIN_DIR=auto
+MPICC=auto
 
 WITH_SPRNG=true
 WITH_SPRNG_PREFIX=auto
@@ -149,22 +152,28 @@ do
 		--without-openmp)
 			WITH_OPENMP=false
 			;;
+		# MPI things
 		--with-mpi | --with-mpi=*)
 			if test "x$ac_optarg" = "xyes"
 			then
 				WITH_MPI=true
-				WITH_MPICC=mpicc
 			elif test "x$ac_optarg" = "xno"
 			then
 				WITH_MPI=false
-				WITH_MPICC=""
 			else
 				WITH_MPI=true
-				WITH_MPICC=$ac_optarg
+				MPICC=$ac_optarg
 			fi
 			;;
 		--without-mpi | --without-mpi=*)
 			WITH_MPI=false
+			;;
+		--with-mpi-bin-dir)
+			$ECHO "Error:  --with-mpi-bin-dir requires an argument."
+			exit 1
+			;;
+		--with-mpi-bin-dir=*)
+			WITH_MPI_BIN_DIR=$ac_optarg
 			;;
 		# SPRNG stuff
 		--with-sprng | --with-sprng=*)
@@ -566,10 +575,17 @@ Optional features:
   --without-FEATURE            Do not use FEATURE.  This is the same as
                                --with-FEATURE=no.
   --with-openmp                Uses the OpenMP directives.  Default: no.
-  --with-mpi[=COMPILER]        Use MPI [COMPILER=mpicc].  Note that if you
-                               use MPI, it is your duty to make sure that
-                               mpicc uses a C compiler that fits to your
-                               selected toolchain.  Default: no.
+  --with-mpi[=MPICC]           Use MPI.  Note that if you use MPI, it is
+                               your duty to make sure that mpicc uses a
+                               C compiler that fits to your selected
+                               toolchain.  MPICC defaults to \`mpicc'
+                               unless explicitly changed.
+                               Default: no.
+  --with-mpi-bin-dir=DIR       Gives the directory in which MPICC can be
+                               found.  This is only required if \`mpicc'
+                               cannot be found in the PATH (or the wrong
+                               one is picked up there).
+                               Default:  auto.
   --with-sprng                 This can be used to toggle the usage of SPRNG
                                to generate random numbers.  Note that if
                                SPRNG is not used, than random numbers have
@@ -751,6 +767,23 @@ then
 	BINDIR=$EPREFIX/bin
 fi
 
+# Set MPICC if required
+if test "x$WITH_MPI" = "xtrue"
+then
+	if test "x$MPICC" = "xauto"
+	then
+		MPICC=mpicc
+	fi
+	if test "x$WITH_MPI_BIN_DIR" = "xauto"
+	then
+		MPICC=`which $MPICC`
+	else
+		MPICC=$WITH_MPI_BIN_DIR/$MPICC
+	fi
+else
+	MPICC=
+fi
+
 # Now set all the (possibly) deferred libraries
 if test "x$WITH_SPRNG_LIBS" = "xauto"
 then
@@ -835,7 +868,7 @@ fi
 if test "x$WITH_MPI" = "xtrue"
 then
 	sed -i.bak s/__WITH_MPI__/true/ Makefile.config
-	sed -i.bak s@__MPICC__@$WITH_MPICC@ Makefile.config
+	sed -i.bak s@__MPICC__@$MPICC@ Makefile.config
 else
 	sed -i.bak s/__WITH_MPI__/false/ Makefile.config
 	sed -i.bak s@__MPICC__@@ Makefile.config
@@ -1012,6 +1045,7 @@ include Makefile.config
 
 check:
 	@$ECHO -e "\t\tCC       = \$(CC)"
+	@$ECHO -e "\t\tMPICC    = \$(MPICC)"
 	@$ECHO -e "\t\tCFLAGS   = \$(CFLAGS)"
 	@$ECHO -e "\t\tCPPFLAGS = \$(CPPFLAGS)"
 	@$ECHO -e "\t\tDEPCC    = \$(DEPCC)"

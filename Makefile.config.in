@@ -47,7 +47,6 @@ TOOLCHAIN = "__TOOLCHAIN__"
 # Features that influence the choices need to be made in the toolchains
 WITH_OPENMP = "__WITH_OPENMP__"
 WITH_MPI = "__WITH_MPI__"
-MPICC = __MPICC__
 WITH_SPRNG = "__WITH_SPRNG__"
 WITH_SPRNG_PREFIX = "__WITH_SPRNG_PREFIX__"
 WITH_SPRNG_INC_DIR = "__WITH_SPRNG_INC_DIR__"
@@ -80,6 +79,7 @@ ENABLE_PROFILE = "__ENABLE_PROFILE__"
 # directory for the libraries then the according things are added to
 # CPPFLAGS and LDFLAGS.
 CC = __CC__
+MPICC = __MPICC__
 CFLAGS = __CFLAGS__
 CPPFLAGS = __CPPFLAGS__
 DEPCC = __DEPCC__
@@ -229,11 +229,7 @@ LIBS += -lm
 # The actual definitions depending on the chosen toolchain
 ifeq ($(TOOLCHAIN), "gnu")
   ifndef CC
-    ifeq ($(WITH_MPI), "true")
-      CC = $(MPICC)
-    else
-      CC = gcc
-    endif
+    CC = gcc
   endif
   ifeq ($(WITH_OPENMP), "true")
     CC+= -fopenmp
@@ -265,11 +261,7 @@ endif
 
 ifeq ($(TOOLCHAIN), "intel")
   ifndef CC
-    ifeq ($(WITH_MPI), "true")
-      CC = $(MPICC)
-    else
-      CC = icc
-    endif
+    CC = icc
   endif
   ifeq ($(WITH_OPENMP), "true")
     CC+= -openmp
@@ -301,11 +293,7 @@ endif
 
 ifeq ($(TOOLCHAIN), "ibm")
   ifndef CC
-    ifeq ($(WITH_MPI), "true")
-      CC = $(MPICC)
-    else
-      CC = xlc
-    endif
+    CC = xlc
   endif
   ifeq ($(WITH_OPENMP), "true")
     CC += -qsmp=omp -qthreaded

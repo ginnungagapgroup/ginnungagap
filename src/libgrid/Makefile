@@ -50,6 +50,10 @@ sourcesTests += gridReaderHDF5_tests.c \
                 gridWriterHDF5_tests.c
 endif
 
+ifeq ($(WITH_MPI), "true")
+CC=$(MPICC)
+endif
+
 include ../../Makefile.rules
 
 all:

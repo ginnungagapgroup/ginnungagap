@@ -13,6 +13,10 @@ sources = partBunch.c
 sourcesTests = lib${LIBNAME}_tests.c \
                partBunch_tests.c
 
+ifeq ($(WITH_MPI), "true")
+CC=$(MPICC)
+endif
+
 include ../../Makefile.rules
 
 all:

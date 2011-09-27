@@ -9,9 +9,6 @@
 #include "lareReaderLegacy.h"
 #include <stdio.h>
 #include <string.h>
-#ifdef WITH_MPI
-#  include <mpi.h>
-#endif
 #ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
@@ -32,17 +29,12 @@ extern bool
 lareReaderLegacy_new_test(void)
 {
 	bool               hasPassed = true;
-	int                rank      = 0;
 	lareReaderLegacy_t lareReaderLegacy;
 #ifdef XMEM_TRACK_MEM
 	size_t             allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 	lareReaderLegacy = lareReaderLegacy_new();
 	lareReaderLegacy_del(&lareReaderLegacy);
@@ -58,17 +50,12 @@ extern bool
 lareReaderLegacy_del_test(void)
 {
 	bool               hasPassed = true;
-	int                rank      = 0;
 	lareReaderLegacy_t lareReaderLegacy;
 #ifdef XMEM_TRACK_MEM
 	size_t             allocatedBytes = global_allocated_bytes;
 #endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
 
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
+	printf("Testing %s... ", __func__);
 
 	lareReaderLegacy = lareReaderLegacy_new();
 	lareReaderLegacy_del(&lareReaderLegacy);
