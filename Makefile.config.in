@@ -47,6 +47,7 @@ TOOLCHAIN = "__TOOLCHAIN__"
 # Features that influence the choices need to be made in the toolchains
 WITH_OPENMP = "__WITH_OPENMP__"
 WITH_MPI = "__WITH_MPI__"
+WITH_MPI_BIN_DIR = "__WITH_MPI_BIN_DIR__"
 WITH_SPRNG = "__WITH_SPRNG__"
 WITH_SPRNG_PREFIX = "__WITH_SPRNG_PREFIX__"
 WITH_SPRNG_INC_DIR = "__WITH_SPRNG_INC_DIR__"
@@ -87,6 +88,13 @@ LD = __LD__
 LDFLAGS = __LDFLAGS__
 AR = __AR__
 MAKE = __MAKE__
+
+# This is used for unit-testing
+ifeq ($(WITH_MPI), "true")
+  MPIEXEC = $(WITH_MPI_BIN_DIR)/mpiexec
+else
+  MPIEXEC =
+endif
 
 # Deals with the include/lib dir for SPRNG
 ifeq ($(WITH_SPRNG), "true")
@@ -232,7 +240,10 @@ ifeq ($(TOOLCHAIN), "gnu")
     CC = gcc
   endif
   ifeq ($(WITH_OPENMP), "true")
-    CC+= -fopenmp
+    CC += -fopenmp
+    ifeq ($(WITH_MPI), "true")
+      MPICC += -fopenmp
+    endif
   endif
   CFLAGS += -Wall -std=c99
   ifeq ($(ENABLE_DEBUG), "true")
@@ -264,7 +275,10 @@ ifeq ($(TOOLCHAIN), "intel")
     CC = icc
   endif
   ifeq ($(WITH_OPENMP), "true")
-    CC+= -openmp
+    CC += -openmp
+    ifeq ($(WITH_MPI), "true")
+      MPICC += -openmp
+    endif
   endif
   CFLAGS += -Wall -std=c99 -Wcheck -wd981 -wd161
   ifeq ($(ENABLE_DEBUG), "true")
@@ -297,8 +311,14 @@ ifeq ($(TOOLCHAIN), "ibm")
   endif
   ifeq ($(WITH_OPENMP), "true")
     CC += -qsmp=omp -qthreaded
+    ifeq ($(WITH_MPI), "true")
+      MPICC += -qsmp=omp -qthreaded
+    endif
   else
     CC += -qsmp=noomp -qthreaded
+    ifeq ($(WITH_MPI), "true")
+      MPICC += -qsmp=noomp -qthreaded
+    endif
   endif
   CFLAGS += -qlanglvl=stdc99
   ifeq ($(ENABLE_DEBUG), "true")

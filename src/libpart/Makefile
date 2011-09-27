@@ -33,7 +33,7 @@ dist-clean:
 tests:
 	$(MAKE) lib${LIBNAME}_tests
 ifeq ($(WITH_MPI), "true")
-	mpiexec -n 16 ./lib${LIBNAME}_tests
+	$(MPIEXEC) -n 16 ./lib${LIBNAME}_tests
 else
 	./lib${LIBNAME}_tests
 endif

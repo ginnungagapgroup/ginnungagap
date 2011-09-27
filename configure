@@ -777,6 +777,7 @@ then
 	if test "x$WITH_MPI_BIN_DIR" = "xauto"
 	then
 		MPICC=`which $MPICC`
+		WITH_MPI_BIN_DIR=`dirname $MPICC`
 	else
 		MPICC=$WITH_MPI_BIN_DIR/$MPICC
 	fi
@@ -869,6 +870,7 @@ if test "x$WITH_MPI" = "xtrue"
 then
 	sed -i.bak s/__WITH_MPI__/true/ Makefile.config
 	sed -i.bak s@__MPICC__@$MPICC@ Makefile.config
+	sed -i.bak s@__WITH_MPI_BIN_DIR__@$WITH_MPI_BIN_DIR@ Makefile.config
 else
 	sed -i.bak s/__WITH_MPI__/false/ Makefile.config
 	sed -i.bak s@__MPICC__@@ Makefile.config
