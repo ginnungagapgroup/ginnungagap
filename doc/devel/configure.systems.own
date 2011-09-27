@@ -11,7 +11,7 @@ OWNSYSTEMTYPE=true
 
 case $SYSTEMTYPE in
 	talby)
-		WITH_MPI_BIN_DIR=/opt/opempi/openmpi-1.5.3-gcc/bin
+		WITH_MPI_BIN_DIR=/opt/openmpi/openmpi-1.5.3-gcc/bin
 		WITH_FFT_PREFIX=/opt/fftw/fftw-3.2.2-gcc
 		WITH_SPRNG_PREFIX=/opt/sprng/sprng-2.0b-gcc
 		WITH_HDF5_PREFIX=/opt/phdf5/phdf5-1.8.7-gcc
