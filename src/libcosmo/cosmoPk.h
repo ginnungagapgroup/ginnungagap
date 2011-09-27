@@ -36,8 +36,6 @@ typedef struct cosmoPk_struct *cosmoPk_t;
 /**
  * @name Creating and Deleting
  *
- * Hallo Welt.
- *
  * @{
  */
 
@@ -421,7 +419,7 @@ cosmoPk_findKWindowForSigma8(cosmoPk_t pk, double *kmin, double *kmax);
  * #
  * # The name (and path) to the data file containing the power spectrum.
  * powerSpectrumFileName = <string>
- * @encode
+ * @endcode
  *
  * The file name will then be passed to cosmoPk_newFromFile() and the
  * power spectrum constructed in this manner.  However, to construct a

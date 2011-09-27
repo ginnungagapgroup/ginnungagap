@@ -12,6 +12,20 @@
  * @file libutil/tile.h
  * @ingroup libutilMisc
  * @brief  This file provides the interface for tiling.
+ *
+ *
+ * The ELAE (even, large at end) methods ensures that the tile sizes
+ * differ by at most one cell and the larger tiles are at the end.  This
+ * means that for a grid with 27 cells that is split in 5 tiles,
+ * the first 3 tiles have 5 cells each and the last 2 tiles have 6 cells
+ * each.
+ *
+ * The ELAB (even, large at beginning) methods ensures that the tile sizes
+ * differ by at most one cell and the larger tiles are at the beginning.
+ * This  means that for a grid with 27 cells that is split in 5 tiles,
+ * the first 2 tiles have 6 cells each and the last 3 tiles have 5 cells
+ * each.
+ *
  */
 
 
@@ -25,12 +39,6 @@
 
 /**
  * @name ELAE Method
- *
- * The ELAE (even, large at end) methods ensures that the tile sizes
- * differ by at most one cell and the larger tiles are at the end.  This
- * means that for a grid with 27 cells that is split in 5 tiles,
- * the first 3 tiles have 5 cells each and the last 2 tiles have 6 cells
- * each.
  *
  * @{
  */
@@ -86,12 +94,6 @@ tile_calcTileNumberForIdxELAE(uint32_t numGridCells,
 
 /**
  * @name ELAB Method
- *
- * The ELAB (even, large at beginning) methods ensures that the tile sizes
- * differ by at most one cell and the larger tiles are at the beginning.
- * This  means that for a grid with 27 cells that is split in 5 tiles,
- * the first 2 tiles have 6 cells each and the last 3 tiles have 5 cells
- * each.
  *
  * @{
  */
