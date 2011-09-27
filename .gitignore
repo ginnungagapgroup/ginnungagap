@@ -11,6 +11,7 @@ config.h
 gmon.out
 TAGS
 cscope.out
+configure.systems.own
 bin/
 
 src/libgrid/libgrid_tests
