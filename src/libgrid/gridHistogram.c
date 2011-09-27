@@ -208,7 +208,7 @@ gridHistogram_estimateNumBinsFromCells(uint64_t numCells)
 	uint32_t numBins;
 	double tmp;
 
-	tmp = log((double)numCells) * log(pow(numCells, 1./((double)NDIM)));
+	tmp = log((double)numCells) * log(pow((double)numCells, 1./((double)NDIM)));
 	numBins = (uint32_t)floor(tmp);
 	if (numBins < 1)
 		numBins = 1;
