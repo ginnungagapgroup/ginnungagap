@@ -147,8 +147,8 @@ main(int argc, char **argv)
 	RUNTEST(&gridRegularDistrib_getRef_test, hasFailed);
 #ifdef WITH_MPI
 	RUNTEST(&gridRegularDistrib_initMPI_test, hasFailed);
-	RUNTEST(&gridRegularDistrib_getLocalRank_test, hasFailed);
 #endif
+	RUNTEST(&gridRegularDistrib_getLocalRank_test, hasFailed);
 	RUNTEST(&gridRegularDistrib_getPatchForRank_test, hasFailed);
 	RUNTEST(&gridRegularDistrib_calcIdxsForRank1D_test, hasFailed);
 	RUNTEST(&gridRegularDistrib_transpose_test, hasFailed);
@@ -270,7 +270,6 @@ main(int argc, char **argv)
 	global_max_allocated_bytes = 0;
 #  endif
 #endif
-
 #ifdef WITH_HDF5
 	if (rank == 0) {
 		printf("\nRunning tests for gridWriterHDF5:\n");
@@ -284,14 +283,15 @@ main(int argc, char **argv)
 	RUNTEST(&gridWriterHDF5_activate_test, hasFailed);
 	RUNTEST(&gridWriterHF5_deactivate_test, hasFailed);
 	RUNTEST(&gridWriterHDF5_writeGridPatch_test, hasFailed);
-	RUNTEST(&gridWriterHDF5_writeGridRegular_test, hasFailed);
 #endif
+	RUNTEST(&gridWriterHDF5_writeGridRegular_test, hasFailed);
 #  ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
 	global_max_allocated_bytes = 0;
 #  endif
 
+#if 0
 	if (rank == 0) {
 		printf("\nRunning tests for gridReaderHDF5:\n");
 	}
@@ -304,6 +304,7 @@ main(int argc, char **argv)
 		xmem_info(stdout);
 	global_max_allocated_bytes = 0;
 #  endif
+#endif
 #endif
 
 #ifdef WITH_MPI

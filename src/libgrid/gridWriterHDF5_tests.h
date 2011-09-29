@@ -27,5 +27,8 @@ gridWriterHDF5_new_test(void);
 extern bool
 gridWriterHDF5_del_test(void);
 
+extern bool
+gridWriterHDF5_writeGridRegular_test(void);
+
 
 #endif
