@@ -116,9 +116,6 @@ gridRegularDistrib_initMPI(gridRegularDistrib_t distrib,
                            gridPointInt_t       nProcs,
                            MPI_Comm             comm);
 
-extern int
-gridRegularDistrib_getLocalRank(gridRegularDistrib_t distrib);
-
 extern void
 gridRegularDistrib_getProcCoords(gridRegularDistrib_t distrib,
                                  gridPointInt_t       procCoords);
@@ -127,6 +124,9 @@ extern MPI_Comm
 gridRegularDistrib_getGlobalComm(gridRegularDistrib_t distrib);
 
 #endif
+
+extern int
+gridRegularDistrib_getLocalRank(gridRegularDistrib_t distrib);
 
 extern gridPatch_t
 gridRegularDistrib_getPatchForRank(gridRegularDistrib_t distrib, int rank);

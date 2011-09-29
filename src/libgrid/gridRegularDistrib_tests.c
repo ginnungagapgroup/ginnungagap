@@ -191,6 +191,7 @@ gridRegularDistrib_initMPI_test(void)
 
 	return hasPassed ? true : false;
 } /* gridRegularDistrib_initMPI_test */
+#endif
 
 extern bool
 gridRegularDistrib_getLocalRank_test(void)
@@ -199,20 +200,24 @@ gridRegularDistrib_getLocalRank_test(void)
 	int                  rank      = 0;
 	gridRegularDistrib_t distrib;
 	gridRegular_t        fakeGrid;
-	gridPointInt_t       nProcs;
 	int                  localRank;
 #  ifdef XMEM_TRACK_MEM
 	size_t               allocatedBytes = global_allocated_bytes;
 #  endif
+#ifdef WITH_MPI
+	gridPointInt_t       nProcs;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
 
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
 	fakeGrid  = local_getFakeGrid();
-	local_getFakeNProcs(nProcs);
 	distrib   = gridRegularDistrib_new(fakeGrid, NULL);
+#ifdef WITH_MPI
+	local_getFakeNProcs(nProcs);
 	gridRegularDistrib_initMPI(distrib, nProcs, MPI_COMM_WORLD);
+#endif
 	localRank = gridRegularDistrib_getLocalRank(distrib);
 	if ((localRank < 0) || (localRank >= distrib->numProcs))
 		hasPassed = false;
@@ -225,8 +230,6 @@ gridRegularDistrib_getLocalRank_test(void)
 
 	return hasPassed ? true : false;
 }
-
-#endif
 
 extern bool
 gridRegularDistrib_getPatchForRank_test(void)

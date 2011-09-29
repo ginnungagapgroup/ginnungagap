@@ -24,10 +24,10 @@ gridRegularDistrib_getRef_test(void);
 #ifdef WITH_MPI
 extern bool
 gridRegularDistrib_initMPI_test(void);
+#endif
 
 extern bool
 gridRegularDistrib_getLocalRank_test(void);
-#endif
 
 extern bool
 gridRegularDistrib_getPatchForRank_test(void);

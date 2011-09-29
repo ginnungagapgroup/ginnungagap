@@ -212,18 +212,6 @@ gridRegularDistrib_initMPI(gridRegularDistrib_t distrib,
 	                periodicity, 1, &(distrib->commCart));
 }
 
-extern int
-gridRegularDistrib_getLocalRank(gridRegularDistrib_t distrib)
-{
-	int rank;
-
-	assert(distrib != NULL);
-
-	MPI_Comm_rank(distrib->commCart, &rank);
-
-	return rank;
-}
-
 extern void
 gridRegularDistrib_getProcCoords(gridRegularDistrib_t distrib,
                                  gridPointInt_t       procCoords)
@@ -246,6 +234,22 @@ gridRegularDistrib_getGlobalComm(gridRegularDistrib_t distrib)
 }
 
 #endif
+
+extern int
+gridRegularDistrib_getLocalRank(gridRegularDistrib_t distrib)
+{
+	assert(distrib != NULL);
+
+#ifdef WITH_MPI
+	int rank;
+
+	MPI_Comm_rank(distrib->commCart, &rank);
+	return rank;
+#else
+	return 0;
+#endif
+}
+
 extern gridPatch_t
 gridRegularDistrib_getPatchForRank(gridRegularDistrib_t distrib, int rank)
 {
