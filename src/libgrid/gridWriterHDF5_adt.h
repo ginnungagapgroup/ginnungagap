@@ -34,12 +34,19 @@ struct gridWriterHDF5_struct {
 	const char *fileName;
 #ifdef WITH_MPI
 	/** @brief  The MPI communicator to be used. */
-	MPI_Comm     mpiComm;
+	MPI_Comm mpiComm;
 #endif
+	/** @brief  Toggles whether an existing file should be overwritten. */
+	bool         force;
+	/** @brief  Toggles the writing of chunked data. */
 	bool         doChunking;
+	/** @brief  Gives the chunk size. */
 	hsize_t      chunkSize[NDIM];
+	/** @brief  Toggles the checksum calcluation (requires chunking). */
 	bool         doChecksum;
+	/** @brief  Toggles the compression (requires chunking). */
 	bool         doCompression;
+	/** @brief  Selects the compression filter. */
 	H5Z_filter_t compressionFilter;
 };
 
