@@ -781,6 +781,7 @@ gridPatch_getVarDataHandleByVar_test(void)
 	if (gridPatch_getVarDataHandleByVar(gridPatch, var4) != NULL)
 		hasPassed = false;
 	gridPatch_del(&gridPatch);
+	dataVar_del(&var4);
 	dataVar_del(&var3);
 	dataVar_del(&var2);
 	dataVar_del(&var1);
