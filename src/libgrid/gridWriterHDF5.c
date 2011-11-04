@@ -44,8 +44,23 @@
  * @return  Returns a handle to the newly created file.
  */
 static hid_t
-local_createFile(const gridWriterHDF5_t writer);
+local_createNewFile(const gridWriterHDF5_t writer);
 
+
+#ifdef WITH_MPI
+
+/**
+ * @brief  Small helper function to get the access property list for the
+ *         MPI things.
+ *
+ * @param[in]  comm
+ *                The MPI communicator that should be used.
+ *
+ * @return  Returns a handle for a new access property list.
+ */
+static hid_t
+local_getAccessPropsFileAccessMPI(MPI_Comm comm);
+#endif
 
 /**
  * @brief  Creates an HDF5 data space for a given size.
@@ -112,6 +127,7 @@ gridWriterHDF5_new(void)
 #ifdef WITH_MPI
 	writer->mpiComm    = MPI_COMM_NULL;
 #endif
+	writer->force      = false;
 	writer->doChunking = false;
 	for (int i = 0; i < NDIM; i++)
 		writer->chunkSize[i] = 0;
@@ -130,7 +146,7 @@ gridWriterHDF5_newFromIni(parse_ini_t ini, const char *sectionName)
 
 	gridWriterHDF5_t writer;
 	char             *fileName;
-	bool             tmp, doChunking, doChecksum, doCompression;
+	bool             tmp, force, doChunking, doChecksum, doCompression;
 
 
 	writer = gridWriterHDF5_new();
@@ -140,6 +156,8 @@ gridWriterHDF5_newFromIni(parse_ini_t ini, const char *sectionName)
 	gridWriterHDF5_setFileName(writer, fileName);
 	xfree(fileName);
 	// Optional
+	if (parse_ini_get_bool(ini, "force", sectionName, &force))
+		gridWriterHDF5_setForce(writer, force);
 	tmp = parse_ini_get_bool(ini, "doChunking", sectionName, &doChunking);
 	if (tmp && doChunking) {
 		int32_t           *sizeFile;
@@ -200,6 +218,14 @@ gridWriterHDF5_setFileName(gridWriterHDF5_t w, const char *fileName)
 }
 
 extern void
+gridWriterHDF5_setForce(gridWriterHDF5_t w, bool force)
+{
+	assert(w != NULL);
+
+	w->force = force;
+}
+
+extern void
 gridWriterHDF5_setDoChunking(gridWriterHDF5_t w, bool doChunking)
 {
 	assert(w != NULL);
@@ -224,6 +250,11 @@ gridWriterHDF5_setDoChecksum(gridWriterHDF5_t w, bool doChecksum)
 {
 	assert(w != NULL);
 
+#ifdef WITH_MPI
+	// No filters in parallel HDF5 writing.
+	doChecksum = false;
+#endif
+
 	w->doChecksum = doChecksum;
 	if (w->doChecksum)
 		assert(H5Zfilter_avail(H5Z_FILTER_FLETCHER32));
@@ -233,6 +264,11 @@ extern void
 gridWriterHDF5_setDoCompression(gridWriterHDF5_t w, bool doCompression)
 {
 	assert(w != NULL);
+
+#ifdef WITH_MPI
+	// No compression in parallel HDF5 writing.
+	doCompression = false;
+#endif
 
 	if (w->doCompression && !doCompression)
 		w->compressionFilter = H5I_INVALID_HID;
@@ -248,6 +284,11 @@ gridWriterHDF5_setCompressionFilter(gridWriterHDF5_t w,
                                     const char       *filterName)
 {
 	assert(w != NULL);
+
+#ifdef WITH_MPI
+	// No compression in parallel HDF5 writing.
+	return;
+#endif
 
 	if (!w->doCompression)
 		w->doCompression = true;
@@ -275,7 +316,7 @@ gridWriterHDF5_activate(gridWriter_t writer)
 
 	if (!tmp->isActive) {
 		assert(tmp->fileHandle == H5I_INVALID_HID);
-		tmp->fileHandle = local_createFile(tmp);
+		tmp->fileHandle = local_createNewFile(tmp);
 		tmp->isActive   = true;
 	}
 }
@@ -376,25 +417,44 @@ gridWriterHDF5_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 
 
 /*--- Implementations of local functions --------------------------------*/
-static hid_t
-local_createFile(const gridWriterHDF5_t writer)
-{
-	hid_t fileHandle;
-	hid_t accessProp = H5P_DEFAULT;
 #ifdef WITH_MPI
+static hid_t
+local_getAccessPropsFileAccessMPI(MPI_Comm comm)
+{
+	hid_t accessProp;
 	int   rtn;
 
 	accessProp = H5Pcreate(H5P_FILE_ACCESS);
 	if (accessProp < 0)
 		diediedie(EXIT_FAILURE);
-	rtn = H5Pset_fapl_mpio(accessProp, writer->mpiComm, MPI_INFO_NULL);
+	rtn = H5Pset_fapl_mpio(accessProp, comm, MPI_INFO_NULL);
 	if (rtn < 0)
 		diediedie(EXIT_FAILURE);
+
+	return accessProp;
+}
+
 #endif
 
-	fileHandle = H5Fcreate(writer->fileName, H5F_ACC_EXCL,
-	                       H5P_DEFAULT, accessProp);
-	assert(fileHandle >= 0);
+static hid_t
+local_createNewFile(const gridWriterHDF5_t writer)
+{
+	hid_t fileHandle;
+#ifdef WITH_MPI
+	hid_t accessProp = local_getAccessPropsFileAccessMPI(writer->mpiComm);
+#else
+	hid_t accessProp = H5P_DEFAULT;
+#endif
+
+	if (writer->force)
+		fileHandle = H5Fcreate(writer->fileName, H5F_ACC_TRUNC,
+		                       H5P_DEFAULT, accessProp);
+	else
+		fileHandle = H5Fcreate(writer->fileName, H5F_ACC_EXCL,
+		                       H5P_DEFAULT, accessProp);
+	if (fileHandle < 0)
+		diediedie(EXIT_FAILURE);
+
 	if (accessProp != H5P_DEFAULT)
 		H5Pclose(accessProp);
 
@@ -434,14 +494,14 @@ local_getDSCreationPropList(gridWriterHDF5_t writer)
 		if (writer->doChecksum) {
 			err = H5Pset_filter(rtn, H5Z_FILTER_FLETCHER32,
 			                    H5Z_FLAG_MANDATORY, 0, NULL);
-		if (err < 0)
-			diediedie(EXIT_FAILURE);
+			if (err < 0)
+				diediedie(EXIT_FAILURE);
 		}
 		if (writer->doCompression) {
-			err = H5Pset_filter(rtn, writer->compressionFilter,
-			                    H5Z_FLAG_OPTIONAL, 0, NULL);
-		if (err < 0)
-			diediedie(EXIT_FAILURE);
+			if (writer->compressionFilter == H5Z_FILTER_DEFLATE)
+				H5Pset_deflate(rtn, 9);
+			if (err < 0)
+				diediedie(EXIT_FAILURE);
 		}
 	}
 

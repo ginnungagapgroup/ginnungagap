@@ -106,12 +106,13 @@ gridWriterHDF5_del_test(void)
 extern bool
 gridWriterHDF5_writeGridRegular_test(void)
 {
-	bool             hasPassed = true;
-	int              rank      = 0;
-	gridWriterHDF5_t writer;
-	gridRegular_t    grid;
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridWriterHDF5_t  writer;
+	gridPointUint32_t chunkSize = { 20, 30, 10 };
+	gridRegular_t     grid;
 #ifdef XMEM_TRACK_MEM
-	size_t           allocatedBytes = global_allocated_bytes;
+	size_t            allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -120,13 +121,40 @@ gridWriterHDF5_writeGridRegular_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	writer = gridWriterHDF5_new();
-	gridWriterHDF5_setFileName(writer, "outGridMPI.h5");
-#ifdef WITH_MPI
-	gridWriterHDF5_initParallel(writer, MPI_COMM_WORLD);
-#endif
-	grid = local_getFakeGrid();
+	grid   = local_getFakeGrid();
 
+	writer = gridWriterHDF5_new();
+	gridWriterHDF5_setFileName(writer, "outGridSimple.h5");
+	gridWriterHDF5_setForce(writer, true);
+#ifdef WITH_MPI
+	gridWriterHDF5_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
+#endif
+	gridWriterHDF5_activate((gridWriter_t)writer);
+	gridWriterHDF5_writeGridRegular((gridWriter_t)writer, grid);
+	gridWriterHDF5_deactivate((gridWriter_t)writer);
+	gridWriterHDF5_del((gridWriter_t *)&writer);
+
+	writer = gridWriterHDF5_new();
+	gridWriterHDF5_setFileName(writer, "outGridChunking.h5");
+	gridWriterHDF5_setForce(writer, true);
+	gridWriterHDF5_setChunkSize(writer, chunkSize);
+#ifdef WITH_MPI
+	gridWriterHDF5_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
+#endif
+	gridWriterHDF5_activate((gridWriter_t)writer);
+	gridWriterHDF5_writeGridRegular((gridWriter_t)writer, grid);
+	gridWriterHDF5_deactivate((gridWriter_t)writer);
+	gridWriterHDF5_del((gridWriter_t *)&writer);
+
+	writer = gridWriterHDF5_new();
+	gridWriterHDF5_setFileName(writer, "outGridChecksumCompress.h5");
+	gridWriterHDF5_setForce(writer, true);
+	gridWriterHDF5_setChunkSize(writer, chunkSize);
+	gridWriterHDF5_setDoChecksum(writer, true);
+	gridWriterHDF5_setCompressionFilter(writer, "gzip");
+#ifdef WITH_MPI
+	gridWriterHDF5_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
+#endif
 	gridWriterHDF5_activate((gridWriter_t)writer);
 	gridWriterHDF5_writeGridRegular((gridWriter_t)writer, grid);
 	gridWriterHDF5_deactivate((gridWriter_t)writer);
