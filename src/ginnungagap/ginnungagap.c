@@ -90,10 +90,10 @@ static void
 local_doStatistics(ginnungagap_t g9p, int idxOfVar);
 
 static void
-local_doHistogram(ginnungagap_t          g9p,
-                  int                    idxOfVar,
-                  const gridHistogram_t  stat,
-                  const char             *histoName);
+local_doHistogram(ginnungagap_t         g9p,
+                  int                   idxOfVar,
+                  const gridHistogram_t stat,
+                  const char            *histoName);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -165,7 +165,9 @@ ginnungagap_run(ginnungagap_t g9p)
 	local_doDeltaKPk(g9p);
 	local_doDeltaX(g9p);
 	local_doStatistics(g9p, 0);
-	local_doHistogram(g9p, 0, g9p->histoDens, g9p->setup->nameHistogramDens);
+	if (g9p->setup->doHistograms)
+		local_doHistogram(g9p, 0, g9p->histoDens,
+		                  g9p->setup->nameHistogramDens);
 	if (g9p->rank == 0)
 		printf("\n");
 
@@ -174,7 +176,9 @@ ginnungagap_run(ginnungagap_t g9p)
 	local_doDeltaK(g9p);
 	local_doVelocities(g9p, G9PIC_MODE_VX);
 	local_doStatistics(g9p, 0);
-	local_doHistogram(g9p, 0, g9p->histoVel, g9p->setup->nameHistogramVelx);
+	if (g9p->setup->doHistograms)
+		local_doHistogram(g9p, 0, g9p->histoVel,
+		                  g9p->setup->nameHistogramVelx);
 	if (g9p->rank == 0)
 		printf("\n");
 
@@ -183,7 +187,9 @@ ginnungagap_run(ginnungagap_t g9p)
 	local_doDeltaK(g9p);
 	local_doVelocities(g9p, G9PIC_MODE_VY);
 	local_doStatistics(g9p, 0);
-	local_doHistogram(g9p, 0, g9p->histoVel, g9p->setup->nameHistogramVely);
+	if (g9p->setup->doHistograms)
+		local_doHistogram(g9p, 0, g9p->histoVel,
+		                  g9p->setup->nameHistogramVely);
 	if (g9p->rank == 0)
 		printf("\n");
 
@@ -192,7 +198,9 @@ ginnungagap_run(ginnungagap_t g9p)
 	local_doDeltaK(g9p);
 	local_doVelocities(g9p, G9PIC_MODE_VZ);
 	local_doStatistics(g9p, 0);
-	local_doHistogram(g9p, 0, g9p->histoVel, g9p->setup->nameHistogramVelz);
+	if (g9p->setup->doHistograms)
+		local_doHistogram(g9p, 0, g9p->histoVel,
+		                  g9p->setup->nameHistogramVelz);
 	if (g9p->rank == 0)
 		printf("\n");
 } /* ginnungagap_run */
@@ -453,14 +461,14 @@ local_doStatistics(ginnungagap_t g9p, int idxOfVar)
 }
 
 static void
-local_doHistogram(ginnungagap_t          g9p,
-                  int                    idxOfVar,
-                  const gridHistogram_t  histo,
-                  const char             *histoName)
+local_doHistogram(ginnungagap_t         g9p,
+                  int                   idxOfVar,
+                  const gridHistogram_t histo,
+                  const char            *histoName)
 {
-	double          timing;
+	double timing;
 
-	timing   = timer_start("  Calculating histogram");
+	timing = timer_start("  Calculating histogram");
 	gridHistogram_calcGridRegularDistrib(histo, g9p->gridDistrib, idxOfVar);
 	timing = timer_stop(timing);
 
@@ -468,4 +476,4 @@ local_doHistogram(ginnungagap_t          g9p,
 		gridHistogram_printPrettyFile(histo, histoName, false, "");
 		printf("    Histogram written to %s.\n", histoName);
 	}
-} 
+}
