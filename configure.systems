@@ -38,6 +38,12 @@ then
 			WITH_SILO=true
 			WITH_HDF5=true
 			;;
+		curie)
+			WITH_FFT_LIBS="-lfftw3_omp -lfftw3 -lfftw3f_omp -lfftw3f"
+			WITH_FFT_PREFIX=/ccc/cont005/home/ra0317/knollmas/opt/fftw/fftw-3.3-intel
+			WITH_SPRNG_PREFIX=/ccc/cont005/home/ra0317/knollmas/opt/sprng/sprng-2.0b-intel
+			WITH_GSL_PREFIX=/usr/local/gsl-1.14
+			;;
 		erebos)
 			WITH_FFT_LIBS="-lfftw3_omp -lfftw3 -lfftw3f_omp -lfftw3f"
 			case $TOOLCHAIN in
