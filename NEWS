@@ -7,6 +7,111 @@ the repository, smaller changes will not be listed individually but
 paraphrased.
 
 
+Version 0.5.2-alpha
+-------------------
+
+This is the alpha release of ginnungagap-0.5.2.  This brings writing
+support for HDF5 and improves the build system.  The biggest chance is
+the way how MPI is handled in the build system.
+Changes from 0.5.1-alpha:
+ 46 files changed, 2039 insertions(+), 406 deletions(-)
+
+* (4d4de93) Adds curie to the systems.
+
+* (17d9d4e) Adds erebos to the known systems.
+    This sets the SPRNG and FFT details for erebos to use the libraries 
+    installed in /z/knolli/opt/.  Setting the LD_LIBRARY_PATH is still the 
+    responsibility of the user.  The system settings differ depending on
+    the choice of --toolchain (intel and gcc are dealt with).
+
+* (15c25b5) Fixes segfault related to histograms.
+    When the calculation of histograms is switched off in the ini file (or 
+    rather not switched on), then they really shouldn't be done.
+
+* (40af9c2) Fixes filtering/chunking for the HDF5 writer.
+    This now allows the writer to write to chunked data sets and apply 
+    various filters to the data set.  Filters are, however, only available 
+    in the serial version of the library, hence all filters are switched
+    off the hard way, when the code is compiled with MPI.
+
+* (a6261ee) HDF5 writer can now write grids.
+    This implements the writing of grids (and, untested, patches). 
+    Theoretically, it also supports compression and checksumming, albeit 
+    untested.
+
+* (1a84d88) Allows distributed grids to always get the rank.
+    Retrieving the local rank of the calling process within the grid 
+    distribution was a feature of the MPI-version of the distribution 
+    module.  This is now always available and will return the rank 0 if the 
+    distribution is not in MPI mode.  Test functions have been adjusted 
+    accordingly.
+
+* (94d6069) Fixes issue with MPI tests and adds OpenMP to MPI.
+    Will set a Makefile variable for mpiexec which will include the path as 
+    given by WITH_MPI_BIN_DIR.  Note that this directory must be either 
+    given by the user, or it will be constructed by 'dirname' from
+    'which mpicc'.
+
+    Also, the build system now re-enables MPI+OpenMP by adding the required 
+    OpenMP flags not only to CC but also to MPICC.
+
+* (d951872) Fixes issues with the pdf documentation.
+    When generating the latex documentation it seems that doxygen produces 
+    broken TeX code if name-block contain any text.  This is circumvented 
+    now by either moving the extra text to the file description, or
+    deleting it.
+
+* (ef7524c) Changes how MPI is handled in the build system.
+    This will now explicitly set and use MPICC.  Makefiles that deal with 
+    code that has to be compiled with MPI now will set CC to MPICC.  That 
+    allows to compile code that has no dependency on MPI without any 
+    reference to MPI.  Implementation of this change required adjusting
+    most of the Makefiles and additionally a few irrelevant MPI
+    dependencies have been removed from a few test functions.
+
+    The way MPI is handled in by the configure is now:  --with-mpi will
+    take an argument that is either no to not use MPI at all, or yes, which
+    will use MPI and assume the MPI compiler to be 'mpicc', or any other
+    word that will then be taken as the value for MPICC.  This should now
+    be the executable without any path.  If the MPICC is in a non-standard 
+    directory, then --with-mpi-bin-dir can be used to point to the proper 
+    directory in which MPICC can be found.
+
+    The configure script will now report which MPICC is being used and 
+    include the full path in the output.  The path is either taken from the 
+    user via --with-mpi-bin-dir or deduced via 'which MPICC' (that requires 
+    MPICC to be in the PATH).
+
+    All these changes are now used in the example configure.systems.own (in 
+    doc/devel/) to allow for a compilation without sourcing any module. 
+    Note that the build system does not try to resolve runtime dependency, 
+    i.e. to run the code the user needs to ensure that all shared libraries 
+    are actually found by the linker.
+
+* (2bfbe5d) Adds a configure.systems.own for development.
+    This is only for internal use, though users might find it helpful to 
+    have a look at the file.
+
+* (d1ebdd0) Documentation update for gridPatch.
+    This will now completely document the gridPatch module.  Additionally,
+    a few missing const qualifiers have been added to some functions.
+
+* (d66541c) Adds a gridPatch function to retrieve data by var.
+    This now allows to retrieve the data handle of a variable attached to a 
+    patch by searching for the variable itself.  Previously, the only way
+    to get the data handle was by passing the index of the data.
+
+* (9823274) Fixes problems with HDF5 libs.
+    The HDF5 libraries where not properly propagated through the build 
+    chain.
+
+* (cd2d61e) Changes the way configure deals with HDF5.
+    Now that HDF5 is itself a supported output format of ginnungagap, the 
+    configure script has been adapted so that the HDF5 backend of Silo is 
+    not chosen automatically when --with-hdf5 is specified.  To use the
+    HDF5 backend, --with-silo=hdf5 must be used now.
+
+
 Version 0.5.1-alpha
 -------------------
 
