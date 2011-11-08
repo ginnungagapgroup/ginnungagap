@@ -43,6 +43,8 @@ struct g9pSetup_struct {
 	char           *gridName;
 	/** @brief  Gives the employed normalisation mode. */
 	g9pNorm_mode_t normalisationMode;
+	/** @brief  Selects if 2nd order corrections should be calculated. */
+	bool           do2LPTCorrections;
 #ifdef WITH_MPI
 	/** @brief  The process grid. */
 	int nProcs[NDIM];
@@ -147,6 +149,13 @@ g9pSetup_del(g9pSetup_t *setup);
  * #################
  * # Optional Keys #
  * #################
+ * #
+ * # This can be used to switch on the calculation of an additional set of
+ * # velocity fields which encode the second order corrections to linear
+ * # theory.  To calculate this corrections, a significantly larger amount
+ * # of memory is required.  If this key is not set, no corrections will be
+ * # calculated.
+ * do2LPTCorrections = <true|false>
  * #
  * # A tag whether or not to write the density field.  Note: This should
  * # not be disabled for the Grafic writer, as it will then have wrong file

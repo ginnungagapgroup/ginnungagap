@@ -172,6 +172,10 @@ local_parseRequired(g9pSetup_t s, parse_ini_t ini)
 static void
 local_parseOptional(g9pSetup_t s, parse_ini_t ini)
 {
+	if (!(parse_ini_get_bool(ini, "do2LPTCorrections", "Ginnungagap",
+	                         &(s->do2LPTCorrections))))
+		s->do2LPTCorrections = false;
+
 	if (!(parse_ini_get_bool(ini, "writeDensityField", "Ginnungagap",
 	                         &(s->writeDensityField))))
 		s->writeDensityField = true;

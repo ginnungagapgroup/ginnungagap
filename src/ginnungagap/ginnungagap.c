@@ -95,6 +95,9 @@ local_doHistogram(ginnungagap_t         g9p,
                   const gridHistogram_t stat,
                   const char            *histoName);
 
+static void
+local_do2LPTCorrections(ginnungagap_t g9p);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern ginnungagap_t
@@ -203,6 +206,10 @@ ginnungagap_run(ginnungagap_t g9p)
 		                  g9p->setup->nameHistogramVelz);
 	if (g9p->rank == 0)
 		printf("\n");
+
+	if (g9p->setup->do2LPTCorrections)
+		local_do2LPTCorrections(g9p);
+
 } /* ginnungagap_run */
 
 extern void
@@ -476,4 +483,11 @@ local_doHistogram(ginnungagap_t         g9p,
 		gridHistogram_printPrettyFile(histo, histoName, false, "");
 		printf("    Histogram written to %s.\n", histoName);
 	}
+}
+
+static void
+local_do2LPTCorrections(ginnungagap_t g9p)
+{
+
+
 }
