@@ -53,4 +53,9 @@ $(progName): $(sources:.c=.o) \
 
 ../../src/libutil/libutil.a:
 	$(MAKE) -C ../../src/libutil
+else
+
+install:
+	@echo "Since \`$(progName)' was not built, there is nothing to install."
+
 endif
