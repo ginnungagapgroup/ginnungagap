@@ -150,13 +150,13 @@ g9pIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
 #  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
 	dimsGrid, data, pk, norm)
 #endif
-	for (uint32_t k = 0; k < dimsPatch[2]; k++) {
+	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
 		int64_t k2 = k + idxLo[2];
 		k2 = (k2 > kMaxGrid[2]) ? k2 - dimsGrid[2] : k2;
-		for (uint32_t j = 0; j < dimsPatch[1]; j++) {
+		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
 			int64_t k1 = j + idxLo[1];
 			k1 = (k1 > kMaxGrid[1]) ? k1 - dimsGrid[1] : k1;
-			for (uint32_t i = 0; i < dimsPatch[0]; i++) {
+			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
 				int64_t  k0 = i + idxLo[0];
 				uint64_t idx;
 				double   kCell;
@@ -204,13 +204,13 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
 #  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
 	dimsGrid, data, norm, mode)
 #endif
-	for (uint32_t k = 0; k < dimsPatch[2]; k++) {
+	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
 		int64_t k2 = k + idxLo[2];
 		k2 = (k2 > kMaxGrid[2]) ? k2 - dimsGrid[2] : k2;
-		for (uint32_t j = 0; j < dimsPatch[1]; j++) {
+		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
 			int64_t k1 = j + idxLo[1];
 			k1 = (k1 > kMaxGrid[1]) ? k1 - dimsGrid[1] : k1;
-			for (uint32_t i = 0; i < dimsPatch[0]; i++) {
+			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
 				int64_t  k0 = i + idxLo[0];
 				double   kCellSqr;
 				uint64_t idx;
@@ -269,13 +269,13 @@ g9pIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
 		numFreqHits[i] = 0;
 	}
 
-	for (uint32_t k = 0; k < dimsPatch[2]; k++) {
+	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
 		int64_t k2 = k + idxLo[2];
 		k2 = (k2 > kMaxGrid[2]) ? k2 - dimsGrid[2] : k2;
-		for (uint32_t j = 0; j < dimsPatch[1]; j++) {
+		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
 			int64_t k1 = j + idxLo[1];
 			k1 = (k1 > kMaxGrid[1]) ? k1 - dimsGrid[1] : k1;
-			for (uint32_t i = 0; i < dimsPatch[0]; i++) {
+			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
 				int64_t  k0 = i + idxLo[0];
 				uint64_t idx;
 				int      kCell;

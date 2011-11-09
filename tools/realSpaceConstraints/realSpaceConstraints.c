@@ -433,11 +433,11 @@ local_degrade(fpv_t             *dataOut,
 #  ifdef WITH_OPENMP
 #    pragma omp parallel for
 #  endif
-	for (uint32_t k = 0; k < dimsOut[2]; k++)
+	for (uint64_t k = 0; k < dimsOut[2]; k++)
 #endif
 	{
-		for (uint32_t j = 0; j < dimsOut[1]; j++) {
-			for (uint32_t i = 0; i < dimsOut[0]; i++) {
+		for (uint64_t j = 0; j < dimsOut[1]; j++) {
+			for (uint64_t i = 0; i < dimsOut[0]; i++) {
 				long double sum;
 				uint64_t    idxOut = i + (j + k * dimsOut[1]) * dimsOut[0];
 				uint64_t    idxIn  = i * dimsSV[0]
@@ -476,11 +476,11 @@ local_enforceConstraints(fpv_t             *dataOut,
 #  ifdef WITH_OPENMP
 #    pragma omp parallel for
 #  endif
-	for (uint32_t k = 0; k < dimsIn[2]; k++)
+	for (uint64_t k = 0; k < dimsIn[2]; k++)
 #endif
 	{
-		for (uint32_t j = 0; j < dimsIn[1]; j++) {
-			for (uint32_t i = 0; i < dimsIn[0]; i++) {
+		for (uint64_t j = 0; j < dimsIn[1]; j++) {
+			for (uint64_t i = 0; i < dimsIn[0]; i++) {
 				long double mean;
 				uint64_t    idxIn  = i + (j + k * dimsIn[1]) * dimsIn[0];
 				uint64_t    idxOut = i * dimsSV[0]
@@ -506,11 +506,11 @@ local_sumSV(const fpv_t       *data,
 	long double sum = 0.0L;
 
 #if (NDIM > 2)
-	for (uint32_t k = 0; k < dimsSV[2]; k++)
+	for (uint64_t k = 0; k < dimsSV[2]; k++)
 #endif
 	{
-		for (uint32_t j = 0; j < dimsSV[1]; j++) {
-			for (uint32_t i = 0; i < dimsSV[0]; i++) {
+		for (uint64_t j = 0; j < dimsSV[1]; j++) {
+			for (uint64_t i = 0; i < dimsSV[0]; i++) {
 				sum += data[i + (j + k * dimsIn[1]) * dimsIn[0]];
 			}
 		}
@@ -527,11 +527,11 @@ local_addToSV(fpv_t             *data,
               double            value)
 {
 #if (NDIM > 2)
-	for (uint32_t k = 0; k < dimsSV[2]; k++)
+	for (uint64_t k = 0; k < dimsSV[2]; k++)
 #endif
 	{
-		for (uint32_t j = 0; j < dimsSV[1]; j++) {
-			for (uint32_t i = 0; i < dimsSV[0]; i++) {
+		for (uint64_t j = 0; j < dimsSV[1]; j++) {
+			for (uint64_t i = 0; i < dimsSV[0]; i++) {
 				data[i + (j + k * dimsIn[1]) * dimsIn[0]] += (fpv_t)value;
 			}
 		}
