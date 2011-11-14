@@ -422,7 +422,7 @@ cosmoModel_calcDlnGrowthDlna(cosmoModel_t model, double a, double *error)
 
 	assert(model != NULL);
 	assert(error != NULL);
-	assert(isgreater(1, 0.0));
+	assert(isgreater(a, 0.0));
 
 	growth = cosmoModel_calcGrowth(model, a, error);
 	ainv   = 1. / a;
@@ -440,5 +440,25 @@ cosmoModel_calcDlnGrowthDlna(cosmoModel_t model, double a, double *error)
 
 	return fupper / flower;
 }
+
+extern double
+cosmoModel_calcDlnGrowthDlna2lpt(cosmoModel_t model,
+                                 double       a,
+                                 double       *error)
+{
+	double omegaM;
+
+	assert(model != NULL);
+	assert(error != NULL);
+
+	assert(isgreater(model->omegaLambda, 0.0));
+
+	omegaM = cosmoModel_calcOmegaMatter(model, a);
+	assert(isgreater(omegaM, 0.1) && isless(omegaM, 1.0));
+	*error = 0.0;
+
+	return 2. * pow(omegaM, 6. / 11.);
+}
+
 
 /*--- Implementations of local functions --------------------------------*/

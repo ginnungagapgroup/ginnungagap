@@ -117,7 +117,7 @@ g9pIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
  *
  * @bug This is only valid in MPI mode, where the grid is permuted in
  *      the order @f$ z, x, y @f$.
-
+ *
  * @param[in,out]  gridFFT
  *                    The interface to the FFT'ed grid.  The underlying
  *                    grid must be in Fourier space and contain the
@@ -150,6 +150,35 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
                        double           aInit,
                        g9pICMode_t      mode);
 
+
+/**
+ * @brief  Calculates the second derivative of the linear potential.
+ *
+ * @param[in,out]  gridFFT
+ *                    The interface to the FFT'ed grid.  The underyling grid
+ *                    must be in Fourier space and contain the overdensity
+ *                    field in Fourier space as the first variable.  Passing
+ *                    @C NULL is undefined.
+ * @param[in]      dim1D
+ *                    The dimension of the grid.  Needed for the Nyquist
+ *                    frequency calculation.
+ * @param[in]      d1
+ *                    The direction of the first derivative.  Must be
+ *                    0, 1, or 2 (i.e. x, y, or z direction) w.r.t to the
+ *                    real space field.
+ * @param[in]      d2
+ *                    The direction of the second derivative.  Must be
+ *                    0, 1, or 2 (i.e. x, y, or z direction) w.r.t to the
+ *                    real space field.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+g9pIC_calcDDPhiFromDelta(gridRegularFFT_t gridFFT,
+                         uint32_t         dim1D,
+                         uint32_t         d1,
+                         uint32_t         d2);
+
 /**
  * @brief  Calculates the power spectrum of the overdensity field.
  *
@@ -174,11 +203,12 @@ g9pIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
                       uint32_t         dim1D,
                       double           boxsizeInMpch);
 
+
 /**
  * @brief  Translates a mode to a string.
  *
  * @param[in]  mode
-*                 The mode to get the name for.
+ *                The mode to get the name for.
  *
  * @return  Returns the string describing the provided mode.  This is a
  *          private memory region and thus may be used read-only.

@@ -122,6 +122,22 @@ local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kMaxGrid);
 static double
 local_getDisplacementToVelocityFactor(cosmoModel_t model, double aInit);
 
+/**
+ * @brief  Helper functions that calculates the normalisation factor of the
+ *         second order velocity field.
+ *
+ * @param[in]  model
+ *                The cosmological model to use.
+ * @param[in]  aInit
+ *                The initial expansion factor for which to calculate
+ *                the conversion factor.
+ * 
+ * @return  Returns the conversion factor to go from displacement field to
+ *          velocities for the second order displacement field.
+ */
+static double
+local_getDisplacementToVelocityFactor2lpt(cosmoModel_t model, double aInit);
+
 
 /*--- Implementations of exported functios ------------------------------*/
 extern void
@@ -242,6 +258,65 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
 		}
 	}
 } /* ginnungagapIC_calcVelFromDelta */
+
+extern void
+g9pIC_calcDDPhiFromDelta(gridRegularFFT_t gridFFT,
+                         uint32_t         dim1D,
+                         uint32_t         d1,
+                         uint32_t         d2)
+{
+	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
+	fpvComplex_t      *data;
+
+	assert(gridFFT != NULL);
+	assert(model != NULL);
+	assert(d1 >= 0 && d1 < NDIM);
+	assert(d2 >= 0 && d2 < NDIM);
+
+	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch, idxLo,
+	                   kMaxGrid);
+
+#ifdef _OPENMP
+#  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
+	dimsGrid, data, d1, d2)
+#endif
+	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
+		int64_t k2 = k + idxLo[2];
+		k2 = (k2 > kMaxGrid[2]) ? k2 - dimsGrid[2] : k2;
+		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
+			int64_t k1 = j + idxLo[1];
+			k1 = (k1 > kMaxGrid[1]) ? k1 - dimsGrid[1] : k1;
+			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
+				int64_t  k0 = i + idxLo[0], kd1, kd2;
+				double   kCellSqr;
+				uint64_t idx;
+				k0 = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
+
+				if (d1 == 0)
+					kd1 = k1;
+				else if (d1 == 1)
+					kd1 = k2;
+				else
+					kd1 = k0;
+
+				if (d2 == 0)
+					kd2 = k1;
+				else if (d2 == 1)
+					kd2 = k2;
+				else
+					kd2 = k0;
+
+				idx      = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCellSqr = (double)(k0 * k0 + k1 * k1 + k2 * k2);
+
+				if ((k0 == 0) && (k1 == 0) && (k2 == 0))
+					data[idx] = 0.0;
+				else
+					data[idx] *= (fpv_t)(-kd1 * kd2 / kCellSqr);
+			}
+		}
+	}
+} /* g9pIC_calcDDFromDelta */
 
 extern cosmoPk_t
 g9pIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
@@ -389,4 +464,17 @@ local_getDisplacementToVelocityFactor(cosmoModel_t model, double aInit)
 	double growthVel = cosmoModel_calcDlnGrowthDlna(model, aInit, &error);
 
 	return adot * 100. * growthVel;
+}
+
+static double
+local_getDisplacementToVelocityFactor2lpt(cosmoModel_t model, double aInit)
+{
+	assert(model != NULL);
+
+	double error;
+	double adot       = cosmoModel_calcADot(model, aInit);
+	double growthVel2 = cosmoModel_calcDlnGrowthDlna2lpt(model, aInit,
+	                                                     &error);
+
+	return adot * 100. * growthVel2;
 }

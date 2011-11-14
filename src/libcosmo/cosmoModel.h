@@ -133,6 +133,22 @@ cosmoModel_calcGrowth(cosmoModel_t model, double a, double *error);
 extern double
 cosmoModel_calcDlnGrowthDlna(cosmoModel_t model, double a, double *error);
 
+/**
+ * @brief  Calculates the second order growth velocity from a given model.
+ *
+ * Actually uses an approximation (see Bouchet et al. 1995, eq. 50).
+ *
+ * @param[in]   model
+ * @param[in]   a
+ * @param[out]  *error
+ *
+ * @return  Returns the growth velocity.
+ */
+extern double
+cosmoModel_calcDlnGrowthDlna2lpt(cosmoModel_t model,
+                                 double       a,
+                                 double       *error);
+
 
 /*--- Doxygen group definitions -----------------------------------------*/
 

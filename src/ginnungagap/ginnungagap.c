@@ -59,8 +59,8 @@ local_getGrid(ginnungagap_t g9p);
 static gridRegularDistrib_t
 local_getGridDistrib(ginnungagap_t g9p);
 
-static void
-local_initGrid(ginnungagap_t g9p);
+static int
+local_initGrid(gridRegular_t grid, gridRegularDistrib_t distrib);
 
 static gridRegularFFT_t
 local_getFFT(ginnungagap_t g9p);
@@ -115,7 +115,7 @@ ginnungagap_new(parse_ini_t ini)
 	                                    "WhiteNoise");
 	g9p->grid        = local_getGrid(g9p);
 	g9p->gridDistrib = local_getGridDistrib(g9p);
-	local_initGrid(g9p);
+	g9p->posOfDens   = local_initGrid(g9p->grid, g9p->gridDistrib);
 	g9p->gridFFT     = local_getFFT(g9p);
 	g9p->finalWriter = gridWriter_newFromIni(ini, "Output");
 	g9p->rank        = 0;
@@ -209,7 +209,6 @@ ginnungagap_run(ginnungagap_t g9p)
 
 	if (g9p->setup->do2LPTCorrections)
 		local_do2LPTCorrections(g9p);
-
 } /* ginnungagap_run */
 
 extern void
@@ -270,19 +269,19 @@ local_getGridDistrib(ginnungagap_t g9p)
 	return distrib;
 }
 
-static void
-local_initGrid(ginnungagap_t g9p)
+static int
+local_initGrid(gridRegular_t grid, gridRegularDistrib_t distrib)
 {
 	int         localRank = 0;
 	gridPatch_t patch;
 	dataVar_t   dens;
 
 #ifdef WITH_MPI
-	localRank = gridRegularDistrib_getLocalRank(g9p->gridDistrib);
+	localRank = gridRegularDistrib_getLocalRank(distrib);
 #endif
-	patch     = gridRegularDistrib_getPatchForRank(g9p->gridDistrib,
+	patch     = gridRegularDistrib_getPatchForRank(distrib,
 	                                               localRank);
-	gridRegular_attachPatch(g9p->grid, patch);
+	gridRegular_attachPatch(grid, patch);
 
 	dens = dataVar_new("density", DATAVARTYPE_FPV, 1);
 #ifdef WITH_FFT_FFTW3
@@ -292,7 +291,7 @@ local_initGrid(ginnungagap_t g9p)
 	dataVar_setMemFuncs(dens, &fftwf_malloc, &fftwf_free);
 #  endif
 #endif
-	g9p->posOfDens = gridRegular_attachVar(g9p->grid, dens);
+	return gridRegular_attachVar(grid, dens);
 }
 
 static gridRegularFFT_t
@@ -488,6 +487,4 @@ local_doHistogram(ginnungagap_t         g9p,
 static void
 local_do2LPTCorrections(ginnungagap_t g9p)
 {
-
-
 }
