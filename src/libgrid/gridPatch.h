@@ -47,6 +47,7 @@ typedef struct gridPatch_struct *gridPatch_t;
 extern gridPatch_t
 gridPatch_new(gridPointUint32_t idxLo, gridPointUint32_t idxHi);
 
+
 /**
  * @brief  Deletes a grid patch and frees all associated memory.
  *
@@ -60,11 +61,12 @@ gridPatch_new(gridPointUint32_t idxLo, gridPointUint32_t idxHi);
 extern void
 gridPatch_del(gridPatch_t *gridPatch);
 
-/* @}* */
+
+/** @} */
 
 /**
  * @name Getting
- *@{
+ * @{
  */
 
 /**
@@ -79,6 +81,7 @@ gridPatch_del(gridPatch_t *gridPatch);
  */
 extern uint32_t
 gridPatch_getOneDim(const gridPatch_t patch, int idxOfDim);
+
 
 /**
  * @brief  Retrieves the (actual) size of the patch in a given dimension.
@@ -101,6 +104,7 @@ gridPatch_getOneDim(const gridPatch_t patch, int idxOfDim);
 extern uint32_t
 gridPatch_getDimActual1D(const gridPatch_t patch, int idxOfVar, int dim);
 
+
 /**
  * @brief  Retrieves the logical size of the patch.
  *
@@ -113,6 +117,7 @@ gridPatch_getDimActual1D(const gridPatch_t patch, int idxOfVar, int dim);
  */
 extern void
 gridPatch_getDims(const gridPatch_t patch, gridPointUint32_t dim);
+
 
 /**
  * @brief  Retrieves the actual size of the patch for a variable.
@@ -132,6 +137,7 @@ gridPatch_getDimsActual(const gridPatch_t patch,
                         int               idxOfVar,
                         gridPointUint32_t dimsActual);
 
+
 /**
  * @brief  Retrieves the (logical) number of cell contained in a patch.
  *
@@ -142,6 +148,7 @@ gridPatch_getDimsActual(const gridPatch_t patch,
  */
 extern uint64_t
 gridPatch_getNumCells(const gridPatch_t patch);
+
 
 /**
  * @brief  Retrieves the (actual) number of cells contained in a patch for a
@@ -158,9 +165,10 @@ gridPatch_getNumCells(const gridPatch_t patch);
 extern uint64_t
 gridPatch_getNumCellsActual(const gridPatch_t patch, int idxOfVar);
 
+
 /**
  * @brief  Retrieves the lower left corner of the patch.
- * 
+ *
  * @param[in]   patch
  *                 The patch to query.
  * @param[out]  idxLo
@@ -170,6 +178,7 @@ gridPatch_getNumCellsActual(const gridPatch_t patch, int idxOfVar);
  */
 extern void
 gridPatch_getIdxLo(const gridPatch_t patch, gridPointUint32_t idxLo);
+
 
 /** @} */
 
@@ -194,6 +203,7 @@ gridPatch_getIdxLo(const gridPatch_t patch, gridPointUint32_t idxLo);
 extern int
 gridPatch_attachVar(gridPatch_t patch, dataVar_t var);
 
+
 /**
  * @brief  Detaches a variable from a patch.
  *
@@ -208,6 +218,7 @@ gridPatch_attachVar(gridPatch_t patch, dataVar_t var);
  */
 extern dataVar_t
 gridPatch_detachVar(gridPatch_t patch, int idxOfVar);
+
 
 /**
  * @brief  Allocates memory for a variable.
@@ -226,6 +237,7 @@ gridPatch_detachVar(gridPatch_t patch, int idxOfVar);
 extern void *
 gridPatch_allocateVarData(gridPatch_t patch, int idxOfVarData);
 
+
 /**
  * @brief  Frees the data memory associated with a variable.
  *
@@ -238,6 +250,7 @@ gridPatch_allocateVarData(gridPatch_t patch, int idxOfVarData);
  */
 extern void
 gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData);
+
 
 /**
  * @brief  Replaces the data memory associated with a variable with a new
@@ -262,6 +275,7 @@ gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData);
 extern void
 gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);
 
+
 /**
  * @brief  Returns a handle to a variable attached to the patch.
  *
@@ -274,6 +288,7 @@ gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);
  */
 extern dataVar_t
 gridPatch_getVarHandle(const gridPatch_t patch, int idxOfVar);
+
 
 /**
  * @brief  Retrieves a pointer to the allocated data.
@@ -295,6 +310,7 @@ gridPatch_getVarHandle(const gridPatch_t patch, int idxOfVar);
 extern void *
 gridPatch_getVarDataHandle(const gridPatch_t patch, int idxOfVarData);
 
+
 /**
  * @brief  Retrieves a pointer to allocated data by searching for a provided
  *         variable.
@@ -307,13 +323,14 @@ gridPatch_getVarDataHandle(const gridPatch_t patch, int idxOfVarData);
  *                The patch to work with.
  * @param[in]  var
  *                The variable to look for.
- * 
+ *
  * @return  Returns a pointer to the memory, or @c NULL if the variable has
  *          not been found.
  */
 extern void *
 gridPatch_getVarDataHandleByVar(const gridPatch_t patch,
                                 const dataVar_t   var);
+
 
 /**
  * @brief  Queries for the number of variables attached to the patch.
@@ -325,6 +342,7 @@ gridPatch_getVarDataHandleByVar(const gridPatch_t patch,
  */
 extern int
 gridPatch_getNumVars(const gridPatch_t patch);
+
 
 /** @} */
 
@@ -351,6 +369,7 @@ extern void
 gridPatch_transpose(gridPatch_t patch,
                     int         dimA,
                     int         dimB);
+
 
 /**
  * @brief  Performs a copy of the variable data in a subset of the patch.
@@ -383,6 +402,7 @@ gridPatch_getWindowedDataCopy(const gridPatch_t patch,
                               gridPointUint32_t idxHi,
                               uint64_t          *numElements);
 
+
 /**
  * @brief  This will put data into a subset of the patch.
  *
@@ -405,6 +425,7 @@ gridPatch_putWindowedData(gridPatch_t       patch,
                           gridPointUint32_t idxLo,
                           gridPointUint32_t idxHi,
                           const void        *data);
+
 
 /** @} */
 
