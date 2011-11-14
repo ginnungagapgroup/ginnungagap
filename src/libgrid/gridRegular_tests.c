@@ -3,6 +3,15 @@
 // This file is part of `ginnungagap'.
 
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridRegular_tests.c
+ * @ingroup libgridRegular
+ * @brief  Provides the implementation of the tests of gridRegular.c.
+ */
+
+
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridRegular_tests.h"
@@ -24,15 +33,35 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+
+/** @brief  Gives a test name for the grid names. */
 #define LOCAL_TESTNAME "muksligukkel"
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  Helper function to generate a grid for testing.
+ *
+ * @param[in]  origin
+ *                The origin of the fake grid.
+ * @param[in]  extent
+ *                The extent of the fake grid.
+ * @param[in]  dims
+ *                The dimensions of the fake grid.
+ *
+ * @return  Returns a fake grid.
+ */
 static gridRegular_t
 local_getFakeGrid(gridPointDbl_t    origin,
                   gridPointDbl_t    extent,
                   gridPointUint32_t dims);
 
+/**
+ * @brief  Helper function to generate a patch for testing.
+ *
+ * @return  Returns a fake patch.
+ */
 static gridPatch_t
 local_getFakePatch(void);
 

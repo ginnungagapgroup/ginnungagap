@@ -30,13 +30,6 @@
  */
 
 /**
- * @defgroup libgridRegular Regular Grids
- * @ingroup libgrid
- * @brief This provides regular grids (i.e. grids that rectangular and
- *        spaced evenly).
- */
-
-/**
  * @defgroup libgridIO Input/Output
  * @ingroup libgrid
  * @brief This provides functionality to read and write grids to and
