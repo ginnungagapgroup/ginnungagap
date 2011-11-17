@@ -63,6 +63,7 @@ showForDir src/libgrid
 showForDir src/libcosmo
 showForDir src/libutil
 showForDir src
+showForDir tools
 echo ""
 echo "Numbers are: [production code] [test code] [total]"
 echo ""
