@@ -109,6 +109,10 @@ xrealloc(void *ptr, size_t size)
 		dummy = xmalloc(size);
 		return dummy;
 	}
+	if (size == 0) {
+		xfree(ptr);
+		return NULL;
+	}
 
 #ifdef XMEM_TRACK_MEM
 	dummy = realloc(((uint64_t *)ptr) - 1, size + 8);
