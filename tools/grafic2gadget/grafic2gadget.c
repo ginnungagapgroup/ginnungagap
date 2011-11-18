@@ -271,6 +271,7 @@ local_getBaseHeader(gadget_t     gadget,
 
 	gadgetHeader_setMassArr(header, massarr);
 	gadgetHeader_setTime(header, aInit);
+	gadgetHeader_setRedshift(header, cosmo_a2z(aInit));
 	gadgetHeader_setNall(header, npall);
 	gadgetHeader_setNumFiles(header, numFiles);
 	gadgetHeader_setBoxsize(header, boxsize);
