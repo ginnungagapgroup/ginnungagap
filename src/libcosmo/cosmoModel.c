@@ -451,7 +451,7 @@ cosmoModel_calcDlnGrowthDlna2lpt(cosmoModel_t model,
 	assert(model != NULL);
 	assert(error != NULL);
 
-	assert(isgreater(model->omegaLambda, 0.0));
+	assert(isgreater(model->omegaLambda0, 0.0));
 
 	omegaM = cosmoModel_calcOmegaMatter(model, a);
 	assert(isgreater(omegaM, 0.1) && isless(omegaM, 1.0));

@@ -269,7 +269,6 @@ g9pIC_calcDDPhiFromDelta(gridRegularFFT_t gridFFT,
 	fpvComplex_t      *data;
 
 	assert(gridFFT != NULL);
-	assert(model != NULL);
 	assert(d1 >= 0 && d1 < NDIM);
 	assert(d2 >= 0 && d2 < NDIM);
 
