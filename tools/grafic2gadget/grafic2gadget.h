@@ -32,7 +32,8 @@ grafic2gadget_new(const char *graficFileNameVx,
                   const char *outputFileStem,
                   int        numOutFiles,
                   bool       force,
-                  bool       useLong);
+                  bool       useLong,
+                  double     omegaBaryon0);
 
 extern void
 grafic2gadget_run(grafic2gadget_t g2g);

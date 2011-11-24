@@ -31,13 +31,14 @@
 
 
 /*--- Local variables ---------------------------------------------------*/
-static char *localGraficFileNameVx = NULL;
-static char *localGraficFileNameVy = NULL;
-static char *localGraficFileNameVz = NULL;
-static char *localOutputFileStem   = NULL;
-static int  localNumGadgetFiles    = 1;
-static bool localForce             = false;
-static bool localUseLong           = false;
+static char   *localGraficFileNameVx = NULL;
+static char   *localGraficFileNameVy = NULL;
+static char   *localGraficFileNameVz = NULL;
+static char   *localOutputFileStem   = NULL;
+static int    localNumGadgetFiles    = 1;
+static bool   localForce             = false;
+static bool   localUseLong           = false;
+static double localOmegaBaryon0      = 0.0;
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -88,14 +89,19 @@ local_initEnvironment(int *argc, char ***argv)
 	cmdline = local_cmdlineSetup();
 	cmdline_parse(cmdline, *argc, *argv);
 	local_checkForPrematureTermination(cmdline);
+
 	localForce   = cmdline_checkOptSetByNum(cmdline, 2);
+	if (cmdline_checkOptSetByNum(cmdline, 3))
+		cmdline_getOptValueByNum(cmdline, 3, &localNumGadgetFiles);
 	localUseLong = cmdline_checkOptSetByNum(cmdline, 4);
+	if (cmdline_checkOptSetByNum(cmdline, 5))
+		cmdline_getOptValueByNum(cmdline, 5, &localOmegaBaryon0);
+
 	cmdline_getArgValueByNum(cmdline, 0, &localGraficFileNameVx);
 	cmdline_getArgValueByNum(cmdline, 1, &localGraficFileNameVy);
 	cmdline_getArgValueByNum(cmdline, 2, &localGraficFileNameVz);
 	cmdline_getArgValueByNum(cmdline, 3, &localOutputFileStem);
-	if (cmdline_checkOptSetByNum(cmdline, 3))
-		cmdline_getOptValueByNum(cmdline, 3, &localNumGadgetFiles);
+
 	cmdline_del(&cmdline);
 }
 
@@ -160,6 +166,10 @@ local_cmdlineSetup(void)
 	(void)cmdline_addOpt(cmdline, "longIDs",
 	                     "Set this to use 64bit IDs.",
 	                     false, CMDLINE_TYPE_NONE);
+	(void)cmdline_addOpt(cmdline, "omegaBaryon0",
+	                     "The density of baryons (in units of the "
+	                     "critical density).",
+	                     false, CMDLINE_TYPE_DOUBLE);
 	(void)cmdline_addArg(cmdline, "The grafic file containing vx.",
 	                     CMDLINE_TYPE_STRING);
 	(void)cmdline_addArg(cmdline, "The grafic file containing vy.",
@@ -208,11 +218,11 @@ local_getG2g(void)
 	                        localOutputFileStem,
 	                        localNumGadgetFiles,
 	                        localForce,
-	                        localUseLong);
+	                        localUseLong,
+	                        localOmegaBaryon0);
 
 	return g2g;
 }
-
 
 /*--- Doxygen group definitions -----------------------------------------*/
 

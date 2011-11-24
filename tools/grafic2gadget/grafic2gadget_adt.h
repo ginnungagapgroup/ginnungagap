@@ -13,13 +13,15 @@
 
 /*--- Implemention of main structure ------------------------------------*/
 struct grafic2gadget_struct {
-	char *graficFileNameVx;
-	char *graficFileNameVy;
-	char *graficFileNameVz;
-	int  numGadgetFiles;
-	char *gadgetFileStem;
-	bool force;
-	bool useLongIDs;
+	char   *graficFileNameVx;
+	char   *graficFileNameVy;
+	char   *graficFileNameVz;
+	int    numGadgetFiles;
+	char   *gadgetFileStem;
+	bool   force;
+	bool   useLongIDs;
+	double omegaBaryon0;
+	bool   doGas;
 };
 
 
