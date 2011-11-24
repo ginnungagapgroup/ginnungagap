@@ -349,13 +349,15 @@ local_doWhiteNoisePk(ginnungagap_t g9p)
 	double    timing;
 	cosmoPk_t pk;
 
-	timing = timer_start("  Calculating P(k) for white noise");
-	pk     = g9pIC_calcPkFromDelta(g9p->gridFFT,
-	                               g9p->setup->dim1D,
-	                               g9p->setup->boxsizeInMpch);
-	cosmoPk_dumpToFile(pk, g9p->setup->namePkWN, 1);
-	cosmoPk_del(&pk);
-	timing = timer_stop(timing);
+	if (g9p->setup->dim1D >= G9P_MINGRIDSIZE_FOR_PS) {
+		timing = timer_start("  Calculating P(k) for white noise");
+		pk     = g9pIC_calcPkFromDelta(g9p->gridFFT,
+		                               g9p->setup->dim1D,
+		                               g9p->setup->boxsizeInMpch);
+		cosmoPk_dumpToFile(pk, g9p->setup->namePkWN, 1);
+		cosmoPk_del(&pk);
+		timing = timer_stop(timing);
+	}
 }
 
 static void
@@ -377,13 +379,15 @@ local_doDeltaKPk(ginnungagap_t g9p)
 	double    timing;
 	cosmoPk_t pk;
 
-	timing = timer_start("  Calculating P(k) for delta(k)");
-	pk     = g9pIC_calcPkFromDelta(g9p->gridFFT,
-	                               g9p->setup->dim1D,
-	                               g9p->setup->boxsizeInMpch);
-	cosmoPk_dumpToFile(pk, g9p->setup->namePkDeltak, 1);
-	cosmoPk_del(&pk);
-	timing = timer_stop(timing);
+	if (g9p->setup->dim1D >= G9P_MINGRIDSIZE_FOR_PS) {
+		timing = timer_start("  Calculating P(k) for delta(k)");
+		pk     = g9pIC_calcPkFromDelta(g9p->gridFFT,
+		                               g9p->setup->dim1D,
+		                               g9p->setup->boxsizeInMpch);
+		cosmoPk_dumpToFile(pk, g9p->setup->namePkDeltak, 1);
+		cosmoPk_del(&pk);
+		timing = timer_stop(timing);
+	}
 }
 
 static void

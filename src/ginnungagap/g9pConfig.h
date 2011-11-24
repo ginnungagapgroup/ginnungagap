@@ -20,6 +20,12 @@
 #include <stdint.h>
 
 
+/*--- Defines -----------------------------------------------------------*/
+
+/** @brief  Do power spectra only for grids of at least this size. */
+#define G9P_MINGRIDSIZE_FOR_PS 20
+
+
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
