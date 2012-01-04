@@ -66,7 +66,31 @@ local_shiftPkToAInit(cosmoModel_t model,
                      int          rank);
 
 static inline void
-local_calcSigmaBox(localFreqs_t k, cosmoPk_t pk, int rank);
+local_calcSigmaBox(localFreqs_t k,
+                   cosmoPk_t    pk,
+                   int          rank,
+                   double       maxSigmaExpected);
+
+
+/**
+ * @brief  Calculates the largest expected sigma.
+ *
+ * This assume a Gaussian distribution with zero mean and unit variance,
+ * i.e.
+ * @f[
+ *   f(x) = \frac{1}{\sqrt{2 \pi}} \exp{-x^2/2.}
+ * @f]
+ * and then evaluates
+ * @f[
+ *   f(x) N^3 \equiv 1
+ * @f]
+ * to find the largest @c x that would be expected when the distribution is
+ * sampled with @f$ N^3 @f$ points.
+ *
+ * @return  Returns the largest expected sigma.
+ */
+static inline double
+local_calcMaxSigmaExpected(uint32_t n);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -100,7 +124,7 @@ g9pInit_init(double         boxsizeInMpch,
 	cosmoPk_dumpToFile(pk, namePkInputZ0, 10);
 	local_shiftPkToAInit(model, pk, cosmo_z2a(zInit), rank);
 	cosmoPk_dumpToFile(pk, namePkInputZinit, 10);
-	local_calcSigmaBox(&k, pk, rank);
+	local_calcSigmaBox(&k, pk, rank, local_calcMaxSigmaExpected(dim1D));
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -197,7 +221,10 @@ local_shiftPkToAInit(cosmoModel_t model,
 }
 
 static inline void
-local_calcSigmaBox(localFreqs_t k, cosmoPk_t pk, int rank)
+local_calcSigmaBox(localFreqs_t k,
+                   cosmoPk_t    pk,
+                   int          rank,
+                   double       maxSigmaExpected)
 {
 	double        sigmaBox, error;
 	static double one = 1.0;
@@ -207,6 +234,22 @@ local_calcSigmaBox(localFreqs_t k, cosmoPk_t pk, int rank)
 	sigmaBox = sqrt(sigmaBox);
 
 	if (rank == 0) {
-		printf("\n  sigmaBox:  %f  (should be less than 0.2)\n", sigmaBox);
+		printf("\n  maxSigmaExpected:  %f", maxSigmaExpected);
+		printf("\n  sigmaBox        :  %f", sigmaBox);
+		if (isless(maxSigmaExpected * sigmaBox, 1.)) {
+			printf("\n    maxSigmaExpected * sigmaBox  = %f < 1, good.\n",
+			       maxSigmaExpected * sigmaBox);
+		} else {
+			fprintf(stderr,
+			        "\nERROR: maxSigmaExpected * sigmaBox = %f >= 1.\n",
+			        maxSigmaExpected * sigmaBox);
+			diediedie(EXIT_FAILURE);
+		}
 	}
+}
+
+static inline double
+local_calcMaxSigmaExpected(uint32_t n)
+{
+	return sqrt(-2. * log(sqrt(2. * M_PI) / POW_NDIM((double)n)));
 }
