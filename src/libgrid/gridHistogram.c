@@ -175,6 +175,14 @@ gridHistogram_printPretty(const gridHistogram_t histo,
 	assert(histo != NULL);
 	assert(out != NULL);
 
+	fprintf(out, "# Bins           :  %" PRIu32 "\n",
+	        histo->numBins);
+	fprintf(out, "# Used bins      :  %" PRIu32 "\n",
+	        histo->numBinsReal);
+	fprintf(out, "# Total count    :  %" PRIu64 "\n",
+	        histo->totalCounts);
+	fprintf(out, "# Counts in range:  %" PRIu64 "\n",
+	        histo->totalCountsInRange);
 	for (uint32_t i = 0; i < histo->numBins; i++) {
 		fprintf(out, "%s %15e %15e %" PRIu32 "\n",
 		        prefix != NULL ? prefix : "",
@@ -206,9 +214,10 @@ extern uint32_t
 gridHistogram_estimateNumBinsFromCells(uint64_t numCells)
 {
 	uint32_t numBins;
-	double tmp;
+	double   tmp;
 
-	tmp = log((double)numCells) * log(pow((double)numCells, 1./((double)NDIM)));
+	tmp     = log((double)numCells)
+	          * log(pow((double)numCells, 1. / ((double)NDIM)));
 	numBins = (uint32_t)floor(tmp);
 	if (numBins < 1)
 		numBins = 1;
@@ -217,7 +226,6 @@ gridHistogram_estimateNumBinsFromCells(uint64_t numCells)
 
 	return numBins;
 }
-
 
 /*--- Implementations of local functions --------------------------------*/
 static gridHistogram_t
