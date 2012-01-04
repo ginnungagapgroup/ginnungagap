@@ -44,6 +44,9 @@ static const char *local_namePkInputZinit = "Pk.input_zinit.dat";
 static const char *local_namePkInputZ0 = "Pk.input_z0.dat";
 
 /** @brief  Default name for the density histogram. */
+static const char *local_nameHistoWN = "histogram.wn.dat";
+
+/** @brief  Default name for the density histogram. */
 static const char *local_nameHistoDens = "histogram.dens.dat";
 
 /** @brief  Default name for the x-velocity histogram. */
@@ -84,6 +87,34 @@ local_parseRequired(g9pSetup_t s, parse_ini_t ini);
  */
 static void
 local_parseOptional(g9pSetup_t s, parse_ini_t ini);
+
+
+/**
+ * @brief  Parses the optinal parameters for the power spectra.
+ *
+ * @param[in,out]  s
+ *                    The setup structure to be filled.
+ * @param[in,out]  ini
+ *                    The ini file to use.
+ *
+ * @return Returns nothing.
+ */
+static void
+local_parseOptionalPk(g9pSetup_t s, parse_ini_t ini);
+
+
+/**
+ * @brief  Parses the optinal parameters for the histograms.
+ *
+ * @param[in,out]  s
+ *                    The setup structure to be filled.
+ * @param[in,out]  ini
+ *                    The ini file to use.
+ *
+ * @return Returns nothing.
+ */
+static void
+local_parseOptionalHistogram(g9pSetup_t s, parse_ini_t ini);
 
 
 /**
@@ -143,6 +174,7 @@ g9pSetup_del(g9pSetup_t *setup)
 	xfree((*setup)->nameHistogramVely);
 	xfree((*setup)->nameHistogramVelx);
 	xfree((*setup)->nameHistogramDens);
+	xfree((*setup)->nameHistogramWN);
 	xfree((*setup)->namePkWN);
 	xfree((*setup)->namePkDeltak);
 	xfree((*setup)->namePkInput);
@@ -175,11 +207,17 @@ local_parseOptional(g9pSetup_t s, parse_ini_t ini)
 	if (!(parse_ini_get_bool(ini, "do2LPTCorrections", "Ginnungagap",
 	                         &(s->do2LPTCorrections))))
 		s->do2LPTCorrections = false;
-
 	if (!(parse_ini_get_bool(ini, "writeDensityField", "Ginnungagap",
 	                         &(s->writeDensityField))))
 		s->writeDensityField = true;
 
+	local_parseOptionalPk(s, ini);
+	local_parseOptionalHistogram(s, ini);
+}
+
+static void
+local_parseOptionalPk(g9pSetup_t s, parse_ini_t ini)
+{
 	if (!(parse_ini_get_string(ini, "namePkWN", "Ginnungagap",
 	                           &(s->namePkWN))))
 		s->namePkWN = xstrdup(local_namePkWN);
@@ -195,18 +233,27 @@ local_parseOptional(g9pSetup_t s, parse_ini_t ini)
 	if (!(parse_ini_get_string(ini, "namePkInputZ0", "Ginnungagap",
 	                           &(s->namePkInputZ0))))
 		s->namePkInputZ0 = xstrdup(local_namePkInputZ0);
+}
 
+static void
+local_parseOptionalHistogram(g9pSetup_t s, parse_ini_t ini)
+{
 	if (!(parse_ini_get_bool(ini, "doHistograms", "Ginnungagap",
 	                         &(s->doHistograms))))
 		s->doHistograms = false;
 	if (s->doHistograms) {
 		getFromIni(&(s->histogramNumBins), parse_ini_get_uint32,
 		           ini, "histogramNumBins", "Ginnungagap");
+		getFromIni(&(s->histogramExtremeWN), parse_ini_get_double,
+		           ini, "histogramExtremeWN", "Ginnungagap");
 		getFromIni(&(s->histogramExtremeDens), parse_ini_get_double,
 		           ini, "histogramExtremeDens", "Ginnungagap");
 		getFromIni(&(s->histogramExtremeVel), parse_ini_get_double,
 		           ini, "histogramExtremeVel", "Ginnungagap");
 	}
+	if (!(parse_ini_get_string(ini, "nameHistogramWN", "Ginnungagap",
+	                           &(s->nameHistogramWN))))
+		s->nameHistogramWN = xstrdup(local_nameHistoWN);
 	if (!(parse_ini_get_string(ini, "nameHistogramDens", "Ginnungagap",
 	                           &(s->nameHistogramDens))))
 		s->nameHistogramDens = xstrdup(local_nameHistoDens);
@@ -219,7 +266,7 @@ local_parseOptional(g9pSetup_t s, parse_ini_t ini)
 	if (!(parse_ini_get_string(ini, "nameHistogramVelz", "Ginnungagap",
 	                           &(s->nameHistogramVelz))))
 		s->nameHistogramVelz = xstrdup(local_nameHistoVelz);
-} /* local_parseOptional */
+}
 
 static g9pNorm_mode_t
 local_getNormModeFromIni(parse_ini_t ini)

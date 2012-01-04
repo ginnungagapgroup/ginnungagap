@@ -311,11 +311,14 @@ local_newHistograms(ginnungagap_t g9p)
 {
 	if (g9p->setup->doHistograms) {
 		uint32_t numBins = g9p->setup->histogramNumBins;
-		double   extreme = g9p->setup->histogramExtremeDens;
+		double   extreme = g9p->setup->histogramExtremeWN;
+		g9p->histoWN   = gridHistogram_new(numBins, -extreme, extreme);
+		extreme = g9p->setup->histogramExtremeDens;
 		g9p->histoDens = gridHistogram_new(numBins, -extreme, extreme);
 		extreme        = g9p->setup->histogramExtremeVel;
 		g9p->histoVel  = gridHistogram_new(numBins, -extreme, extreme);
 	} else {
+		g9p->histoWN   = NULL;
 		g9p->histoDens = NULL;
 		g9p->histoVel  = NULL;
 	}
@@ -336,6 +339,9 @@ local_doWhiteNoise(ginnungagap_t g9p, bool doDumpOfWhiteNoise)
 		timing = timer_start("  Writing white noise to file");
 		g9pWN_dump(g9p->whiteNoise, g9p->grid);
 		timing = timer_stop(timing);
+		if (g9p->setup->doHistograms)
+			local_doHistogram(g9p, 0, g9p->histoWN,
+			                  g9p->setup->nameHistogramWN);
 	}
 
 	timing = timer_start("  Going to k-space");

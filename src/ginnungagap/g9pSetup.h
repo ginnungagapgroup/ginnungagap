@@ -63,6 +63,8 @@ struct g9pSetup_struct {
 	char     *namePkInputZ0; ///< Defaults to #local_namePkInputZ0.
 	/** @brief  Flags whether histograms should be calculated. */
 	bool     doHistograms; ///< Defaults to @c false.
+	/** @brief  The name for the white noise histogram. */
+	char     *nameHistogramWN; ///< Defaults to #local_nameHistoWN;
 	/** @brief  The name for the density histogram. */
 	char     *nameHistogramDens; ///< Defaults to #local_nameHistoDens;
 	/** @brief  The name for the x-velocity histogram. */
@@ -73,6 +75,8 @@ struct g9pSetup_struct {
 	char     *nameHistogramVelz; ///< Defaults to #local_nameHistoVelz.
 	/** @brief  The number of bins of the histograms. */
 	uint32_t histogramNumBins;
+	/** @brief  The extreme value for the white noise histogram. */
+	double   histogramExtremeWN;
 	/** @brief  The extreme value for the density histogram. */
 	double   histogramExtremeDens;
 	/** @brief  The extreme value for the velocity histograms. */
@@ -190,6 +194,10 @@ g9pSetup_del(g9pSetup_t *setup);
  * # The number of bins used for the histograms.
  * histogramNumBins = <positive integer>
  * #
+ * # The extreme value of the white noise, the histogram will be
+ * # calculated from -extreme to extreme.
+ * histogramExtremeWN = <positive double>
+ * #
  * # The extreme value of the density, the histogram will be calculated
  * # from -extreme to extreme.
  * histogramExtremeDens = <positive double>
@@ -197,6 +205,9 @@ g9pSetup_del(g9pSetup_t *setup);
  * # The extreme value of the velocity, the histogram will be calculated
  * # from -extreme to extreme.
  * histogramExtremeVel = <positive double>
+ * #
+ * # The name of the text file that will contain the white noise histogram.
+ * nameHistogramWN = <string>
  * #
  * # The name of the text file that will contain the density histogram.
  * nameHistogramDens = <string>

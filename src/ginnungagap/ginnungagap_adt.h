@@ -56,6 +56,8 @@ struct ginnungagap_struct {
 	int                  size; ///< Will be 1 for non-MPI situations.
 	/** @brief  The number of OpenMP threads used. */
 	int                  numThreads; ///< Will be 1 for non-OpenMP situations
+	/** @brief  The histogram used for the white noise. */
+	gridHistogram_t      histoWN;
 	/** @brief  The histogram used for densities. */
 	gridHistogram_t      histoDens;
 	/** @brief  The histogram used for velocities. */
