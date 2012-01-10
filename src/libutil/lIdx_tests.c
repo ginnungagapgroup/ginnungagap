@@ -21,7 +21,7 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
-#ifdef ENABLE_XMEM_TRACK_MEM
+#ifdef XMEM_TRACK_MEM
 #  include "../libutil/xmem.h"
 #endif
 
