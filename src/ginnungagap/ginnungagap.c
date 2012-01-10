@@ -221,6 +221,8 @@ ginnungagap_del(ginnungagap_t *g9p)
 		gridHistogram_del(&((*g9p)->histoVel));
 	if ((*g9p)->histoDens != NULL)
 		gridHistogram_del(&((*g9p)->histoDens));
+	if ((*g9p)->histoWN != NULL)
+		gridHistogram_del(&((*g9p)->histoWN));
 	cosmoPk_del(&((*g9p)->pk));
 	cosmoModel_del(&((*g9p)->model));
 	g9pWN_del(&((*g9p)->whiteNoise));
