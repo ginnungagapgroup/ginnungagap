@@ -43,6 +43,12 @@ then
 			WITH_FFT_PREFIX=/ccc/cont005/home/ra0317/knollmas/opt/fftw/fftw-3.3-intel
 			WITH_SPRNG_PREFIX=/ccc/cont005/home/ra0317/knollmas/opt/sprng/sprng-2.0b-intel
 			WITH_GSL_PREFIX=/usr/local/gsl-1.14
+            if test "x$WITH_MPI" = "xtrue"
+            then
+                WITH_HDF5_PREFIX=/usr/local/phdf5-1.8.5
+            else
+                WITH_HDF5_PREFIX=/usr/local/hdf5-1.8.5
+            fi
 			;;
 		erebos)
 			WITH_FFT_LIBS="-lfftw3_omp -lfftw3 -lfftw3f_omp -lfftw3f"
