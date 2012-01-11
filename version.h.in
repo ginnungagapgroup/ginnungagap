@@ -6,7 +6,7 @@
 #define VERSION_H
 
 // States are 0: alpha, 1: beta, 2: release
-#define PACKAGE_STATE 0
+#define PACKAGE_STATE 1
 
 #define PACKAGE_NAME          "ginnungagap"
 #define PACKAGE_OWNER         "Steffen Knollmann"
