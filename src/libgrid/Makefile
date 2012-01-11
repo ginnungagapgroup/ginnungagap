@@ -80,6 +80,8 @@ tests-clean:
 	rm -rf siloTest*
 	rm -rf transposeTest*
 	rm -rf fftTest*
+	rm -f outGridChecksumCompress.h5 outGridChunking.h5 \
+	      outGridSimple.h5
 
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
