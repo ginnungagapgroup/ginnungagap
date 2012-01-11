@@ -112,14 +112,22 @@ local_registerCleanUpFunctions(void)
 static void
 local_finalMessage(void)
 {
+	int rank = 0;
+
 	if (localIniFileName != NULL)
 		xfree(localIniFileName);
-#ifdef XMEM_TRACK_MEM
-	printf("\n");
-	xmem_info(stdout);
-	printf("\n");
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Finalize();
 #endif
-	printf("\nVertu sæl/sæll...\n");
+	if (rank == 0) {
+#ifdef XMEM_TRACK_MEM
+		printf("\n");
+		xmem_info(stdout);
+		printf("\n");
+#endif
+		printf("\nVertu sæl/sæll...\n");
+	}
 }
 
 static void

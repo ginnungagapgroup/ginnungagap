@@ -32,6 +32,7 @@
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/timer.h"
 #include "../../src/libutil/rng.h"
+#include "../../src/libutil/tile.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -41,19 +42,65 @@
 /*--- Prototypes of local functions -------------------------------------*/
 
 /**
+ * @brief  Gets the extent of the grid the process holds of the input grid.
+ *
+ * @param[in]   inputDim1D
+ *                 The dimensions of the input grid.
+ * @param[in]   outputDim1D
+ *                 The dimensions of the output grid.
+ * @param[out]  lastDimLimits
+ *                 An array of @c 2 elements that will receive the first and
+ *                 the last index of the last dimension (z-Dimension for 3D
+ *                 cases).
+ *
+ * @return  Returns nothing.
+ */
+static void
+local_getLastDimLimitsInput(uint32_t inputDim1D,
+                            uint32_t outputDim1D,
+                            uint32_t lastDimLimits[2]);
+
+
+/**
+ * @brief  Gets the extent of the grid the process holds of the output grid.
+ *
+ * @param[in]   inputDim1D
+ *                 The dimensions of the input grid.
+ * @param[in]   outputDim1D
+ *                 The dimensions of the output grid.
+ * @param[out]  lastDimLimits
+ *                 An array of @c 2 elements that will receive the first and
+ *                 the last index of the last dimension (z-Dimension for 3D
+ *                 cases).
+ *
+ * @return  Returns nothing.
+ */
+static void
+local_getLastDimLimitsOutput(uint32_t inputDim1D,
+                             uint32_t outputDim1D,
+                             uint32_t lastDimLimits[2]);
+
+
+/**
  * @brief  Gets a simple grid.
  *
  * @param[in]  boxsizeInMpch
  *                The boxsize in Mpc/h.
  * @param[in]  dim1D
  *                The grid size.
+ * @param[in]  lastDimLimits
+ *                Provides the extent of the last dimension for the patch
+ *                attached to the grid.
  * @param[in]  *name
  *                The grid name.
  *
  * @return  Returns a new grid.
  */
 static gridRegular_t
-local_getGrid(double boxsizeInMpch, uint32_t dim1D, const char *name);
+local_getGrid(double         boxsizeInMpch,
+              uint32_t       dim1D,
+              const uint32_t lastDimLimits[2],
+              const char     *name);
 
 
 /**
@@ -222,18 +269,27 @@ extern realSpaceConstraints_t
 realSpaceConstraints_newFromIni(parse_ini_t ini)
 {
 	realSpaceConstraints_t te;
+	uint32_t               lastDimLimits[2];
 
 	assert(ini != NULL);
 
-	te         = xmalloc(sizeof(struct realSpaceConstraints_struct));
+	te        = xmalloc(sizeof(struct realSpaceConstraints_struct));
 
-	te->setup  = realSpaceConstraintsSetup_newFromIni(ini,
-	                                                  "Setup");
+	te->setup = realSpaceConstraintsSetup_newFromIni(ini,
+	                                                 "Setup");
+	local_getLastDimLimitsInput(te->setup->inputDim1D,
+	                            te->setup->outputDim1D,
+	                            lastDimLimits);
 	te->gridIn = local_getGrid(te->setup->boxsizeInMpch,
 	                           te->setup->inputDim1D,
+	                           lastDimLimits,
 	                           "Input");
+	local_getLastDimLimitsOutput(te->setup->inputDim1D,
+	                             te->setup->outputDim1D,
+	                             lastDimLimits);
 	te->gridOut = local_getGrid(te->setup->boxsizeInMpch,
 	                            te->setup->outputDim1D,
+	                            lastDimLimits,
 	                            "Output");
 	if (te->setup->useFileForInput) {
 		te->reader   = gridReader_newFromIni(ini, te->setup->readerSecName);
@@ -242,17 +298,27 @@ realSpaceConstraints_newFromIni(parse_ini_t ini)
 		te->reader   = NULL;
 		te->writerIn = gridWriter_newFromIni(ini,
 		                                     te->setup->writerInSecName);
+#ifdef WITH_MPI
+		gridWriter_initParallel(te->writerIn, MPI_COMM_WORLD);
+#endif
 	}
 	te->writer = gridWriter_newFromIni(ini, te->setup->writerSecName);
+#ifdef WITH_MPI
+	gridWriter_initParallel(te->writer, MPI_COMM_WORLD);
+#endif
 
 	return te;
-}
+} /* realSpaceConstraints_newFromIni */
 
 extern void
 realSpaceConstraints_run(realSpaceConstraints_t te)
 {
 	double           timing;
 	gridStatistics_t stat;
+	int rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
 
 	assert(te != NULL);
 
@@ -261,10 +327,13 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 	timing = timer_start("  Filling input grid");
 	local_fillInputGrid(te->gridIn, te->reader, te->setup->seedIn);
 	timing = timer_stop(timing);
+
 	timing = timer_start("  Calculating statistics on input grid");
 	gridStatistics_calcGridRegular(stat, te->gridIn, 0);
 	timing = timer_stop(timing);
-	gridStatistics_printPretty(stat, stdout, "  ");
+	if (rank == 0)
+		gridStatistics_printPretty(stat, stdout, "  ");
+
 	if (te->writerIn != NULL) {
 		timing = timer_start("  Writing input grid to file");
 		gridWriter_activate(te->writerIn);
@@ -276,10 +345,13 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 	timing = timer_start("  Filling output grid");
 	local_fillOutputGrid(te->gridOut, te->gridIn, te->setup->seedOut);
 	timing = timer_stop(timing);
+
 	timing = timer_start("  Calculating statistics on output grid");
 	gridStatistics_calcGridRegular(stat, te->gridOut, 0);
 	timing = timer_stop(timing);
-	gridStatistics_printPretty(stat, stdout, "  ");
+	if (rank == 0)
+		gridStatistics_printPretty(stat, stdout, "  ");
+
 	timing = timer_start("  Writing output grid to file");
 	gridWriter_activate(te->writer);
 	gridWriter_writeGridRegular(te->writer, te->gridOut);
@@ -309,9 +381,65 @@ realSpaceConstraints_del(realSpaceConstraints_t *te)
 }
 
 /*--- Implementations of local functions --------------------------------*/
-static gridRegular_t
-local_getGrid(double boxsizeInMpch, uint32_t dim1D, const char *name)
+static void
+local_getLastDimLimitsInput(uint32_t inputDim1D,
+                            uint32_t outputDim1D,
+                            uint32_t lastDimLimits[2])
 {
+	int tile     = 0;
+	int numTiles = 1;
+#ifdef WITH_MPI
+	MPI_Comm_size(MPI_COMM_WORLD, &numTiles);
+	MPI_Comm_rank(MPI_COMM_WORLD, &tile);
+#endif
+
+	if (inputDim1D <= outputDim1D) {
+		tile_calcIdxsELAE(inputDim1D, numTiles, tile,
+		                  lastDimLimits, lastDimLimits + 1);
+	} else {
+		assert(inputDim1D % outputDim1D == 0);
+		int factor = inputDim1D / outputDim1D;
+		tile_calcIdxsELAE(outputDim1D, numTiles, tile,
+		                  lastDimLimits, lastDimLimits + 1);
+		lastDimLimits[0] *= factor;
+		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * factor) - 1;
+	}
+}
+
+static void
+local_getLastDimLimitsOutput(uint32_t inputDim1D,
+                             uint32_t outputDim1D,
+                             uint32_t lastDimLimits[2])
+{
+	int tile     = 0;
+	int numTiles = 1;
+#ifdef WITH_MPI
+	MPI_Comm_size(MPI_COMM_WORLD, &numTiles);
+	MPI_Comm_rank(MPI_COMM_WORLD, &tile);
+#endif
+
+	if (outputDim1D <= inputDim1D) {
+		tile_calcIdxsELAE(outputDim1D, numTiles, tile,
+		                  lastDimLimits, lastDimLimits + 1);
+	} else {
+		assert(outputDim1D % inputDim1D == 0);
+		int factor = outputDim1D / inputDim1D;
+		tile_calcIdxsELAE(inputDim1D, numTiles, tile,
+		                  lastDimLimits, lastDimLimits + 1);
+		lastDimLimits[0] *= factor;
+		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * factor) - 1;
+	}
+}
+
+static gridRegular_t
+local_getGrid(double         boxsizeInMpch,
+              uint32_t       dim1D,
+              const uint32_t lastDimLimits[2],
+              const char     *name)
+{
+	assert(lastDimLimits[0] <= lastDimLimits[1]);
+	assert(lastDimLimits[1] < dim1D);
+
 	gridPointDbl_t    origin, extent;
 	gridPointUint32_t dims;
 	gridRegular_t     grid;
@@ -324,8 +452,8 @@ local_getGrid(double boxsizeInMpch, uint32_t dim1D, const char *name)
 		origin[i] = 0.0;
 		extent[i] = (double)(boxsizeInMpch);
 		dims[i]   = dim1D;
-		idxLo[i]  = 0;
-		idxHi[i]  = dim1D - 1;
+		idxLo[i]  = (i < NDIM - 1) ? 0 : lastDimLimits[0];
+		idxHi[i]  = (i < NDIM - 1) ? dim1D - 1 : lastDimLimits[1];
 	}
 	grid  = gridRegular_new(name, origin, extent, dims);
 
@@ -388,17 +516,23 @@ local_fillPatchWithWhiteNoise(gridPatch_t patch, int seed)
 	fpv_t    *data;
 	uint64_t numCells;
 	rng_t    rng;
-	int      threads = 1;
+	int      size       = 1;
+	int      numThreads = 1;
+	int      numStreams = 1;
 #ifdef WITH_OPENMP
-	threads = omp_get_max_threads();
+	numThreads = omp_get_max_threads();
 #endif
+#ifdef WITH_MPI
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+#endif
+	numStreams = numThreads * size;
 
-	data     = (fpv_t *)gridPatch_getVarDataHandle(patch, 0);
-	numCells = gridPatch_getNumCells(patch);
-	rng      = rng_new(4, threads, seed);
+	data        = (fpv_t *)gridPatch_getVarDataHandle(patch, 0);
+	numCells    = gridPatch_getNumCells(patch);
+	rng         = rng_new(4, numStreams, seed);
 
 #ifdef WITH_OPENMP
-#  pragma omp parallel shared(numCells, rng) num_threads(threads)
+#  pragma omp parallel shared(numCells, rng) num_threads(numThreads)
 #endif
 	for (uint64_t i = 0; i < numCells; i++) {
 		int threadID = 0;
