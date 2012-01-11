@@ -40,6 +40,16 @@ gridReaderHDF5_newFromIni(parse_ini_t ini, const char *sectionName);
 extern void
 gridReaderHDF5_del(gridReader_t *reader);
 
+/** @} */
+
+/**
+ * @name Setter
+ *
+ * @{
+ */
+
+extern void
+gridReaderHDF5_setFileName(gridReaderHDF5_t reader, const char *fileName);
 
 /** @} */
 
@@ -69,6 +79,8 @@ gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
  * @section libgridIOInHDF5IniFormat  Expected Format for Ini Files
  *
  * @code
+ * [SectionName]
+ *
  * @endcode
  */
 

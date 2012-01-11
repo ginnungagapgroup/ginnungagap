@@ -26,6 +26,9 @@
 /** @brief  The main structure for the HDF5 reader. */
 struct gridReaderHDF5_struct {
 	GRIDREADER_T_CONTENT
+	/** @brief  The name of the HDF5 file */
+	char *fileName;
+	/** @brief */
 	/** @brief  The HDF5 file handle. */
 	hid_t file;
 };

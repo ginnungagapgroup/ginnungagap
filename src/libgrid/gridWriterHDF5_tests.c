@@ -109,7 +109,7 @@ gridWriterHDF5_writeGridRegular_test(void)
 	bool              hasPassed = true;
 	int               rank      = 0;
 	gridWriterHDF5_t  writer;
-	gridPointUint32_t chunkSize = { 20, 30, 10 };
+	gridPointUint32_t chunkSize = { 4, 4, 2 };
 	gridRegular_t     grid;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
@@ -175,13 +175,12 @@ local_getFakeGrid(void)
 {
 	dataVar_t            var;
 	int                  rank;
-	double               *data;
 	gridRegular_t        grid;
 	gridRegularDistrib_t gridDistrib;
 	gridPatch_t          patch;
 	gridPointDbl_t       origin = { 0., 0., 0. };
 	gridPointDbl_t       extent = { 1., 1., 1. };
-	gridPointUint32_t    dims   = { 20, 30, 40 };
+	gridPointUint32_t    dims   = { 4, 8, 16 };
 
 
 	var         = dataVar_new("FakeVar", DATAVARTYPE_DOUBLE, 1);

@@ -21,6 +21,9 @@
 #ifdef WITH_SILO
 #  include "gridWriterSilo.h"
 #endif
+#ifdef WITH_HDF5
+#  include "gridWriterHDF5.h"
+#endif
 #include "gridWriterGrafic.h"
 #include "gridPatch.h"
 #include "gridRegular.h"
@@ -158,6 +161,15 @@ local_newFromIniWrapper(parse_ini_t   ini,
 		writer = (gridWriter_t)gridWriterGrafic_newFromIni(
 		    ini,
 		    writerSectionName);
+	} else if (type == GRIDIO_TYPE_HDF5) {
+#ifdef WITH_HDF5
+		writer = (gridWriter_t)gridWriterHDF5_newFromIni(ini,
+		                                                 writerSectionName);
+#else
+		fprintf(stderr,
+		        "To use HF5 output, run configure using --with-hdf5\n");
+		diediedie(EXIT_FAILURE);
+#endif
 	} else {
 		fprintf(stderr, "Cannot create writer for %s\n",
 		        gridIO_getNameFromType(type));
@@ -165,4 +177,4 @@ local_newFromIniWrapper(parse_ini_t   ini,
 	}
 
 	return writer;
-}
+} /* local_newFromIniWrapper */

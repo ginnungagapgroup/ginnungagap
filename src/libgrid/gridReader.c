@@ -25,6 +25,9 @@
 #include <stdio.h>
 #include "gridReaderBov.h"
 #include "gridReaderGrafic.h"
+#ifdef WITH_HDF5
+#  include "gridReaderHDF5.h"
+#endif
 #include "gridPatch.h"
 #include "../libutil/parse_ini.h"
 #include "../libutil/xmem.h"
@@ -114,6 +117,15 @@ local_newFromIniWrapper(parse_ini_t   ini,
 	} else if (type == GRIDIO_TYPE_GRAFIC) {
 		r = (gridReader_t)gridReaderGrafic_newFromIni(ini,
 		                                              readerSectionName);
+	} else if (type == GRIDIO_TYPE_HDF5) {
+#ifdef WITH_HDF5
+		r = (gridReader_t)gridReaderHDF5_newFromIni(ini,
+		                                            readerSectionName);
+#else
+		fprintf(stderr,
+		        "To use HF5 input, run configure using --with-hdf5\n");
+		diediedie(EXIT_FAILURE);
+#endif
 	} else {
 		fprintf(stderr, "Cannot create reader for %s\n",
 		        gridIO_getNameFromType(type));

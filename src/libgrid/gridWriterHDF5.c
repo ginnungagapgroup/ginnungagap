@@ -16,10 +16,11 @@
 #include "gridConfig.h"
 #include "gridWriterHDF5.h"
 #include <assert.h>
+#include <string.h>
 #include "gridRegular.h"
 #include "gridPatch.h"
 #include "gridPoint.h"
-#include <string.h>
+#include "gridUtilHDF5.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
 #include "../libutil/diediedie.h"
@@ -62,17 +63,6 @@ static hid_t
 local_getAccessPropsFileAccessMPI(MPI_Comm comm);
 #endif
 
-/**
- * @brief  Creates an HDF5 data space for a given size.
- *
- * @param[in]  dims
- *                The size of the data space.
- *
- * @return  Returns a proper HDF5 data space for the given size.
- */
-static hid_t
-local_getDataSpaceFromDims(gridPointUint32_t dims);
-
 static hid_t
 local_getDSCreationPropList(gridWriterHDF5_t writer);
 
@@ -83,11 +73,6 @@ local_writeVariableAtPatch(dataVar_t   var,
                            hid_t       gridSize,
                            hid_t       fileHandle,
                            hid_t       dsCreationPropList);
-
-inline static void
-local_selectHyperslab(hid_t             ds,
-                      gridPointUint32_t idxLo,
-                      gridPointUint32_t dims);
 
 static bool
 local_checkIfPatchIsCompleteGrid(hid_t space, gridPointUint32_t patchDims);
@@ -355,7 +340,7 @@ gridWriterHDF5_writeGridPatch(gridWriter_t   writer,
 	hid_t             patchSize, dsCreationPropList;
 
 	gridPatch_getDims(patch, dims);
-	patchSize          = local_getDataSpaceFromDims(dims);
+	patchSize          = gridUtilHDF5_getDataSpaceFromDims(dims);
 	dsCreationPropList = local_getDSCreationPropList(tmp);
 
 	for (int i = 0; i < numVars; i++) {
@@ -385,7 +370,7 @@ gridWriterHDF5_writeGridRegular(gridWriter_t  writer,
 	numPatches = gridRegular_getNumPatches(grid);
 
 	gridRegular_getDims(grid, dims);
-	gridSize           = local_getDataSpaceFromDims(dims);
+	gridSize           = gridUtilHDF5_getDataSpaceFromDims(dims);
 	dsCreationPropList = local_getDSCreationPropList(tmp);
 
 	for (int i = 0; i < numVars; i++) {
@@ -462,22 +447,6 @@ local_createNewFile(const gridWriterHDF5_t writer)
 }
 
 static hid_t
-local_getDataSpaceFromDims(gridPointUint32_t dims)
-{
-	hid_t   ds;
-	hsize_t dsDims[NDIM];
-
-	for (int i = 0; i < NDIM; i++)
-		dsDims[i] = dims[NDIM - 1 - i];
-
-	ds = H5Screate_simple(NDIM, dsDims, NULL);
-	if (ds < 0)
-		diediedie(EXIT_FAILURE);
-
-	return ds;
-}
-
-static hid_t
 local_getDSCreationPropList(gridWriterHDF5_t writer)
 {
 	hid_t rtn = H5P_DEFAULT;
@@ -537,13 +506,13 @@ local_writeVariableAtPatch(dataVar_t   var,
 	assert(dataSpaceFile >= 0);
 	gridPatch_getDims(patch, dimsPatch);
 	if (local_checkIfPatchIsCompleteGrid(gridSize, dimsPatch))
-		local_selectHyperslab(dataSpaceFile, NULL, dimsPatch);
+		gridUtilHDF5_selectHyperslab(dataSpaceFile, NULL, dimsPatch);
 	else {
 		gridPointUint32_t idxLo;
 		gridPatch_getIdxLo(patch, idxLo);
-		local_selectHyperslab(dataSpaceFile, idxLo, dimsPatch);
+		gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLo, dimsPatch);
 	}
-	dataSpacePatch = local_getDataSpaceFromDims(dimsPatch);
+	dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsPatch);
 
 	H5Dwrite(dataSet, dt, dataSpacePatch, dataSpaceFile,
 	         transProps, data);
@@ -554,22 +523,6 @@ local_writeVariableAtPatch(dataVar_t   var,
 		H5Pclose(transProps);
 	H5Dclose(dataSet);
 } /* local_writeVariableAtPatch */
-
-inline static void
-local_selectHyperslab(hid_t             ds,
-                      gridPointUint32_t idxLo,
-                      gridPointUint32_t dims)
-{
-	hsize_t dsDims[NDIM];
-	hsize_t dsIdxLo[NDIM];
-
-	for (int i = 0; i < NDIM; i++) {
-		dsDims[i]  = dims[NDIM - 1 - i];
-		dsIdxLo[i] = (idxLo == NULL) ? 0 : idxLo[NDIM - 1 - i];
-	}
-
-	H5Sselect_hyperslab(ds, H5S_SELECT_SET, dsIdxLo, NULL, dsDims, NULL);
-}
 
 static bool
 local_checkIfPatchIsCompleteGrid(hid_t space, gridPointUint32_t patchDims)

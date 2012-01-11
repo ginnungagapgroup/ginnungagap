@@ -270,6 +270,7 @@ main(int argc, char **argv)
 	global_max_allocated_bytes = 0;
 #  endif
 #endif
+
 #ifdef WITH_HDF5
 	if (rank == 0) {
 		printf("\nRunning tests for gridWriterHDF5:\n");
@@ -291,7 +292,6 @@ main(int argc, char **argv)
 	global_max_allocated_bytes = 0;
 #  endif
 
-#if 0
 	if (rank == 0) {
 		printf("\nRunning tests for gridReaderHDF5:\n");
 	}
@@ -304,7 +304,6 @@ main(int argc, char **argv)
 		xmem_info(stdout);
 	global_max_allocated_bytes = 0;
 #  endif
-#endif
 #endif
 
 #ifdef WITH_MPI
