@@ -9,8 +9,8 @@
 /*--- Doxygen file description ------------------------------------------*/
 
 /**
- * @file  lIdx_tests.h
- * @ingroup  libutilMis
+ * @file  libutil/lIdx_tests.h
+ * @ingroup  libutilMiscLIdxTest
  * @brief  Provides the interface for testing the lIdx module.
  */
 
@@ -69,6 +69,15 @@ lIdx_fromCoordNd_test(void);
  */
 extern bool
 lIdx_toCoordNd_test(void);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libutilMiscLIdxTest Test for Linear Indices
+ * @ingroup libutilMiscLIdx
+ * @brief Provides test functions for the linear indices.
+ */
 
 
 #endif

@@ -6,8 +6,8 @@
 /*--- Doxygen file description ------------------------------------------*/
 
 /**
- * @file  lIdx_tests.c
- * @ingroup  libutilMisc
+ * @file  libutil/lIdx_tests.c
+ * @ingroup  libutilMiscLIdxTest
  * @brief  Implements the tests for the lIdx module.
  */
 

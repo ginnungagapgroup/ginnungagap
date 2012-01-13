@@ -6,9 +6,9 @@
 /*--- Doxygen file description ------------------------------------------*/
 
 /**
- * @file  lIdx.c
- * @ingroup  GROUP
- * @brief  SHORT DESC
+ * @file  libutil/lIdx.c
+ * @ingroup   libutilMiscLIdx
+ * @brief  Implements the exported function for the linear indices.
  */
 
 

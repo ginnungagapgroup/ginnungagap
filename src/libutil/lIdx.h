@@ -10,7 +10,7 @@
 
 /**
  * @file  libutil/lIdx.h
- * @ingroup  libutilMisc
+ * @ingroup  libutilMiscLIdx
  * @brief  Provides the interface to linear indices (lIdx).
  */
 
@@ -160,5 +160,16 @@ lIdx_toCoordNd(uint64_t                 idx,
  * @brief  Selects the fastest method of expanding a linear index to the
  *         coordinates, depending on the value of #NDIM.
  */
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libutilMiscLIdx Linear Indices (lIdx)
+ * @ingroup libutilMisc
+ * @brief Provides functionality to convert multidimensional indices to
+ *        linear indices and vice-versa.
+ */
+
 
 #endif
