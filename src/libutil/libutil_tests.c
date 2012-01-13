@@ -11,6 +11,7 @@
 #include "endian_tests.h"
 #include "tile_tests.h"
 #include "lIdx_tests.h"
+#include "filename_tests.h"
 #include "bov_tests.h"
 #include "grafic_tests.h"
 #include "cubepm_tests.h"
@@ -129,6 +130,18 @@ main(int argc, char **argv)
 		RUNTEST(&lIdx_toCoord3d_test, hasFailed);
 		RUNTEST(&lIdx_fromCoordNd_test, hasFailed);
 		RUNTEST(&lIdx_toCoordNd_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for filename:\n");
+		RUNTEST(&filename_new_test, hasFailed);
+		RUNTEST(&filename_newFull_test, hasFailed);
+		RUNTEST(&filename_del_test, hasFailed);
+		RUNTEST(&filename_setPath_test, hasFailed);
+		RUNTEST(&filename_setPrefix_test, hasFailed);
+		RUNTEST(&filename_setQualifier_test, hasFailed);
+		RUNTEST(&filename_setSuffix_test, hasFailed);
+		RUNTEST(&filename_getFullName_test, hasFailed);
 	}
 
 	if (rank == 0) {
