@@ -1,4 +1,4 @@
-// Copyright (C) 2011, Steffen Knollmann
+// Copyright (C) 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
