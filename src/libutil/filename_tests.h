@@ -39,6 +39,14 @@ extern bool
 filename_newFull_test(void);
 
 /**
+ * @brief  Tests filename_clone();
+ *
+ * @return  Returns @c true if the tests succeeded and @c false otherwise.
+ */
+extern bool
+filename_clone_test(void);
+
+/**
  * @brief  Tests filename_del();
  *
  * @return  Returns @c true if the tests succeeded and @c false otherwise.
@@ -85,6 +93,14 @@ filename_setSuffix_test(void);
  */
 extern bool
 filename_getFullName_test(void);
+
+/**
+ * @brief  Tests filename_copySetFields();
+ *
+ * @return  Returns @c true if the tests succeeded and @c false otherwise.
+ */
+extern bool
+filename_copySetFields_test(void);
 
 
 /*--- Doxygen group definitions -----------------------------------------*/

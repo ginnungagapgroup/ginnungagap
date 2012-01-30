@@ -177,12 +177,13 @@ filename_new(void)
 {
 	filename_t fn;
 
-	fn            = xmalloc(sizeof(struct filename_struct));
-	fn->path      = local_emptyString;
-	fn->prefix    = local_emptyString;
-	fn->qualifier = local_emptyString;
-	fn->suffix    = local_emptyString;
-	fn->fullName  = local_emptyString;
+	fn                         = xmalloc(sizeof(struct filename_struct));
+	fn->path                   = local_emptyString;
+	fn->prefix                 = local_emptyString;
+	fn->qualifier              = local_emptyString;
+	fn->suffix                 = local_emptyString;
+	fn->fullName               = local_emptyString;
+	fn->fullNameUpdateRequired = false;
 
 	return fn;
 }
@@ -212,6 +213,29 @@ filename_newFull(const char *path,
 	return fn;
 }
 
+extern filename_t
+filename_clone(const filename_t fn)
+{
+	assert(fn != NULL);
+
+	filename_t clone;
+
+	clone = filename_new();
+
+	if (fn->path != local_emptyString)
+		clone->path = xstrdup(fn->path);
+	if (fn->prefix != local_emptyString)
+		clone->prefix = xstrdup(fn->prefix);
+	if (fn->qualifier != local_emptyString)
+		clone->qualifier = xstrdup(fn->qualifier);
+	if (fn->suffix != local_emptyString)
+		clone->suffix = xstrdup(fn->suffix);
+	if (fn->fullName != local_emptyString)
+		clone->fullName = xstrdup(fn->fullName);
+
+	return clone;
+}
+
 extern void
 filename_del(filename_t *fn)
 {
@@ -239,7 +263,7 @@ filename_setPath(filename_t fn, const char *path)
 		xfree((char *)(fn->path));
 	local_checkValue(path, &local_checkPathCharacters);
 	local_setPathMember(&(fn->path), path);
-	local_resetFullName(fn);
+	fn->fullNameUpdateRequired = true;
 }
 
 extern void
@@ -249,7 +273,7 @@ filename_setPrefix(filename_t fn, const char *prefix)
 		xfree((char *)(fn->prefix));
 	local_checkValue(prefix, &local_checkNonPathCharacters);
 	local_setOrdinaryMember(&(fn->prefix), prefix);
-	local_resetFullName(fn);
+	fn->fullNameUpdateRequired = true;
 }
 
 extern void
@@ -259,7 +283,7 @@ filename_setQualifier(filename_t fn, const char *qualifier)
 		xfree((char *)(fn->qualifier));
 	local_checkValue(qualifier, &local_checkNonPathCharacters);
 	local_setOrdinaryMember(&(fn->qualifier), qualifier);
-	local_resetFullName(fn);
+	fn->fullNameUpdateRequired = true;
 }
 
 extern void
@@ -269,7 +293,7 @@ filename_setSuffix(filename_t fn, const char *suffix)
 		xfree((char *)(fn->suffix));
 	local_checkValue(suffix, &local_checkNonPathCharacters);
 	local_setOrdinaryMember(&(fn->suffix), suffix);
-	local_resetFullName(fn);
+	fn->fullNameUpdateRequired = true;
 }
 
 extern const char *
@@ -309,7 +333,28 @@ filename_getFullName(const filename_t fn)
 {
 	assert(fn != NULL);
 
+	if (fn->fullNameUpdateRequired) {
+		local_resetFullName(fn);
+		fn->fullNameUpdateRequired = false;
+	}
+
 	return fn->fullName;
+}
+
+extern void
+filename_copySetFields(filename_t trgt, const filename_t tmpl)
+{
+	assert(trgt != NULL);
+	assert(tmpl != NULL);
+
+	if (tmpl->path != local_emptyString)
+		filename_setPath(trgt, tmpl->path);
+	if (tmpl->prefix != local_emptyString)
+		filename_setPrefix(trgt, tmpl->prefix);
+	if (tmpl->qualifier != local_emptyString)
+		filename_setQualifier(trgt, tmpl->qualifier);
+	if (tmpl->suffix != local_emptyString)
+		filename_setSuffix(trgt, tmpl->suffix);
 }
 
 /*--- Implementations of local functions --------------------------------*/

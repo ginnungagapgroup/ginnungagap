@@ -73,6 +73,18 @@ filename_newFull(const char *path,
 
 
 /**
+ * @brief  Creates a clone of the provided filename object.
+ *
+ * @param[in]  fn
+ *                The file name object that should be cloned.
+ *
+ * @return  Returns a new filename objects that has the same values as the
+ *          original one.
+ */
+extern filename_t
+filename_clone(const filename_t fn);
+
+/**
  * @brief  Destroys a filename oject and frees all associated memory.
  *
  * @param[in,out]  *fn
@@ -236,6 +248,26 @@ filename_getSuffix(const filename_t fn);
  */
 extern const char *
 filename_getFullName(const filename_t fn);
+
+/**
+ * @brief  Sets the payload field of a filename object to the set fields in
+ *         a template one.
+ *
+ * This will only update the fields in the target which a corresponding set
+ * field in the template.  If the target field was already set, it will be
+ * replaced with the one in the template.
+ *
+ * @param[in,out]  trgt
+ *                    The filename object that should be updated.  Passing
+ *                    @c NULL is undefined.
+ * @param[in]      tmpl
+ *                    The template from which to read the new fields.
+ *                    Passing @c NULL is undefined.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+filename_copySetFields(filename_t trgt, const filename_t tmpl);
 
 /** @} */
 

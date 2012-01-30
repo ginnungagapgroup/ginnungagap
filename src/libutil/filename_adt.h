@@ -17,6 +17,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
+#include <stdbool.h>
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -33,6 +34,8 @@ struct filename_struct {
 	const char *suffix;
 	/** @brief  The full name of the file. */
 	const char *fullName;
+	/** @brief  Tracks if the full name is up to date. */
+	bool fullNameUpdateRequired;
 };
 
 

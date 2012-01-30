@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 
 
@@ -136,12 +136,14 @@ main(int argc, char **argv)
 		printf("\nRunning tests for filename:\n");
 		RUNTEST(&filename_new_test, hasFailed);
 		RUNTEST(&filename_newFull_test, hasFailed);
+		RUNTEST(&filename_clone_test, hasFailed);
 		RUNTEST(&filename_del_test, hasFailed);
 		RUNTEST(&filename_setPath_test, hasFailed);
 		RUNTEST(&filename_setPrefix_test, hasFailed);
 		RUNTEST(&filename_setQualifier_test, hasFailed);
 		RUNTEST(&filename_setSuffix_test, hasFailed);
 		RUNTEST(&filename_getFullName_test, hasFailed);
+		RUNTEST(&filename_copySetFields_test, hasFailed);
 	}
 
 	if (rank == 0) {
@@ -210,6 +212,7 @@ main(int argc, char **argv)
 		RUNTEST(&grafic_getOmegav_test, hasFailed);
 		RUNTEST(&grafic_getH0_test, hasFailed);
 		RUNTEST(&grafic_getIseed_test, hasFailed);
+		RUNTEST(&grafic_getIsWhiteNoise_test, hasFailed);
 		RUNTEST(&grafic_setFileName_test, hasFailed);
 		RUNTEST(&grafic_setSize_test, hasFailed);
 		RUNTEST(&grafic_setDx_test, hasFailed);
@@ -219,7 +222,7 @@ main(int argc, char **argv)
 		RUNTEST(&grafic_setOmegav_test, hasFailed);
 		RUNTEST(&grafic_setH0_test, hasFailed);
 		RUNTEST(&grafic_setIseed_test, hasFailed);
-		RUNTEST(&grafic_isWhiteNoise_test, hasFailed);
+		RUNTEST(&grafic_setIsWhiteNoise_test, hasFailed);
 		RUNTEST(&grafic_makeEmptyFile_test, hasFailed);
 		RUNTEST(&grafic_read_test, hasFailed);
 		RUNTEST(&grafic_readWindowed_test, hasFailed);

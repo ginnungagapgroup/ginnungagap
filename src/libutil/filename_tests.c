@@ -117,6 +117,44 @@ filename_newFull_test(void)
 } /* filename_newFull_test */
 
 extern bool
+filename_clone_test(void)
+{
+	bool       hasPassed = true;
+	int        rank      = 0;
+	filename_t fn, clone;
+#ifdef XMEM_TRACK_MEM
+	size_t     allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	fn    = filename_newFull(NULL, "<prefix>", "<qualifier>", "<suffix>");
+	clone = filename_clone(fn);
+
+	if (strcmp(fn->path, clone->path))
+		hasPassed = false;
+	if (strcmp(fn->prefix, clone->prefix))
+		hasPassed = false;
+	if (strcmp(fn->qualifier, clone->qualifier))
+		hasPassed = false;
+	if (strcmp(fn->suffix, clone->suffix))
+		hasPassed = false;
+
+	filename_del(&clone);
+	filename_del(&fn);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 filename_del_test(void)
 {
 	bool       hasPassed = true;
@@ -164,19 +202,22 @@ filename_setPath_test(void)
 	fn = filename_new();
 
 	filename_setPath(fn, "/usr/local/asd");
-	if (strcmp(fn->fullName, "/usr/local/asd/"))
+	if (strcmp(fn->path, "/usr/local/asd/"))
 		hasPassed = false;
 
 	filename_setPath(fn, "/usr/local/asd/");
-	if (strcmp(fn->fullName, "/usr/local/asd/"))
+	if (strcmp(fn->path, "/usr/local/asd/"))
 		hasPassed = false;
 
 	filename_setPath(fn, NULL);
-	if (strcmp(fn->fullName, ""))
+	if (strcmp(fn->path, ""))
 		hasPassed = false;
 
 	filename_setPath(fn, "asd/asd/");
-	if (strcmp(fn->fullName, "asd/asd/"))
+	if (strcmp(fn->path, "asd/asd/"))
+		hasPassed = false;
+
+	if (fn->fullNameUpdateRequired != true)
 		hasPassed = false;
 
 	filename_del(&fn);
@@ -186,7 +227,7 @@ filename_setPath_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* filename_setPath_test */
 
 extern bool
 filename_setPrefix_test(void)
@@ -207,11 +248,10 @@ filename_setPrefix_test(void)
 	fn = filename_new();
 
 	filename_setPrefix(fn, "easy prefix");
-	if (strcmp(fn->fullName, "easy prefix"))
+	if (strcmp(fn->prefix, "easy prefix"))
 		hasPassed = false;
 
-	filename_setPath(fn, "asd/");
-	if (strcmp(fn->fullName, "asd/easy prefix"))
+	if (fn->fullNameUpdateRequired != true)
 		hasPassed = false;
 
 	filename_del(&fn);
@@ -242,12 +282,10 @@ filename_setQualifier_test(void)
 	fn = filename_new();
 
 	filename_setQualifier(fn, "_hh2h");
-	if (strcmp(fn->fullName, "_hh2h"))
+	if (strcmp(fn->qualifier, "_hh2h"))
 		hasPassed = false;
 
-	filename_setPrefix(fn, "#$%");
-	filename_setQualifier(fn, "_hh23");
-	if (strcmp(fn->fullName, "#$%_hh23"))
+	if (fn->fullNameUpdateRequired != true)
 		hasPassed = false;
 
 	filename_del(&fn);
@@ -278,19 +316,15 @@ filename_setSuffix_test(void)
 	fn = filename_new();
 
 	filename_setSuffix(fn, ".dat");
-	if (strcmp(fn->fullName, ".dat"))
+	if (strcmp(fn->suffix, ".dat"))
 		hasPassed = false;
 
-	filename_setPath(fn, "asd/");
-	filename_setPrefix(fn, "test");
 	filename_setSuffix(fn, ".txt@'ho");
-	if (strcmp(fn->fullName, "asd/test.txt@'ho"))
+	if (strcmp(fn->suffix, ".txt@'ho"))
 		hasPassed = false;
 
-	filename_setPath(fn, "");
-	filename_setPrefix(fn, "test");
-	filename_setSuffix(fn, ".tyt@'ho");
-	if (strcmp(fn->fullName, "test.tyt@'ho"))
+	if (fn->fullNameUpdateRequired != true)
+		hasPassed = false;
 
 	filename_del(&fn);
 #ifdef XMEM_TRACK_MEM
@@ -299,7 +333,7 @@ filename_setSuffix_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* filename_setSuffix_test */
 
 extern bool
 filename_getFullName_test(void)
@@ -328,6 +362,26 @@ filename_getFullName_test(void)
 	if (strcmp(filename_getFullName(fn), "asd/test.txt"))
 		hasPassed = false;
 
+	filename_setPath(fn, "asd123/");
+	if (strcmp(filename_getFullName(fn), "asd123/test.txt"))
+		hasPassed = false;
+
+	filename_setQualifier(fn, "_0051");
+	if (strcmp(filename_getFullName(fn), "asd123/test_0051.txt"))
+		hasPassed = false;
+
+	filename_setPath(fn, NULL);
+	if (strcmp(filename_getFullName(fn), "test_0051.txt"))
+		hasPassed = false;
+
+	filename_setSuffix(fn, NULL);
+	if (strcmp(filename_getFullName(fn), "test_0051"))
+		hasPassed = false;
+
+	filename_setPrefix(fn, NULL);
+	if (strcmp(filename_getFullName(fn), "_0051"))
+		hasPassed = false;
+
 	filename_del(&fn);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -335,6 +389,59 @@ filename_getFullName_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* filename_getFullName_test */
+
+extern bool
+filename_copySetFields_test(void)
+{
+	bool       hasPassed = true;
+	int        rank      = 0;
+	filename_t fnTrgt, fnTmpl;
+#ifdef XMEM_TRACK_MEM
+	size_t     allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	fnTrgt = filename_new();
+	fnTmpl = filename_new();
+
+	filename_setPrefix(fnTmpl, "prefixTemplate");
+	filename_copySetFields(fnTrgt, fnTmpl);
+	if (strcmp(fnTrgt->prefix, fnTmpl->prefix))
+		hasPassed = false;
+
+	filename_setSuffix(fnTmpl, ".txt");
+	filename_copySetFields(fnTrgt, fnTmpl);
+	if (strcmp(fnTrgt->prefix, fnTmpl->prefix))
+		hasPassed = false;
+	if (strcmp(fnTrgt->suffix, fnTmpl->suffix))
+		hasPassed = false;
+
+	filename_setSuffix(fnTmpl, NULL);
+	filename_copySetFields(fnTrgt, fnTmpl);
+	if (strcmp(fnTrgt->prefix, fnTmpl->prefix))
+		hasPassed = false;
+	if (strcmp(fnTrgt->suffix, ".txt"))
+		hasPassed = false;
+
+	filename_setPrefix(fnTmpl, "newPrefixTmpl");
+	filename_copySetFields(fnTrgt, fnTmpl);
+	if (strcmp(filename_getFullName(fnTrgt), "newPrefixTmpl.txt"))
+		hasPassed = false;
+
+	filename_del(&fnTrgt);
+	filename_del(&fnTmpl);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* filename_copySetFields_test */
 
 /*--- Implementations of local functions --------------------------------*/
