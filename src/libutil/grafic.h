@@ -34,7 +34,7 @@ typedef struct grafic_struct *grafic_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern grafic_t
-grafic_new(bool isWhiteNoise);
+grafic_new(void);
 
 extern grafic_t
 grafic_newFromFile(const char *fileName);
@@ -69,6 +69,9 @@ grafic_getH0(grafic_t grafic);
 extern int
 grafic_getIseed(grafic_t grafic);
 
+extern bool
+grafic_getIsWhiteNoise(grafic_t grafic);
+
 extern void
 grafic_setFileName(grafic_t grafic, const char *fileName);
 
@@ -96,8 +99,8 @@ grafic_setH0(grafic_t grafic, float h0);
 extern void
 grafic_setIseed(grafic_t grafic, int iseed);
 
-extern bool
-grafic_isWhiteNoise(grafic_t grafic);
+extern void
+grafic_setIsWhiteNoise(grafic_t grafic, bool isWhiteNoise);
 
 extern void
 grafic_makeEmptyFile(grafic_t grafic);

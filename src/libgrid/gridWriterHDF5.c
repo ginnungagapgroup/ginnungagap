@@ -1,4 +1,4 @@
-// Copyright (C) 2011, Steffen Knollmann
+// Copyright (C) 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -17,8 +17,12 @@
 #include "gridWriterHDF5.h"
 #include <assert.h>
 #include <string.h>
-#include "gridRegular.h"
+#include <hdf5.h>
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
 #include "gridPatch.h"
+#include "gridRegular.h"
 #include "gridPoint.h"
 #include "gridUtilHDF5.h"
 #include "../libutil/xmem.h"
@@ -33,19 +37,46 @@
 /*--- Local defines -----------------------------------------------------*/
 
 
+/*--- Local variables ---------------------------------------------------*/
+
+/** @brief  Stores the functions table for the HDF5 writer. */
+static struct gridWriter_func_struct local_func
+    = {&gridWriterHDF5_del,
+	   &gridWriterHDF5_activate,
+	   &gridWriterHDF5_deactivate,
+	   &gridWriterHDF5_writeGridPatch,
+	   &gridWriterHDF5_writeGridRegular,
+#ifdef WITH_MPI
+	   &gridWriterHDF5_initParallel
+#endif
+	};
+
+/** @brief  Gives the default path of the output file. */
+static const char *local_defaultFileNamePath = NULL;
+
+/** @brief  Gives the default prefix of the output file. */
+static const char *local_defaultFileNamePrefix = "out";
+
+/** @brief  Gives the default qualifier of the output file. */
+static const char *local_defaultFileNameQualifier = NULL;
+
+/** @brief  Gives the default suffix of the output file. */
+static const char *local_defaultFileNameSuffix = ".h5";
+
+
 /*--- Prototypes of local functions -------------------------------------*/
 
 /**
- * @brief  Creates a new HDF5 file.
+ * @brief  Get the HDF5 file handle for the required file.
  *
  * @param[in]  writer
  *                The writer object containing the necessary information
  *                to create the HDF5 file.
  *
- * @return  Returns a handle to the newly created file.
+ * @return  Returns a handle to the newly created or opened file.
  */
 static hid_t
-local_createNewFile(const gridWriterHDF5_t writer);
+local_getFileHandle(const gridWriterHDF5_t writer);
 
 
 #ifdef WITH_MPI
@@ -61,11 +92,45 @@ local_createNewFile(const gridWriterHDF5_t writer);
  */
 static hid_t
 local_getAccessPropsFileAccessMPI(MPI_Comm comm);
+
 #endif
 
+/**
+ * @brief  Creates the property list for creating data spaces with chunking
+ *         et al.
+ *
+ * @param[in]  writer
+ *                The writer holding the information about the chunking,
+ *                checksumming and compression.
+ *
+ * @return  Returns a new property list for use with H5Dcreate to deal with
+ *          chunking, checksumming and compression.
+ */
 static hid_t
-local_getDSCreationPropList(gridWriterHDF5_t writer);
+local_getDSCreationPropList(const gridWriterHDF5_t writer);
 
+
+/**
+ * @brief  Helper function to write the data of a variable at a given patch.
+ *
+ * @param[in]  var
+ *                The variable that should be written.
+ * @param[in]  patch
+ *                The patch that should be written.
+ * @param[in]  dt
+ *                The HDF5 datatype corresponding to the variable.
+ * @param[in]  gridSize
+ *                The extent of the grid that should be written.  Note that
+ *                the patch may be smaller.
+ * @param[in]  fileHandle
+ *                The HDF5 file handle giving the file the data should be
+ *                written to.
+ * @param[in]  dsCreationPropList
+ *                The property list with which to create the file data
+ *                space (deals with chunking, compression and checksumming).
+ *
+ * @return  Returns nothing.
+ */
 inline static void
 local_writeVariableAtPatch(dataVar_t   var,
                            gridPatch_t patch,
@@ -74,140 +139,160 @@ local_writeVariableAtPatch(dataVar_t   var,
                            hid_t       fileHandle,
                            hid_t       dsCreationPropList);
 
+
+/**
+ * @brief  Checks if a patch fills the whole grid.
+ *
+ * @param[in]  space
+ *                The HDF5 space describing the whole grid.
+ * @param[in]  patchDims
+ *                The extent of the patch to check.
+ *
+ * @return  Returns @c true if the patch is the complete grid and @c false
+ *          if the space is larger than the patch.
+ */
 static bool
 local_checkIfPatchIsCompleteGrid(hid_t space, gridPointUint32_t patchDims);
 
 
-/*--- Local variables ---------------------------------------------------*/
+/*--- Implementations of abstract functions -----------------------------*/
+extern void
+gridWriterHDF5_del(gridWriter_t *writer)
+{
+	assert(writer != NULL && *writer != NULL);
+	assert((*writer)->type == GRIDIO_TYPE_HDF5);
 
-/** @brief  Stores the functions table for the HDF5 writer. */
-static struct gridWriter_func_struct local_func
-    = { &gridWriterHDF5_del,
-	    &gridWriterHDF5_activate,
-	    &gridWriterHDF5_deactivate,
-	    &gridWriterHDF5_writeGridPatch,
-	    &gridWriterHDF5_writeGridRegular,
+	gridWriter_free(*writer);
+	gridWriterHDF5_free((gridWriterHDF5_t)*writer);
+
+	xfree(*writer);
+	*writer = NULL;
+}
+
+extern void
+gridWriterHDF5_activate(gridWriter_t writer)
+{
+	gridWriterHDF5_t w = (gridWriterHDF5_t)writer;
+
+	assert(w != NULL);
+	assert(w->base.type == GRIDIO_TYPE_HDF5);
+
+	if (!gridWriter_isActive(writer)) {
+		assert(w->fileHandle == H5I_INVALID_HID);
+		w->fileHandle = local_getFileHandle(w);
+		gridWriter_setIsActive(writer);
+	}
+}
+
+extern void
+gridWriterHDF5_deactivate(gridWriter_t writer)
+{
+	gridWriterHDF5_t w = (gridWriterHDF5_t)writer;
+
+	assert(w != NULL);
+	assert(w->base.type == GRIDIO_TYPE_HDF5);
+
+	if (gridWriter_isActive(writer)) {
+		H5Fclose(w->fileHandle);
+		w->fileHandle = H5I_INVALID_HID;
+		gridWriter_setIsInactive(writer);
+	}
+}
+
+extern void
+gridWriterHDF5_writeGridPatch(gridWriter_t   writer,
+                              gridPatch_t    patch,
+                              const char     *patchName,
+                              gridPointDbl_t origin,
+                              gridPointDbl_t delta)
+{
+	gridWriterHDF5_t w = (gridWriterHDF5_t)writer;
+
+	assert(w != NULL);
+	assert(w->base.type == GRIDIO_TYPE_HDF5);
+	assert(patch != NULL);
+	assert(patchName != NULL);
+	assert(w->base.isActive);
+
+	int               numVars = gridPatch_getNumVars(patch);
+	gridPointUint32_t dims;
+	hid_t             patchSize, dsCreationPropList;
+
+	gridPatch_getDims(patch, dims);
+	patchSize          = gridUtilHDF5_getDataSpaceFromDims(dims);
+	dsCreationPropList = local_getDSCreationPropList(w);
+
+	for (int i = 0; i < numVars; i++) {
+		dataVar_t var = gridPatch_getVarHandle(patch, i);
+		hid_t     dt  = dataVar_getHDF5Datatype(var);
+
+		local_writeVariableAtPatch(var, patch, dt, patchSize,
+		                           w->fileHandle, dsCreationPropList);
+	}
+}
+
+extern void
+gridWriterHDF5_writeGridRegular(gridWriter_t  writer,
+                                gridRegular_t grid)
+{
+	gridWriterHDF5_t w = (gridWriterHDF5_t)writer;
+
+	assert(w != NULL);
+	assert(w->base.type == GRIDIO_TYPE_HDF5);
+	assert(grid != NULL);
+	assert(w->base.isActive);
+
+	int               numVars, numPatches;
+	gridPointUint32_t dims;
+	hid_t             gridSize, dsCreationPropList;
+
+	numVars    = gridRegular_getNumVars(grid);
+	numPatches = gridRegular_getNumPatches(grid);
+
+	gridRegular_getDims(grid, dims);
+	gridSize           = gridUtilHDF5_getDataSpaceFromDims(dims);
+	dsCreationPropList = local_getDSCreationPropList(w);
+
+	for (int i = 0; i < numVars; i++) {
+		dataVar_t var = gridRegular_getVarHandle(grid, i);
+		hid_t     dt  = dataVar_getHDF5Datatype(var);
+		for (int j = 0; j < numPatches; j++) {
+			gridPatch_t patch = gridRegular_getPatchHandle(grid, j);
+			assert(w->fileHandle != H5I_INVALID_HID);
+			local_writeVariableAtPatch(var, patch, dt, gridSize,
+			                           w->fileHandle, dsCreationPropList);
+		}
+	}
+	H5Sclose(gridSize);
+}
+
 #ifdef WITH_MPI
-	    &gridWriterHDF5_initParallel
+extern void
+gridWriterHDF5_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
+{
+	gridWriterHDF5_t w = (gridWriterHDF5_t)writer;
+
+	assert(w != NULL);
+	assert(w->type == GRIDIO_TYPE_HDF5);
+
+	w->mpiComm = mpiComm;
+}
+
 #endif
-	};
-
-/** @brief  Gives the default name of the output file. */
-static const char *local_defaultFileName = "outGrid.h5";
 
 
-/*--- Implementations of exported functions -----------------------------*/
+/*--- Implementations of final functions --------------------------------*/
 extern gridWriterHDF5_t
 gridWriterHDF5_new(void)
 {
 	gridWriterHDF5_t writer;
 
-	writer             = xmalloc(sizeof(struct gridWriterHDF5_struct));
-	writer->type       = GRIDIO_TYPE_HDF5;
-	writer->func       = (gridWriter_func_t)&local_func;
+	writer = gridWriterHDF5_alloc();
 
-	writer->isActive   = false;
-	writer->fileHandle = H5I_INVALID_HID;
-	writer->fileName   = local_defaultFileName;
-#ifdef WITH_MPI
-	writer->mpiComm    = MPI_COMM_NULL;
-#endif
-	writer->force      = false;
-	writer->doChunking = false;
-	for (int i = 0; i < NDIM; i++)
-		writer->chunkSize[i] = 0;
-	writer->doChecksum        = false;
-	writer->doCompression     = false;
-	writer->compressionFilter = H5I_INVALID_HID;
+	gridWriter_init((gridWriter_t)writer, GRIDIO_TYPE_HDF5, &local_func);
+	gridWriterHDF5_init(writer);
 
 	return writer;
-}
-
-extern gridWriterHDF5_t
-gridWriterHDF5_newFromIni(parse_ini_t ini, const char *sectionName)
-{
-	assert(ini != NULL);
-	assert(sectionName != NULL);
-
-	gridWriterHDF5_t writer;
-	char             *fileName;
-	bool             tmp, force, doChunking, doChecksum, doCompression;
-
-
-	writer = gridWriterHDF5_new();
-	// Required
-	getFromIni(&fileName, parse_ini_get_string, ini,
-	           "fileName", sectionName);
-	gridWriterHDF5_setFileName(writer, fileName);
-	xfree(fileName);
-	// Optional
-	if (parse_ini_get_bool(ini, "force", sectionName, &force))
-		gridWriterHDF5_setForce(writer, force);
-	tmp = parse_ini_get_bool(ini, "doChunking", sectionName, &doChunking);
-	if (tmp && doChunking) {
-		int32_t           *sizeFile;
-		gridPointUint32_t sizeCode;
-		if (!parse_ini_get_int32list(ini, "chunkSize", sectionName,
-		                             NDIM, (int32_t **)&sizeFile)) {
-			fprintf(stderr, "Could not get chunkSize from section %s.\n",
-			        sectionName);
-			diediedie(EXIT_FAILURE);
-		}
-		for (int i = 0; i < NDIM; i++)
-			sizeCode[i] = sizeFile[i];
-		xfree(sizeFile);
-		gridWriterHDF5_setChunkSize(writer, sizeCode);
-	}
-
-	if (parse_ini_get_bool(ini, "doChecksum", sectionName, &doChecksum))
-		gridWriterHDF5_setDoChecksum(writer, doChecksum);
-
-	tmp = parse_ini_get_bool(ini, "doCompression", sectionName,
-	                         &doCompression);
-	if (tmp && doCompression) {
-		char *filterName;
-		getFromIni(&filterName, parse_ini_get_string, ini,
-		           "filterName", sectionName);
-	}
-
-
-	return writer;
-} /* gridWriterHDF5_newFromIni */
-
-extern void
-gridWriterHDF5_del(gridWriter_t *writer)
-{
-	assert(writer != NULL && *writer != NULL);
-	gridWriterHDF5_t tmp = (gridWriterHDF5_t)*writer;
-	assert(tmp->type == GRIDIO_TYPE_HDF5);
-
-	if (tmp->isActive)
-		gridWriter_deactivate(*writer);
-	assert(tmp->fileHandle == H5I_INVALID_HID);
-	if (tmp->fileName != local_defaultFileName)
-		xfree((char *)tmp->fileName);
-	xfree(*writer);
-
-	*writer = NULL;
-}
-
-extern void
-gridWriterHDF5_setFileName(gridWriterHDF5_t w, const char *fileName)
-{
-	assert(w != NULL);
-	assert(fileName != NULL);
-
-	if (w->fileName != local_defaultFileName)
-		xfree((char *)w->fileName);
-	w->fileName = xstrdup(fileName);
-}
-
-extern void
-gridWriterHDF5_setForce(gridWriterHDF5_t w, bool force)
-{
-	assert(w != NULL);
-
-	w->force = force;
 }
 
 extern void
@@ -291,115 +376,43 @@ gridWriterHDF5_setCompressionFilter(gridWriterHDF5_t w,
 	}
 }
 
-extern void
-gridWriterHDF5_activate(gridWriter_t writer)
+/*--- Implementations of protected functions ----------------------------*/
+extern gridWriterHDF5_t
+gridWriterHDF5_alloc(void)
 {
-	assert(writer != NULL);
-	assert(writer->type == GRIDIO_TYPE_HDF5);
+	gridWriterHDF5_t writer;
 
-	gridWriterHDF5_t tmp = (gridWriterHDF5_t)writer;
+	writer = xmalloc(sizeof(struct gridWriterHDF5_struct));
 
-	if (!tmp->isActive) {
-		assert(tmp->fileHandle == H5I_INVALID_HID);
-		tmp->fileHandle = local_createNewFile(tmp);
-		tmp->isActive   = true;
-	}
+	return writer;
 }
 
 extern void
-gridWriterHDF5_deactivate(gridWriter_t writer)
+gridWriterHDF5_init(gridWriterHDF5_t writer)
 {
-	assert(writer != NULL);
-	assert(writer->type == GRIDIO_TYPE_HDF5);
+	gridWriter_setFileName((gridWriter_t)writer,
+	                       filename_newFull(local_defaultFileNamePath,
+	                                        local_defaultFileNamePrefix,
+	                                        local_defaultFileNameQualifier,
+	                                        local_defaultFileNameSuffix));
 
-	gridWriterHDF5_t tmp = (gridWriterHDF5_t)writer;
-
-	if (tmp->isActive) {
-		H5Fclose(tmp->fileHandle);
-		tmp->fileHandle = H5I_INVALID_HID;
-		tmp->isActive   = false;
-	}
-}
-
-extern void
-gridWriterHDF5_writeGridPatch(gridWriter_t   writer,
-                              gridPatch_t    patch,
-                              const char     *patchName,
-                              gridPointDbl_t origin,
-                              gridPointDbl_t delta)
-{
-	assert(writer != NULL);
-	assert(writer->type == GRIDIO_TYPE_HDF5);
-	assert(patch != NULL);
-	assert(patchName != NULL);
-	assert(writer->isActive);
-
-	gridWriterHDF5_t  tmp     = (gridWriterHDF5_t)writer;
-	int               numVars = gridPatch_getNumVars(patch);
-	gridPointUint32_t dims;
-	hid_t             patchSize, dsCreationPropList;
-
-	gridPatch_getDims(patch, dims);
-	patchSize          = gridUtilHDF5_getDataSpaceFromDims(dims);
-	dsCreationPropList = local_getDSCreationPropList(tmp);
-
-	for (int i = 0; i < numVars; i++) {
-		dataVar_t var = gridPatch_getVarHandle(patch, i);
-		hid_t     dt  = dataVar_getHDF5Datatype(var);
-
-		local_writeVariableAtPatch(var, patch, dt, patchSize,
-		                           tmp->fileHandle, dsCreationPropList);
-	}
-}
-
-extern void
-gridWriterHDF5_writeGridRegular(gridWriter_t  writer,
-                                gridRegular_t grid)
-{
-	assert(writer != NULL);
-	assert(writer->type == GRIDIO_TYPE_HDF5);
-	assert(grid != NULL);
-	assert(writer->isActive);
-
-	gridWriterHDF5_t  tmp = (gridWriterHDF5_t)writer;
-	int               numVars, numPatches;
-	gridPointUint32_t dims;
-	hid_t             gridSize, dsCreationPropList;
-
-	numVars    = gridRegular_getNumVars(grid);
-	numPatches = gridRegular_getNumPatches(grid);
-
-	gridRegular_getDims(grid, dims);
-	gridSize           = gridUtilHDF5_getDataSpaceFromDims(dims);
-	dsCreationPropList = local_getDSCreationPropList(tmp);
-
-	for (int i = 0; i < numVars; i++) {
-		dataVar_t var = gridRegular_getVarHandle(grid, i);
-		hid_t     dt  = dataVar_getHDF5Datatype(var);
-		for (int j = 0; j < numPatches; j++) {
-			gridPatch_t patch = gridRegular_getPatchHandle(grid, j);
-			assert(tmp->fileHandle != H5I_INVALID_HID);
-			local_writeVariableAtPatch(var, patch, dt, gridSize,
-			                           tmp->fileHandle, dsCreationPropList);
-		}
-	}
-	H5Sclose(gridSize);
-}
-
+	writer->fileHandle = H5I_INVALID_HID;
 #ifdef WITH_MPI
-extern void
-gridWriterHDF5_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
-{
-	gridWriterHDF5_t tmp = (gridWriterHDF5_t)writer;
-
-	assert(tmp != NULL);
-	assert(tmp->type == GRIDIO_TYPE_HDF5);
-
-	tmp->mpiComm = mpiComm;
+	writer->mpiComm    = MPI_COMM_NULL;
+#endif
+	writer->doChunking = false;
+	for (int i = 0; i < NDIM; i++)
+		writer->chunkSize[i] = 0;
+	writer->doChecksum        = false;
+	writer->doCompression     = false;
+	writer->compressionFilter = H5I_INVALID_HID;
 }
 
-#endif
-
+extern void
+gridWriterHDF5_free(gridWriterHDF5_t writer)
+{
+	assert(writer->fileHandle == H5I_INVALID_HID);
+}
 
 /*--- Implementations of local functions --------------------------------*/
 #ifdef WITH_MPI
@@ -422,21 +435,28 @@ local_getAccessPropsFileAccessMPI(MPI_Comm comm)
 #endif
 
 static hid_t
-local_createNewFile(const gridWriterHDF5_t writer)
+local_getFileHandle(const gridWriterHDF5_t writer)
 {
 	hid_t fileHandle;
 #ifdef WITH_MPI
-	hid_t accessProp = local_getAccessPropsFileAccessMPI(writer->mpiComm);
+	hid_t accessProp      = local_getAccessPropsFileAccessMPI(
+	    writer->mpiComm);
 #else
-	hid_t accessProp = H5P_DEFAULT;
+	hid_t      accessProp = H5P_DEFAULT;
 #endif
+	const char *fname     = filename_getFullName(writer->base.fileName);
 
-	if (writer->force)
-		fileHandle = H5Fcreate(writer->fileName, H5F_ACC_TRUNC,
-		                       H5P_DEFAULT, accessProp);
-	else
-		fileHandle = H5Fcreate(writer->fileName, H5F_ACC_EXCL,
-		                       H5P_DEFAULT, accessProp);
+	if (!gridWriter_hasBeenActivated((gridWriter_t)writer)) {
+		if (gridWriter_getOverwriteFileIfExists((gridWriter_t)writer)) {
+			fileHandle = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT,
+			                       accessProp);
+		} else {
+			fileHandle = H5Fcreate(fname, H5F_ACC_EXCL, H5P_DEFAULT,
+			                       accessProp);
+		}
+	} else {
+		fileHandle = H5Fopen(fname, H5F_ACC_RDWR, accessProp);
+	}
 	if (fileHandle < 0)
 		diediedie(EXIT_FAILURE);
 
@@ -447,7 +467,7 @@ local_createNewFile(const gridWriterHDF5_t writer)
 }
 
 static hid_t
-local_getDSCreationPropList(gridWriterHDF5_t writer)
+local_getDSCreationPropList(const gridWriterHDF5_t writer)
 {
 	hid_t rtn = H5P_DEFAULT;
 

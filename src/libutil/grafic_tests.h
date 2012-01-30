@@ -49,6 +49,9 @@ extern bool
 grafic_getIseed_test(void);
 
 extern bool
+grafic_getIsWhiteNoise_test(void);
+
+extern bool
 grafic_setFileName_test(void);
 
 extern bool
@@ -76,7 +79,7 @@ extern bool
 grafic_setIseed_test(void);
 
 extern bool
-grafic_isWhiteNoise_test(void);
+grafic_setIsWhiteNoise_test(void);
 
 extern bool
 grafic_makeEmptyFile_test(void);

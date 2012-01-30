@@ -23,7 +23,7 @@
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
-#include "../libutil/parse_ini.h"
+#include "../libutil/filename.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -34,30 +34,15 @@
 typedef struct gridWriter_struct *gridWriter_t;
 
 
-/*--- Prototypes of exported functions ----------------------------------*/
+/*--- Prototypes of virtual functions -----------------------------------*/
 
 /**
- * @name  Creating and Deleting
+ * @name  Creating and Deleting (Public, Virtual, Abstract)
+ *
+ * Note that the base writer cannot be instantiated.
  *
  * @{
  */
-
-/**
- * @brief  Creates a new writer object from an ini file.
- *
- * @param[in,out]  ini
- *                    The ini file in which to look for the construction
- *                    information for this writer.
- * @param[in]      *sectionName
- *                    The section name within the ini file that holds
- *                    the construction information.
- *
- * @return  Returns a new writer object that is constructed from the
- *          information in the ini file.
- */
-extern gridWriter_t
-gridWriter_newFromIni(parse_ini_t ini, const char *sectionName);
-
 
 /**
  * @brief  Deletes a writer object and frees the associated memory.
@@ -77,7 +62,7 @@ gridWriter_del(gridWriter_t *writer);
 /** @} */
 
 /**
- * @name  Using
+ * @name  Using (Public, Virtual, Abstract)
  *
  * @{
  */
@@ -157,7 +142,7 @@ gridWriter_writeGridRegular(gridWriter_t  writer,
 #ifdef WITH_MPI
 
 /**
- * @name  Additional Initialization
+ * @name  Additional Initialization (Virtual, Abstract)
  *
  * @{
  */
@@ -180,6 +165,143 @@ gridWriter_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
 
 /** @} */
 #endif
+
+/*--- Prototypes of final functions -------------------------------------*/
+
+/**
+ * @name  Getting/Setting (Public, Final)
+ *
+ * @{
+ */
+
+/**
+ * @brief  Sets whether the writer should overwrite an existing file (only
+ *         on first open)
+ *
+ * @param[in,out]  writer
+ *                    The writer to work with.  Passing @c NULL is
+ *                    undefined.
+ * @param[in]      overwriteFileIfExists
+ *                    If this is @c true, then on the very first activation
+ *                    of the reader the target file will be overwritten, if
+ *                    it already exists.  If @c false is passed, the writing
+ *                    will fail with an error if the file already exists.
+ *                    If the target file does not exists on the first
+ *                    activation, this flag has no effect.
+ *
+ * @return  Returns nothings.
+ */
+extern void
+gridWriter_setOverwriteFileIfExists(gridWriter_t writer,
+                                    bool         overwriteFileIfExists);
+
+
+/**
+ * @brief  Retrieves the flag dealing with overwriting the target file.
+ *
+ * @param[in]  writer
+ *                The writer object to query.  Passing @c NULL is undefined.
+ *
+ * @return  Returns @c true if the target file would be overwritten on the
+ *          first activation of the writer.  If the file would not be
+ *          overwritten, @c false is returned.
+ */
+extern bool
+gridWriter_getOverwriteFileIfExists(const gridWriter_t writer);
+
+
+/**
+ * @brief  Sets a new file name for the writer.
+ *
+ * This function may only be called when the writer is deactivated.
+ *
+ * @param[in,out]  writer
+ *                    The writer to work with.  Passing @c NULL is
+ *                    undefined as is passing a writer that is currently
+ *                    activated.
+ * @param[in]      fileName
+ *                    The new filename object to use.  Passing @c NULL is
+ *                    undefined.  The caller relinquishes control over to
+ *                    object.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+gridWriter_setFileName(gridWriter_t writer,
+                       filename_t   fileName);
+
+/**
+ * @brief  Will update the filename of the writer with the (set) fields in
+ *         the file name object.
+ *
+ * This function may only be called when the writer is deactivated.
+ *
+ * @param[in,out]  writer
+ *                    The writer to work with.  Passing @c NULL is
+ *                    undefined as is passing a writer that is currently
+ *                    activated.
+ * @param[in]      fileName
+ *                    The filename object from which to take the updated
+ *                    information.  The caller has to free the filename
+ *                    object.
+ *
+ * @return  Returns nothing.                    
+ */
+extern void
+gridWriter_overlayFileName(gridWriter_t writer,
+                           const filename_t fileName);
+
+
+/**
+ * @brief  Retrieves the current filename the writer uses.
+ *
+ * @param[in]  writer
+ *                The writer to query, this must be a valid writer, passing
+ *                @c NULL is undefined.
+ *
+ * @return  Returns the internal filename object, the caller may only use it
+ *          read-only.
+ */
+extern const filename_t
+gridWriter_getFileName(const gridWriter_t writer);
+
+
+/** @} */
+
+
+/**
+ * @name  Using (Public, Final)
+ *
+ * @{
+ */
+
+/**
+ * @brief  Queries whether the reader is active or not.
+ *
+ * @param[in]  writer
+ *                The writer to query, must be a valid writer object.
+ *                Passing @c NULL is undefined.
+ *
+ * @return  Returns @c true if the writer is active and @c false if not.
+ */
+extern bool
+gridWriter_isActive(const gridWriter_t writer);
+
+/**
+ * @brief  Checks if the writer has been activated already.
+ *
+ * @param[in]  writer
+ *                The writer to query, must be a valid writer, passing
+ *                @c NULL is undefined.
+ *
+ * @return  Returns @c false if the writer has never been activated with the
+ *          current file name.  If the writer already has been activated
+ *          before (and possibly also been deactivated) @c true is returned.
+ */
+extern bool
+gridWriter_hasBeenActivated(const gridWriter_t writer);
+
+/** @} */
 
 
 /*--- Doxygen group definitions -----------------------------------------*/

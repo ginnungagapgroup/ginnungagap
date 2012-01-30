@@ -25,7 +25,7 @@
 #include "../../src/libgrid/gridRegular.h"
 #include "../../src/libgrid/gridStatistics.h"
 #include "../../src/libgrid/gridReader.h"
-#include "../../src/libgrid/gridWriter.h"
+#include "../../src/libgrid/gridWriterFactory.h"
 #include "../../src/libgrid/gridPatch.h"
 #include "../../src/libgrid/gridHistogram.h"
 #include "../../src/libdata/dataVar.h"
@@ -296,13 +296,16 @@ realSpaceConstraints_newFromIni(parse_ini_t ini)
 		te->writerIn = NULL;
 	} else {
 		te->reader   = NULL;
-		te->writerIn = gridWriter_newFromIni(ini,
-		                                     te->setup->writerInSecName);
+		te->writerIn = gridWriterFactory_newWriterFromIni(
+		    ini,
+		    te->setup->writerInSecName);
 #ifdef WITH_MPI
 		gridWriter_initParallel(te->writerIn, MPI_COMM_WORLD);
 #endif
 	}
-	te->writer = gridWriter_newFromIni(ini, te->setup->writerSecName);
+	te->writer = gridWriterFactory_newWriterFromIni(
+	    ini,
+	    te->setup->writerSecName);
 #ifdef WITH_MPI
 	gridWriter_initParallel(te->writer, MPI_COMM_WORLD);
 #endif
@@ -315,7 +318,7 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 {
 	double           timing;
 	gridStatistics_t stat;
-	int rank = 0;
+	int              rank = 0;
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -527,9 +530,9 @@ local_fillPatchWithWhiteNoise(gridPatch_t patch, int seed)
 #endif
 	numStreams = numThreads * size;
 
-	data        = (fpv_t *)gridPatch_getVarDataHandle(patch, 0);
-	numCells    = gridPatch_getNumCells(patch);
-	rng         = rng_new(4, numStreams, seed);
+	data       = (fpv_t *)gridPatch_getVarDataHandle(patch, 0);
+	numCells   = gridPatch_getNumCells(patch);
+	rng        = rng_new(4, numStreams, seed);
 
 #ifdef WITH_OPENMP
 #  pragma omp parallel shared(numCells, rng) num_threads(numThreads)

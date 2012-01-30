@@ -18,19 +18,15 @@
 #include "gridWriter.h"
 #include <assert.h>
 #include <stdio.h>
-#ifdef WITH_SILO
-#  include "gridWriterSilo.h"
+#ifdef WITH_MPI
+#  include <mpi.h>
 #endif
-#ifdef WITH_HDF5
-#  include "gridWriterHDF5.h"
-#endif
-#include "gridWriterGrafic.h"
 #include "gridPatch.h"
 #include "gridRegular.h"
 #include "gridPoint.h"
-#include "../libutil/parse_ini.h"
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
+#include "../libutil/filename.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -41,42 +37,14 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
-static gridWriter_t
-local_newFromIniWrapper(parse_ini_t   ini,
-                        gridIO_type_t type,
-                        const char    *writerSectionName);
 
 
-/*--- Implementations of exported functios ------------------------------*/
-extern gridWriter_t
-gridWriter_newFromIni(parse_ini_t ini, const char *sectionName)
-{
-	gridWriter_t  writer;
-	char          *writerTypeName;
-	gridIO_type_t type;
-	char          *writerSectionName;
-
-	assert(ini != NULL);
-	assert(sectionName != NULL);
-
-	getFromIni(&writerTypeName, parse_ini_get_string,
-	           ini, "writerType", sectionName);
-	type = gridIO_getTypeFromName(writerTypeName);
-	xfree(writerTypeName);
-	getFromIni(&writerSectionName, parse_ini_get_string,
-	           ini, "writerSection", sectionName);
-
-	writer = local_newFromIniWrapper(ini, type, writerSectionName);
-
-	xfree(writerSectionName);
-
-	return writer;
-}
-
+/*--- Implementations of virtual function -------------------------------*/
 extern void
 gridWriter_del(gridWriter_t *writer)
 {
 	assert(writer != NULL && *writer != NULL);
+	assert((*writer)->func->del != NULL);
 
 	(*writer)->func->del(writer);
 }
@@ -88,6 +56,7 @@ gridWriter_activate(gridWriter_t writer)
 	assert(writer->func->activate != NULL);
 
 	writer->func->activate(writer);
+	writer->hasBeenActivated = true;
 }
 
 extern void
@@ -107,10 +76,6 @@ gridWriter_writeGridPatch(gridWriter_t   writer,
                           gridPointDbl_t delta)
 {
 	assert(writer != NULL);
-	assert(patch != NULL);
-	assert(patchName != NULL);
-	assert(origin != NULL);
-	assert(delta != NULL);
 	assert(writer->func->writeGridPatch != NULL);
 
 	writer->func->writeGridPatch(writer, patch, patchName, origin, delta);
@@ -140,41 +105,105 @@ gridWriter_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 #endif
 
 
-/*--- Implementations of local functions --------------------------------*/
-static gridWriter_t
-local_newFromIniWrapper(parse_ini_t   ini,
-                        gridIO_type_t type,
-                        const char    *writerSectionName)
+/*--- Implementations of final functions --------------------------------*/
+extern void
+gridWriter_setOverwriteFileIfExists(gridWriter_t writer,
+                                    bool         overwriteFileIfExists)
 {
-	gridWriter_t writer;
+	assert(writer != NULL);
 
-	if (type == GRIDIO_TYPE_SILO) {
-#ifdef WITH_SILO
-		writer = (gridWriter_t)gridWriterSilo_newFromIni(ini,
-		                                                 writerSectionName);
-#else
-		fprintf(stderr,
-		        "To use Silo output, run configure using --with-silo\n");
-		diediedie(EXIT_FAILURE);
-#endif
-	} else if (type == GRIDIO_TYPE_GRAFIC) {
-		writer = (gridWriter_t)gridWriterGrafic_newFromIni(
-		    ini,
-		    writerSectionName);
-	} else if (type == GRIDIO_TYPE_HDF5) {
-#ifdef WITH_HDF5
-		writer = (gridWriter_t)gridWriterHDF5_newFromIni(ini,
-		                                                 writerSectionName);
-#else
-		fprintf(stderr,
-		        "To use HF5 output, run configure using --with-hdf5\n");
-		diediedie(EXIT_FAILURE);
-#endif
-	} else {
-		fprintf(stderr, "Cannot create writer for %s\n",
-		        gridIO_getNameFromType(type));
-		diediedie(EXIT_FAILURE);
-	}
+	writer->overwriteFileIfExists = overwriteFileIfExists;
+}
 
-	return writer;
-} /* local_newFromIniWrapper */
+extern bool
+gridWriter_getOverwriteFileIfExists(const gridWriter_t writer)
+{
+	assert(writer != NULL);
+
+	return writer->overwriteFileIfExists;
+}
+
+extern void
+gridWriter_setFileName(gridWriter_t writer,
+                       filename_t   fileName)
+{
+	assert(writer != NULL);
+	assert(fileName != NULL);
+	assert(!gridWriter_isActive(writer));
+
+	if (writer->fileName != NULL)
+		filename_del(&(writer->fileName));
+	writer->fileName = fileName;
+	writer->hasBeenActivated = false;
+}
+
+extern void
+gridWriter_overlayFileName(gridWriter_t writer,
+                           const filename_t fileName)
+{
+	assert(writer != NULL);
+	assert(fileName != NULL);
+	assert(!gridWriter_isActive(writer));
+
+	if (writer->fileName == NULL) 
+		writer->fileName = filename_clone(fileName);
+	else 
+		filename_copySetFields(writer->fileName, fileName);
+
+	writer->hasBeenActivated = false;
+}
+
+extern const filename_t
+gridWriter_getFileName(const gridWriter_t writer)
+{
+	assert(writer != NULL);
+
+	return writer->fileName;
+}
+
+extern bool
+gridWriter_isActive(const gridWriter_t writer)
+{
+	assert(writer != NULL);
+
+	return writer->isActive;
+}
+
+extern bool
+gridWriter_hasBeenActivated(const gridWriter_t writer)
+{
+	assert(writer != NULL);
+
+	return writer->hasBeenActivated;
+}
+
+/*--- Implementations of protected functions ----------------------------*/
+extern void
+gridWriter_init(gridWriter_t      writer,
+                gridIO_type_t     type,
+                gridWriter_func_t func)
+{
+	assert(writer != NULL);
+
+	writer->type                  = type;
+	writer->func                  = func;
+	writer->isActive              = false;
+	writer->hasBeenActivated      = false;
+	writer->overwriteFileIfExists = false;
+	writer->fileName              = NULL;
+}
+
+extern void
+gridWriter_free(gridWriter_t writer)
+{
+	assert(writer != NULL);
+	assert(writer->isActive == false);
+
+	if (writer->isActive)
+		gridWriter_deactivate(writer);
+
+	if (writer->fileName != NULL)
+		filename_del(&(writer->fileName));
+}
+
+/*--- Implementations of local functions --------------------------------*/

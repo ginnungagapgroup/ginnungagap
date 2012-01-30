@@ -138,7 +138,7 @@ local_getDataAndMeta(const char *fname,
 
 	grafic = grafic_newFromFile(fname);
 	grafic_getSize(grafic, np);
-	if (grafic_isWhiteNoise(grafic)) {
+	if (grafic_getIsWhiteNoise(grafic)) {
 		*dx     = 1.0;
 		*astart = 1.0;
 	} else {

@@ -129,12 +129,8 @@ gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
 	gridPatch_getIdxLo(patch, idxLoPatch);
 	gridPatch_getDims(patch, dimsPatch);
 
-#if 0
 	dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file,
 	                         dataVar_getName(var), H5P_DEFAULT);
-#endif
-	dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file,
-	                         "wn", H5P_DEFAULT);
 	dataTypeFile   = H5Dget_type(dataSet);
 	dataSpaceFile  = H5Dget_space(dataSet);
 

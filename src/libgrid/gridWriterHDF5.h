@@ -1,4 +1,4 @@
-// Copyright (C) 2011, Steffen Knollmann
+// Copyright (C) 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -18,12 +18,12 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridWriter.h"
+#include "gridPatch.h"
+#include "gridRegular.h"
+#include "gridPoint.h"
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
-#include "gridRegular.h"
-#include "gridPatch.h"
-#include "gridPoint.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -32,10 +32,77 @@
 typedef struct gridWriterHDF5_struct *gridWriterHDF5_t;
 
 
-/*--- Prototypes of exported functions ----------------------------------*/
+/*--- Prototypes of implemented abstract functions ----------------------*/
 
 /**
- * @name  Creating and Deleting
+ * @name  Creating and Deleting (Public, Virtual)
+ *
+ * @{
+ */
+
+/** @copydoc gridWriter_del() */
+extern void
+gridWriterHDF5_del(gridWriter_t *writer);
+
+
+/** @} */
+
+
+/**
+ * @name  Using (Public, Virtual)
+ *
+ * @{
+ */
+
+/** @copydoc gridWriter_activate() */
+extern void
+gridWriterHDF5_activate(gridWriter_t writer);
+
+
+/** @copydoc gridWriter_deactivate() */
+extern void
+gridWriterHDF5_deactivate(gridWriter_t writer);
+
+
+/** @copydoc gridWriter_writeGridPatch() */
+extern void
+gridWriterHDF5_writeGridPatch(gridWriter_t   writer,
+                              gridPatch_t    patch,
+                              const char     *patchName,
+                              gridPointDbl_t origin,
+                              gridPointDbl_t delta);
+
+
+/** @copydoc gridWriter_writeGridRegular() */
+extern void
+gridWriterHDF5_writeGridRegular(gridWriter_t  writer,
+                                gridRegular_t grid);
+
+
+/** @} */
+
+#ifdef WITH_MPI
+
+/**
+ * @name  Additional Initialization (Public, Virtual)
+ *
+ * @{
+ */
+
+/** @copydoc gridWriter_initParallel() */
+extern void
+gridWriterHDF5_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
+
+
+/** @} */
+
+#endif
+
+
+/*--- Prototypes of final functions -------------------------------------*/
+
+/**
+ * @name  Creating and Deleting (Public, Final)
  *
  * @{
  */
@@ -49,56 +116,14 @@ extern gridWriterHDF5_t
 gridWriterHDF5_new(void);
 
 
-/** @copydoc gridWriter_newFromIni() */
-extern gridWriterHDF5_t
-gridWriterHDF5_newFromIni(parse_ini_t ini, const char *sectionName);
-
-
-/** @copydoc gridWriter_del() */
-extern void
-gridWriterHDF5_del(gridWriter_t *writer);
-
-
 /** @} */
 
+
 /**
- * @name  Setting
+ * @name  Setting (Public, Final)
+ *
  * @{
  */
-
-/**
- * @brief  This will set the file name of the output file.
- *
- * @param[in]  w
- *                The writer for which to work with.
- * @param[in]  *fileName
- *                The file name of the output file.  The function will
- *                create a copy of the string, hence the calling process
- *                is still responsible for the memory of the string.
- *
- * *@return  Returns nothing.
- */
-extern void
-gridWriterHDF5_setFileName(gridWriterHDF5_t w, const char *fileName);
-
-
-/**
- * @brief  This will set whether an existing file should be overwritten.
- *
- * @param[in]  w
- *                The writer for which to work with.
- * @param[in]  force
- *                If set to @c true, then the output file will overwrite
- *                a file with the same name (should it exist).  If set
- *                to @c false, the code will fail if a file with the
- *                output name already exists.  The actual file creation
- *                happens by calling gridWriterHDF5_actiavte().
- *
- * *@return  Returns nothing.
- */
-extern void
-gridWriterHDF5_setForce(gridWriterHDF5_t w, bool force);
-
 
 /**
  * @brief  This will write the data in a chunked manner instead of
@@ -179,56 +204,6 @@ gridWriterHDF5_setCompressionFilter(gridWriterHDF5_t w,
 
 
 /** @} */
-
-/**
- * @name  Using
- *
- * @{
- */
-
-/** @copydoc gridWriter_activate() */
-extern void
-gridWriterHDF5_activate(gridWriter_t writer);
-
-
-/** @copydoc gridWriter_deactivate() */
-extern void
-gridWriterHDF5_deactivate(gridWriter_t writer);
-
-
-/** @copydoc gridWriter_writeGridPatch() */
-extern void
-gridWriterHDF5_writeGridPatch(gridWriter_t   writer,
-                              gridPatch_t    patch,
-                              const char     *patchName,
-                              gridPointDbl_t origin,
-                              gridPointDbl_t delta);
-
-
-/** @copydoc gridWriter_writeGridRegular() */
-extern void
-gridWriterHDF5_writeGridRegular(gridWriter_t  writer,
-                                gridRegular_t grid);
-
-
-/** @} */
-
-#ifdef WITH_MPI
-
-/**
- * @name  Additional Initialization
- *
- * @{
- */
-
-/** @copydoc gridWriter_initParallel() */
-extern void
-gridWriterHDF5_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
-
-
-/** @} */
-
-#endif
 
 
 /*--- Doxygen group definitions -----------------------------------------*/

@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012 Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -34,12 +34,14 @@
 #include "../libutil/xstring.h"
 #include "../libutil/xfile.h"
 #include "../libutil/timer.h"
+#include "../libutil/filename.h"
 #include "../libutil/utilMath.h"
 #include "../libcosmo/cosmo.h"
 #include "../libcosmo/cosmoFunc.h"
 #include "../libdata/dataVar.h"
 #include "../libdata/dataVarType.h"
 #include "../libgrid/gridWriter.h"
+#include "../libgrid/gridWriterFactory.h"
 #include "../libgrid/gridStatistics.h"
 #include "../libgrid/gridHistogram.h"
 #ifdef WITH_FFT_FFTW3
@@ -96,6 +98,9 @@ local_doHistogram(ginnungagap_t         g9p,
                   const char            *histoName);
 
 static void
+local_doRenames(dataVar_t var, gridWriter_t writer, const char *newName);
+
+static void
 local_do2LPTCorrections(ginnungagap_t g9p);
 
 
@@ -117,7 +122,7 @@ ginnungagap_new(parse_ini_t ini)
 	g9p->gridDistrib = local_getGridDistrib(g9p);
 	g9p->posOfDens   = local_initGrid(g9p->grid, g9p->gridDistrib);
 	g9p->gridFFT     = local_getFFT(g9p);
-	g9p->finalWriter = gridWriter_newFromIni(ini, "Output");
+	g9p->finalWriter = gridWriterFactory_newWriterFromIni(ini, "Output");
 	g9p->rank        = 0;
 	g9p->size        = 1;
 	g9p->numThreads  = 1;
@@ -285,7 +290,7 @@ local_initGrid(gridRegular_t grid, gridRegularDistrib_t distrib)
 	                                               localRank);
 	gridRegular_attachPatch(grid, patch);
 
-	dens = dataVar_new("density", DATAVARTYPE_FPV, 1);
+	dens = dataVar_new("wn", DATAVARTYPE_FPV, 1);
 #ifdef WITH_FFT_FFTW3
 #  ifdef ENABLE_DOUBLE
 	dataVar_setMemFuncs(dens, &fftw_malloc, &fftw_free);
@@ -315,7 +320,7 @@ local_newHistograms(ginnungagap_t g9p)
 		uint32_t numBins = g9p->setup->histogramNumBins;
 		double   extreme = g9p->setup->histogramExtremeWN;
 		g9p->histoWN   = gridHistogram_new(numBins, -extreme, extreme);
-		extreme = g9p->setup->histogramExtremeDens;
+		extreme        = g9p->setup->histogramExtremeDens;
 		g9p->histoDens = gridHistogram_new(numBins, -extreme, extreme);
 		extreme        = g9p->setup->histogramExtremeVel;
 		g9p->histoVel  = gridHistogram_new(numBins, -extreme, extreme);
@@ -401,19 +406,25 @@ local_doDeltaKPk(ginnungagap_t g9p)
 static void
 local_doDeltaX(ginnungagap_t g9p)
 {
-	double timing;
+	double    timing;
+#ifdef ENABLE_WRITING
+	dataVar_t var;
+#endif
 
 	timing = timer_start("  Going back to real space");
 	gridRegularFFT_execute(g9p->gridFFT, GRIDREGULARFFT_BACKWARD);
 	timing = timer_stop(timing);
 
 #ifdef ENABLE_WRITING
+	var = gridRegular_getVarHandle(g9p->grid, g9p->posOfDens);
 	if (g9p->setup->writeDensityField) {
 		timing = timer_start("  Writing delta(x) to file");
+		local_doRenames(var, g9p->finalWriter, "delta");
 		gridWriter_activate(g9p->finalWriter);
 		gridWriter_writeGridRegular(g9p->finalWriter,
 		                            g9p->grid);
 		gridWriter_deactivate(g9p->finalWriter);
+		dataVar_rename(var, "wn");
 		timing = timer_stop(timing);
 	}
 #endif
@@ -451,11 +462,12 @@ local_doVelocities(ginnungagap_t g9p, g9pICMode_t mode)
 	timing = timer_start(msg2);
 	var    = gridRegular_getVarHandle(g9p->grid,
 	                                  g9p->posOfDens);
-	dataVar_rename(var, g9pIC_getModeStr(mode));
+	local_doRenames(var, g9p->finalWriter, g9pIC_getModeStr(mode));
 	gridWriter_activate(g9p->finalWriter);
 	gridWriter_writeGridRegular(g9p->finalWriter,
 	                            g9p->grid);
 	gridWriter_deactivate(g9p->finalWriter);
+	dataVar_rename(var, "wn");
 	timing = timer_stop(timing);
 	xfree(msg2);
 	xfree(msg);
@@ -494,6 +506,21 @@ local_doHistogram(ginnungagap_t         g9p,
 		gridHistogram_printPrettyFile(histo, histoName, false, "");
 		printf("    Histogram written to %s.\n", histoName);
 	}
+}
+
+static void
+local_doRenames(dataVar_t var, gridWriter_t writer, const char *newName)
+{
+	filename_t fn = filename_clone(gridWriter_getFileName(writer));
+	char *qualifier = xstrmerge("_", newName);
+
+	filename_setQualifier(fn, qualifier);
+
+	dataVar_rename(var, newName);
+	gridWriter_overlayFileName(writer, fn);
+
+	xfree(qualifier);
+	filename_del(&fn);
 }
 
 static void

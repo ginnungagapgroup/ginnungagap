@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -113,7 +113,7 @@ local_writePlane(FILE           *f,
 
 /*--- Implementations of exported functios ------------------------------*/
 extern grafic_t
-grafic_new(bool isWhiteNoise)
+grafic_new(void)
 {
 	grafic_t grafic;
 
@@ -121,8 +121,6 @@ grafic_new(bool isWhiteNoise)
 	grafic->graficFileName   = NULL;
 	grafic->machineEndianess = endian_getSystemEndianess();
 	grafic->fileEndianess    = grafic->machineEndianess;
-	grafic->isWhiteNoise     = isWhiteNoise;
-	grafic->headerSkip       = isWhiteNoise ? 16 : 44;
 	grafic->np1              = 0;
 	grafic->np2              = 0;
 	grafic->np3              = 0;
@@ -135,6 +133,8 @@ grafic_new(bool isWhiteNoise)
 	grafic->omegav           = 0.0f;
 	grafic->h0               = 0.0f;
 	grafic->iseed            = 0;
+
+	grafic_setIsWhiteNoise(grafic, false);
 
 	return grafic;
 }
@@ -150,9 +150,10 @@ grafic_newFromFile(const char *fileName)
 
 	f                      = xfopen(fileName, "r");
 	isWhiteNoise           = local_checkIfFileIsWhiteNoise(f);
-	grafic                 = grafic_new(isWhiteNoise);
+	grafic                 = grafic_new();
 	grafic->graficFileName = xstrdup(fileName);
 	grafic->fileEndianess  = endian_getFileEndianessByBlock(fileName);
+	grafic_setIsWhiteNoise(grafic, isWhiteNoise);
 	local_readGrafic(grafic, f);
 
 	xfclose(&f);
@@ -257,6 +258,13 @@ grafic_getIseed(grafic_t grafic)
 	return grafic->iseed;
 }
 
+extern bool
+grafic_getIsWhiteNoise(grafic_t grafic)
+{
+	assert(grafic != NULL);
+	return grafic->isWhiteNoise;
+}
+
 extern void
 grafic_setFileName(grafic_t grafic, const char *fileName)
 {
@@ -358,11 +366,13 @@ grafic_setIseed(grafic_t grafic, int iseed)
 	grafic->iseed = iseed;
 }
 
-extern bool
-grafic_isWhiteNoise(grafic_t grafic)
+extern void
+grafic_setIsWhiteNoise(grafic_t grafic, bool isWhiteNoise)
 {
 	assert(grafic != NULL);
-	return grafic->isWhiteNoise;
+
+	grafic->isWhiteNoise = isWhiteNoise;
+	grafic->headerSkip   = isWhiteNoise ? 16 : 44;
 }
 
 extern void

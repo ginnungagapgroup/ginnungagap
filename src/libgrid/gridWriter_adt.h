@@ -26,38 +26,193 @@
 #include "gridPatch.h"
 #include "gridRegular.h"
 #include "gridPoint.h"
-#include "../libutil/parse_ini.h"
+#include "../libutil/filename.h"
 
+
+/*--- Callback types ----------------------------------------------------*/
+
+/**
+ * @brief  The signature of the function that is implementing the delete
+ *         funcion.
+ */
+typedef void
+(*gridWriter_delFunc_t)(gridWriter_t *writer);
+
+/**
+ * @brief  The signature of the function that implements the activation of
+ *         the writer.
+ */
+typedef void
+(*gridWriter_activateFunc_t)(gridWriter_t writer);
+
+/**
+ * @brief  The signature of the function that implements the deactivation
+ *         of the writer.
+ */
+typedef void
+(*gridWriter_deactivateFunc_t)(gridWriter_t writer);
+
+/**
+ * @brief  The signature of the function that implements the writing of a
+ *         patch.
+ */
+typedef void
+(*gridWriter_writeGridPatchFunc_t)(gridWriter_t   writer,
+                                   gridPatch_t    patch,
+                                   const char     *patchName,
+                                   gridPointDbl_t origin,
+                                   gridPointDbl_t delta);
+
+/**
+ * @brief  The signature of the function that implements the writing of a
+ *         grid.
+ */
+typedef void
+(*gridWriter_writeGridRegularFunc_t)(gridWriter_t  writer,
+                                     gridRegular_t grid);
+
+#ifdef WITH_MPI
+
+/**
+ * @brief  The signature of the function that implements the additionally
+ *         required parallel setup.
+ */
+typedef void
+(*gridWriter_initParallelFunc_t)(gridWriter_t writer, MPI_Comm mpiComm);
+#endif
 
 /*--- Internal structures -----------------------------------------------*/
+
+/** @brief  Provides the function table. */
 struct gridWriter_func_struct {
-	void (*del)(gridWriter_t *writer);
-	void (*activate)(gridWriter_t writer);
-	void (*deactivate)(gridWriter_t writer);
-	void (*writeGridPatch)(gridWriter_t   writer,
-	                       gridPatch_t    patch,
-	                       const char     *patchName,
-	                       gridPointDbl_t origin,
-	                       gridPointDbl_t delta);
-	void (*writeGridRegular)(gridWriter_t  writer,
-	                         gridRegular_t grid);
+	/** @brief The function used to delete the writer object. */
+	gridWriter_delFunc_t              del;
+	/** @brief The function used to actiavte the writer. */
+	gridWriter_activateFunc_t         activate;
+	/** @brief The function used to deactivate the writer. */
+	gridWriter_deactivateFunc_t       deactivate;
+	/** @brief The function used to write a patch. */
+	gridWriter_writeGridPatchFunc_t   writeGridPatch;
+	/** @brief The function used to write a grid. */
+	gridWriter_writeGridRegularFunc_t writeGridRegular;
 #ifdef WITH_MPI
-	void (*initParallel)(gridWriter_t writer, MPI_Comm mpiComm);
+	/** @brief The function used to initialize the MPI information. */
+	gridWriter_initParallelFunc_t initParallel;
 #endif
 };
 
+/** @brief  Provides a short name for the function table. */
 typedef struct gridWriter_func_struct *gridWriter_func_t;
 
 
 /*--- ADT implementation ------------------------------------------------*/
-#define GRIDWRITER_T_CONTENT \
-    gridIO_type_t type;      \
-    gridWriter_func_t func;  \
-    bool              isActive;
 
+/**
+ * @brief  Implements the main structure for a grid Writer.
+ */
 struct gridWriter_struct {
-	GRIDWRITER_T_CONTENT
+	/** @brief  Gives the type this writer is for. */
+	gridIO_type_t     type;
+	/** @brief  Provides the function table of the actual functions. */
+	gridWriter_func_t func;
+	/** @brief  Keeps track of whether the writer is active of not. */
+	bool              isActive;
+	/** @brief  Tracks if #gridWriter_activate() has already been called. */
+	bool              hasBeenActivated;
+	/** @brief  Decides what to do if the target already exists. */
+	bool              overwriteFileIfExists;
+	/** @brief  Holds the file name object for the file. */
+	filename_t        fileName;
 };
+
+
+/*--- Prototypes of protected functions ---------------------------------*/
+
+/**
+ * @name  Creating and Deleting (Protected)
+ *
+ * Those are the functions that are only available from within the basic
+ * writer and the ones that inherit from the basic writer (the OO equivalent
+ * would be @a protected).
+ *
+ * @{
+ */
+
+/**
+ * @brief  Sets all required fields of the basic writer structure.
+ *
+ * @param[in,out]  writer
+ *                    The writer to initialize.  This must be a valid writer
+ *                    object.  Passing @c NULL is undefined.
+ * @param[in]      type
+ *                    The type of the writer.
+ * @param[in]      func
+ *                    The function table that holds the implementations of
+ *                    the virtual functions.
+ *
+ *
+ * @return  Returns nothing.
+ */
+extern void
+gridWriter_init(gridWriter_t      writer,
+                gridIO_type_t     type,
+                gridWriter_func_t func);
+
+
+/**
+ * @brief  This will free the members of the basic structure.
+ *
+ * @param[in,out]  writer
+ *                    The writer to work with.  This must be a valid writer
+ *                    object, passing @c NULL is undefined.
+ */
+extern void
+gridWriter_free(gridWriter_t writer);
+
+
+/** @} */
+
+/**
+ * @name  Using (Protected)
+ *
+ * @{
+ */
+
+/**
+ * @brief  Set the active status to @c true.
+ *
+ * @param[in,out]  writer
+ *                    The writer to set to active, passing @c NULL is
+ *                    undefined.
+ *
+ * @return  Returns nothing.
+ */
+inline static void
+gridWriter_setIsActive(gridWriter_t writer)
+{
+	assert(writer != NULL);
+
+	writer->isActive = true;
+}
+
+/**
+ * @brief  Set the active status to @c false.
+ *
+ * @param[in,out]  writer
+ *                    The writer to set to active, passing @c NULL is
+ *                    undefined.
+ *
+ * @return  Returns nothing.
+ */
+inline static void
+gridWriter_setIsInactive(gridWriter_t writer)
+{
+	assert(writer != NULL);
+
+	writer->isActive = false;
+}
+
+/** @} */
 
 
 #endif

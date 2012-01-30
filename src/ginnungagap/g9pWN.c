@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -21,6 +21,8 @@
 #include "../libutil/diediedie.h"
 #include "../libgrid/gridRegular.h"
 #include "../libgrid/gridReader.h"
+#include "../libgrid/gridWriter.h"
+#include "../libgrid/gridWriterFactory.h"
 #include "../libgrid/gridPatch.h"
 
 
@@ -152,7 +154,7 @@ local_newGetOutput(g9pWN_t     wn,
                    const char  *sectionName)
 {
 	if (wn->dumpWhiteNoise) {
-		wn->writer = gridWriter_newFromIni(ini, sectionName);
+		wn->writer = gridWriterFactory_newWriterFromIni(ini, sectionName);
 #ifdef WITH_MPI
 		gridWriter_initParallel(wn->writer, MPI_COMM_WORLD);
 #endif

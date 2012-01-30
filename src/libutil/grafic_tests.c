@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -43,14 +43,15 @@ grafic_new_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	if (grafic->isWhiteNoise != false)
 		hasPassed = false;
 	if (grafic->graficFileName != NULL)
 		hasPassed = false;
 	grafic_del(&grafic);
 
-	grafic = grafic_new(true);
+	grafic = grafic_new();
+	grafic_setIsWhiteNoise(grafic, true);
 	if (grafic->isWhiteNoise != true)
 		hasPassed = false;
 	grafic_del(&grafic);
@@ -117,7 +118,7 @@ grafic_del_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	grafic_del(&grafic);
 	if (grafic != NULL)
 		hasPassed = false;
@@ -409,6 +410,41 @@ grafic_getIseed_test(void)
 }
 
 extern bool
+grafic_getIsWhiteNoise_test(void)
+{
+	bool     hasPassed = true;
+	int      rank      = 0;
+	grafic_t grafic;
+#ifdef XMEM_TRACK_MEM
+	size_t   allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	grafic = grafic_new();
+	grafic_setIsWhiteNoise(grafic, true);
+	if (!grafic_getIsWhiteNoise(grafic))
+		hasPassed = false;
+	grafic_del(&grafic);
+
+	grafic = grafic_new();
+	grafic_setIsWhiteNoise(grafic, false);
+	if (grafic_getIsWhiteNoise(grafic))
+		hasPassed = false;
+	grafic_del(&grafic);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 grafic_setFileName_test(void)
 {
 	bool     hasPassed = true;
@@ -424,7 +460,7 @@ grafic_setFileName_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	grafic_setFileName(grafic, "Hurz");
 	if (strcmp(grafic->graficFileName, "Hurz") != 0)
 		hasPassed = false;
@@ -460,7 +496,7 @@ grafic_setSize_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	grafic_setSize(grafic, size);
 	if (grafic->np1 != 16)
 		hasPassed = false;
@@ -493,7 +529,7 @@ grafic_setDx_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	grafic_setDx(grafic, 123.42f);
 	if (islessgreater(grafic->dx, 123.42f))
 		hasPassed = false;
@@ -523,7 +559,7 @@ grafic_setXoff_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	grafic_setXoff(grafic, xoff);
 	if (islessgreater(grafic->x1o, xoff[0]))
 		hasPassed = false;
@@ -556,7 +592,7 @@ grafic_setAstart_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	grafic_setAstart(grafic, 0.0423f);
 	if (islessgreater(grafic->astart, 0.0423f))
 		hasPassed = false;
@@ -585,7 +621,7 @@ grafic_setOmegam_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	grafic_setOmegam(grafic, 0.423f);
 	if (islessgreater(grafic->omegam, 0.423f))
 		hasPassed = false;
@@ -614,7 +650,7 @@ grafic_setOmegav_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	grafic_setOmegav(grafic, 0.723f);
 	if (islessgreater(grafic->omegav, 0.723f))
 		hasPassed = false;
@@ -643,7 +679,7 @@ grafic_setH0_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(false);
+	grafic = grafic_new();
 	grafic_setH0(grafic, 23.f);
 	if (islessgreater(grafic->h0, 23.f))
 		hasPassed = false;
@@ -672,7 +708,8 @@ grafic_setIseed_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(true);
+	grafic = grafic_new();
+	grafic_setIsWhiteNoise(grafic, true);
 	grafic_setIseed(grafic, 1244);
 	if (grafic->iseed != 1244)
 		hasPassed = false;
@@ -686,7 +723,7 @@ grafic_setIseed_test(void)
 }
 
 extern bool
-grafic_isWhiteNoise_test(void)
+grafic_setIsWhiteNoise_test(void)
 {
 	bool     hasPassed = true;
 	int      rank      = 0;
@@ -701,13 +738,14 @@ grafic_isWhiteNoise_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(true);
-	if (!grafic_isWhiteNoise(grafic))
+	grafic = grafic_new();
+	if (grafic->isWhiteNoise != false)
 		hasPassed = false;
-	grafic_del(&grafic);
-
-	grafic = grafic_new(false);
-	if (grafic_isWhiteNoise(grafic))
+	grafic_setIsWhiteNoise(grafic, true);
+	if (grafic->isWhiteNoise != true)
+		hasPassed = false;
+	grafic_setIsWhiteNoise(grafic, false);
+	if (grafic->isWhiteNoise != false)
 		hasPassed = false;
 	grafic_del(&grafic);
 #ifdef XMEM_TRACK_MEM
@@ -735,7 +773,8 @@ grafic_makeEmptyFile_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(true);
+	grafic = grafic_new();
+	grafic_setIsWhiteNoise(grafic, true);
 	grafic_setFileName(grafic, "empty.grafic");
 	grafic_setSize(grafic, size);
 	grafic_makeEmptyFile(grafic);
@@ -949,7 +988,8 @@ grafic_write_test(void)
 	for (int i = 0; i < numElements; i++)
 		data[i] = (float)i;
 
-	grafic = grafic_new(true);
+	grafic = grafic_new();
+	grafic_setIsWhiteNoise(grafic, true);
 	grafic_setSize(grafic, size);
 	grafic_setFileName(grafic, "writeTest.grafic");
 	grafic_write(grafic, data, GRAFIC_FORMAT_FLOAT, 1);
@@ -996,7 +1036,8 @@ grafic_writeWindowed_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	grafic = grafic_new(true);
+	grafic = grafic_new();
+	grafic_setIsWhiteNoise(grafic, true);
 	grafic_setSize(grafic, size);
 	grafic_setFileName(grafic, "writeWindowed.grafic");
 	numElements = dims[0] * dims[1] * dims[2];

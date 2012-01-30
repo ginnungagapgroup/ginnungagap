@@ -1,4 +1,4 @@
-// Copyright (C) 2011, Steffen Knollmann
+// Copyright (C) 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -26,18 +26,17 @@
 
 
 /*--- ADT implementation ------------------------------------------------*/
+
+/** @brief  The main structure. */
 struct gridWriterHDF5_struct {
-	GRIDWRITER_T_CONTENT
+	/** @brief  The base structure. */
+	struct gridWriter_struct base;
 	/** @brief  The HDF5 file handle. */
-	hid_t      fileHandle;
-	/** @brief  Gives the name of the HDF5 file. */
-	const char *fileName;
+	hid_t                    fileHandle;
 #ifdef WITH_MPI
 	/** @brief  The MPI communicator to be used. */
 	MPI_Comm mpiComm;
 #endif
-	/** @brief  Toggles whether an existing file should be overwritten. */
-	bool         force;
 	/** @brief  Toggles the writing of chunked data. */
 	bool         doChunking;
 	/** @brief  Gives the chunk size. */
@@ -50,5 +49,52 @@ struct gridWriterHDF5_struct {
 	H5Z_filter_t compressionFilter;
 };
 
+
+/*--- Prototypes of protected functions ---------------------------------*/
+
+/**
+ * @name  Creating and Deleting (Protected, Final)
+ *
+ * Those are the functions that are only available from within the basic
+ * writer and the ones that inherit from the basic writer (the OO equivalent
+ * would be @a protected).
+ *
+ * @{
+ */
+
+/**
+ * @brief  Allocates memory for an HDF5 grid writer.
+ *
+ * @return  Returns a handle to a new (uninitialized) HDF5 writer structure.
+ */
+extern gridWriterHDF5_t
+gridWriterHDF5_alloc(void);
+
+
+/**
+ * @brief  Sets all required fields of the HDF5 writer structure to safe
+ *         initial values.
+ *
+ * @param[in,out]  writer
+ *                    The writer to initialize.  This must be a valid writer
+ *                    object.  Passing @c NULL is undefined.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+gridWriterHDF5_init(gridWriterHDF5_t writer);
+
+
+/**
+ * @brief  Frees all members of the HDF5 writer structure.
+ *
+ * @param[in,out]  writer
+ *                    The writer to work with,  This must be a valid writer,
+ *                    passing @c NULL is undefined.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+gridWriterHDF5_free(gridWriterHDF5_t writer);
 
 #endif

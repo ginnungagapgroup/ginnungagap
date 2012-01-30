@@ -111,6 +111,7 @@ gridWriterHDF5_writeGridRegular_test(void)
 	gridWriterHDF5_t  writer;
 	gridPointUint32_t chunkSize = { 4, 4, 2 };
 	gridRegular_t     grid;
+	filename_t        fn;
 #ifdef XMEM_TRACK_MEM
 	size_t            allocatedBytes = global_allocated_bytes;
 #endif
@@ -124,8 +125,9 @@ gridWriterHDF5_writeGridRegular_test(void)
 	grid   = local_getFakeGrid();
 
 	writer = gridWriterHDF5_new();
-	gridWriterHDF5_setFileName(writer, "outGridSimple.h5");
-	gridWriterHDF5_setForce(writer, true);
+	fn = filename_newFull(NULL, "outGridSimple", NULL, ".h5");
+	gridWriter_setFileName((gridWriter_t)writer, fn);
+	gridWriter_setOverwriteFileIfExists((gridWriter_t)writer, true);
 #ifdef WITH_MPI
 	gridWriterHDF5_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 #endif
@@ -135,8 +137,9 @@ gridWriterHDF5_writeGridRegular_test(void)
 	gridWriterHDF5_del((gridWriter_t *)&writer);
 
 	writer = gridWriterHDF5_new();
-	gridWriterHDF5_setFileName(writer, "outGridChunking.h5");
-	gridWriterHDF5_setForce(writer, true);
+	fn = filename_newFull(NULL, "outGridChunking", NULL, ".h5");
+	gridWriter_setFileName((gridWriter_t)writer, fn);
+	gridWriter_setOverwriteFileIfExists((gridWriter_t)writer, true);
 	gridWriterHDF5_setChunkSize(writer, chunkSize);
 #ifdef WITH_MPI
 	gridWriterHDF5_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
@@ -147,8 +150,9 @@ gridWriterHDF5_writeGridRegular_test(void)
 	gridWriterHDF5_del((gridWriter_t *)&writer);
 
 	writer = gridWriterHDF5_new();
-	gridWriterHDF5_setFileName(writer, "outGridChecksumCompress.h5");
-	gridWriterHDF5_setForce(writer, true);
+	fn = filename_newFull(NULL, "outGridChunkingCompress", NULL, ".h5");
+	gridWriter_setFileName((gridWriter_t)writer, fn);
+	gridWriter_setOverwriteFileIfExists((gridWriter_t)writer, true);
 	gridWriterHDF5_setChunkSize(writer, chunkSize);
 	gridWriterHDF5_setDoChecksum(writer, true);
 	gridWriterHDF5_setCompressionFilter(writer, "gzip");

@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridWriterSilo.c
+ * @ingroup  libgridIOOutSilo
+ * @brief  Implements the Silo writer.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -13,6 +22,9 @@
 #  include <mpi.h>
 #  include <pmpio.h>
 #endif
+#include "gridPatch.h"
+#include "gridRegular.h"
+#include "gridPoint.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xstring.h"
 #include "../libutil/diediedie.h"
@@ -23,15 +35,20 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
-#define LOCAL_FILESUFFIX ".silo"
 #ifdef WITH_MPI
-#  define LOCAL_DIRPREFIX     "domain_"
+/** @brief  The prefix used for the directories in the files. */
+#  define LOCAL_DIRPREFIX "domain_"
+/** @brief  Number of digits used for the file numbers. */
 #  define LOCAL_NUMFILEDIGITS 3
-#  define LOCAL_NUMDIRDIGITS  5
-#  define LOCAL_MPI_TAG       987
+/** @brief  Number of digitis used for the directory numbers. */
+#  define LOCAL_NUMDIRDIGITS 5
+/** @brief  The MPI tag used in the PMPIO communication. */
+#  define LOCAL_MPI_TAG 987
 #endif
 
 /*--- Local variables ---------------------------------------------------*/
+
+/** @brief  Stores the functions table for the Silo writer. */
 static struct gridWriter_func_struct local_func
     = {&gridWriterSilo_del,
 	   &gridWriterSilo_activate,
@@ -43,12 +60,89 @@ static struct gridWriter_func_struct local_func
 #endif
 	};
 
+/** @brief  Gives the default path of the output file. */
+static const char *local_defaultFileNamePath = NULL;
+
+/** @brief  Gives the default prefix of the output file. */
+static const char *local_defaultFileNamePrefix = "out";
+
+/** @brief  Gives the default qualifier of the output file. */
+static const char *local_defaultFileNameQualifier = NULL;
+
+/** @brief  Gives the default suffix of the output file. */
+static const char *local_defaultFileNameSuffix = ".silo";
+
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @name  Opening and Closing Files (PMPIO support functions)
+ *
+ * @{
+ */
+
+/**
+ * @brief  Creates a new DB file.
+ *
+ * This function is to be used with the PMPIO functionally of Silo, hence
+ * the rather strange signature.  It is also used in the serial case, so be
+ * sure to understand what this function does.
+ *
+ * Note that this function is called only by the first task in each PMPIO
+ * group, all the other ones don't try to create a database but just open
+ * the one that has been created by the first task in the group.
+ *
+ * Depending on the status of the writer, the function might not actually
+ * try to create a file but open an existing one.  This will happen with
+ * repeated gridWriter_activate()/gridWriter_deactivate() cycles.  Only the
+ * very first call to gridWriter_activate() will trigger a call to creation
+ * of a new db file, all other ones assume that the file has already been
+ * created and can be appended to.
+ *
+ * @param[in]      *fname
+ *                    The file name.  Must be a valid name, passing @c NULL
+ *                    is undefined.
+ * @param[in]      *dname
+ *                    The directory that should be created and change to
+ *                    within the file.  This may be either @c NULL or the
+ *                    empty string, both signifying that no directory should
+ *                    be created.
+ * @param[in,out]  *udata
+ *                    Additional user, effectively this must be the grid
+ *                    silo writer the create function should work with.
+ *                    Passing @c NULL is undefined.
+ *
+ * @return  Returns the Silo file pointer of the newly created file.
+ */
 static void *
 local_createDB(const char *fname, const char *dname, void *udata);
 
 
 #ifdef WITH_MPI
+
+/**
+ * @brief  Opens a database file for writing.
+ *
+ * This function is to be used with the PMPIO functionality of Silo and is
+ * only used in the parallel version (the serial version always goes through
+ * local_createDB() instead.
+ *
+ * @param[in]      *fname
+ *                    The name of the file that should be opened.  Must be
+ *                    valid file name, passing @c NULL is undefined.
+ * @param[in]      *dname
+ *                    The directory in the file that should be created for
+ *                    the current process (and changed into).  This must be
+ *                    a valid directory name, passing @c NULL is undefined.
+ * @param[in]      iomode
+ *                    The switches between reading and writing, currently
+ *                    only writing makes sense, so this should not be
+ *                    PMPIO_READ.
+ * @param[in,out]  *udata
+ *                    The user data, effectively this must be the silo
+ *                    writer object.  Passing @c NULL is undefined.
+ *
+ * @return  Returns the Silo file pointer of the opened file.
+ */
 static void *
 local_openDB(const char     *fname,
              const char     *dname,
@@ -57,179 +151,231 @@ local_openDB(const char     *fname,
 
 #endif
 
+/**
+ * @brief  Closes the data file.
+ *
+ * This is to be used within the PMPIO scheme, but can also in the serial
+ * path for closing the database file.
+ *
+ * @param[in]      *file
+ *                    The Silo file that should be closed.
+ * @param[in,out]  *udata
+ *                    The user data, effectively this must be the silo
+ *                    writer object.  Closing the file will null the Silo
+ *                    file pointer.  Passing @c NULL is undefined.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_closeDB(void *file, void *udata);
 
+
+/** @} */
+
+/**
+ * @name  Local Helper Functions
+ *
+ * @{
+ */
+
+/**
+ * @brief  Sets the proper file name for this reader to use by adjusting the
+ *         qualifier.
+ *
+ * @param[in,out]  writer
+ *                    The writer to work with, passing @c NULL is undefined.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_createFileName(gridWriterSilo_t writer);
 
+
+/**
+ * @brief  Creates the directory name for this writer (the domain).
+ *
+ * @param[in,out]  writer
+ *                    The writer to work with, passing @c NULL is undefined.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_createDirName(gridWriterSilo_t writer);
 
+
+/**
+ * @brief  Constructs a name for the grid by appending a number.
+ *
+ * @param[in]  rankInGroup
+ *                The number that should be appended.
+ * @param[in]  *base
+ *                The string to which to append the number, must not be
+ *                @c NULL, but may be the empty string.
+ *
+ * @return  Returns a new string containing  @c *base with @c rankInGroup
+ *          zero-padded appended (separated by @c _).
+ */
 static char *
 local_getGridName(int rankInGroup, const char *base);
 
+
+/**
+ * @brief  Constructs the patch names by taking the base and appending the
+ *         patch numbers.
+ *
+ * @param[in]  *base
+ *                The base name to which to append the patch numbers.  Must
+ *                be a valid string.
+ * @param[in]  numPatches
+ *                The number of patches.
+ *
+ * @return  Returns an array of string, each holding the name for the
+ *          according patch.
+ */
 static char **
 local_getPatchNames(const char *base, int numPatches);
 
+
+/**
+ * @brief  Frees the patch names generated with local_getPatchNames().
+ *
+ * @param[in,out]  **patchNames
+ *                    The name of patches as returned by
+ *                    local_getPatchNames().
+ * @param[in]      numPatches
+ *                    The number of patches (must coincide with the number
+ *                    used to generate the patch names).
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_delPatchNames(char **patchNames, int numPatches);
 
+
+/**
+ * @brief  Helper function to actually write the data at given patch.
+ *
+ * @param[in]  writer
+ *                The writer to work with, passing @c NULL is undefined.
+ * @param[in]  patch
+ *                The patch that should be written.  Passing @c NULL is
+ *                undefined.
+ * @param[in]  *patchName
+ *                The name that should be used for the patch.  Must be a
+ *                valid string.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_writePatchData(gridWriterSilo_t writer,
                      gridPatch_t      patch,
                      const char       *patchName);
 
+
+/**
+ * @brief  Translates the grid variable type to the corresponding Silo
+ *         variable type.
+ *
+ * @param[in]  var
+ *                The variable that should be translated.
+ *
+ * @return  Returns the corresponding Silo data type.
+ */
 inline static int
 local_getVarType(dataVar_t var);
 
-static void *
+
+/**
+ * @brief  Constructs the name for a variable at a given patch.
+ *
+ * @param[in]  var
+ *                The variable that should be used.
+ * @param[in]  *patchName
+ *                The patch name.
+ * @param[in]  *varName
+ *                The previously used variable name that can be recycled for
+ *                creating the new variable name.  May be @c NULL.
+ *
+ * @return  Returns the new variable name at the given patch.
+ */
+static char *
 local_getPatchVarName(dataVar_t var, const char *patchName, char *varName);
 
+
+/**
+ * @brief  Checks if a given directory already exists in a file.
+ *
+ * @param[in]  *db
+ *                The file in which to look for the existence of the
+ *                directory.
+ * @param[in]  *dname
+ *                The directory to look for.
+ *
+ * @return  Returns @c true if the directory exists and @c false if not.
+ */
 static bool
 local_dirExistsInFile(DBfile *db, const char *dname);
 
+/** @} */
 
-/*--- Implementations of exported functios ------------------------------*/
-extern gridWriterSilo_t
-gridWriterSilo_new(const char *prefix, int dbType)
-{
-	gridWriterSilo_t writer;
-
-	assert(prefix != NULL);
-#ifdef WITH_HDF5
-	assert(dbType == DB_HDF5 || dbType == DB_PDB);
-#else
-	assert(dbType == DB_PDB);
-#endif
-
-	writer              = xmalloc(sizeof(struct gridWriterSilo_struct));
-	writer->type        = GRIDIO_TYPE_SILO;
-	writer->func        = (gridWriter_func_t)&local_func;
-	writer->isActive    = false;
-#ifdef WITH_MPI
-	writer->baton       = NULL;
-	writer->groupRank   = -1;
-	writer->rankInGroup = -1;
-	writer->globalRank  = -1;
-#endif
-	writer->prefix      = xstrdup(prefix);
-	writer->dbType      = dbType;
-	writer->numFiles    = 1;
-	writer->f           = NULL;
-	writer->fileName    = NULL;
-	writer->dirName     = NULL;
-
-	return writer;
-}
-
-extern gridWriterSilo_t
-gridWriterSilo_newFromIni(parse_ini_t ini, const char *sectionName)
-{
-	gridWriterSilo_t writer;
-	char             *dbTypeStr;
-	char             *prefix;
-	int              dbType;
-
-	assert(ini != NULL);
-	assert(sectionName != NULL);
-
-	getFromIni(&dbTypeStr, parse_ini_get_string,
-	           ini, "dbType", sectionName);
-	getFromIni(&prefix, parse_ini_get_string,
-	           ini, "prefix", sectionName);
-
-	if (strcmp(dbTypeStr, "DB_PDB") == 0)
-		dbType = DB_PDB;
-#ifdef WITH_HDF5
-	else if (strcmp(dbTypeStr, "DB_HDF5") == 0)
-		dbType = DB_HDF5;
-#endif
-	else {
-		fprintf(stderr, "Unknown or unsupported Silo DB type: %s\n",
-		        dbTypeStr);
-		diediedie(EXIT_FAILURE);
-	}
-
-	writer = gridWriterSilo_new(prefix, dbType);
-	getFromIni(&(writer->numFiles), parse_ini_get_int32,
-	           ini, "numFiles", sectionName);
-
-	xfree(prefix);
-	xfree(dbTypeStr);
-
-	return writer;
-} /* gridWriterSilo_newFromIni */
-
+/*--- Implementations of abstract functions -----------------------------*/
 extern void
 gridWriterSilo_del(gridWriter_t *writer)
 {
-	gridWriterSilo_t tmp;
-
 	assert(writer != NULL && *writer != NULL);
-	tmp = (gridWriterSilo_t)*writer;
-	assert(tmp->type == GRIDIO_TYPE_SILO);
+	assert((*writer)->type == GRIDIO_TYPE_SILO);
 
-	if (tmp->isActive)
-		gridWriterSilo_deactivate(*writer);
+	gridWriter_free(*writer);
+	gridWriterSilo_free((gridWriterSilo_t)*writer);
 
-	if (tmp->fileName != NULL)
-		xfree(tmp->fileName);
-	if (tmp->dirName != NULL)
-		xfree(tmp->dirName);
-	xfree(tmp->prefix);
-#ifdef WITH_MPI
-	if (tmp->baton != NULL)
-		PMPIO_Finish(tmp->baton);
-#endif
 	xfree(*writer);
-
 	*writer = NULL;
 }
 
 extern void
 gridWriterSilo_activate(gridWriter_t writer)
 {
-	gridWriterSilo_t tmp = (gridWriterSilo_t)writer;
+	gridWriterSilo_t w = (gridWriterSilo_t)writer;
 
-	assert(tmp != NULL);
-	assert(tmp->type == GRIDIO_TYPE_SILO);
+	assert(w != NULL);
+	assert(w->base.type == GRIDIO_TYPE_SILO);
 #ifdef WITH_MPI
-	assert(tmp->baton != NULL);
+	assert(w->baton != NULL);
 #endif
 
-	if (!tmp->isActive) {
-		local_createFileName(tmp);
-		local_createDirName(tmp);
+	if (!gridWriter_isActive(writer)) {
+		local_createFileName(w);
+		local_createDirName(w);
 #ifdef WITH_MPI
-		tmp->f = PMPIO_WaitForBaton(tmp->baton, tmp->fileName,
-		                            tmp->dirName);
+		w->f = PMPIO_WaitForBaton(w->baton,
+		                          filename_getFullName(w->base.fileName),
+		                          w->dirName);
 #else
-		tmp->f = local_createDB(tmp->fileName, tmp->dirName,
-		                        tmp);
+		w->f = local_createDB(filename_getFullName(w->base.fileName),
+		                      w->dirName, w);
 #endif
-		tmp->isActive = true;
+		gridWriter_setIsActive(writer);
 	}
 }
 
 extern void
 gridWriterSilo_deactivate(gridWriter_t writer)
 {
-	gridWriterSilo_t tmp = (gridWriterSilo_t)writer;
+	gridWriterSilo_t w = (gridWriterSilo_t)writer;
 
-	assert(tmp != NULL);
-	assert(tmp->type == GRIDIO_TYPE_SILO);
+	assert(w != NULL);
+	assert(w->type == GRIDIO_TYPE_SILO);
 #ifdef WITH_MPI
-	assert(tmp->baton != NULL);
+	assert(w->baton != NULL);
 #endif
 
-	if (tmp->isActive) {
+	if (gridWriter_isActive(writer)) {
 #ifdef WITH_MPI
-		PMPIO_HandOffBaton(tmp->baton, tmp->f);
+		PMPIO_HandOffBaton(w->baton, w->f);
 #else
-		local_closeDB(tmp->f, tmp);
+		local_closeDB(w->f, tmp);
 #endif
-		tmp->isActive = false;
+		gridWriter_setIsInactive(writer);
 	}
 }
 
@@ -335,21 +481,104 @@ gridWriterSilo_initParallel(gridWriter_t writer, MPI_Comm mpiComm)
 
 #endif
 
+/*--- Implementations of final functions --------------------------------*/
+extern gridWriterSilo_t
+gridWriterSilo_new(void)
+{
+	gridWriterSilo_t writer;
+
+	writer = gridWriterSilo_alloc();
+	gridWriter_init((gridWriter_t)writer, GRIDIO_TYPE_SILO, &local_func);
+	gridWriterSilo_init(writer);
+
+	return writer;
+}
+
+extern void
+gridWriterSilo_setDbType(gridWriterSilo_t w, int dbType)
+{
+	assert(w != NULL);
+#ifdef WITH_HDF5
+	assert(dbType == DB_PDB || dbType == DB_HDF5);
+#else
+	assert(dbType == DB_PDB);
+#endif
+
+	w->dbType = dbType;
+}
+
+extern void
+gridWriterSilo_setNumFiles(gridWriterSilo_t w, int numFiles)
+{
+	assert(w != NULL);
+	assert(numFiles > 0);
+	assert(numFiles < (int)(pow(10., LOCAL_NUMFILEDIGITS)));
+
+	w->numFiles = numFiles;
+}
+
+/*--- Implementations of protected functions ----------------------------*/
+extern gridWriterSilo_t
+gridWriterSilo_alloc(void)
+{
+	gridWriterSilo_t writer;
+
+	writer = xmalloc(sizeof(struct gridWriterSilo_struct));
+
+	return writer;
+}
+
+extern void
+gridWriterSilo_init(gridWriterSilo_t writer)
+{
+	gridWriter_setFileName((gridWriter_t)writer,
+	                       filename_newFull(local_defaultFileNamePath,
+	                                        local_defaultFileNamePrefix,
+	                                        local_defaultFileNameQualifier,
+	                                        local_defaultFileNameSuffix));
+#ifdef WITH_HDF5
+	writer->dbType      = DB_HDF5;
+#else
+	writer->dbType      = DB_PDB;
+#endif
+	writer->numFiles    = 1;
+	writer->f           = NULL;
+	writer->dirName     = NULL;
+#ifdef WITH_MPI
+	writer->baton       = NULL;
+	writer->groupRank   = -1;
+	writer->rankInGroup = -1;
+	writer->globalRank  = -1;
+#endif
+}
+
+extern void
+gridWriterSilo_free(gridWriterSilo_t w)
+{
+	assert(w != NULL);
+	assert(w->file == NULL);
+
+	if (w->dirName != NULL)
+		xfree(w->dirName);
+#ifdef WITH_MPI
+	if (w->baton != NULL)
+		PMPIO_Finish(w->baton);
+#endif
+}
 
 /*--- Implementations of local functions --------------------------------*/
 static void *
 local_createDB(const char *fname, const char *dname, void *udata)
 {
-	FILE             *f;
 	gridWriterSilo_t writer = (gridWriterSilo_t)udata;
 
-	f = fopen(fname, "r");
-	if (f != NULL) {
-		fclose(f);
-		writer->f = DBOpen(fname, writer->dbType, DB_APPEND);
+	if (!gridWriter_hasBeenActivated((gridWriter_t)writer)) {
+		int mode = DB_NOCLOBBER;
+		if (gridWriter_getOverwriteFileIfExists((gridWriter_t)writer))
+			mode = DB_CLOBBER;
+		writer->f = DBCreate(fname, mode, DB_LOCAL, NULL, writer->dbType);
 	} else {
-		writer->f = DBCreate(fname, DB_CLOBBER, DB_LOCAL, NULL,
-		                     writer->dbType);
+		writer->f = DBOpen(fname, writer->dbType, DB_APPEND);
 	}
 	if ((dname != NULL) && (dname[0] != '\0')) {
 		if (!local_dirExistsInFile(writer->f, dname))
@@ -402,24 +631,21 @@ local_closeDB(void *file, void *udata)
 static void
 local_createFileName(gridWriterSilo_t writer)
 {
-	size_t charsToAlloc = 1;
+	char myQualifier[LOCAL_NUMFILEDIGITS + 2]; // account for \0 and _
+	char *fullQualifier;
 
-	if (writer->fileName != NULL)
-		xfree(writer->fileName);
-
-	charsToAlloc    += strlen(writer->prefix);
-	charsToAlloc    += strlen(LOCAL_FILESUFFIX);
 #ifdef WITH_MPI
-	charsToAlloc    += 1 + LOCAL_NUMFILEDIGITS;
-#endif
-	writer->fileName = xmalloc(charsToAlloc * sizeof(char));
-#ifdef WITH_MPI
-	sprintf(writer->fileName, "%s_%0*i%s",
-	        writer->prefix, LOCAL_NUMFILEDIGITS,
-	        writer->groupRank, LOCAL_FILESUFFIX);
+	sprintf(myQualifier, "_%0*i", LOCAL_NUMFILEDIGITS, writer->groupRank);
 #else
-	sprintf(writer->fileName, "%s%s", writer->prefix, LOCAL_FILESUFFIX);
+	myQualifier[0] = '\0';
 #endif
+
+	fullQualifier = xstrmerge(filename_getQualifier(writer->base.fileName),
+	                          myQualifier);
+
+	filename_setQualifier(writer->base.fileName, fullQualifier);
+
+	xfree(fullQualifier);
 }
 
 static void
@@ -535,7 +761,7 @@ local_getVarType(dataVar_t var)
 	return varType;
 }
 
-static void *
+static char *
 local_getPatchVarName(dataVar_t var, const char *patchName, char *varName)
 {
 	char *baseVarName = dataVar_getName(var);

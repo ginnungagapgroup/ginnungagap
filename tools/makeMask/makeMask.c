@@ -20,7 +20,7 @@
 #include "../../src/libdata/dataVarType.h"
 #include "../../src/libgrid/gridRegular.h"
 #include "../../src/libgrid/gridRegularDistrib.h"
-#include "../../src/libgrid/gridWriter.h"
+#include "../../src/libgrid/gridWriterFactory.h"
 #include "../../src/libgrid/gridPatch.h"
 #include "../../src/libgrid/gridHistogram.h"
 #include "../../src/libutil/xmem.h"
@@ -77,7 +77,7 @@ makeMask_newFromIni(parse_ini_t ini, const char *maskSectionName)
 	mama->setup   = makeMaskSetup_newFromIni(ini, maskSectionName);
 	mama->grid    = local_getGrid(mama);
 	mama->distrib = local_getDistrib(mama);
-	mama->writer  = gridWriter_newFromIni(ini, mama->setup->outSecName);
+	mama->writer  = gridWriterFactory_newWriterFromIni(ini, mama->setup->outSecName);
 #ifdef WITH_MPI
 	gridWriter_initParallel(mama->writer, MPI_COMM_WORLD);
 #endif

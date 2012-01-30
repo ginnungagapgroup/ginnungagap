@@ -19,6 +19,7 @@ sources = gridRegular.c \
           gridReaderBov.c \
           gridReaderGrafic.c \
           gridWriter.c \
+          gridWriterFactory.c \
           gridWriterGrafic.c \
           gridUtil.c
 
