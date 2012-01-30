@@ -958,30 +958,30 @@ $ECHO "" >> config.h
 cat config.h.in >> config.h
 if test "x$WITH_OPENMP" = "xtrue"
 then
-	sed -i.bak -e 's/undef WITH_OPENMP/define WITH_OPENMP 1/' config.h
+	sed -i.bak -e 's/#undef WITH_OPENMP/#define WITH_OPENMP 1/' config.h
 fi
 if test "x$WITH_MPI" = "xtrue"
 then
-	sed -i.bak -e 's/undef WITH_MPI$/define WITH_MPI 1/' config.h
+	sed -i.bak -e 's/#undef WITH_MPI$/#define WITH_MPI 1/' config.h
 fi
 if test "x$WITH_SPRNG" = "xtrue"
 then
-	sed -i.bak -e 's/undef WITH_SPRNG/define WITH_SPRNG 1/' config.h
+	sed -i.bak -e 's/#undef WITH_SPRNG/#define WITH_SPRNG 1/' config.h
 fi
 if test "x$WITH_FFT" = "xfftw2"
 then
-	sed -i.bak -e 's/undef WITH_FFT_FFTW2/define WITH_FFT_FFTW2 1/' config.h
+	sed -i.bak -e 's/#undef WITH_FFT_FFTW2/#define WITH_FFT_FFTW2 1/' config.h
 elif test "x$WITH_FFT" = "xfftw3"
 then
-	sed -i.bak -e 's/undef WITH_FFT_FFTW3/define WITH_FFT_FFTW3 1/' config.h
+	sed -i.bak -e 's/#undef WITH_FFT_FFTW3/#define WITH_FFT_FFTW3 1/' config.h
 fi
 if test "x$WITH_SILO" = "xtrue"
 then
-	sed -i.bak -e 's/undef WITH_SILO/define WITH_SILO 1/' config.h
+	sed -i.bak -e 's/#undef WITH_SILO/#define WITH_SILO 1/' config.h
 fi
 if test "x$WITH_HDF5" = "xtrue"
 then
-	sed -i.bak -e 's/undef WITH_HDF5/define WITH_HDF5 1/' config.h
+	sed -i.bak -e 's/#undef WITH_HDF5/#define WITH_HDF5 1/' config.h
 fi
 if test "x$WITH_MPITRACE" = "xtrue"
 then

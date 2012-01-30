@@ -5,15 +5,43 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-// States are 0: alpha, 1: beta, 2: release
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file version.h
+ * @brief  Provides the code version information.
+ */
+
+
+/*--- Version information -----------------------------------------------*/
+
+/**
+ * @name  Version Information
+ *
+ * @{
+ */
+
+/** @brief The state of the package (0: alpha, 1: beta, 2: release). */
 #define PACKAGE_STATE 1
 
+/** @brief  The name of the package. */
 #define PACKAGE_NAME          "ginnungagap"
+
+/** @brief  The main owner of this package . */
 #define PACKAGE_OWNER         "Steffen Knollmann"
-#define PACKAGE_BUG_EMAIL     "steffen.knollmann@uam.es"
+
+/** @brief  The email address to report bugs. */
+#define PACKAGE_BUG_EMAIL     "sknollmann@gmail.com"
+
+/** @brief  The major version of the package. */
 #define PACKAGE_VERSION_MAJOR 0
+
+/** @brief  The minor version of the package. */
 #define PACKAGE_VERSION_MINOR 5
+
+/** @brief  The micro version of the package. */
 #define PACKAGE_VERSION_MICRO 3
+
 #if (PACKAGE_STATE == 0)
 #  define PACKAGE_VERSION_EXTRA "(alpha)"
 #elif (PACKAGE_STATE == 1)
@@ -23,13 +51,44 @@
 #else
 #  error "PACKAGE_STATE must be 0, 1, or 2"
 #endif
+/**
+ * @def PACKAGE_VERSION_EXTRA
+ * @brief  Gives some extra information about the package version.
+ */
+
+/** @brief  The git revision number of this version of the package. */
 #define PACKAGE_VERSION_REVISION "__REVISION__"
 
+/** @} */
+
+
+/*--- Built information -------------------------------------------------*/
+
+/**
+ * @name  Built information
+ * @{
+ */
+
+/** @brief  The user who ran @c configure. */
 #define PACKAGE_BUILT_USER "__BUILT_USER__"
+/** @brief  The date at which @c configure was run. */
 #define PACKAGE_BUILT_DATE "__BUILT_DATE__"
+/** @brief  The machine @c configure was run on. */ 
 #define PACKAGE_BUILT_HOST "__BUILT_HOST__"
+/** @brief  The directory from which @c configure was started. */ 
 #define PACKAGE_BUILT_DIR  "__BUILT_DIR__"
 
+/** @} */
+
+
+/*--- Macros to report the version and built information ----------------*/
+
+/**
+ * @brief  Macros to Report the Version and Built Information
+ * @{
+ */
+
+/** @brief  Show version information of main pacakge. */
 #define PRINT_VERSION_INFO(f)                                         \
     fprintf((f), "\nThis is %s %i.%i.%i %s  %s\n\n"                   \
                  "Copyright (C) 2010, 2011 %s\n"                      \
@@ -47,6 +106,7 @@
             PACKAGE_OWNER,                                            \
             PACKAGE_BUG_EMAIL);
 
+/** @brief  Show built information. */
 #define PRINT_BUILT_INFO(f)                                             \
     fprintf((f), "\nBinary built by %s@%s (%s)\nfrom directory %s\n\n", \
             PACKAGE_BUILT_USER,                                         \
@@ -54,6 +114,7 @@
             PACKAGE_BUILT_DATE,                                         \
             PACKAGE_BUILT_DIR);
 
+/** @brief  Show version information of a subpackage. */
 #define PRINT_VERSION_INFO2(f, progname)                              \
     fprintf((f), "\nThis is %s of %s %i.%i.%i %s  %s\n\n"             \
                  "Copyright (C) 2010, 2011 %s\n"                      \
@@ -71,5 +132,7 @@
             PACKAGE_VERSION_REVISION,                                 \
             PACKAGE_OWNER,                                            \
             PACKAGE_BUG_EMAIL);
+
+/** @} */
 
 #endif

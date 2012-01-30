@@ -91,9 +91,8 @@ WARN_LOGFILE           = doc/doxygen.warning
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = doc/doc.h \
-                         src \
-                         tools
+INPUT                  = doc/doc.h version.h config.h \
+                         src tools 
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.h

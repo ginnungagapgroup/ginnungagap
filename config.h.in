@@ -6,20 +6,17 @@
 #define CONFIG_H
 
 
-/*--- Code Features (to be adjusted by the configure script) ------------*/
-#undef WITH_OPENMP
-#undef WITH_MPI
-#undef WITH_SPRNG
-#undef WITH_SILO
-#undef WITH_HDF5
-#undef WITH_PROC_DIR
-#undef WITH_FFT_FFTW2
-#undef WITH_FFT_FFTW3
-#undef WITH_MPITRACE
-#undef ENABLE_DOUBLE
-#undef ENABLE_WRITING
-#undef ENABLE_DEBUG
-#define NDIM __NDIM_VALUE__
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file config.h
+ * @brief  Provides the code configuration.
+ *
+ * This file is generated automatically by the configure script from the
+ * template file config.h.in.  Every file in the package should include this
+ * header either directly, or, preferably, indirectly via the configuarion
+ * file of the library/modul it belongs to.
+ */
 
 
 /*--- Exported define values --------------------------------------------*/
@@ -36,47 +33,192 @@
 #define CONFIG_SUMMARY_STRING "__SUMMARYSTRING__"
 
 
-/*--- Consequences of the Code Features (do NOT change) -----------------*/
-#ifdef ENABLE_DEBUG
-#  undef NDEBUG
-#  define DEBUG
-#  define XMEM_TRACK_MEM
-#else
-#  define NDEBUG
-#  undef DEBUG
-#  undef XMEM_TRACK_MEM
-#endif
+/*--- Code Feature: OpenMP ----------------------------------------------*/
+#undef WITH_OPENMP
+#ifdef WITH_OPENMP
 
+/**
+ * @def  WITH_OPENMP
+ * @brief  This will be defined when OpenMP should be used
+ *
+ * Note that this is not automatically defined just because an OpenMP
+ * aware compiler is used.  For this macro to be defined two requisites
+ * must be met: The compiler must support OpenMP (as advertised through
+ * the _OPENMP macro) and the user must have asked for OpenMP support
+ * (through the configure script).
+ *
+ * Within the code, all checks for OpenMP must be done against this
+ * macro and not against _OPENMP.  This restriction is in place to force
+ * a conscious decision about the usage of Threads.
+ */
+#endif
+/*
+ * The check for _OPENMP needs to be after the doxygen documentation has
+ * been genearted, as doxygen never has _OPENMP defined.
+ */
 #ifdef WITH_OPENMP
 #  ifndef _OPENMP
 #    undef WITH_OPENMP
 #  endif
 #endif
 
+/*--- Code Feature: MPI -------------------------------------------------*/
+#undef WITH_MPI
+#ifdef WITH_MPI
+
+/**
+ * @def  WITH_MPI
+ * @brief  This will be defined when MPI is used.
+ */
+#endif
+
+
+/*--- Code Feature: MPItrace --------------------------------------------*/
+#undef WITH_MPITRACE
+#if (defined WITH_MPITRACE && !defined MPI)
+#  error WITH_MPITRACE requires WITH_MPI to be set as well.
+#endif
+#ifdef WITH_MPITRACE
+
+/**
+ * @def  WITH_MPITRACE
+ * @brief  This will be defined when MPITrace is used to profile the
+ *          code.
+ */
+#endif
+
+
+/*--- Code Feature: SPRNG -----------------------------------------------*/
+#undef WITH_SPRNG
+#ifdef WITH_SPRNG
+
+/**
+ * @def  WITH_SPRNG
+ * @brief  This will be defined when SPRNG is used.
+ */
+#endif
+
+
+/*--- Code Feature: SILO ------------------------------------------------*/
+#undef WITH_SILO
+#ifdef WITH_SILO
+
+/**
+ * @def  WITH_SILO
+ * @brief  This will be defined when Silo is used.
+ */
+#endif
+
+
+/*--- Code Feature: HDF5 ------------------------------------------------*/
+#undef WITH_HDF5
+#ifdef WITH_HDF5
+
+/**
+ * @def  WITH_HDF5
+ * @brief  This will be defined when HDF5 is used.
+ */
+#endif
+
+
+/*--- Code Feature: FFT -------------------------------------------------*/
+
+/// @cond IGNORE
+#undef WITH_FFT_FFTW2
+#undef WITH_FFT_FFTW3
+
 #if (!defined ENABLE_FFT_BACKEND_FFTW2 && !defined ENABLE_FFT_BACKEND_FFTW3)
 #  define ENABLE_FFT_BACKEND_FFTW3
 #endif
+/// @endcond
 
+
+/*--- Code Feature: Double or Single Precision --------------------------*/
+#undef ENABLE_DOUBLE
+
+/**
+ * @brief  A floating point type that can be defined (at compile time)
+ *         to be either single or double precision.
+ */
 #ifdef ENABLE_DOUBLE
-typedef double         fpv_t;
-#  if (defined ENABLE_FFT_BACKEND_FFTW3)
-#    include <complex.h>
-typedef double complex fpvComplex_t;
-#  endif
+typedef double fpv_t;
 #  define FPV_C(a) a
 #  define SCNfpv "lf"
 #  define PRIfpv "g"
-#else
-typedef float         fpv_t;
-#  if (defined ENABLE_FFT_BACKEND_FFTW3)
-#    include <complex.h>
-typedef float complex fpvComplex_t;
+#  ifdef WITH_MPI
+#    define MYMPI_FPV MPI_DOUBLE
 #  endif
+#else
+typedef float fpv_t;
 #  define FPV_C(a) a ## f
 #  define SCNfpv "f"
 #  define PRIfpv "g"
+#  ifdef WITH_MPI
+#    define MYMPI_FPV MPI_FLOAT
+#  endif
 #endif
 
+/**
+ * @def FPV_C(a)
+ * @brief  Used to write a literal value of type #fpv_t in the code.
+ *
+ * This should be used analogous to the macros provided by inttypes.h
+ * for fixed width integer types.
+ */
+
+/**
+ * @def  SCNfpv
+ * @brief  Gives the suitable qualifier for scanf() to read an #fpv_t.
+ *
+ * This should be used analogous to the macros provided by inttypes.h
+ * for fixed width integer types.
+ */
+
+/**
+ * @def  PRIfpv
+ * @brief  Gives the suitable qualifier for printf() to print an #fpv_t.
+ *
+ * This should be used analogous to the macros provided by inttypes.h
+ * for fixed width integer types.
+ */
+
+#ifdef WITH_MPI
+
+/**
+ * @def  MYMPI_FPV
+ * @brief  Sets the proper MPI Datatype that corresponds to #fpv_t.
+ */
+#endif
+
+#ifdef ENABLE_DOUBLE
+
+/**
+ * @def  ENABLE_DOUBLE
+ * @brief  This will be defined if the code should used double
+ *         precision.
+ *
+ * All calculations will be done in double precision in any case and the
+ * result will also always be in double precision.  This switch refers
+ * to the storage class of the particle data and the grid.
+ */
+#endif
+
+
+/*--- Code Feature: Dimensionality of the code --------------------------*/
+
+/**
+ * @def  NDIM
+ * @brief  This gives the employed dimensionality of the code.
+ *
+ * This is not actually used but exists for forward compatibility.  At
+ * the moment this should always be 3.
+ */
+#define NDIM __NDIM_VALUE__
+
+/**
+ * @def  POW_NDIM(a)
+ * @brief  This will take a value \a a to the power of NDIM.
+ */
 #if (NDIM == 2)
 #  define POW_NDIM(a) ((a) * (a))
 #elif (NDIM == 3)
@@ -84,6 +226,49 @@ typedef float complex fpvComplex_t;
 #else
 #  error NDIM must be 2 or 3
 #endif
+
+
+/*--- Code Feature: Debugging mode --------------------------------------*/
+#undef ENABLE_DEBUG
+/// @cond IGNORE
+#ifdef ENABLE_DEBUG
+#  undef NDEBUG
+#  define DEBUG
+#else
+#  define NDEBUG
+#  undef DEBUG
+#endif
+/// @endcond
+#ifdef ENABLE_DEBUG
+
+/**
+ * @def ENABLE_DEBUG
+ * @brief  This will be defined if the code is compiled in debugging
+ *         mode.
+ */
+#endif
+
+
+/*--- Code Feature: Writing of large data -------------------------------*/
+#undef ENABLE_WRITING
+#ifdef ENABLE_WRITING
+
+/**
+ * @def  ENABLE_WRITING
+ * @brief  If defined, will enable the actual writing of large data set.
+ *
+ * This is merely a switch for benchmarking: If it is not set, then
+ * ginnungagap will not write the calculated density/velocity fields.  For
+ * proper functioning of the code, it should always be set.
+ */
+#endif
+
+
+/*--- Deprecated Features (will be removed eventually) ------------------*/
+
+///@cond IGNORE
+#undef  WITH_PROC_DIR
+///@endcond
 
 
 #endif
