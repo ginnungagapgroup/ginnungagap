@@ -52,6 +52,7 @@
  * a conscious decision about the usage of Threads.
  */
 #endif
+
 /*
  * The check for _OPENMP needs to be after the doxygen documentation has
  * been genearted, as doxygen never has _OPENMP defined.
@@ -141,7 +142,11 @@
  *         to be either single or double precision.
  */
 #ifdef ENABLE_DOUBLE
-typedef double fpv_t;
+typedef double         fpv_t;
+#  if (defined ENABLE_FFT_BACKEND_FFTW3)
+#    include <complex.h>
+typedef double complex fpvComplex_t;
+#  endif
 #  define FPV_C(a) a
 #  define SCNfpv "lf"
 #  define PRIfpv "g"
@@ -149,7 +154,11 @@ typedef double fpv_t;
 #    define MYMPI_FPV MPI_DOUBLE
 #  endif
 #else
-typedef float fpv_t;
+typedef float         fpv_t;
+#  if (defined ENABLE_FFT_BACKEND_FFTW3)
+#    include <complex.h>
+typedef float complex fpvComplex_t;
+#  endif
 #  define FPV_C(a) a ## f
 #  define SCNfpv "f"
 #  define PRIfpv "g"
@@ -187,6 +196,13 @@ typedef float fpv_t;
 /**
  * @def  MYMPI_FPV
  * @brief  Sets the proper MPI Datatype that corresponds to #fpv_t.
+ */
+#endif
+
+#ifdef ENABLE_FFT_BACKEND_FFTW3
+/**
+ * @typedef fpvComplex_t
+ * @brief  The complex version of #fpv_t.
  */
 #endif
 
