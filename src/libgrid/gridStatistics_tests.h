@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012 Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef GRIDSTATISTICS_TESTS_H
 #define GRIDSTATISTICS_TESTS_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridStatistics_tests.h
+ * @ingroup libgridAnalysisStat
+ * @brief  This file provides the test functions for the statistics module.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/

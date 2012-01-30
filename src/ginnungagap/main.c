@@ -323,7 +323,7 @@ local_dumpIniFile(parse_ini_t ini)
  *
  * The argument <code>arg0</code> has to be a string giving the name of
  * (and path to) the ini file that should be used for the run.  The
- * structure of that file is described @link pageG9pInputFile here
+ * structure of that file is described @link pageInputfile here
  * @endlink and @link ginnungagapSetup here @endlink.
  *
  * @section g9pMainSynopsisOptions Options

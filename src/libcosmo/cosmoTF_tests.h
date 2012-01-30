@@ -1,9 +1,18 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef COSMOTF_TESTS_H
 #define COSMOTF_TESTS_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libcosmo/cosmoTF_tests.h
+ * @ingroup  libcosmoTF
+ * @brief  Provides tests for the transfer functions.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/

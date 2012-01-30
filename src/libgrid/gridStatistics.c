@@ -1,6 +1,16 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012 Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridStatistics.c
+ * @ingroup libgridAnalysisStat
+ * @brief  This file provides the implementation of the statistics module
+ *         for grids.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/

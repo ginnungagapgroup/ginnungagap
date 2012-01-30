@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef GRIDHISTOGRAM_H
 #define GRIDHISTOGRAM_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridHistogram.h
+ * @ingroup libgridAnalysisHisto
+ * @brief  This file provides the interface to the histrograms for grids.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -64,5 +73,15 @@ gridHistogram_printPrettyFile(const gridHistogram_t histo,
 
 extern uint32_t
 gridHistogram_estimateNumBinsFromCells(uint64_t numCells);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridAnalysisHisto Histograms
+ * @ingroup libgridAnalysis
+ * @brief This provides histograms for grids.
+ */
+
 
 #endif

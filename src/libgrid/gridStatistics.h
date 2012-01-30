@@ -1,9 +1,18 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012 Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
 #ifndef GRIDSTATISTICS_H
 #define GRIDSTATISTICS_H
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridStatistics.h
+ * @ingroup libgridAnalysisStat
+ * @brief  This file provides the statistics module for grids.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -17,6 +26,8 @@
 
 
 /*--- ADT handle --------------------------------------------------------*/
+
+/** @brief  The handle for the statistics object. */
 typedef struct gridStatistics_struct *gridStatistics_t;
 
 
@@ -73,5 +84,15 @@ extern void
 gridStatistics_printPretty(const gridStatistics_t stat,
                            FILE *out,
                            const char *prefix);
+
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup libgridAnalysisStat  Grid Statistics
+ * @ingroup libgridAnalysis
+ * @brief This provides statistics for the data in grids.
+ */
+
 
 #endif

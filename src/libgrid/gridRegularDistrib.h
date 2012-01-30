@@ -189,7 +189,7 @@ gridRegularDistrib_transpose(gridRegularDistrib_t distrib,
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @defgroup libgridRegularDistribg
+ * @defgroup libgridRegularDistrib  Distribution of Regular Grids
  * @ingroup libgridRegular
  * @brief  Provides a module to distribute a logical grid onto an MPI
  *         processor grid.

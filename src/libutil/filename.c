@@ -52,7 +52,7 @@ typedef bool
  * @param[in]  *value
  *                The string that should be checked.  Must be either @c NULL
  *                or a properly terminated string.
- * @param[i]   check
+ * @param[in]  check
  *                The function that is applied to every character in the
  *                string to test its validity.
  *

@@ -52,7 +52,7 @@ struct g9pSetup_struct {
 	/** @brief  Flags whether the density field should be written. */
 	bool     writeDensityField; ///< Defaults to @c true.
 	/** @brief  Gives the name of the P(k) of the white noise. */
-	char     *namePkWN; ///< Defaults to #local_namePkWn.
+	char     *namePkWN; ///< Defaults to #local_namePkWN.
 	/** @brief  Gives the name of the P(k) of the overdensity field. */
 	char     *namePkDeltak; ///< Defaults to #local_namePkDeltak.
 	/** @brief  Gives the name of the P(k) of the input P(k). */

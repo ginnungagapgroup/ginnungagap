@@ -42,7 +42,7 @@ typedef enum {
  *                A properly terminated string containing the ASCII name
  *                of the normalization mode.
  *
- * @return  Returns the corresponding mode, or #G9PNORM_UNKNOWN if the
+ * @return  Returns the corresponding mode, or #G9PNORM_MODE_UNKNOWN if the
  *          name didn't correspond to a valid mode name.
  */
 extern g9pNorm_mode_t

@@ -1,6 +1,15 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libcosmo/cosmoTF_tests.c
+ * @ingroup  libcosmoTF
+ * @brief  Implements the tests for the transfer functions.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -21,7 +30,7 @@
 /*--- Prototypes of local functions -------------------------------------*/
 
 
-/*--- Implementations of exported functios ------------------------------*/
+/*--- Implementations of exported functions -----------------------------*/
 extern bool
 cosmoTF_eisensteinHu1998_test(void)
 {

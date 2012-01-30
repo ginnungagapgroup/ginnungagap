@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -53,7 +53,7 @@ typedef struct gridWriter_struct *gridWriter_t;
  *                    deleted.  The external variable will be set to
  *                    NULL after the writer has been deleted.
  *
- * @param  Returns nothing.
+ * @return  Returns nothing.
  */
 extern void
 gridWriter_del(gridWriter_t *writer);

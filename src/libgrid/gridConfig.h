@@ -36,4 +36,10 @@
  *        from files.
  */
 
+/**
+ * @defgroup libgridAnalysis Analysis
+ * @ingroup libgrid
+ * @brief This provides functionality to analyse grids.
+ */
+
 #endif

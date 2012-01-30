@@ -73,7 +73,7 @@ cosmoPk_newFromFile(const char *fname);
  * @param[in]  transferFunctionType
  *                This gives the type of the transfer function that
  *                should be used to generate the power spectrum. See
- *                ::cosmoTF_t for possible options.
+ *                #cosmoTF_t for possible options.
  *
  * @return  Returns a new power spectrum handle.
  */

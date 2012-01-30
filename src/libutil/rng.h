@@ -68,7 +68,7 @@ rng_newFromIni(parse_ini_t ini, const char *sectionName);
 /**
  * @brief  Deletes a generator object and frees the associated memory.
  *
- * @param[in,out]  *bov
+ * @param[in,out]  *rng
  *                    A pointer to the variable holding the handle of
  *                    the generator object.  After deletion, the
  *                    external variable will be set to NULL.

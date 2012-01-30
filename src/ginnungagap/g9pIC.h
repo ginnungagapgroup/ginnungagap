@@ -158,7 +158,7 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
  *                    The interface to the FFT'ed grid.  The underyling grid
  *                    must be in Fourier space and contain the overdensity
  *                    field in Fourier space as the first variable.  Passing
- *                    @C NULL is undefined.
+ *                    @c NULL is undefined.
  * @param[in]      dim1D
  *                    The dimension of the grid.  Needed for the Nyquist
  *                    frequency calculation.
