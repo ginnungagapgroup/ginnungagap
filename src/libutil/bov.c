@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -35,51 +35,222 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  Sets a new filename and path for a bov.
+ *
+ * @param[in,out]  bov
+ *                    The bov object to work with.  Must be a valid object,
+ *                    passing @c NULL is undefined.
+ * @param[in]      *bovFileName
+ *                    The new name of the bov file.  This may include a
+ *                    leading path, which will be extracted.  Passing
+ *                    @c NULL is undefined.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_setNewBovFileNameAndPath(bov_t bov, const char *bovFileName);
 
+
+/**
+ * @brief  Reads a bov file and fills the according fields in the bov
+ *         object.
+ *
+ * @param[in,out]  bov
+ *                    The bov object to work with.  Must be a valid object,
+ *                    passing @c NULL is undefined.
+ * @param[in,out]  *f
+ *                    The file pointer to an opened for reading .bov file.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_readBov(bov_t bov, FILE *f);
 
+
+/**
+ * @brief  Extracts the field name from a string.
+ *
+ * This looks for the starting word in the given string, ignoring leading
+ * white-spaces.   A word here is defined as a sequence of non-white-space
+ * characters excluding @c : which also terminates the word.
+ *
+ * @param[in]  *line
+ *                The string from which to extract the field name.  Must be
+ *                a valid string.
+ *
+ * @return  Returns a newly allocated string holding the field name.
+ */
 static char *
 local_getFieldName(const char *line);
 
+
+/**
+ * @brief  This extracts the corresponding information from a line.
+ *
+ * @param[in]      *fieldName
+ *                    The name of the field which this line contains, as
+ *                    given by local_getFieldName().
+ * @param[in]      *line
+ *                    The line which is to be parsed.
+ * @param[in,out]  bov
+ *                    The bov object into which to write the information in
+ *                    the line.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_parseLine(const char *fieldName, const char *line, bov_t bov);
 
+
+/**
+ * @brief  Helper functions to read a double from a line.
+ *
+ * @param[in]  *line
+ *                The line that should be parsed.
+ *
+ * @return  Returns the double value in this line.
+ */
 static double
 local_readDouble(const char *line);
 
+
+/**
+ * @brief  Helper functions to read a string from a line
+ *
+ * @param[in]  *line
+ *                The line that should be parsed.
+ *
+ * @return  Returns the string.
+ */
 static char *
 local_readString(const char *line);
 
+
+/**
+ * @brief  Helper functions to read a tuple of three unsigned integers.
+ *
+ * @param[in]   *line
+ *                 The line that should be parsed.
+ * @param[out]  *vals
+ *                 An array of at least three unsigned integers whose first
+ *                 three elements will receive the according values from the
+ *                 line.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_readUint323(const char *line, uint32_t *vals);
 
+
+/**
+ * @brief  Helper functions to read a tuple of three signed integers.
+ *
+ * @param[in]   *line
+ *                 The line that should be parsed.
+ * @param[out]  *vals
+ *                 An array of at least three signed integers whose first
+ *                 three elements will receive the according values from the
+ *                 line.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_readInt3(const char *line, int *vals);
 
+
+/**
+ * @brief  Reads the data format from a line.
+ *
+ * @param[in]  *line
+ *                The line that should be parsed.
+ *
+ * @return  The data format in this line.
+ */
 static bovFormat_t
 local_readDataFormat(const char *line);
 
+
+/**
+ * @brief  Reads the endianess from a line.
+ *
+ * @param[in]  *line
+ *                The line that should be parsed.
+ *
+ * @return  The endianess.
+ */
 static endian_t
 local_readEndian(const char *line);
 
+
+/**
+ * @brief  Reads the centering method from a line.
+ *
+ * @param[in]  *line
+ *                The line that should be parsed.
+ *
+ * @return  The centering.
+ */
 static bovCentering_t
 local_readCentering(const char *line);
 
+
+/**
+ * @brief  Helper functions to read a tuple of three doubles.
+ *
+ * @param[in]   *line
+ *                 The line that should be parsed.
+ * @param[out]  *vals
+ *                 An array of at least three doubles whose first
+ *                 three elements will receive the according values from the
+ *                 line.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_readDouble3(const char *line, double *vals);
 
+
+/**
+ * @brief  Reads a signed integer from a line.
+ *
+ * @param[in]  *line
+ *                The line that should be parsed.
+ *
+ * @return  The signed integer.
+ */
 static int
 local_readInt(const char *line);
 
+
+/**
+ * @brief  Reads a boolean value from a line.
+ *
+ * @param[in]  *line
+ *                The line that should be parsed.
+ *
+ * @return  The boolean value.
+ */
 static bool
 local_readBool(const char *line);
 
+
+/**
+ * @brief  Reads the number of data components.
+ *
+ * @param[in]  *line
+ *                The line that should be parsed.
+ *
+ * @return  The number of data components.
+ */
 static int
 local_readDataComponent(const char *line);
 
+
+/**
+ * @brief  Reads in a buffered mode from the data file.
+ */
 static void
 local_readBuffered(bov_t       bov,
                    void        *data,
@@ -88,6 +259,11 @@ local_readBuffered(bov_t       bov,
                    size_t      numElements,
                    FILE        *f);
 
+
+/**
+ * @brief  The actual function to read windowed data from a data file.
+ * @return  Returns nothing.
+ */
 static void
 local_readWindowedActualRead(bov_t       bov,
                              void        *data,
@@ -96,33 +272,124 @@ local_readWindowedActualRead(bov_t       bov,
                              uint32_t    *idxLo,
                              uint32_t    *dims);
 
+
+/**
+ * @brief  Gets the size in bytes for the given format.
+ *
+ * @param[in]  format
+ *                The format for which to get the size.
+ *
+ * @return  Returns the number of bytes required to store one element of the
+ *          given format.
+ */
 static size_t
 local_getSizeForFormat(bovFormat_t format);
 
-static void
-local_readPencil(bov_t  bov,
-                 void   *buffer,
-                 size_t numElements,
-                 FILE   *f);
 
+/**
+ * @brief  Reads a pencil from the data file into a buffer.
+ *
+ * This will read a consecutive block of elements from the file into a
+ * provided buffer, adjusting the endianess to the system endianess if
+ * required.
+ *
+ * @param[in]      bov
+ *                    The bov file object to work with.
+ * @param[out]     *buffer
+ *                    The buffer to read the data into.  The data will be
+ *                    returned in the correct endianess of the system,
+ *                    regardless of the endianess in the file.
+ * @param[in]      numElements
+ *                    The number of elements to read consecutively from the
+ *                    file.
+ * @param[in,out]  *f
+ *                    The file from which to read.
+ *
+ * @return  Returns nothing.
+ */
 static void
-local_mvBufferToData(bov_t       bov,
-                     void        *buffer,
-                     size_t      numElements,
-                     void        *data,
-                     size_t      dataOffset,
-                     bovFormat_t dataFormat,
-                     int         numComponents);
+local_readPencil(const bov_t bov,
+                 void        *buffer,
+                 size_t      numElements,
+                 FILE        *f);
 
+
+/**
+ * @brief  Simply copies the elements from the buffer into the data.
+ *
+ * @param[in]   bov
+ *                 The bov object to work with.
+ * @param[in]   buffer
+ *                 The buffer from which to read, must be disjoint from
+ *                 @c data.
+ * @param[in]   numElements
+ *                 The number of elements in the buffer.
+ * @param[out]  data
+ *                 The data array into which to write.
+ * @param[in]   dataOffset
+ *                 The offset in number of elements from the beginning of
+ *                 the data array where the elements from the buffer should
+ *                 be fitted into.
+ * @param[in]   dataFormat
+ *                 The data format.
+ * @param[in]   numComponents
+ *                 The number of components in each element.
+ *
+ * @return  Returns nothing.
+ */
 static void
-local_cpBufferToData(bov_t       bov,
-                     void        *buffer,
-                     size_t      numElements,
-                     void        *data,
-                     size_t      dataOffset,
-                     bovFormat_t dataFormat,
-                     int         numComponents);
+local_mvBufferToData(const bov_t          bov,
+                     const void *restrict buffer,
+                     size_t               numElements,
+                     void *restrict       data,
+                     size_t               dataOffset,
+                     bovFormat_t          dataFormat,
+                     int                  numComponents);
 
+/**
+ * @brief  Copy the elements from the buffer into the data adjusting for
+ *         format differences.
+ *
+ * @param[in]   bov
+ *                 The bov object to work with.
+ * @param[in]   buffer
+ *                 The buffer from which to read, must be disjoint from
+ *                 @c data.
+ * @param[in]   numElements
+ *                 The number of elements in the buffer.
+ * @param[out]  data
+ *                 The data array into which to write.
+ * @param[in]   dataOffset
+ *                 The offset in number of elements from the beginning of
+ *                 the data array where the elements from the buffer should
+ *                 be fitted into.
+ * @param[in]   dataFormat
+ *                 The data format.
+ * @param[in]   numComponents
+ *                 The number of components in each element.
+ *
+ * @return  Returns nothing.
+ */
+static void
+local_cpBufferToData(const bov_t          bov,
+                     const void *restrict buffer,
+                     size_t               numElements,
+                     void *restrict       data,
+                     size_t               dataOffset,
+                     bovFormat_t          dataFormat,
+                     int                  numComponents);
+
+/**
+ * @brief  Helper function to write a proper bov file.
+ *
+ * The file name of the file into which the bov information will be written
+ * is taken from the bov object.
+ *
+ * @param[in]  bov
+ *                The bov object that should be written to file.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_writeBov(const bov_t bov);
 
@@ -852,10 +1119,10 @@ local_getSizeForFormat(bovFormat_t format)
 }
 
 static void
-local_readPencil(bov_t  bov,
-                 void   *buffer,
-                 size_t numElements,
-                 FILE   *f)
+local_readPencil(const bov_t bov,
+                 void        *buffer,
+                 size_t      numElements,
+                 FILE        *f)
 {
 	size_t sizePerEle = local_getSizeForFormat(bov->data_format);
 
@@ -868,13 +1135,13 @@ local_readPencil(bov_t  bov,
 }
 
 static void
-local_mvBufferToData(bov_t       bov,
-                     void        *buffer,
-                     size_t      numElements,
-                     void        *data,
-                     size_t      dataOffset,
-                     bovFormat_t dataFormat,
-                     int         numComponents)
+local_mvBufferToData(const bov_t          bov,
+                     const void *restrict buffer,
+                     size_t               numElements,
+                     void *restrict       data,
+                     size_t               dataOffset,
+                     bovFormat_t          dataFormat,
+                     int                  numComponents)
 {
 	int sizeBufferEle = local_getSizeForFormat(bov->data_format);
 	int sizeDataEle   = local_getSizeForFormat(dataFormat);
@@ -892,35 +1159,38 @@ local_mvBufferToData(bov_t       bov,
 	}
 }
 
-#define cpy(trgt)                                                        \
-	{                                                                    \
-		if (dataFormat == BOV_FORMAT_INT) {                              \
-			for (int j = 0; j < numComponents; j++)                      \
-				dat.i[i * numComponents                                  \
-				      + j] = (int)trgt[i * bov->data_components + j];    \
-		} else if (dataFormat == BOV_FORMAT_FLOAT) {                     \
-			for (int j = 0; j < numComponents; j++)                      \
-				dat.f[i * numComponents                                  \
-				      + j] = (float)trgt[i * bov->data_components + j];  \
-		} else if (dataFormat == BOV_FORMAT_DOUBLE) {                    \
-			for (int j = 0; j < numComponents; j++)                      \
-				dat.d[i * numComponents                                  \
-				      + j] = (double)trgt[i * bov->data_components + j]; \
-		} else {                                                         \
-			for (int j = 0; j < numComponents; j++)                      \
-				dat.b[i * numComponents                                  \
-				      + j] = (char)trgt[i * bov->data_components + j];   \
-		}                                                                \
+/** @brief  Helper macro to use the proper typecast for the element.  */
+#define cpy(trgt)                                                         \
+	{                                                                     \
+		if (dataFormat == BOV_FORMAT_INT) {                               \
+			for (int j = 0; j < numComponents; j++)                       \
+				dat.i[i * numComponents                                   \
+				      + j] = (int)trgt[i * bov->data_components + j];     \
+		} else if (dataFormat == BOV_FORMAT_FLOAT) {                      \
+			for (int j = 0; j < numComponents; j++)                       \
+				dat.f[i * numComponents                                   \
+				      + j] = (float)trgt[i * bov->data_components + j];   \
+		} else if (dataFormat == BOV_FORMAT_DOUBLE) {                     \
+			for (int j = 0; j < numComponents; j++)                       \
+				dat.d[i * numComponents                                   \
+				      + j] = (double)trgt[i * bov->data_components + j];  \
+		} else {                                                          \
+			for (int j = 0; j < numComponents; j++)                       \
+				dat.b[i * numComponents                                   \
+				      + j] = (char)trgt[i * bov->data_components + j];    \
+		}                                                                 \
 	}
+
+/** @brief  Short name for the record size. */
 #define recsize (local_getSizeForFormat(dataFormat) * numComponents)
 static void
-local_cpBufferToData(bov_t       bov,
-                     void        *buffer,
-                     size_t      numElements,
-                     void        *data,
-                     size_t      dataOffset,
-                     bovFormat_t dataFormat,
-                     int         numComponents)
+local_cpBufferToData(const bov_t          bov,
+                     const void *restrict buffer,
+                     size_t               numElements,
+                     void *restrict       data,
+                     size_t               dataOffset,
+                     bovFormat_t          dataFormat,
+                     int                  numComponents)
 {
 	union { int    *i;
 		    double *d;
