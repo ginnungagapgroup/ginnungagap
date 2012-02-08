@@ -58,40 +58,40 @@ local_readPlaneBuffered(void           *data,
                         bool           doByteswap);
 
 static void
-local_readWindowedActualRead(grafic_t       grafic,
-                             void           *data,
-                             graficFormat_t dataFormat,
-                             int            numComponents,
-                             uint32_t       *idxLo,
-                             uint32_t       *dims,
-                             bool           doByteswap);
+local_readWindowedActualRead(const grafic_t           grafic,
+                             void *restrict           data,
+                             graficFormat_t           dataFormat,
+                             int                      numComponents,
+                             const uint32_t *restrict idxLo,
+                             const uint32_t *restrict dims,
+                             bool                     doByteswap);
 
 static void
-local_writeWindowedActualRead(grafic_t       grafic,
-                              void           *data,
-                              graficFormat_t dataFormat,
-                              int            numComponents,
-                              uint32_t       *idxLo,
-                              uint32_t       *dims,
-                              bool           doByteswap);
+local_writeWindowedActualRead(const grafic_t           grafic,
+                              const void *restrict     data,
+                              graficFormat_t           dataFormat,
+                              int                      numComponents,
+                              const uint32_t *restrict idxLo,
+                              const uint32_t *restrict dims,
+                              bool                     doByteswap);
 
 static void
-local_cpBufferToData(float          *buffer,
-                     uint32_t       num,
-                     void           *data,
-                     graficFormat_t format,
-                     int            numComponents,
-                     size_t         dataOffset,
-                     bool           doByteswap);
+local_cpBufferToData(float *restrict buffer,
+                     uint32_t        num,
+                     void *restrict  data,
+                     graficFormat_t  format,
+                     int             numComponents,
+                     size_t          dataOffset,
+                     bool            doByteswap);
 
 static void
-local_cpDataToBuffer(float          *buffer,
-                     uint32_t       num,
-                     void           *data,
-                     graficFormat_t format,
-                     int            numComponents,
-                     size_t         dataOffset,
-                     bool           doByteswap);
+local_cpDataToBuffer(float *restrict      buffer,
+                     uint32_t             num,
+                     const void *restrict data,
+                     graficFormat_t       format,
+                     int                  numComponents,
+                     size_t               dataOffset,
+                     bool                 doByteswap);
 
 static void
 local_skipPlane(FILE *f, long numInPlane);
@@ -104,7 +104,7 @@ local_writeHeader(grafic_t grafic, FILE *f);
 
 static void
 local_writePlane(FILE           *f,
-                 void           *data,
+                 const void     *data,
                  graficFormat_t format,
                  int            numComponents,
                  size_t         dataOffset,
@@ -174,7 +174,7 @@ grafic_del(grafic_t *grafic)
 }
 
 extern const char *
-grafic_getFileName(grafic_t grafic)
+grafic_getFileName(const grafic_t grafic)
 {
 	assert(grafic != NULL);
 
@@ -182,7 +182,7 @@ grafic_getFileName(grafic_t grafic)
 }
 
 extern void
-grafic_getSize(grafic_t grafic, uint32_t *np)
+grafic_getSize(const grafic_t grafic, uint32_t *np)
 {
 	assert(grafic != NULL);
 	assert(np != NULL);
@@ -193,7 +193,7 @@ grafic_getSize(grafic_t grafic, uint32_t *np)
 }
 
 extern float
-grafic_getDx(grafic_t grafic)
+grafic_getDx(const grafic_t grafic)
 {
 	assert(grafic != NULL);
 	assert(!grafic->isWhiteNoise);
@@ -202,7 +202,7 @@ grafic_getDx(grafic_t grafic)
 }
 
 extern void
-grafic_getXoff(grafic_t grafic, float *xoff)
+grafic_getXoff(const grafic_t grafic, float *xoff)
 {
 	assert(grafic != NULL);
 	assert(!grafic->isWhiteNoise);
@@ -214,7 +214,7 @@ grafic_getXoff(grafic_t grafic, float *xoff)
 }
 
 extern float
-grafic_getAstart(grafic_t grafic)
+grafic_getAstart(const grafic_t grafic)
 {
 	assert(grafic != NULL);
 	assert(!grafic->isWhiteNoise);
@@ -223,7 +223,7 @@ grafic_getAstart(grafic_t grafic)
 }
 
 extern float
-grafic_getOmegam(grafic_t grafic)
+grafic_getOmegam(const grafic_t grafic)
 {
 	assert(grafic != NULL);
 	assert(!grafic->isWhiteNoise);
@@ -232,7 +232,7 @@ grafic_getOmegam(grafic_t grafic)
 }
 
 extern float
-grafic_getOmegav(grafic_t grafic)
+grafic_getOmegav(const grafic_t grafic)
 {
 	assert(grafic != NULL);
 	assert(!grafic->isWhiteNoise);
@@ -241,7 +241,7 @@ grafic_getOmegav(grafic_t grafic)
 }
 
 extern float
-grafic_getH0(grafic_t grafic)
+grafic_getH0(const grafic_t grafic)
 {
 	assert(grafic != NULL);
 	assert(!grafic->isWhiteNoise);
@@ -250,7 +250,7 @@ grafic_getH0(grafic_t grafic)
 }
 
 extern int
-grafic_getIseed(grafic_t grafic)
+grafic_getIseed(const grafic_t grafic)
 {
 	assert(grafic != NULL);
 	assert(grafic->isWhiteNoise);
@@ -259,7 +259,7 @@ grafic_getIseed(grafic_t grafic)
 }
 
 extern bool
-grafic_getIsWhiteNoise(grafic_t grafic)
+grafic_getIsWhiteNoise(const grafic_t grafic)
 {
 	assert(grafic != NULL);
 	return grafic->isWhiteNoise;
@@ -376,7 +376,7 @@ grafic_setIsWhiteNoise(grafic_t grafic, bool isWhiteNoise)
 }
 
 extern void
-grafic_makeEmptyFile(grafic_t grafic)
+grafic_makeEmptyFile(const grafic_t grafic)
 {
 	FILE   *f;
 	size_t fileSize = 0;
@@ -408,7 +408,7 @@ grafic_makeEmptyFile(grafic_t grafic)
 }
 
 extern void
-grafic_read(grafic_t       grafic,
+grafic_read(const grafic_t grafic,
             void           *data,
             graficFormat_t dataFormat,
             int            numComponents)
@@ -444,8 +444,8 @@ grafic_read(grafic_t       grafic,
 }
 
 extern void
-grafic_write(grafic_t       grafic,
-             void           *data,
+grafic_write(const grafic_t grafic,
+             const void     *data,
              graficFormat_t dataFormat,
              int            numComponents)
 {
@@ -477,12 +477,12 @@ grafic_write(grafic_t       grafic,
 }
 
 extern void
-grafic_readWindowed(grafic_t       grafic,
-                    void           *data,
-                    graficFormat_t dataFormat,
-                    int            numComponents,
-                    uint32_t       *idxLo,
-                    uint32_t       *dims)
+grafic_readWindowed(const grafic_t           grafic,
+                    void *restrict           data,
+                    graficFormat_t           dataFormat,
+                    int                      numComponents,
+                    const uint32_t *restrict idxLo,
+                    const uint32_t *restrict dims)
 {
 	bool doByteswap;
 
@@ -507,12 +507,12 @@ grafic_readWindowed(grafic_t       grafic,
 }
 
 extern void
-grafic_writeWindowed(grafic_t       grafic,
-                     void           *data,
-                     graficFormat_t dataFormat,
-                     int            numComponents,
-                     uint32_t       *idxLo,
-                     uint32_t       *dims)
+grafic_writeWindowed(const grafic_t           grafic,
+                     const void *restrict     data,
+                     graficFormat_t           dataFormat,
+                     int                      numComponents,
+                     const uint32_t *restrict idxLo,
+                     const uint32_t *restrict dims)
 {
 	bool doByteswap;
 
@@ -664,13 +664,13 @@ local_readPlane(float *data, size_t numInPlane, FILE *f, bool doByteswap)
 }
 
 static void *
-local_readPlaneBuffered(void           *data,
-                        graficFormat_t dataFormat,
-                        int            numComponents,
-                        float          *buffer,
-                        size_t         numInPlane,
-                        FILE           *f,
-                        bool           doByteswap)
+local_readPlaneBuffered(void *restrict  data,
+                        graficFormat_t  dataFormat,
+                        int             numComponents,
+                        float *restrict buffer,
+                        size_t          numInPlane,
+                        FILE            *f,
+                        bool            doByteswap)
 {
 	void   *rtn;
 	size_t i;
@@ -691,13 +691,13 @@ local_readPlaneBuffered(void           *data,
 }
 
 static void
-local_readWindowedActualRead(grafic_t       grafic,
-                             void           *data,
-                             graficFormat_t dataFormat,
-                             int            numComponents,
-                             uint32_t       *idxLo,
-                             uint32_t       *dims,
-                             bool           doByteswap)
+local_readWindowedActualRead(const grafic_t           grafic,
+                             void *restrict           data,
+                             graficFormat_t           dataFormat,
+                             int                      numComponents,
+                             const uint32_t *restrict idxLo,
+                             const uint32_t *restrict dims,
+                             bool                     doByteswap)
 {
 	FILE   *f;
 	float  *buffer    = xmalloc(sizeof(float) * dims[0]);
@@ -735,13 +735,13 @@ local_readWindowedActualRead(grafic_t       grafic,
 } /* local_readWindowedActualRead */
 
 static void
-local_writeWindowedActualRead(grafic_t       grafic,
-                              void           *data,
-                              graficFormat_t dataFormat,
-                              int            numComponents,
-                              uint32_t       *idxLo,
-                              uint32_t       *dims,
-                              bool           doByteswap)
+local_writeWindowedActualRead(const grafic_t           grafic,
+                              const void *restrict     data,
+                              graficFormat_t           dataFormat,
+                              int                      numComponents,
+                              const uint32_t *restrict idxLo,
+                              const uint32_t *restrict dims,
+                              bool                     doByteswap)
 {
 	FILE   *f;
 	float  *buffer    = xmalloc(sizeof(float) * dims[0]);
@@ -779,13 +779,13 @@ local_writeWindowedActualRead(grafic_t       grafic,
 } /* local_writeWindowedActualRead */
 
 static void
-local_cpBufferToData(float          *buffer,
-                     uint32_t       num,
-                     void           *data,
-                     graficFormat_t format,
-                     int            numComponents,
-                     size_t         dataOffset,
-                     bool           doByteswap)
+local_cpBufferToData(float *restrict buffer,
+                     uint32_t        num,
+                     void *restrict  data,
+                     graficFormat_t  format,
+                     int             numComponents,
+                     size_t          dataOffset,
+                     bool            doByteswap)
 {
 	if (doByteswap) {
 		for (uint32_t i = 0; i < num; i++)
@@ -806,13 +806,13 @@ local_cpBufferToData(float          *buffer,
 }
 
 static void
-local_cpDataToBuffer(float          *buffer,
-                     uint32_t       num,
-                     void           *data,
-                     graficFormat_t format,
-                     int            numComponents,
-                     size_t         dataOffset,
-                     bool           doByteswap)
+local_cpDataToBuffer(float *restrict      buffer,
+                     uint32_t             num,
+                     const void *restrict data,
+                     graficFormat_t       format,
+                     int                  numComponents,
+                     size_t               dataOffset,
+                     bool                 doByteswap)
 {
 	if (format == GRAFIC_FORMAT_FLOAT) {
 		for (uint32_t i = 0; i < num; i++) {
@@ -885,7 +885,7 @@ local_writeHeader(grafic_t grafic, FILE *f)
 
 static void
 local_writePlane(FILE           *f,
-                 void           *data,
+                 const void     *data,
                  graficFormat_t format,
                  int            numComponents,
                  size_t         dataOffset,
