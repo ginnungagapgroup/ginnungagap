@@ -240,7 +240,7 @@ local_newFromIniWrapper(parse_ini_t ini,
 
 	fn        = gridIOCommon_getFileName(ini, base, false);
 	overwrite = gridIOCommon_getOverwrite(ini, base);
-	type      = gridIOCommon_getType(ini, extended);
+	type      = gridIOCommon_getType(ini, base);
 
 	writer    = local_getWriter(ini, extended, type);
 

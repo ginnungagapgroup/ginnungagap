@@ -134,7 +134,11 @@ local_newGetInput(g9pWN_t     wn,
                   const char  *sectionName)
 {
 	if (wn->useFile) {
-		wn->reader = gridReaderFactory_newReaderFromIni(ini, sectionName);
+		char *secName;
+		getFromIni(&secName, parse_ini_get_string, ini, "readerSection",
+		           sectionName);
+		wn->reader = gridReaderFactory_newReaderFromIni(ini, secName);
+		xfree(secName);
 	} else {
 		char *rngSectionName;
 #ifndef WITH_SPRNG
@@ -155,7 +159,11 @@ local_newGetOutput(g9pWN_t     wn,
                    const char  *sectionName)
 {
 	if (wn->dumpWhiteNoise) {
-		wn->writer = gridWriterFactory_newWriterFromIni(ini, sectionName);
+		char *secName;
+		getFromIni(&secName, parse_ini_get_string, ini, "writerSection",
+		           sectionName);
+		wn->writer = gridWriterFactory_newWriterFromIni(ini, secName);
+		xfree(secName);
 #ifdef WITH_MPI
 		gridWriter_initParallel(wn->writer, MPI_COMM_WORLD);
 #endif

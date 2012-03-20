@@ -106,9 +106,7 @@ g9pWN_reset(g9pWN_t wn);
  * # Using a file.
  * useFile = true
  * #
- * # The type of the reader.
- * readerType = <string>
- * # The section in which to look for the details of the reader.
+ * # The section from which to construct the reader.
  * readerSection = <string>
  * #
  * @endcode
@@ -125,9 +123,6 @@ g9pWN_reset(g9pWN_t wn);
  * #
  * # Writing the White Noise to a file
  * dumpWhiteNoise = true
- * #
- * # The type of the writer.
- * writerType = <string>
  * #
  * # The section in which to look for the construction information of
  * # the writer.
@@ -146,10 +141,8 @@ g9pWN_reset(g9pWN_t wn);
  * @code
  * [WhiteNoise]
  * useFile = true
- * readerType = <string>
  * readerSection = <string>
  * dumpWhiteNoise = true
- * writerType = <string>
  * writerSection = <string>
  * @endcode
  *
@@ -161,7 +154,6 @@ g9pWN_reset(g9pWN_t wn);
  * useFile = false
  * rngSectionName = <string>
  * dumpWhiteNoise = true
- * writerType = <string>
  * writerSection = <string>
  * @endcode
  */
