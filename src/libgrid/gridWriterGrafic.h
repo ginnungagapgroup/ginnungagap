@@ -111,7 +111,7 @@ gridWriterGrafic_initParallel(gridWriter_t writer, MPI_Comm mpiComm);
  */
 
 /**
- * @brief  Creates a new empty HDF5 writer.
+ * @brief  Creates a new empty Grafic writer.
  *
  * @return  The new writer.
  */

@@ -56,8 +56,6 @@ static struct gridWriter_func_struct local_func
 #endif
 	};
 
-/** @brief  Gives the allowed suffices for Grafic fiels. */
-
 /** @brief  Gives the default path of the output file. */
 static const char *local_defaultFileNamePath = NULL;
 
@@ -92,15 +90,10 @@ gridWriterGrafic_del(gridWriter_t *writer)
 	assert(writer != NULL && *writer != NULL);
 	assert((*writer)->type == GRIDIO_TYPE_GRAFIC);
 
-
 	gridWriter_free(*writer);
 	gridWriterGrafic_free((gridWriterGrafic_t)*writer);
 
 	xfree(*writer);
-	*writer = NULL;
-
-	xfree(*writer);
-
 	*writer = NULL;
 }
 
