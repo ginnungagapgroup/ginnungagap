@@ -25,7 +25,6 @@
 #include "gridRegular.h"
 #include "gridPoint.h"
 #include "../libutil/xmem.h"
-#include "../libutil/diediedie.h"
 #include "../libutil/filename.h"
 
 
