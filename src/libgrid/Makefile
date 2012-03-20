@@ -15,7 +15,9 @@ sources = gridRegular.c \
           gridHistogram.c \
           gridStatistics.c \
           gridIO.c \
+          gridIOCommon.c \
           gridReader.c \
+          gridReaderFactory.c \
           gridReaderBov.c \
           gridReaderGrafic.c \
           gridWriter.c \
@@ -31,6 +33,7 @@ sourcesTests = lib${LIBNAME}_tests.c \
                gridHistogram_tests.c \
                gridStatistics_tests.c \
                gridIO_tests.c \
+               gridReaderFactory_tests.c \
                gridReader_tests.c \
                gridReaderBov_tests.c \
                gridUtil_tests.c
@@ -82,7 +85,7 @@ tests-clean:
 	rm -rf transposeTest*
 	rm -rf fftTest*
 	rm -f outGridChecksumCompress.h5 outGridChunking.h5 \
-	      outGridSimple.h5
+	      outGridSimple.h5 outGridChunkingCompress.h5
 
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \

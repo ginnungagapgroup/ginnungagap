@@ -21,6 +21,7 @@
 #include "../libutil/diediedie.h"
 #include "../libgrid/gridRegular.h"
 #include "../libgrid/gridReader.h"
+#include "../libgrid/gridReaderFactory.h"
 #include "../libgrid/gridWriter.h"
 #include "../libgrid/gridWriterFactory.h"
 #include "../libgrid/gridPatch.h"
@@ -133,7 +134,7 @@ local_newGetInput(g9pWN_t     wn,
                   const char  *sectionName)
 {
 	if (wn->useFile) {
-		wn->reader = gridReader_newFromIni(ini, sectionName);
+		wn->reader = gridReaderFactory_newReaderFromIni(ini, sectionName);
 	} else {
 		char *rngSectionName;
 #ifndef WITH_SPRNG

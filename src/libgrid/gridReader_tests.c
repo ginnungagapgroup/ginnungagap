@@ -1,15 +1,25 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridReader_tests.c
+ * @ingroup libgridIOInInterfaceTests
+ * @brief  This file implements the testing routines.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridReader_tests.h"
 #include "gridReader.h"
-#include "gridReaderBov.h"
+#include "gridReaderFactory.h"
 #include <stdio.h>
 #include <string.h>
+#include "../libutil/filename.h"
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
@@ -26,16 +36,19 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+static gridReader_t
+local_getReader(void);
 
 
 /*--- Implementations of exported functios ------------------------------*/
+
 extern bool
-gridReader_newFromIni_test(void)
+gridReader_setFileName_test(void)
 {
 	bool         hasPassed = true;
 	int          rank      = 0;
-	parse_ini_t  ini;
 	gridReader_t reader;
+	filename_t   newName;
 #ifdef XMEM_TRACK_MEM
 	size_t       allocatedBytes = global_allocated_bytes;
 #endif
@@ -46,11 +59,15 @@ gridReader_newFromIni_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	ini    = parse_ini_open("tests/reading.ini");
+	reader  = local_getReader();
 
-	reader = gridReader_newFromIni(ini, "ReaderPlain");
+	newName = filename_newFull("tests/", "test2", NULL, ".bov");
+	gridReader_setFileName(reader, newName);
+	if (strcmp(filename_getFullName(reader->fileName),
+	           "tests/test2.bov") != 0)
+		hasPassed = false;
+
 	gridReader_del(&reader);
-	parse_ini_close(&ini);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -60,12 +77,12 @@ gridReader_newFromIni_test(void)
 }
 
 extern bool
-gridReader_del_test(void)
+gridReader_overlayFileName_test(void)
 {
 	bool         hasPassed = true;
 	int          rank      = 0;
-	parse_ini_t  ini;
 	gridReader_t reader;
+	filename_t   overlayName;
 #ifdef XMEM_TRACK_MEM
 	size_t       allocatedBytes = global_allocated_bytes;
 #endif
@@ -76,13 +93,16 @@ gridReader_del_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	ini    = parse_ini_open("tests/reading.ini");
+	reader      = local_getReader();
 
-	reader = gridReader_newFromIni(ini, "ReaderPlain");
-	gridReader_del(&reader);
-	if (reader != NULL)
+	overlayName = filename_newFull(NULL, "test2", NULL, NULL);
+	gridReader_overlayFileName(reader, overlayName);
+	if (strcmp(filename_getFullName(reader->fileName),
+	           "tests/test2.bov") != 0)
 		hasPassed = false;
-	parse_ini_close(&ini);
+
+	filename_del(&overlayName);
+	gridReader_del(&reader);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -92,14 +112,13 @@ gridReader_del_test(void)
 }
 
 extern bool
-gridReader_readIntoPatch_test(void)
+gridReader_getFileName_test(void)
 {
-	bool         hasPassed = true;
-	int          rank      = 0;
-	parse_ini_t  ini;
-	gridReader_t reader;
+	bool             hasPassed = true;
+	int              rank      = 0;
+	gridReader_t     reader;
 #ifdef XMEM_TRACK_MEM
-	size_t       allocatedBytes = global_allocated_bytes;
+	size_t           allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -108,50 +127,14 @@ gridReader_readIntoPatch_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	ini    = parse_ini_open("tests/reading.ini");
+	reader   = local_getReader();
 
-	reader = gridReader_newFromIni(ini, "ReaderPlain");
+	const filename_t fileName = gridReader_getFileName(reader);
 
-	if (reader->func->readIntoPatch != &gridReaderBov_readIntoPatch)
+	if (fileName != reader->fileName)
 		hasPassed = false;
 
 	gridReader_del(&reader);
-	parse_ini_close(&ini);
-#ifdef XMEM_TRACK_MEM
-	if (allocatedBytes != global_allocated_bytes)
-		hasPassed = false;
-#endif
-
-	return hasPassed ? true : false;
-}
-
-extern bool
-gridReader_readIntoPatchForVar_test(void)
-{
-	bool         hasPassed = true;
-	int          rank      = 0;
-	parse_ini_t  ini;
-	gridReader_t reader;
-#ifdef XMEM_TRACK_MEM
-	size_t       allocatedBytes = global_allocated_bytes;
-#endif
-#ifdef WITH_MPI
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-
-	if (rank == 0)
-		printf("Testing %s... ", __func__);
-
-	ini    = parse_ini_open("tests/reading.ini");
-
-	reader = gridReader_newFromIni(ini, "ReaderPlain");
-
-	if (reader->func->readIntoPatchForVar !=
-	    &gridReaderBov_readIntoPatchForVar)
-		hasPassed = false;
-
-	gridReader_del(&reader);
-	parse_ini_close(&ini);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
@@ -161,3 +144,15 @@ gridReader_readIntoPatchForVar_test(void)
 }
 
 /*--- Implementations of local functions --------------------------------*/
+static gridReader_t
+local_getReader(void)
+{
+	gridReader_t reader;
+	parse_ini_t  ini;
+
+	ini    = parse_ini_open("tests/reading.ini");
+	reader = gridReaderFactory_newReaderFromIni(ini, "ReaderBov");
+	parse_ini_close(&ini);
+
+	return reader;
+}

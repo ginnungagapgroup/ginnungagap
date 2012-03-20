@@ -24,7 +24,7 @@
 #endif
 #include "../../src/libgrid/gridRegular.h"
 #include "../../src/libgrid/gridStatistics.h"
-#include "../../src/libgrid/gridReader.h"
+#include "../../src/libgrid/gridReaderFactory.h"
 #include "../../src/libgrid/gridWriterFactory.h"
 #include "../../src/libgrid/gridPatch.h"
 #include "../../src/libgrid/gridHistogram.h"
@@ -292,20 +292,19 @@ realSpaceConstraints_newFromIni(parse_ini_t ini)
 	                            lastDimLimits,
 	                            "Output");
 	if (te->setup->useFileForInput) {
-		te->reader   = gridReader_newFromIni(ini, te->setup->readerSecName);
+		te->reader   = gridReaderFactory_newReaderFromIni(
+		    ini, te->setup->readerSecName);
 		te->writerIn = NULL;
 	} else {
 		te->reader   = NULL;
 		te->writerIn = gridWriterFactory_newWriterFromIni(
-		    ini,
-		    te->setup->writerInSecName);
+		    ini, te->setup->writerInSecName);
 #ifdef WITH_MPI
 		gridWriter_initParallel(te->writerIn, MPI_COMM_WORLD);
 #endif
 	}
 	te->writer = gridWriterFactory_newWriterFromIni(
-	    ini,
-	    te->setup->writerSecName);
+	    ini, te->setup->writerSecName);
 #ifdef WITH_MPI
 	gridWriter_initParallel(te->writer, MPI_COMM_WORLD);
 #endif

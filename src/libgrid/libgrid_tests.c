@@ -12,6 +12,7 @@
 #include "gridHistogram_tests.h"
 #include "gridStatistics_tests.h"
 #include "gridIO_tests.h"
+#include "gridReaderFactory_tests.h"
 #include "gridReader_tests.h"
 #include "gridReaderBov_tests.h"
 #ifdef WITH_SILO
@@ -215,12 +216,22 @@ main(int argc, char **argv)
 #endif
 
 	if (rank == 0) {
+		printf("\nRunning tests for gridReaderFactory:\n");
+	}
+	RUNTEST(&gridReaderFactory_newReaderFromIni_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
+
+
+	if (rank == 0) {
 		printf("\nRunning tests for gridReader:\n");
 	}
-	RUNTEST(&gridReader_newFromIni_test, hasFailed);
-	RUNTEST(&gridReader_del_test, hasFailed);
-	RUNTEST(&gridReader_readIntoPatch_test, hasFailed);
-	RUNTEST(&gridReader_readIntoPatchForVar_test, hasFailed);
+	RUNTEST(&gridReader_setFileName_test, hasFailed);
+	RUNTEST(&gridReader_overlayFileName_test, hasFailed);
+	RUNTEST(&gridReader_getFileName_test, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
@@ -230,8 +241,9 @@ main(int argc, char **argv)
 	if (rank == 0) {
 		printf("\nRunning tests for gridReaderBov:\n");
 	}
-	RUNTEST(&gridReaderBov_newFromIni_test, hasFailed);
+	RUNTEST(&gridReaderBov_new_test, hasFailed);
 	RUNTEST(&gridReaderBov_del_test, hasFailed);
+	RUNTEST(&gridReaderBov_getBov_test, hasFailed);
 	RUNTEST(&gridReaderBov_readIntoPatch_test, hasFailed);
 	RUNTEST(&gridReaderBov_readIntoPatchForVar_test, hasFailed);
 #ifdef XMEM_TRACK_MEM
@@ -277,14 +289,12 @@ main(int argc, char **argv)
 	}
 	RUNTEST(&gridWriterHDF5_new_test, hasFailed);
 #  ifdef WITH_MPI
-//	RUNTEST(&gridWriterHDF5_initParallel_test, hasFailed);
+	//RUNTEST(&gridWriterHDF5_initParallel_test, hasFailed);
 #  endif
 	RUNTEST(&gridWriterHDF5_del_test, hasFailed);
-#if 0
-	RUNTEST(&gridWriterHDF5_activate_test, hasFailed);
-	RUNTEST(&gridWriterHF5_deactivate_test, hasFailed);
-	RUNTEST(&gridWriterHDF5_writeGridPatch_test, hasFailed);
-#endif
+	//RUNTEST(&gridWriterHDF5_activate_test, hasFailed);
+	//RUNTEST(&gridWriterHDF5_deactivate_test, hasFailed);
+	//RUNTEST(&gridWriterHDF5_writeGridPatch_test, hasFailed);
 	RUNTEST(&gridWriterHDF5_writeGridRegular_test, hasFailed);
 #  ifdef XMEM_TRACK_MEM
 	if (rank == 0)
@@ -295,8 +305,9 @@ main(int argc, char **argv)
 	if (rank == 0) {
 		printf("\nRunning tests for gridReaderHDF5:\n");
 	}
-	RUNTEST(&gridReaderHDF5_newFromIni_test, hasFailed);
+	RUNTEST(&gridReaderHDF5_new_test, hasFailed);
 	RUNTEST(&gridReaderHDF5_del_test, hasFailed);
+	RUNTEST(&gridReaderHDF5_getH5File_test, hasFailed);
 	RUNTEST(&gridReaderHDF5_readIntoPatch_test, hasFailed);
 	RUNTEST(&gridReaderHDF5_readIntoPatchForVar_test, hasFailed);
 #  ifdef XMEM_TRACK_MEM

@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridReaderGrafic.c
+ * @ingroup  libgridIOInGrafic
+ * @brief  Implements the Grafic reader.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -27,10 +36,12 @@
 
 
 /*--- Local variables ---------------------------------------------------*/
+
+/** @brief  Stores the functions table for the Grafic reader. */
 static struct gridReader_func_struct local_func
-    = { &gridReaderGrafic_del,
-	    &gridReaderGrafic_readIntoPatch,
-	    &gridReaderGrafic_readIntoPatchForVar };
+    = {&gridReaderGrafic_del,
+	   &gridReaderGrafic_readIntoPatch,
+	   &gridReaderGrafic_readIntoPatchForVar};
 
 /*--- Prototypes of local functions -------------------------------------*/
 static dataVar_t
@@ -39,40 +50,21 @@ local_getNewVar(gridReaderGrafic_t grafic);
 static graficFormat_t
 local_translateGridTypeToGraficType(dataVarType_t type);
 
+static void
+local_handleFilenameChange(gridReader_t reader);
 
-/*--- Implementations of exported functios ------------------------------*/
-extern gridReaderGrafic_t
-gridReaderGrafic_newFromIni(parse_ini_t ini, const char *sectionName)
-{
-	gridReaderGrafic_t reader;
-	char               *graficFileName;
 
-	reader       = xmalloc(sizeof(struct gridReaderGrafic_struct));
-	reader->type = GRIDIO_TYPE_GRAFIC;
-	reader->func = (gridReader_func_t)&local_func;
-
-	getFromIni(&graficFileName, parse_ini_get_string,
-	           ini, "graficFileName", sectionName);
-
-	reader->grafic = grafic_newFromFile(graficFileName);
-
-	xfree(graficFileName);
-
-	return reader;
-}
-
+/*--- Implementations of abstract functions -----------------------------*/
 extern void
 gridReaderGrafic_del(gridReader_t *reader)
 {
-	gridReaderGrafic_t tmp;
-
 	assert(reader != NULL && *reader != NULL);
-	tmp = (gridReaderGrafic_t)*reader;
-	assert(tmp->type == GRIDIO_TYPE_GRAFIC);
+	assert((*reader)->type == GRIDIO_TYPE_GRAFIC);
 
-	grafic_del(&(tmp->grafic));
+	gridReader_free(*reader);
+	gridReaderGrafic_free((gridReaderGrafic_t)*reader);
+
 	xfree(*reader);
-
 	*reader = NULL;
 }
 
@@ -128,6 +120,65 @@ gridReaderGrafic_readIntoPatchForVar(gridReader_t reader,
 	                    typeAsGraficType, numComponents, idxLo, dims);
 }
 
+/*--- Implementations of final functions --------------------------------*/
+extern gridReaderGrafic_t
+gridReaderGrafic_new(void)
+{
+	gridReaderGrafic_t reader;
+
+	reader = gridReaderGrafic_alloc();
+
+	gridReader_init((gridReader_t)reader, GRIDIO_TYPE_GRAFIC, &local_func,
+	                &local_handleFilenameChange);
+	gridReaderGrafic_init(reader);
+
+	return reader;
+}
+
+extern grafic_t
+gridReaderGrafic_getGrafic(const gridReaderGrafic_t reader)
+{
+	assert(reader != NULL);
+
+	return reader->grafic;
+}
+
+/*--- Implementations of protected functions ----------------------------*/
+extern gridReaderGrafic_t
+gridReaderGrafic_alloc(void)
+{
+	gridReaderGrafic_t reader;
+
+	reader = xmalloc(sizeof(struct gridReaderGrafic_struct));
+
+	return reader;
+}
+
+extern void
+gridReaderGrafic_init(gridReaderGrafic_t reader)
+{
+	reader->grafic = NULL;
+}
+
+extern void
+gridReaderGrafic_free(gridReaderGrafic_t reader)
+{
+	if (reader->grafic != NULL)
+		grafic_del(&(reader->grafic));
+}
+
+extern void
+gridReaderGrafic_setGrafic(gridReaderGrafic_t reader, grafic_t grafic)
+{
+	assert(reader != NULL);
+
+	if (grafic != reader->grafic) {
+		if (reader->grafic != NULL)
+			grafic_del(&(reader->grafic));
+		reader->grafic = grafic;
+	}
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static dataVar_t
 local_getNewVar(gridReaderGrafic_t reader)
@@ -160,4 +211,16 @@ local_translateGridTypeToGraficType(dataVarType_t type)
 		diediedie(EXIT_FAILURE);
 	}
 	return typeAsGraficType;
+}
+
+static void
+local_handleFilenameChange(gridReader_t reader)
+{
+	assert(reader != NULL);
+	assert(reader->type == GRIDIO_TYPE_GRAFIC);
+
+	grafic_t grafic;
+
+	grafic = grafic_newFromFile(filename_getFullName(reader->fileName));
+	gridReaderGrafic_setGrafic((gridReaderGrafic_t)reader, grafic);
 }

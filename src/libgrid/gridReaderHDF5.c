@@ -29,84 +29,56 @@
 
 
 /*--- Local variables ---------------------------------------------------*/
+
+/** @brief  Stores the functions table for the HDF5 reader. */
 static struct gridReader_func_struct local_func
     = {&gridReaderHDF5_del,
 	   &gridReaderHDF5_readIntoPatch,
 	   &gridReaderHDF5_readIntoPatchForVar};
 
 /*--- Prototypes of local functions -------------------------------------*/
+static void
+local_handleFilenameChange(gridReader_t reader);
 
 
 /*--- Implementations of exported functions -----------------------------*/
-extern gridReaderHDF5_t
-gridReaderHDF5_newFromIni(parse_ini_t ini, const char *sectionName)
-{
-	gridReaderHDF5_t reader;
-	char             *fileName;
-
-	reader           = xmalloc(sizeof(struct gridReaderHDF5_struct));
-	reader->type     = GRIDIO_TYPE_HDF5;
-	reader->func     = (gridReader_func_t)&local_func;
-	reader->fileName = NULL;
-
-	getFromIni(&fileName, parse_ini_get_string,
-	           ini, "fileName", sectionName);
-	gridReaderHDF5_setFileName(reader, fileName);
-	xfree(fileName);
-
-	reader->file = H5Fopen(reader->fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
-	if (reader->file < 0) {
-		fprintf(stderr, "ERROR: Could not open %s for reading.\n",
-		        reader->fileName);
-		diediedie(EXIT_FAILURE);
-	}
-
-	return reader;
-}
-
 extern void
 gridReaderHDF5_del(gridReader_t *reader)
 {
 	assert(reader != NULL && *reader != NULL);
+	assert((*reader)->type = GRIDIO_TYPE_HDF5);
 
-	gridReaderHDF5_t thisReader = (gridReaderHDF5_t)(*reader);
+	gridReader_free(*reader);
+	gridReaderHDF5_free((gridReaderHDF5_t)*reader);
 
-	xfree(thisReader->fileName);
-	H5Fclose(thisReader->file);
 	xfree(*reader);
-
 	*reader = NULL;
-}
-
-extern void
-gridReaderHDF5_setFileName(gridReaderHDF5_t reader, const char *fileName)
-{
-	assert(reader != NULL);
-	assert(reader->type = GRIDIO_TYPE_HDF5);
-	assert(fileName != NULL);
-
-	if (reader->fileName != NULL)
-		xfree(reader->fileName);
-
-	reader->fileName = xstrdup(fileName);
 }
 
 extern void
 gridReaderHDF5_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 {
-	dataVar_t var;
-	int       idxOfVar;
-
 	assert(reader != NULL);
 	assert(reader->type = GRIDIO_TYPE_HDF5);
 	assert(patch != NULL);
 
-	//var      = local_getNewVar(((gridReaderHDF5_t)reader)->file);
+	/** 
+	 * @bug  This function does nothing as it is not implemented.
+	 * @todo Figure out the vars in the HDF5 file, create a gridVar for each
+	 * and attach to patch, read the data from the file into the patch via
+	 * gridReaderHDF5_readIntoPatchForVar().
+	 */
+#if 0
+	dataVar_t var;
+	int       idxOfVar;
+
+	var      = local_getNewVar(((gridReaderHDF5_t)reader)->file);
 	idxOfVar = gridPatch_attachVar(patch, var);
 
 	gridReader_readIntoPatchForVar(reader, patch, idxOfVar);
 
 	dataVar_del(&var);
+#endif
 }
 
 extern void
@@ -154,4 +126,78 @@ gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
 	H5Dclose(dataSet);
 } /* gridReaderHDF5_readIntoPatchForVar */
 
+/*--- Implementations of final functions --------------------------------*/
+extern gridReaderHDF5_t
+gridReaderHDF5_new(void)
+{
+	gridReaderHDF5_t reader;
+
+	reader = gridReaderHDF5_alloc();
+
+	gridReader_init((gridReader_t)reader, GRIDIO_TYPE_HDF5, &local_func,
+	                &local_handleFilenameChange);
+	gridReaderHDF5_init(reader);
+
+	return reader;
+}
+
+extern hid_t
+gridReaderHDF5_getH5File(const gridReaderHDF5_t reader)
+{
+	assert(reader != NULL);
+
+	return reader->file;
+}
+
+/*--- Implementations of protected functions ----------------------------*/
+extern gridReaderHDF5_t
+gridReaderHDF5_alloc(void)
+{
+	return xmalloc(sizeof(struct gridReaderHDF5_struct));
+}
+
+extern void
+gridReaderHDF5_init(gridReaderHDF5_t reader)
+{
+	reader->file = H5I_INVALID_HID;
+}
+
+extern void
+gridReaderHDF5_free(gridReaderHDF5_t reader)
+{
+	if (reader->file != H5I_INVALID_HID)
+		H5Fclose(reader->file);
+
+}
+
+extern void
+gridReaderHDF5_setH5File(gridReaderHDF5_t reader, hid_t file)
+{
+	assert(reader != NULL);
+
+	if (file != reader->file) {
+		if (reader->file != H5I_INVALID_HID)
+			H5Fclose(reader->file);
+		reader->file = file;
+	}
+}
+
+
 /*--- Implementations of local functions --------------------------------*/
+extern void
+local_handleFilenameChange(gridReader_t reader)
+{
+	assert(reader != NULL);
+	assert(reader->type == GRIDIO_TYPE_HDF5);
+
+	const char *fileName = filename_getFullName(reader->fileName);
+
+	hid_t file = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
+	if (file < 0) {
+		fprintf(stderr, "ERROR: Could not open %s for reading.\n", fileName);
+		diediedie(EXIT_FAILURE);
+	}
+
+	gridReaderHDF5_setH5File((gridReaderHDF5_t)reader, file);
+}
+

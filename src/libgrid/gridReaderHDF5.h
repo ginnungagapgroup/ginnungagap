@@ -19,6 +19,7 @@
 #include "gridConfig.h"
 #include "gridReader.h"
 #include "../libutil/parse_ini.h"
+#include <hdf5.h>
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -34,32 +35,24 @@ typedef struct gridReaderHDF5_struct *gridReaderHDF5_t;
  *
  * @{
  */
-extern gridReaderHDF5_t
-gridReaderHDF5_newFromIni(parse_ini_t ini, const char *sectionName);
 
+/** @copydoc gridReader_del() */
 extern void
 gridReaderHDF5_del(gridReader_t *reader);
 
 /** @} */
 
 /**
- * @name Setter
+ * @name  Using (Virtual)
  *
  * @{
  */
 
-extern void
-gridReaderHDF5_setFileName(gridReaderHDF5_t reader, const char *fileName);
-
-/** @} */
-
-/**
- * @name  Using
- */
-
+/** @copydoc gridReader_readIntoPatch() */
 extern void
 gridReaderHDF5_readIntoPatch(gridReader_t reader, gridPatch_t patch);
 
+/** @copydoc gridReader_readIntoPatchForVar() */
 extern void
 gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
                                    gridPatch_t  patch,
@@ -69,19 +62,52 @@ gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
 /** @} */
 
 
+/*--- Prototypes of final functions -------------------------------------*/
+
+/**
+ * @name  Creating and Deleting (Final)
+ *
+ * @{
+ */
+
+/**
+ * @brief  Creates a new empty HDF5 reader.
+ *
+ * @return  The new writer.
+ */
+extern gridReaderHDF5_t
+gridReaderHDF5_new(void);
+
+/** @} */
+
+/**
+ * @name  Getting (Final)
+ *
+ * @{
+ */
+
+/**
+ * @brief  Retrieves a the underlying HDF5 file handle from a HDF5 grid
+ *         reader.
+ *
+ * @param[in]  reader
+ *                The reader that should be queried, passing @c NULL is
+ *                undefined.
+ *
+ * @return  Returns a handle to the internal HDF5 file handle, the caller
+ *          must not try free the object.
+ */
+extern hid_t
+gridReaderHDF5_getH5File(const gridReaderHDF5_t writer);
+
+/** @} */
+
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
  * @defgroup libgridIOInHDF5 HDF5 Reader
  * @ingroup libgridIOIn
  * @brief  Provides the HDF5 reader.
- *
- * @section libgridIOInHDF5IniFormat  Expected Format for Ini Files
- *
- * @code
- * [SectionName]
- *
- * @endcode
  */
 
 #endif

@@ -1,0 +1,17 @@
+# This is the same as test.bov.
+# The file is used to test the reader interface, specifically, the
+# setting and getting of file names.
+TIME: 1.2
+VARIABLE: testVar
+BRICK_ORIGIN: -4. -4. -4.
+BRICK_SIZE: 8. 8. 8.
+# Comment
+DIVIDE_BRICK: false
+# More comments
+DATA_FILE: data.dat
+DATA_SIZE: 8 8 8
+DATA_FORMAT: DOUBLE
+DATA_COMPONENTS: COMPLEX
+DATA_ENDIAN: BIG
+CENTERING: zonal
+BYTE_OFFSET: 0

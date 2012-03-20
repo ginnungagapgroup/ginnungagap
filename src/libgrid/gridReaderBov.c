@@ -1,6 +1,15 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
+
+
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file libgrid/gridReaderBov.c
+ * @ingroup  libgridIOInBov
+ * @brief  Implements the BOV reader.
+ */
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -25,6 +34,8 @@
 
 
 /*--- Local variables ---------------------------------------------------*/
+
+/** @brief  Stores the functions table for the BOV reader. */
 static struct gridReader_func_struct local_func
     = { &gridReaderBov_del,
 	    &gridReaderBov_readIntoPatch,
@@ -40,39 +51,21 @@ local_translateBovTypeToGridType(bovFormat_t typeInBov);
 static bovFormat_t
 local_translateGridTypeToBovType(dataVarType_t type);
 
+static void
+local_handleFilenameChange(gridReader_t reader);
+
 
 /*--- Implementations of exported functios ------------------------------*/
-extern gridReaderBov_t
-gridReaderBov_newFromIni(parse_ini_t ini, const char *sectionName)
-{
-	gridReaderBov_t reader;
-	char            *bovFileName;
-
-	reader       = xmalloc(sizeof(struct gridReaderBov_struct));
-	reader->type = GRIDIO_TYPE_BOV;
-	reader->func = (gridReader_func_t)&local_func;
-
-	getFromIni(&bovFileName, parse_ini_get_string,
-	           ini, "bovFileName", sectionName);
-	reader->bov = bov_newFromFile(bovFileName);
-	xfree(bovFileName);
-
-	return reader;
-}
-
 extern void
 gridReaderBov_del(gridReader_t *reader)
 {
-	gridReaderBov_t tmp;
-
 	assert(reader != NULL && *reader != NULL);
-	tmp = (gridReaderBov_t)*reader;
-	assert(tmp->type == GRIDIO_TYPE_BOV);
+	assert((*reader)->type == GRIDIO_TYPE_BOV);
 
-	bov_del(&(tmp->bov));
+	gridReader_free(*reader);
+	gridReaderBov_free((gridReaderBov_t)*reader);
 
 	xfree(*reader);
-
 	*reader = NULL;
 }
 
@@ -126,6 +119,59 @@ gridReaderBov_readIntoPatchForVar(gridReader_t reader,
 
 	bov_readWindowed(((gridReaderBov_t)reader)->bov, data, typeAsBovType,
 	                 numComponents, idxLo, dims);
+}
+
+/*--- Implementations of final functions --------------------------------*/
+extern gridReaderBov_t
+gridReaderBov_new(void)
+{
+	gridReaderBov_t reader = gridReaderBov_alloc();
+
+	gridReader_init((gridReader_t)reader, GRIDIO_TYPE_BOV, &local_func,
+	                &local_handleFilenameChange);
+	gridReaderBov_init(reader);
+
+	return reader;
+}
+
+extern bov_t
+gridReaderBov_getBov(const gridReaderBov_t reader)
+{
+	assert(reader != NULL);
+
+	return reader->bov;
+}
+
+/*--- Implementations of protected functions ----------------------------*/
+extern gridReaderBov_t
+gridReaderBov_alloc(void)
+{
+	return (gridReaderBov_t)xmalloc(sizeof(struct gridReaderBov_struct));
+}
+
+extern void
+gridReaderBov_init(gridReaderBov_t reader)
+{
+	reader->bov = NULL;
+}
+
+extern void
+gridReaderBov_free(gridReaderBov_t reader)
+{
+	if (reader->bov != NULL)
+		bov_del(&(reader->bov));
+}
+
+extern void
+gridReaderBov_setBov(gridReaderBov_t reader, bov_t bov)
+{
+	assert(reader != NULL);
+
+	if (bov != reader->bov) {
+		if (reader->bov != NULL)
+			bov_del(&(reader->bov));
+		reader->bov = bov;
+	}
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -197,4 +243,16 @@ local_translateGridTypeToBovType(dataVarType_t type)
 		diediedie(EXIT_FAILURE);
 	}
 	return typeAsBovType;
+}
+
+static void
+local_handleFilenameChange(gridReader_t reader)
+{
+	assert(reader != NULL);
+	assert(reader->type == GRIDIO_TYPE_BOV);
+
+	bov_t bov;
+
+	bov = bov_newFromFile(filename_getFullName(reader->fileName));
+	gridReaderBov_setBov((gridReaderBov_t)reader, bov);
 }

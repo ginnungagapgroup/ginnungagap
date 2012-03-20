@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -10,7 +10,7 @@
 
 /**
  * @file libgrid/gridReader.h
- * @ingroup libgridIOIn
+ * @ingroup libgridIOInInterface
  * @brief  This file provides the interface to an abstract grid reader.
  */
 
@@ -18,7 +18,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPatch.h"
-#include "../libutil/parse_ini.h"
+#include "../libutil/filename.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -32,34 +32,10 @@ typedef struct gridReader_struct *gridReader_t;
 /*--- Prototypes of exported functions ----------------------------------*/
 
 /**
- * @name  Creating and Deleting
+ * @name  Creating and Deleting (Public, Virtual, Abstract)
  *
  * @{
  */
-
-/**
- * @brief  Creates a new reader object from an ini file.
- *
- * This will look in a specified section in the provided ini file for
- * construction information for the reader.  The information absolutely
- * required are two fields: @a readerType and @a readerSection.  The
- * first one must be a recognized type defined in gridIO.h and the
- * second a valid string that gives the name of the section in which the
- * detailed construction information for the specific type can be found.
- *
- * @param[in,out]  ini
- *                    The ini file in which to look for the construction
- *                    information for this reader.
- * @param[in]      *sectionName
- *                    The section name within the ini file that holds
- *                    the construction information.
- *
- * @return  Returns a new reader object that is constructed from the
- *          information in the ini file.
- */
-extern gridReader_t
-gridReader_newFromIni(parse_ini_t ini, const char *sectionName);
-
 
 /**
  * @brief  Deletes a reader objects and frees the associated memory.
@@ -75,11 +51,11 @@ gridReader_newFromIni(parse_ini_t ini, const char *sectionName);
 extern void
 gridReader_del(gridReader_t *reader);
 
-
 /** @} */
 
+
 /**
- * @name  Using
+ * @name  Using (Public, Virtual, Abstract)
  *
  * @{
  */
@@ -123,6 +99,73 @@ gridReader_readIntoPatchForVar(gridReader_t reader,
                                gridPatch_t  patch,
                                int          idxOfVar);
 
+/** @} */
+
+
+/*--- Prototypes of final functions -------------------------------------*/
+
+/**
+ * @name  Setter (Public, Final)
+ *
+ * @{
+ */
+
+/**
+ * @brief  Sets a new file name for the reader.
+ *
+ * @param[in,out]  reader
+ *                    The reader to work with.  Passing @c NULL is
+ *                    undefined.
+ * @param[in]      fileName
+ *                    The new filename object to use.  Passing @c NULL is
+ *                    undefined.  The caller relinquishes control over to
+ *                    object.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+gridReader_setFileName(gridReader_t reader,
+                       filename_t   fileName);
+
+/**
+ * @brief  Will update the filename of the reader with the (set) fields in
+ *         the file name object.
+ *
+ * @param[in,out]  reader
+ *                    The reader to work with.  Passing @c NULL is
+ *                    undefined.
+ * @param[in]      fileName
+ *                    The filename object from which to take the updated
+ *                    information.  The caller has to free the filename
+ *                    object.
+ *
+ * @return  Returns nothing.                    
+ */
+extern void
+gridReader_overlayFileName(gridReader_t reader,
+                           const filename_t fileName);
+
+/** @} */
+
+/**
+ * @name  Getter (Public, Final)
+ *
+ * @{
+ */
+
+
+/**
+ * @brief  Retrieves the current filename the reader uses.
+ *
+ * @param[in]  reader
+ *                The reader to query, this must be a valid reader, passing
+ *                @c NULL is undefined.
+ *
+ * @return  Returns the internal filename object, the caller may only use it
+ *          read-only.
+ */
+extern const filename_t
+gridReader_getFileName(const gridReader_t reader);
 
 /** @} */
 
@@ -133,29 +176,12 @@ gridReader_readIntoPatchForVar(gridReader_t reader,
  * @defgroup libgridIOIn Reading
  * @ingroup libgridIO
  * @brief This provides functionality to read grids.
- *
- * @section libgridIOInIniFormat Ini Format for Grid Reader
- *
- * @code
- * [SectionName]
- * readerType = <string>
- * readerSection = <string>
- * @endcode
- *
- * <dl>
- *  <dt>Grafic</dt>
- *  <dd>The name is given by @ref local_typeGraficStr.  For further
- *      constrution details see @ref libgridIOInGraficIniFormat.</dd>
- *  <dt>BOV</dt>
- *  <dd>The name is given by #local_typeBovStr.  For further
- *      construction details see @ref libgridIOInBovIniFormat.</dd>
- *  <dt>Silo</dt>
- *  <dd>The name is given by #local_typeSiloStr.  For further
- *      construction details see @ref libgridIOInSiloIniFormat.</dd>
- *  <dt>HDF5</dt>
- *  <dd>The name is given by #local_typeHDF5Str.  For further
- *      construction details see @ref libgridIOInHDF5IniFormat.</dd>
- * </dl>
+ */
+
+/**
+ * @defgroup libgridIOInInterface Interface
+ * @ingroup libgridIOIn
+ * @brief This provides the common interface for all reader types.
  */
 
 

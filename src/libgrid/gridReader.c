@@ -7,15 +7,9 @@
 
 /**
  * @file libgrid/gridReader.c
- * @ingroup libgridIOIn
+ * @ingroup libgridIOInInterface
  * @brief  This file implements the abstract reader.
  */
-
-
-/*--- Includes ----------------------------------------------------------*/
-#include "gridConfig.h"
-#include "gridPatch.h"
-#include "../libutil/parse_ini.h"
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -23,15 +17,9 @@
 #include "gridReader.h"
 #include <assert.h>
 #include <stdio.h>
-#include "gridReaderBov.h"
-#include "gridReaderGrafic.h"
-#ifdef WITH_HDF5
-#  include "gridReaderHDF5.h"
-#endif
 #include "gridPatch.h"
-#include "../libutil/parse_ini.h"
 #include "../libutil/xmem.h"
-#include "../libutil/diediedie.h"
+#include "../libutil/filename.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -42,42 +30,14 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
-static gridReader_t
-local_newFromIniWrapper(parse_ini_t   ini,
-                        gridIO_type_t type,
-                        const char    *readerSectionName);
 
 
-/*--- Implementations of exported functios ------------------------------*/
-extern gridReader_t
-gridReader_newFromIni(parse_ini_t ini, const char *sectionName)
-{
-	gridReader_t  reader;
-	char          *readerTypeName;
-	gridIO_type_t type;
-	char          *readerSectionName;
-
-	assert(ini != NULL);
-	assert(sectionName != NULL);
-
-	getFromIni(&readerTypeName, parse_ini_get_string,
-	           ini, "readerType", sectionName);
-	type = gridIO_getTypeFromName(readerTypeName);
-	xfree(readerTypeName);
-	getFromIni(&readerSectionName, parse_ini_get_string,
-	           ini, "readerSection", sectionName);
-
-	reader = local_newFromIniWrapper(ini, type, readerSectionName);
-
-	xfree(readerSectionName);
-
-	return reader;
-}
-
+/*--- Implementations of virtual functions ------------------------------*/
 extern void
 gridReader_del(gridReader_t *reader)
 {
 	assert(reader != NULL && *reader != NULL);
+	assert((*reader)->func->del != NULL);
 
 	(*reader)->func->del(reader);
 }
@@ -104,33 +64,68 @@ gridReader_readIntoPatchForVar(gridReader_t reader,
 	reader->func->readIntoPatchForVar(reader, patch, idxOfVar);
 }
 
-/*--- Implementations of local functions --------------------------------*/
-static gridReader_t
-local_newFromIniWrapper(parse_ini_t   ini,
-                        gridIO_type_t type,
-                        const char    *readerSectionName)
+/*--- Implementations of final functions --------------------------------*/
+extern void
+gridReader_setFileName(gridReader_t reader,
+                       filename_t   fileName)
 {
-	gridReader_t r;
+	assert(reader != NULL);
+	assert(fileName != NULL);
 
-	if (type == GRIDIO_TYPE_BOV) {
-		r = (gridReader_t)gridReaderBov_newFromIni(ini, readerSectionName);
-	} else if (type == GRIDIO_TYPE_GRAFIC) {
-		r = (gridReader_t)gridReaderGrafic_newFromIni(ini,
-		                                              readerSectionName);
-	} else if (type == GRIDIO_TYPE_HDF5) {
-#ifdef WITH_HDF5
-		r = (gridReader_t)gridReaderHDF5_newFromIni(ini,
-		                                            readerSectionName);
-#else
-		fprintf(stderr,
-		        "To use HF5 input, run configure using --with-hdf5\n");
-		diediedie(EXIT_FAILURE);
-#endif
-	} else {
-		fprintf(stderr, "Cannot create reader for %s\n",
-		        gridIO_getNameFromType(type));
-		diediedie(EXIT_FAILURE);
-	}
+	if (reader->fileName != NULL)
+		filename_del(&(reader->fileName));
+	reader->fileName = fileName;
 
-	return r;
+	if (reader->handleFilenameChange != NULL)
+		reader->handleFilenameChange(reader);
 }
+
+extern void
+gridReader_overlayFileName(gridReader_t     reader,
+                           const filename_t fileName)
+{
+	assert(reader != NULL);
+	assert(fileName != NULL);
+
+	if (reader->fileName == NULL)
+		reader->fileName = filename_clone(fileName);
+	else
+		filename_copySetFields(reader->fileName, fileName);
+
+	if (reader->handleFilenameChange != NULL)
+		reader->handleFilenameChange(reader);
+}
+
+extern const filename_t
+gridReader_getFileName(const gridReader_t reader)
+{
+	assert(reader != NULL);
+
+	return reader->fileName;
+}
+
+/*--- Implementations of protected functions ----------------------------*/
+extern void
+gridReader_init(gridReader_t                          reader,
+                gridIO_type_t                         type,
+                gridReader_func_t                     func,
+                gridReader_handleFilenameChangeFunc_t handleFilenameChange)
+{
+	assert(reader != NULL);
+
+	reader->type                 = type;
+	reader->func                 = func;
+	reader->handleFilenameChange = handleFilenameChange;
+	reader->fileName             = NULL;
+}
+
+extern void
+gridReader_free(gridReader_t reader)
+{
+	assert(reader != NULL);
+
+	if (reader->fileName != NULL)
+		filename_del(&(reader->fileName));
+}
+
+/*--- Implementations of local functions --------------------------------*/

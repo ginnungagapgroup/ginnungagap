@@ -7,8 +7,8 @@
 
 /**
  * @file gridWriterFactory.c
- * @ingroup  GROUP
- * @brief  SHORT DESC
+ * @ingroup  libgridIOOutFactory
+ * @brief  Provides functions to contruct grid writer.
  */
 
 
@@ -18,7 +18,7 @@
 #include <assert.h>
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
-#include "gridIO.h"
+#include "gridIOCommon.h"
 #include "gridWriterGrafic.h"
 #ifdef WITH_SILO
 #  include "gridWriterSilo.h"
@@ -34,20 +34,42 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  Wrapper to create a new writer.
+ *
+ * @param[in,out]  ini
+ *                    The ini file to use.  Passing @c NULL is undefind.
+ * @param[in]      *base
+ *                    The section from which to read the basic information.
+ * @param[in]      *extended
+ *                    The section from which to read the extended
+ *                    information (file format specific information).  This
+ *                    may be the same as @c base.
+ *
+ * @return  Returns a new grid writer constructed from the information in
+ *          the ini file.
+ */
 static gridWriter_t
 local_newFromIniWrapper(parse_ini_t ini,
                         const char  *base,
                         const char  *extended);
 
-static gridIO_type_t
-local_getType(parse_ini_t ini, const char *secName);
 
-static filename_t
-local_getFileName(parse_ini_t ini, const char *secName);
-
-static bool
-local_getOverwrite(parse_ini_t ini, const char *secName);
-
+/**
+ * @brief  This will call the according factory routine for the request
+ *         writer type.
+ *
+ * @param[in,out]  ini
+ *                    The ini file to use.  Passing @c NULL is undefined.
+ * @param[in]      *secName
+ *                    The section in which to look for the construction
+ *                    information.
+ * @param[in]      type
+ *                    The type of the writer.
+ *
+ * @return  Returns the new writer of the requested type.
+ */
 static gridWriter_t
 local_getWriter(parse_ini_t ini, const char *secName, gridIO_type_t type);
 
@@ -181,7 +203,7 @@ gridWriterFactory_newFromIniSilo(parse_ini_t ini, const char *sectionName)
 	int              dbType;
 	int              numFiles;
 
-	
+
 	if (parse_ini_get_string(ini, "dbType", sectionName, &dbTypeStr)) {
 		if (strcmp(dbTypeStr, "DB_PDB") == 0)
 			dbType = DB_PDB;
@@ -216,9 +238,9 @@ local_newFromIniWrapper(parse_ini_t ini,
 	filename_t    fn;
 	bool          overwrite;
 
-	fn        = local_getFileName(ini, base);
-	overwrite = local_getOverwrite(ini, base);
-	type      = local_getType(ini, extended);
+	fn        = gridIOCommon_getFileName(ini, base, false);
+	overwrite = gridIOCommon_getOverwrite(ini, base);
+	type      = gridIOCommon_getType(ini, extended);
 
 	writer    = local_getWriter(ini, extended, type);
 
@@ -228,58 +250,6 @@ local_newFromIniWrapper(parse_ini_t ini,
 	filename_del(&fn);
 
 	return writer;
-}
-
-static gridIO_type_t
-local_getType(parse_ini_t ini, const char *secName)
-{
-	char          *typeName;
-	gridIO_type_t type;
-
-	getFromIni(&typeName, parse_ini_get_string, ini, "type", secName);
-	type = gridIO_getTypeFromName(typeName);
-	xfree(typeName);
-
-	return type;
-}
-
-static filename_t
-local_getFileName(parse_ini_t ini, const char *secName)
-{
-	filename_t fn;
-	char       *path      = NULL;
-	char       *prefix    = NULL;
-	char       *qualifier = NULL;
-	char       *suffix    = NULL;
-
-	parse_ini_get_string(ini, "path", secName, &path);
-	getFromIni(&prefix, parse_ini_get_string, ini, "prefix", secName);
-	parse_ini_get_string(ini, "qualifier", secName, &qualifier);
-	parse_ini_get_string(ini, "suffix", secName, &suffix);
-
-	fn = filename_newFull(path, prefix, qualifier, suffix);
-
-	xfree(prefix);
-	if (path != NULL)
-		xfree(path);
-	if (qualifier != NULL)
-		xfree(qualifier);
-	if (suffix != NULL)
-		xfree(suffix);
-
-	return fn;
-}
-
-static bool
-local_getOverwrite(parse_ini_t ini, const char *secName)
-{
-	bool overwrite;
-
-	if (!parse_ini_get_bool(ini, "overwriteFileIfExists", secName,
-	                        &overwrite))
-		overwrite = false;
-
-	return overwrite;
 }
 
 static gridWriter_t
