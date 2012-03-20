@@ -88,4 +88,7 @@ extern void
 gridWriterGrafic_free(gridWriterGrafic_t writer);
 
 
+/** @} */
+
+
 #endif
