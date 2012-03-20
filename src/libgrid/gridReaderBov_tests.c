@@ -64,7 +64,7 @@ gridReaderBov_new_test(void)
 	if (reader->bov != NULL)
 		hasPassed = false;
 
-	gridReaderBov_del(&reader);
+	gridReaderBov_del((gridReader_t *)&reader);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;

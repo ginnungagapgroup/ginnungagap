@@ -39,11 +39,9 @@ sourcesTests = lib${LIBNAME}_tests.c \
                gridUtil_tests.c
 
 ifeq ($(WITH_SILO), "true")
-sources += gridWriterSilo.c \
-           gridReaderSilo.c
+sources += gridWriterSilo.c
 
-sourcesTests += gridReaderSilo_tests.c \
-                gridWriterSilo_tests.c
+sourcesTests += gridWriterSilo_tests.c
 endif
 
 ifeq ($(WITH_HDF5), "true")

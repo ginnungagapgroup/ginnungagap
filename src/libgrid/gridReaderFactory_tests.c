@@ -43,7 +43,6 @@ gridReaderFactory_newReaderFromIni_test(void)
 	int          rank      = 0;
 	gridReader_t reader;
 	parse_ini_t  ini;
-	filename_t   newName;
 #ifdef XMEM_TRACK_MEM
 	size_t       allocatedBytes = global_allocated_bytes;
 #endif
