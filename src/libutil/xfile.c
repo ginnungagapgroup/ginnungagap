@@ -20,7 +20,7 @@
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
-#if (defined _XOPEN_SOURE && _XOPEN_SOURCE >= 600)
+#if (defined _XOPEN_SOURCE && _XOPEN_SOURCE >= 600)
 #  include <unistd.h>
 #  include <sys/types.h>
 #  include <sys/stat.h>
@@ -99,7 +99,7 @@ xfseek(FILE *stream, long offset, int whence)
 extern int
 xfile_createFileWithSize(const char *fname, size_t bytes)
 {
-#if (defined _XOPEN_SOURE && _XOPEN_SOURCE >= 600)
+#if (defined _XOPEN_SOURCE && _XOPEN_SOURCE >= 600)
 	int fd;
 	int errnum;
 
