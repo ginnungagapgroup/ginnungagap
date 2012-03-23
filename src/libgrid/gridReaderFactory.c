@@ -117,6 +117,7 @@ gridReaderFactory_newFromIniBov(parse_ini_t ini,
 	return reader;
 }
 
+#ifdef WITH_HDF5
 extern gridReaderHDF5_t
 gridReaderFactory_newFromIniHDF5(parse_ini_t ini,
                                  const char  *sectionName,
@@ -139,6 +140,7 @@ gridReaderFactory_newFromIniHDF5(parse_ini_t ini,
 
 	return reader;
 }
+#endif
 
 /*--- Implementations of local functions --------------------------------*/
 static gridReader_t
