@@ -76,10 +76,10 @@ gadgetTOC_new(void)
 {
 	gadgetTOC_t toc;
 
-	toc            = xmalloc(sizeof(struct gadgetTOC_struct));
+	toc              = xmalloc(sizeof(struct gadgetTOC_struct));
 	toc->fileVersion = GADGETVERSION_TWO;
-	toc->numBlocks = 0;
-	toc->blocks    = NULL;
+	toc->numBlocks   = 0;
+	toc->blocks      = NULL;
 
 	return toc;
 }
@@ -89,9 +89,9 @@ gadgetTOC_newFromFile(FILE *f)
 {
 	assert(f != NULL);
 
-	gadgetTOC_t     toc        = gadgetTOC_new();
-	long            restorePos = ftell(f);
-	bool            doByteSwap;
+	gadgetTOC_t toc        = gadgetTOC_new();
+	long        restorePos = ftell(f);
+	bool        doByteSwap;
 
 	rewind(f);
 
@@ -108,6 +108,24 @@ gadgetTOC_newFromFile(FILE *f)
 	fseek(f, restorePos, SEEK_SET);
 
 	return toc;
+}
+
+extern gadgetTOC_t
+gadgetTOC_clone(const gadgetTOC_t tmpl)
+{
+	assert(tmpl != NULL);
+
+	gadgetTOC_t clone;
+	size_t      sizeBlocks = sizeof(struct gadgetTOC_entry_struct)
+	                         * tmpl->numBlocks;
+
+	clone              = xmalloc(sizeof(struct gadgetTOC_struct));
+	clone->fileVersion = tmpl->fileVersion;
+	clone->numBlocks   = tmpl->numBlocks;
+	clone->blocks      = xmalloc(sizeBlocks);
+	memcpy(clone->blocks, tmpl->blocks, sizeBlocks);
+
+	return clone;
 }
 
 extern void
@@ -295,8 +313,10 @@ gadgetTOC_calcSizes(gadgetTOC_t    toc,
 		if (type == GADGETBLOCK_HEAD) {
 			toc->blocks[i].sizeInBytes = GADGETHEADER_SIZE;
 		} else {
-			uint32_t      numParticles, sizePerParticle;
-			numParticles    = gadgetBlock_getNumPartsInBlock(type, np, massarr);
+			uint32_t numParticles, sizePerParticle;
+			numParticles    = gadgetBlock_getNumPartsInBlock(type,
+			                                                 np,
+			                                                 massarr);
 			sizePerParticle = gadgetBlock_getNumComponents(type);
 			if (type == GADGETBLOCK_ID__)
 				sizePerParticle *= useLongIDs ? 8 : 4;
@@ -318,7 +338,7 @@ gadgetTOC_calcOffset(gadgetTOC_t toc)
 		if (toc->fileVersion != GADGETVERSION_ONE)
 			curOffset += 4 + GADGETBLOCK_DESCRIPTOR_BLOCK_LENGTH  + 4;
 		toc->blocks[i].offset = curOffset;
-		curOffset += 4 + toc->blocks[i].sizeInBytes + 4;
+		curOffset            += 4 + toc->blocks[i].sizeInBytes + 4;
 	}
 }
 
@@ -331,12 +351,15 @@ gadgetTOC_seekToData(const gadgetTOC_t toc, gadgetBlock_t block, FILE *f)
 }
 
 extern void
-gadgetTOC_seekToDescriptor(const gadgetTOC_t toc, gadgetBlock_t block, FILE *f)
+gadgetTOC_seekToDescriptor(const gadgetTOC_t toc,
+                           gadgetBlock_t     block,
+                           FILE              *f)
 {
 	long offsetDescriptor = gadgetTOC_getOffsetForBlock(toc, block);
 
 	if (toc->fileVersion == GADGETVERSION_TWO) {
-		assert(offsetDescriptor >= 4 + GADGETBLOCK_DESCRIPTOR_BLOCK_LENGTH + 4);
+		assert(
+		    offsetDescriptor >= 4 + GADGETBLOCK_DESCRIPTOR_BLOCK_LENGTH + 4);
 		offsetDescriptor -= (4 + GADGETBLOCK_DESCRIPTOR_BLOCK_LENGTH + 4);
 	}
 
@@ -406,7 +429,7 @@ local_newFromFileActual(gadgetTOC_t     toc,
 			                                      doByteSwap, version))
 				break;
 			entry.offset = xftell(f);
-			entry.type = gadgetBlock_getTypeFromName(entry.nameInV2Files);
+			entry.type   = gadgetBlock_getTypeFromName(entry.nameInV2Files);
 			if (!gadgetBlock_skip(f, doByteSwap))
 				break;
 		} else {

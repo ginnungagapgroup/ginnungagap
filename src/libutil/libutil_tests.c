@@ -264,6 +264,7 @@ main(void)
 		printf("\nRunning tests for gadgetTOC:\n");
 		RUNTEST(&gadgetTOC_new_test, hasFailed);
 		RUNTEST(&gadgetTOC_newFromFile_test, hasFailed);
+		RUNTEST(&gadgetTOC_clone_test, hasFailed);
 		RUNTEST(&gadgetTOC_del_test, hasFailed);
 		RUNTEST(&gadgetTOC_setFileVersion_test, hasFailed);
 		RUNTEST(&gadgetTOC_getFileVersion_test, hasFailed);

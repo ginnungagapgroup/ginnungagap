@@ -60,6 +60,19 @@ gadgetTOC_newFromFile(FILE *f);
 
 
 /**
+ * @brief  Creates a new TOC that has the same block defined as a provided
+ *         template TOC.
+ *
+ * @param[in]  tmpl
+ *                The TOC that should be cloned.
+ *
+ * @return  Returns a new TOC object with the same blocks as the template
+ *          TOC.
+ */
+extern gadgetTOC_t
+gadgetTOC_clone(const gadgetTOC_t tmpl);
+
+/**
  * @brief  Deletes a TOC object and frees all associated memory.
  *
  * @param[in,out]  *toc
@@ -100,6 +113,7 @@ gadgetTOC_del(gadgetTOC_t *toc);
 extern void
 gadgetTOC_setFileVersion(gadgetTOC_t toc, gadgetVersion_t ver);
 
+
 /**
  * @brief  Retrieves the file version the TOC is for.
  *
@@ -110,6 +124,7 @@ gadgetTOC_setFileVersion(gadgetTOC_t toc, gadgetVersion_t ver);
  */
 extern gadgetVersion_t
 gadgetTOC_getFileVersion(const gadgetTOC_t toc);
+
 
 /** @} */
 
@@ -256,6 +271,7 @@ gadgetTOC_getNameBySeqNumber(const gadgetTOC_t toc, int seqNumber);
 extern size_t
 gadgetTOC_getTotalFileSize(const gadgetTOC_t toc);
 
+
 /** @} */
 
 /** @name  Using
@@ -336,6 +352,7 @@ gadgetTOC_calcSizes(gadgetTOC_t    toc,
 extern void
 gadgetTOC_calcOffset(gadgetTOC_t toc);
 
+
 /**
  * @brief  Positions the provided stream to the beginning of the data
  *         section of the requested block.
@@ -352,6 +369,7 @@ gadgetTOC_calcOffset(gadgetTOC_t toc);
 extern void
 gadgetTOC_seekToData(const gadgetTOC_t toc, gadgetBlock_t block, FILE *f);
 
+
 /**
  * @brief  Positions the provided stream to the beginning of the descriptor
  *         block of the requested block.
@@ -366,7 +384,10 @@ gadgetTOC_seekToData(const gadgetTOC_t toc, gadgetBlock_t block, FILE *f);
  * @return  Returns nothing.
  */
 extern void
-gadgetTOC_seekToDescriptor(const gadgetTOC_t toc, gadgetBlock_t block, FILE *f);
+gadgetTOC_seekToDescriptor(const gadgetTOC_t toc,
+                           gadgetBlock_t     block,
+                           FILE              *f);
+
 
 /**
  * @brief  Verifies that the provided TOC is sensible.

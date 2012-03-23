@@ -115,6 +115,52 @@ gadgetTOC_newFromFile_test(void)
 } /* gadgetTOC_newFromFile_test */
 
 extern bool
+gadgetTOC_clone_test(void)
+{
+	bool        hasPassed = true;
+	int         rank      = 0;
+	gadgetTOC_t toc, clone;
+#ifdef XMEM_TRACK_MEM
+	size_t      allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	toc = local_getBasicTOC();
+	clone = gadgetTOC_clone(toc);
+
+	if (clone->fileVersion != toc->fileVersion)
+		hasPassed = false;
+	if (clone->numBlocks != toc->numBlocks)
+		hasPassed = false;
+	if (clone->blocks == toc->blocks)
+		hasPassed = false;
+	if (clone->blocks[0].offset != toc->blocks[0].offset)
+		hasPassed = false;
+	if (clone->blocks[0].type != toc->blocks[0].type)
+		hasPassed = false;
+	if (clone->blocks[0].sizeInBytes != toc->blocks[0].sizeInBytes)
+		hasPassed = false;
+	if (strcmp(clone->blocks[0].nameInV2Files,
+	           toc->blocks[0].nameInV2Files) != 0)
+		hasPassed = false;
+
+	gadgetTOC_del(&clone);
+	gadgetTOC_del(&toc);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+
+extern bool
 gadgetTOC_del_test(void)
 {
 	bool        hasPassed = true;

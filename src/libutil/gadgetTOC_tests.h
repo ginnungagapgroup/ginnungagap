@@ -30,6 +30,10 @@ gadgetTOC_new_test(void);
 extern bool
 gadgetTOC_newFromFile_test(void);
 
+/** @brief  Tests gadgetTOC_clone(). */
+extern bool
+gadgetTOC_clone_test(void);
+
 /** @brief  Tests gadgetTOC_del(). */
 extern bool
 gadgetTOC_del_test(void);
