@@ -44,7 +44,11 @@ local_getBaseHeader(gadget_t     gadget,
                     double       aInit,
                     cosmoModel_t model,
                     uint32_t     np[3],
-                    bool         doGas);
+                    bool         doGas,
+                    bool         useLongIDs);
+
+static gadgetTOC_t
+local_getTOC(void);
 
 static void
 local_getSlabNumbers(int i,
@@ -143,6 +147,7 @@ grafic2gadget_run(grafic2gadget_t g2g)
 	cosmoModel_t   model;
 	gadget_t       gadget;
 	gadgetHeader_t baseHeader;
+	gadgetTOC_t    toc;
 
 	assert(g2g != NULL);
 
@@ -150,14 +155,16 @@ grafic2gadget_run(grafic2gadget_t g2g)
 	gvy    = grafic_newFromFile(g2g->graficFileNameVy);
 	gvz    = grafic_newFromFile(g2g->graficFileNameVz);
 
-	gadget = gadget_new(g2g->gadgetFileStem, g2g->numGadgetFiles);
-	gadget_setFileVersion(gadget, 1);
+	gadget = gadget_newSimple(g2g->gadgetFileStem, g2g->numGadgetFiles);
+	gadget_setFileVersion(gadget, GADGETVERSION_ONE);
 
 	local_getFactors(gvx, np, &dx, &boxsize, &vFact, &aInit, &model,
 	                 g2g->omegaBaryon0);
 	local_checkForIDOverflow(np, g2g->useLongIDs, g2g->doGas);
 	baseHeader = local_getBaseHeader(gadget, boxsize, aInit, model, np,
-	                                 g2g->doGas);
+	                                 g2g->doGas, g2g->useLongIDs);
+	toc = local_getTOC();
+	gadgetTOC_setFileVersion(toc, gadget_getFileVersion(gadget));
 
 	numPlane = np[0] * np[1];
 	for (int i = 0; i < g2g->numGadgetFiles; i++) {
@@ -167,6 +174,7 @@ grafic2gadget_run(grafic2gadget_t g2g)
 		float          *vel, *pos;
 		void           *id;
 		uint32_t       npLocal[6] = {0, 0, 0, 0, 0, 0};
+		double      massArr[6] = {0., 0., 0., 0., 0., 0.};
 		gadgetHeader_t myHeader;
 
 		local_getSlabNumbers(i, g2g->numGadgetFiles, np[2],
@@ -178,7 +186,10 @@ grafic2gadget_run(grafic2gadget_t g2g)
 			npLocal[0] = numLocal;
 		numLocalParticles = npLocal[0] + npLocal[1];
 		gadgetHeader_setNp(myHeader, npLocal);
-		gadget_attachHeader(gadget, myHeader, i);
+		gadgetTOC_calcSizes(toc, npLocal, massArr, false, g2g->useLongIDs);
+		gadgetTOC_calcOffset(toc);
+		gadget_setHeaderOfFile(gadget, i, myHeader);
+		gadget_setTOCOfFile(gadget, i, gadgetTOC_clone(toc));
 
 		vel = xmalloc(sizeof(float) * numLocalParticles * 3);
 		pos = xmalloc(sizeof(float) * numLocalParticles * 3);
@@ -211,18 +222,34 @@ grafic2gadget_run(grafic2gadget_t g2g)
 		local_vel2pos(vel, pos, numLocalParticles, boxsize, vFact);
 		local_convertVel(vel, numLocalParticles, aInit);
 
-		gadget_open(gadget, GADGET_MODE_WRITE, i);
-		if (g2g->useLongIDs)
-			gadget_writeLong(gadget, i, pos, vel, (uint64_t *)id);
-		else
-			gadget_write(gadget, i, pos, vel, (uint32_t *)id);
-		gadget_close(gadget, i);
+		gadget_open(gadget, GADGET_MODE_WRITE_CREATE, i);
+		gadget_writeHeaderToCurrentFile(gadget);
+		{
+			stai_t stai;
+			stai = stai_new(pos, 3 * sizeof(float), 3 * sizeof(float));
+			gadget_writeBlockToCurrentFile(gadget, GADGETBLOCK_POS_,
+			                               0, numLocalParticles, stai);
+			stai_del(&stai);
+			stai = stai_new(vel, 3 * sizeof(float), 3 * sizeof(float));
+			gadget_writeBlockToCurrentFile(gadget, GADGETBLOCK_VEL_,
+			                               0, numLocalParticles, stai);
+			stai_del(&stai);
+			if (g2g->useLongIDs)
+				stai = stai_new(id, sizeof(uint64_t), sizeof(uint64_t));
+			else
+				stai = stai_new(id, sizeof(uint32_t), sizeof(uint32_t));
+			gadget_writeBlockToCurrentFile(gadget, GADGETBLOCK_ID__,
+			                               0, numLocalParticles, stai);
+			stai_del(&stai);
+		}
+		gadget_close(gadget);
 
 		xfree(id);
 		xfree(pos);
 		xfree(vel);
 	}
 
+	gadgetTOC_del(&toc);
 	gadgetHeader_del(&baseHeader);
 	gadget_del(&gadget);
 	cosmoModel_del(&model);
@@ -270,7 +297,8 @@ local_getBaseHeader(gadget_t     gadget,
                     double       aInit,
                     cosmoModel_t model,
                     uint32_t     np[3],
-                    bool         doGas)
+                    bool         doGas,
+                    bool         useLongIDs)
 {
 	uint64_t       npall[6];
 	double         massarr[6];
@@ -306,8 +334,24 @@ local_getBaseHeader(gadget_t     gadget,
 	gadgetHeader_setOmegaLambda(header, cosmoModel_getOmegaLambda0(model));
 	gadgetHeader_setHubbleParameter(header, cosmoModel_getSmallH(model));
 
+	gadgetHeader_setUseLongIDs(header, useLongIDs);
+
 	return header;
 } /* local_getBaseHeader */
+
+static gadgetTOC_t
+local_getTOC(void)
+{
+	gadgetTOC_t toc;
+
+	toc = gadgetTOC_new();
+	gadgetTOC_addEntryByType(toc, GADGETBLOCK_HEAD);
+	gadgetTOC_addEntryByType(toc, GADGETBLOCK_POS_);
+	gadgetTOC_addEntryByType(toc, GADGETBLOCK_VEL_);
+	gadgetTOC_addEntryByType(toc, GADGETBLOCK_ID__);
+
+	return toc;
+}
 
 static void
 local_getSlabNumbers(int i,
@@ -341,15 +385,15 @@ local_initposid(float    *pos,
                 double   dx,
                 bool     doGas)
 {
-	uint64_t numTotal   = np[0] * np[1] * np[2];
+	uint64_t numTotal  = np[0] * np[1] * np[2];
 	uint64_t numOffset = np[0] * np[1] * (zEnd - zStart + 1);
 
 #ifdef _OPENMP
 #  pragma omp parallel for
 #endif
 	for (int k = zStart; k <= zEnd; k++) {
-		for (int j = 0; j < np[1]; j++) {
-			for (int i = 0; i < np[0]; i++) {
+		for (uint32_t j = 0; j < np[1]; j++) {
+			for (uint32_t i = 0; i < np[0]; i++) {
 				size_t idx = i + j * np[0] + (k - zStart) * np[1] * np[0];
 				id[idx]          = i + j * np[0] + k * np[1] * np[0];
 				pos[idx * 3]     = (float)((i + .5) * dx);
@@ -380,13 +424,13 @@ local_initposidLong(float    *pos,
                     double   dx,
                     bool     doGas)
 {
-	uint64_t numTotal   = np[0] * np[1] * np[2];
+	uint64_t numTotal  = np[0] * np[1] * np[2];
 	uint64_t numOffset = np[0] * np[1] * (zEnd - zStart + 1);
 
 #ifdef _OPENMP
 #  pragma omp parallel for
 #endif
-	for (uint64_t k = zStart; k <= zEnd; k++) {
+	for (int64_t k = zStart; k <= zEnd; k++) {
 		for (uint64_t j = 0; j < np[1]; j++) {
 			for (uint64_t i = 0; i < np[0]; i++) {
 				size_t idx = i + j * np[0] + (k - zStart) * np[1] * np[0];
@@ -396,7 +440,7 @@ local_initposidLong(float    *pos,
 				pos[idx * 3 + 2] = (float)((k + .5) * dx);
 				if (doGas) {
 					double gasOffset = .25 * dx;
-					id[idx + numTotal]              = id[idx];
+					id[idx + numOffset]             = id[idx];
 					id[idx]                        += numTotal;
 					pos[numTotal * 3 + idx * 3]     = pos[idx * 3];
 					pos[numTotal * 3 + idx * 3 + 1] = pos[idx * 3 + 1];
