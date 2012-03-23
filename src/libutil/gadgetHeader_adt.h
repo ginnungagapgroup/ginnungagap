@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -10,7 +10,7 @@
 
 /**
  * @file libutil/gadgetHeader_adt.h
- * @ingroup libutilFilesGadget
+ * @ingroup libutilFilesGadgetHeader
  * @brief  This file provides the implementation of the header structure
  *         of Gadget files.
  */
@@ -18,6 +18,8 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -68,6 +70,9 @@ struct gadgetHeader_struct {
 	int32_t flagicinfo;
 	/** Gives the scaling factor for 2lpt ICs. */
 	float   lptscalingfactor;
+
+	/** Flags whether the IDs are 32 or 64bit. */
+	bool useLongIDs;
 };
 
 #endif
