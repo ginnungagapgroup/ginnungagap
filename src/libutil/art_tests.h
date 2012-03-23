@@ -1,6 +1,6 @@
 // Copyright (C) 2011, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
-// This file is part of `voelva'.
+// This file is part of `ginnungagap'.
 
 #ifndef ART_TESTS_H
 #define ART_TESTS_H
