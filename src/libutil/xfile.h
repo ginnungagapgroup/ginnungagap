@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -99,6 +99,17 @@ extern int
 xfseek(FILE *stream, long offset, int whence);
 
 /**
+ * \brief  A wrapper for ftell that will terminate the program in the
+ *         occurence of errors.
+ *
+ * \param  *stream  The stream to get the position of.
+ *
+ * \return  This function will always return the position in the file.
+ */
+extern long
+xftell(FILE *stream);
+
+/**
  * \brief  Creates a new file and ensures that it contains bytes number
  *         of bytes.
  *
@@ -120,5 +131,20 @@ xfile_createFileWithSize(const char *fname, size_t bytes);
  */
 extern bool
 xfile_checkIfFileExists(const char *fname);
+
+/**
+ * \brief  Checks whether the content of two files is identical.
+ *
+ * \param[in]  *fn1
+ *                 The name of the first file.  Must be a valid file name.
+ * \param[in]  *fn2
+ *                 The name of the second file.  Must be a valid file name.
+ *
+ * \return  Returns \c true if the files are identical and \c false if they
+ *          are not.
+ */
+extern bool
+xfile_filesAreEqual(const char *f1, const char *f2);
+
 
 #endif
