@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -32,35 +32,144 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  Helper function to generate the grid.
+ *
+ * @param[in]  setup
+ *                The setup object holding the required information.
+ *
+ * @return  Returns a new grid that will hold the mask.
+ */
 inline static gridRegular_t
-local_getGrid(makeMask_t mama);
+local_getGrid(const makeMaskSetup_t setup);
 
+
+/**
+ * @brief  Helper function to generate the grid distribution.
+ *
+ * @param[in]  mama
+ *                The makeMask object that holds the required information.
+ *
+ * @return  Returns a new distribution object.
+ */
 inline static gridRegularDistrib_t
-local_getDistrib(makeMask_t mama);
+local_getDistrib(const makeMask_t mama);
 
+
+/**
+ * @brief  Helper function to initialize the mask.
+ *
+ * This will create the mask variable, allocate the required patch, and fill
+ * the patch with the base refinement level.
+ *
+ * @param[in,out]  mama
+ *                    The makeMask object which with to work.
+ *
+ * @return  Returns nothing.
+ */
 inline static void
 local_createEmptyMask(makeMask_t mama);
 
+
+/**
+ * @brief  Helper function to tag the level at which each cell of the mask
+ *         should be generated.
+ *
+ * @param[in,out]  mama
+ *                    The makeMask object to work with.
+ *
+ * @return  Returns nothing.
+ */
 inline static void
 local_markRegions(makeMask_t mama);
 
+
+/**
+ * @brief  Helper function to write the mask to disk.
+ *
+ * @param[in]  mama
+ *                The makeMask object to work with.
+ *
+ * @return  Returns nothing.
+ */
 inline static void
 local_writeMask(makeMask_t mama);
 
+
+/**
+ * @brief  Generates the histogram of the mask and reports to amount of
+ *         particles that are required.
+ *
+ * @param[in,out]  mama
+ *                    The makeMask object to work with.
+ *
+ * @return  Returns nothing.
+ */
 inline static void
 local_doHistogram(makeMask_t mama);
 
+
+/**
+ * @brief  Generates the shape that is used to generate the transition from
+ *         high-resolution to low-resolution.
+ *
+ * The idea is to create a cubic shapelet that has in its center the highest
+ * resolution and the surrounding cells are tagged according to their
+ * distance to the center.  I.e. the outer shell will be the coarsest
+ * resolution.
+ *
+ * As a side-effect, the function will write the shapelet in as binary data
+ * into the file @c shape.dat.
+ *
+ * @param[in]  shapeDim1D
+ *                The size of the shaplet, the actual shape will be
+ *                (shapeDim1D / 2)+1, i.e. there will be shapeDim1D/2 cells
+ *                on either side of the central cell.
+ *
+ * @return  Returns an array of size (shapeDim1D / 2 + 1)^NDIM holding the
+ *          shapelet.
+ */
 inline static uint8_t *
 local_createDegradeShape(uint32_t shapeDim1D);
 
+
+/**
+ * @brief  Helper function that performs the heavy-lifting in creating the
+ *         mask.
+ *
+ * @param[in,out]  *maskData
+ *                    The mask data attached to the patch of the grid of the
+ *                    calling function.  This data must be correctly
+ *                    described by @c idxLo and @dimsPatch.
+ * @param[in]      hiResCellIdxG
+ *                    The index of the cell the function should work on in
+ *                    grid coordinates (*not* patch coordinate).
+ * @param[in]      *shape
+ *                    The shapelet as returned by
+ *                    local_createDegradeShape().
+ * @param[in]      shapeDim1D
+ *                    The size of the shapelet, this must be consistent with
+ *                    the value used to generate the shapelet.
+ * @param[in]      idxLo
+ *                    The starting index of the patch of the calling
+ *                    function, this is required to be able to convert patch
+ *                    coordinates to grid coordinates.
+ * @param[in]      dimsPatch
+ *                    The extent of the patch.
+ * @param[in]      dimsGrid
+ *                    The extent of the grid.
+ *
+ * @return  Returns nothing.
+ */
 inline static void
-local_throwShapeOnMask(int8_t            *maskData,
-                       gridPointUint32_t hiResCellIdxG,
-                       const uint8_t     *shape,
-                       uint32_t          shapeDim1D,
-                       gridPointUint32_t idxLo,
-                       gridPointUint32_t dimsPatch,
-                       gridPointUint32_t dimsGrid);
+local_throwShapeOnMask(int8_t                  *restrict maskData,
+                       const gridPointUint32_t hiResCellIdxG,
+                       const uint8_t           *restrict shape,
+                       uint32_t                shapeDim1D,
+                       const gridPointUint32_t idxLo,
+                       const gridPointUint32_t dimsPatch,
+                       const gridPointUint32_t dimsGrid);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -75,9 +184,11 @@ makeMask_newFromIni(parse_ini_t ini, const char *maskSectionName)
 	mama          = xmalloc(sizeof(struct makeMask_struct));
 
 	mama->setup   = makeMaskSetup_newFromIni(ini, maskSectionName);
-	mama->grid    = local_getGrid(mama);
+	mama->grid    = local_getGrid(mama->setup);
 	mama->distrib = local_getDistrib(mama);
-	mama->writer  = gridWriterFactory_newWriterFromIni(ini, mama->setup->outSecName);
+	mama->writer  = gridWriterFactory_newWriterFromIni(
+	    ini,
+	    mama->setup->outSecName);
 #ifdef WITH_MPI
 	gridWriter_initParallel(mama->writer, MPI_COMM_WORLD);
 #endif
@@ -121,22 +232,22 @@ makeMask_del(makeMask_t *mama)
 
 /*--- Implementations of local functions --------------------------------*/
 inline static gridRegular_t
-local_getGrid(makeMask_t mama)
+local_getGrid(makeMaskSetup_t setup)
 {
 	gridPointDbl_t    origin, extent;
 	gridPointUint32_t dims;
 
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
-		extent[i] = (double)(mama->setup->baseGridSize1D);
-		dims[i]   = mama->setup->baseGridSize1D;
+		extent[i] = (double)(setup->baseGridSize1D);
+		dims[i]   = setup->baseGridSize1D;
 	}
 
 	return gridRegular_new("MaskGrid", origin, extent, dims);
 }
 
 inline static gridRegularDistrib_t
-local_getDistrib(makeMask_t mama)
+local_getDistrib(const makeMask_t mama)
 {
 	gridRegularDistrib_t distrib;
 
@@ -166,13 +277,13 @@ local_createEmptyMask(makeMask_t mama)
 	gridRegular_attachPatch(mama->grid, patch);
 	gridRegular_attachVar(mama->grid, var);
 
-	maskData = gridPatch_getVarDataHandle(patch, 0);
+	maskData   = gridPatch_getVarDataHandle(patch, 0);
 
-	numCells = gridPatch_getNumCellsActual(patch, 0);
+	numCells   = gridPatch_getNumCellsActual(patch, 0);
 	emptyValue = (int8_t)(mama->setup->baseRefinementLevel);
 #ifdef WITH_OPENMP
 #  pragma omp parallel for shared(maskData, numCells, emptyValue) \
-     schedule(static)
+	schedule(static)
 #endif
 	for (uint64_t i = 0; i < numCells; i++) {
 		maskData[i] = emptyValue;
@@ -197,7 +308,7 @@ local_markRegions(makeMask_t mama)
 	shapeDim1D = 2 * (mama->setup->numLevels - 2) + 1;
 	shape      = local_createDegradeShape(shapeDim1D);
 
-	for (uint32_t i=0; i<lare_getNumElements(mama->setup->lare); i++) {
+	for (uint32_t i = 0; i < lare_getNumElements(mama->setup->lare); i++) {
 		gridPointUint32_t element;
 		lare_getElement(mama->setup->lare, element, i);
 		local_throwShapeOnMask(maskData, element, shape, shapeDim1D,
@@ -280,13 +391,13 @@ local_createDegradeShape(uint32_t shapeDim1D)
 }
 
 inline static void
-local_throwShapeOnMask(int8_t            *maskData,
-                       gridPointUint32_t hiResCellIdxG,
-                       const uint8_t     *shape,
-                       uint32_t          shapeDim1D,
-                       gridPointUint32_t idxLo,
-                       gridPointUint32_t dimsPatch,
-                       gridPointUint32_t dimsGrid)
+local_throwShapeOnMask(int8_t                  *restrict maskData,
+                       const gridPointUint32_t hiResCellIdxG,
+                       const uint8_t           *restrict shape,
+                       uint32_t                shapeDim1D,
+                       const gridPointUint32_t idxLo,
+                       const gridPointUint32_t dimsPatch,
+                       const gridPointUint32_t dimsGrid)
 {
 	uint32_t iSG, jSG, kSG; // position of shape (S) in grid coordinates (G)
 	int32_t  iSM, jSM, kSM; // position of shape (S) in map coordinates (M)
