@@ -59,6 +59,18 @@ stai_new(void         *base,
          unsigned int sizeOfElementInBytes,
          unsigned int strideInBytes);
 
+/**
+ * @brief  Creates a new stai object that is identical to a provided one.
+ *
+ * @param[in]  stai
+ *                The stai object that should be used as a reference.
+ *                Passing @c NULL is undefined.
+ *
+ * @return  Returns a stai object that has the base object, the same size
+ *          and the same stride properties as the provided stai object.
+ */
+extern stai_t
+stai_clone(const stai_t stai);
 
 /**
  * @brief  Creates a new stai object from a provided one with a

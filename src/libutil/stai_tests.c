@@ -103,6 +103,47 @@ stai_new_test(void)
 } /* stai_new_test */
 
 extern bool
+stai_clone_test(void)
+{
+	bool        hasPassed = true;
+	int         rank      = 0;
+	stai_test_t testData;
+	stai_t      stai, staiClone;
+#ifdef ENABLE_XMEM_TRACK_MEM
+	size_t      allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	testData = local_getTestData();
+
+	stai     = stai_new(testData->name, 7,
+	                    (char *)&(testData[1].name)
+	                    - (char *)&(testData[0].name));
+	staiClone = stai_clone(stai);
+	if (staiClone->base != stai->base)
+		hasPassed = false;
+	if (staiClone->sizeOfElementInBytes != stai->sizeOfElementInBytes)
+		hasPassed = false;
+	if (staiClone->strideInBytes != stai->strideInBytes)
+		hasPassed = false;
+	stai_del(&stai);
+	stai_del(&staiClone);
+
+	xfree(testData);
+#ifdef ENABLE_XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 stai_cloneWithDifferentBase_test(void)
 {
 	bool        hasPassed = true;
@@ -355,7 +396,6 @@ stai_isLinear_test(void)
 	int         rank      = 0;
 	stai_test_t testData;
 	stai_t      stai;
-	double      newData[4];
 #ifdef ENABLE_XMEM_TRACK_MEM
 	size_t      allocatedBytes = global_allocated_bytes;
 #endif

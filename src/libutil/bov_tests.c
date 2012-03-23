@@ -477,7 +477,7 @@ bov_setDataSize_test(void)
 	bool     hasPassed      = true;
 	int      rank           = 0;
 	bov_t    bov;
-	uint32_t dataSize[3]    = { 45, 45, 45 };
+	uint32_t dataSize[3]    = {45, 45, 45};
 #ifdef XMEM_TRACK_MEM
 	size_t   allocatedBytes = global_allocated_bytes;
 #endif
@@ -627,7 +627,7 @@ bov_setBrickOrigin_test(void)
 	bool   hasPassed      = true;
 	int    rank           = 0;
 	bov_t  bov;
-	double origin[3]      = { -1.1, -3.1, -2.1 };
+	double origin[3]      = {-1.1, -3.1, -2.1};
 #ifdef XMEM_TRACK_MEM
 	size_t allocatedBytes = global_allocated_bytes;
 #endif
@@ -661,7 +661,7 @@ bov_setBrickSize_test(void)
 	bool   hasPassed      = true;
 	int    rank           = 0;
 	bov_t  bov;
-	double size[3]        = { 1.1, 3.1, 2.1 };
+	double size[3]        = {1.1, 3.1, 2.1};
 #ifdef XMEM_TRACK_MEM
 	size_t allocatedBytes = global_allocated_bytes;
 #endif
@@ -744,7 +744,7 @@ bov_read_test(void)
 
 	data        = xmalloc(sizeof(double) * 2 * numElements);
 	bov_read(bov, data, BOV_FORMAT_DOUBLE, 2);
-	for (int i = 0; i < numElements; i++) {
+	for (size_t i = 0; i < numElements; i++) {
 		if (islessgreater(data[i * 2], (double)i))
 			hasPassed = false;
 		if (isless(data[i * 2 + 1], 0.0) || isgreater(data[i * 2 + 1], 1.0))
@@ -754,7 +754,7 @@ bov_read_test(void)
 
 	data = xmalloc(sizeof(double) * numElements);
 	bov_read(bov, data, BOV_FORMAT_DOUBLE, 1);
-	for (int i = 0; i < numElements; i++) {
+	for (size_t i = 0; i < numElements; i++) {
 		if (islessgreater(data[i], (double)i))
 			hasPassed = false;
 	}
@@ -762,7 +762,7 @@ bov_read_test(void)
 
 	dataFloat = xmalloc(sizeof(float) * 2 * numElements);
 	bov_read(bov, dataFloat, BOV_FORMAT_FLOAT, 2);
-	for (int i = 0; i < numElements; i++) {
+	for (size_t i = 0; i < numElements; i++) {
 		if (islessgreater(dataFloat[i * 2], (float)i))
 			hasPassed = false;
 		if (isless(dataFloat[i * 2 + 1], 0.0)
@@ -773,7 +773,7 @@ bov_read_test(void)
 
 	dataFloat = xmalloc(sizeof(float) * numElements);
 	bov_read(bov, dataFloat, BOV_FORMAT_FLOAT, 1);
-	for (int i = 0; i < numElements; i++) {
+	for (size_t i = 0; i < numElements; i++) {
 		if (islessgreater(dataFloat[i], (float)i))
 			hasPassed = false;
 	}
@@ -794,8 +794,8 @@ bov_readWindowed_test(void)
 	bool     hasPassed = true;
 	int      rank      = 0;
 	bov_t    bov;
-	uint32_t idxLo[3]  = { 1, 1, 1 };
-	uint32_t dims[3]   = { 3, 2, 1 };
+	uint32_t idxLo[3]  = {1, 1, 1};
+	uint32_t dims[3]   = {3, 2, 1};
 	uint32_t size[3];
 	size_t   numElements;
 	double   *data;
@@ -816,14 +816,14 @@ bov_readWindowed_test(void)
 
 	data        = xmalloc(sizeof(double) * 2 * numElements);
 	bov_readWindowed(bov, data, BOV_FORMAT_DOUBLE, 2, idxLo, dims);
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			for (int i = 0; i < dims[0]; i++) {
-				int    pos    = i + (j + k * dims[1]) * dims[0];
-				double bovPos = (double)((i + idxLo[0])
-				                         + ((j + idxLo[1])
-				                            + (k + idxLo[2]) * size[1])
-				                         * size[0]);
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			for (uint32_t i = 0; i < dims[0]; i++) {
+				uint32_t pos    = i + (j + k * dims[1]) * dims[0];
+				double   bovPos = (double)((i + idxLo[0])
+				                           + ((j + idxLo[1])
+				                              + (k + idxLo[2]) * size[1])
+				                           * size[0]);
 				if (islessgreater(data[pos * 2], bovPos))
 					hasPassed = false;
 				if (isless(data[pos * 2 + 1], 0.0)
@@ -836,14 +836,14 @@ bov_readWindowed_test(void)
 
 	data = xmalloc(sizeof(double) * numElements);
 	bov_readWindowed(bov, data, BOV_FORMAT_DOUBLE, 1, idxLo, dims);
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			for (int i = 0; i < dims[0]; i++) {
-				int    pos    = i + (j + k * dims[1]) * dims[0];
-				double bovPos = (double)((i + idxLo[0])
-				                         + ((j + idxLo[1])
-				                            + (k + idxLo[2]) * size[1])
-				                         * size[0]);
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			for (uint32_t i = 0; i < dims[0]; i++) {
+				uint32_t pos    = i + (j + k * dims[1]) * dims[0];
+				double   bovPos = (double)((i + idxLo[0])
+				                           + ((j + idxLo[1])
+				                              + (k + idxLo[2]) * size[1])
+				                           * size[0]);
 				if (islessgreater(data[pos], bovPos))
 					hasPassed = false;
 			}
@@ -853,14 +853,14 @@ bov_readWindowed_test(void)
 
 	dataFloat = xmalloc(sizeof(float) * 2 * numElements);
 	bov_readWindowed(bov, dataFloat, BOV_FORMAT_FLOAT, 2, idxLo, dims);
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			for (int i = 0; i < dims[0]; i++) {
-				int   pos    = i + (j + k * dims[1]) * dims[0];
-				float bovPos = (float)((i + idxLo[0])
-				                       + ((j + idxLo[1])
-				                          + (k + idxLo[2]) * size[1])
-				                       * size[0]);
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			for (uint32_t i = 0; i < dims[0]; i++) {
+				uint32_t pos    = i + (j + k * dims[1]) * dims[0];
+				float    bovPos = (float)((i + idxLo[0])
+				                          + ((j + idxLo[1])
+				                             + (k + idxLo[2]) * size[1])
+				                          * size[0]);
 				if (islessgreater(dataFloat[pos * 2], bovPos))
 					hasPassed = false;
 				if (isless(dataFloat[pos * 2 + 1], 0.0)
@@ -873,14 +873,14 @@ bov_readWindowed_test(void)
 
 	dataFloat = xmalloc(sizeof(float) * numElements);
 	bov_readWindowed(bov, dataFloat, BOV_FORMAT_FLOAT, 1, idxLo, dims);
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			for (int i = 0; i < dims[0]; i++) {
-				int   pos    = i + (j + k * dims[1]) * dims[0];
-				float bovPos = (float)((i + idxLo[0])
-				                       + ((j + idxLo[1])
-				                          + (k + idxLo[2]) * size[1])
-				                       * size[0]);
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			for (uint32_t i = 0; i < dims[0]; i++) {
+				uint32_t pos    = i + (j + k * dims[1]) * dims[0];
+				float    bovPos = (float)((i + idxLo[0])
+				                          + ((j + idxLo[1])
+				                             + (k + idxLo[2]) * size[1])
+				                          * size[0]);
 				if (islessgreater(dataFloat[pos], bovPos))
 					hasPassed = false;
 			}

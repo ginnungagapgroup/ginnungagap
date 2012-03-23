@@ -137,7 +137,7 @@ xfile_createFileWithSize(const char *fname, size_t bytes)
 
 	f = xfopen(fname, "wb");
 
-	for (int i = 0; i < bytes; i++)
+	for (size_t i = 0; i < bytes; i++)
 		xfwrite(&nullData, sizeof(char), 1, f);
 
 	xfclose(&f);

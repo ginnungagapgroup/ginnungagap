@@ -32,6 +32,15 @@ stai_new_test(void);
 
 
 /**
+ * @brief  This will test stai_clone().
+ *
+ * @return  Returns true if the test succeeds, false otherwise.
+ */
+extern bool
+stai_clone_test(void);
+
+
+/**
  * @brief  This will test stai_cloneWithDifferenBase().
  *
  * @return  Returns true if the test succeeds, false otherwise.

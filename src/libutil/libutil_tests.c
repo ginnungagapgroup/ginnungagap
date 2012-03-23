@@ -149,6 +149,7 @@ main(int argc, char **argv)
 	if (rank == 0) {
 		printf("\nRunning tests for stai:\n");
 		RUNTEST(&stai_new_test, hasFailed);
+		RUNTEST(&stai_clone_test, hasFailed);
 		RUNTEST(&stai_cloneWithDifferentBase_test, hasFailed);
 		RUNTEST(&stai_del_test, hasFailed);
 		RUNTEST(&stai_setElement_test, hasFailed);

@@ -485,7 +485,7 @@ grafic_setSize_test(void)
 	bool     hasPassed      = true;
 	int      rank           = 0;
 	grafic_t grafic;
-	uint32_t size[3]        = { 16, 32, 12 };
+	uint32_t size[3]        = {16, 32, 12};
 #ifdef XMEM_TRACK_MEM
 	size_t   allocatedBytes = global_allocated_bytes;
 #endif
@@ -548,7 +548,7 @@ grafic_setXoff_test(void)
 	bool     hasPassed      = true;
 	int      rank           = 0;
 	grafic_t grafic;
-	float    xoff[3]        = { 0.0f, 123.f, 1.23f };
+	float    xoff[3]        = {0.0f, 123.f, 1.23f};
 #ifdef XMEM_TRACK_MEM
 	size_t   allocatedBytes = global_allocated_bytes;
 #endif
@@ -762,7 +762,7 @@ grafic_makeEmptyFile_test(void)
 	bool     hasPassed      = true;
 	int      rank           = 0;
 	grafic_t grafic;
-	uint32_t size[3]        = { 2, 2, 2 };
+	uint32_t size[3]        = {2, 2, 2};
 #ifdef XMEM_TRACK_MEM
 	size_t   allocatedBytes = global_allocated_bytes;
 #endif
@@ -813,7 +813,7 @@ grafic_read_test(void)
 
 	data        = xmalloc(sizeof(double) * 2 * numElements);
 	grafic_read(grafic, data, GRAFIC_FORMAT_DOUBLE, 2);
-	for (int i = 0; i < numElements; i++) {
+	for (size_t i = 0; i < numElements; i++) {
 		if (islessgreater(data[i * 2], (double)i))
 			hasPassed = false;
 	}
@@ -821,7 +821,7 @@ grafic_read_test(void)
 
 	data = xmalloc(sizeof(double) * numElements);
 	grafic_read(grafic, data, GRAFIC_FORMAT_DOUBLE, 1);
-	for (int i = 0; i < numElements; i++) {
+	for (size_t i = 0; i < numElements; i++) {
 		if (islessgreater(data[i], (double)i))
 			hasPassed = false;
 	}
@@ -829,7 +829,7 @@ grafic_read_test(void)
 
 	dataFloat = xmalloc(sizeof(float) * 2 * numElements);
 	grafic_read(grafic, dataFloat, GRAFIC_FORMAT_FLOAT, 2);
-	for (int i = 0; i < numElements; i++) {
+	for (size_t i = 0; i < numElements; i++) {
 		if (islessgreater(dataFloat[i * 2], (float)i))
 			hasPassed = false;
 	}
@@ -837,7 +837,7 @@ grafic_read_test(void)
 
 	dataFloat = xmalloc(sizeof(float) * numElements);
 	grafic_read(grafic, dataFloat, GRAFIC_FORMAT_FLOAT, 1);
-	for (int i = 0; i < numElements; i++) {
+	for (size_t i = 0; i < numElements; i++) {
 		if (islessgreater(dataFloat[i], (float)i))
 			hasPassed = false;
 	}
@@ -858,8 +858,8 @@ grafic_readWindowed_test(void)
 	bool     hasPassed = true;
 	int      rank      = 0;
 	grafic_t grafic;
-	uint32_t idxLo[3]  = { 1, 1, 1 };
-	uint32_t dims[3]   = { 3, 2, 1 };
+	uint32_t idxLo[3]  = {1, 1, 1};
+	uint32_t dims[3]   = {3, 2, 1};
 	uint32_t size[3];
 	size_t   numElements;
 	double   *data;
@@ -880,14 +880,14 @@ grafic_readWindowed_test(void)
 
 	data        = xmalloc(sizeof(double) * 2 * numElements);
 	grafic_readWindowed(grafic, data, GRAFIC_FORMAT_DOUBLE, 2, idxLo, dims);
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			for (int i = 0; i < dims[0]; i++) {
-				int    pos       = i + (j + k * dims[1]) * dims[0];
-				double graficPos = (double)((i + idxLo[0])
-				                            + ((j + idxLo[1])
-				                               + (k + idxLo[2]) * size[1])
-				                            * size[0]);
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			for (uint32_t i = 0; i < dims[0]; i++) {
+				uint32_t pos       = i + (j + k * dims[1]) * dims[0];
+				double   graficPos = (double)((i + idxLo[0])
+				                              + ((j + idxLo[1])
+				                                 + (k + idxLo[2]) * size[1])
+				                              * size[0]);
 				if (islessgreater(data[pos * 2], graficPos))
 					hasPassed = false;
 			}
@@ -897,14 +897,14 @@ grafic_readWindowed_test(void)
 
 	data = xmalloc(sizeof(double) * numElements);
 	grafic_readWindowed(grafic, data, GRAFIC_FORMAT_DOUBLE, 1, idxLo, dims);
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			for (int i = 0; i < dims[0]; i++) {
-				int    pos       = i + (j + k * dims[1]) * dims[0];
-				double graficPos = (double)((i + idxLo[0])
-				                            + ((j + idxLo[1])
-				                               + (k + idxLo[2]) * size[1])
-				                            * size[0]);
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			for (uint32_t i = 0; i < dims[0]; i++) {
+				uint32_t pos       = i + (j + k * dims[1]) * dims[0];
+				double   graficPos = (double)((i + idxLo[0])
+				                              + ((j + idxLo[1])
+				                                 + (k + idxLo[2]) * size[1])
+				                              * size[0]);
 				if (islessgreater(data[pos], graficPos))
 					hasPassed = false;
 			}
@@ -913,20 +913,16 @@ grafic_readWindowed_test(void)
 	xfree(data);
 
 	dataFloat = xmalloc(sizeof(float) * 2 * numElements);
-	grafic_readWindowed(grafic,
-	                    dataFloat,
-	                    GRAFIC_FORMAT_FLOAT,
-	                    2,
-	                    idxLo,
-	                    dims);
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			for (int i = 0; i < dims[0]; i++) {
-				int   pos       = i + (j + k * dims[1]) * dims[0];
-				float graficPos = (float)((i + idxLo[0])
-				                          + ((j + idxLo[1])
-				                             + (k + idxLo[2]) * size[1])
-				                          * size[0]);
+	grafic_readWindowed(grafic, dataFloat, GRAFIC_FORMAT_FLOAT,
+	                    2, idxLo, dims);
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			for (uint32_t i = 0; i < dims[0]; i++) {
+				uint32_t pos       = i + (j + k * dims[1]) * dims[0];
+				float    graficPos = (float)((i + idxLo[0])
+				                             + ((j + idxLo[1])
+				                                + (k + idxLo[2]) * size[1])
+				                             * size[0]);
 				if (islessgreater(dataFloat[pos * 2], graficPos))
 					hasPassed = false;
 			}
@@ -935,20 +931,16 @@ grafic_readWindowed_test(void)
 	xfree(dataFloat);
 
 	dataFloat = xmalloc(sizeof(float) * numElements);
-	grafic_readWindowed(grafic,
-	                    dataFloat,
-	                    GRAFIC_FORMAT_FLOAT,
-	                    1,
-	                    idxLo,
-	                    dims);
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			for (int i = 0; i < dims[0]; i++) {
-				int   pos       = i + (j + k * dims[1]) * dims[0];
-				float graficPos = (float)((i + idxLo[0])
-				                          + ((j + idxLo[1])
-				                             + (k + idxLo[2]) * size[1])
-				                          * size[0]);
+	grafic_readWindowed(grafic, dataFloat, GRAFIC_FORMAT_FLOAT,
+	                    1, idxLo, dims);
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			for (uint32_t i = 0; i < dims[0]; i++) {
+				uint32_t pos       = i + (j + k * dims[1]) * dims[0];
+				float    graficPos = (float)((i + idxLo[0])
+				                             + ((j + idxLo[1])
+				                                + (k + idxLo[2]) * size[1])
+				                             * size[0]);
 				if (islessgreater(dataFloat[pos], graficPos))
 					hasPassed = false;
 			}
@@ -971,7 +963,7 @@ grafic_write_test(void)
 	bool     hasPassed   = true;
 	int      rank        = 0;
 	grafic_t grafic;
-	uint32_t size[3]     = { 3, 4, 2 };
+	uint32_t size[3]     = {3, 4, 2};
 	size_t   numElements = 3 * 4 * 2;
 	float    *data, *data2;
 #ifdef XMEM_TRACK_MEM
@@ -985,7 +977,7 @@ grafic_write_test(void)
 		printf("Testing %s... ", __func__);
 
 	data = xmalloc(sizeof(float) * numElements);
-	for (int i = 0; i < numElements; i++)
+	for (size_t i = 0; i < numElements; i++)
 		data[i] = (float)i;
 
 	grafic = grafic_new();
@@ -1000,7 +992,7 @@ grafic_write_test(void)
 	grafic_read(grafic, data2, GRAFIC_FORMAT_FLOAT, 1);
 	grafic_del(&grafic);
 
-	for (int i = 0; i < numElements; i++) {
+	for (size_t i = 0; i < numElements; i++) {
 		if (islessgreater(data2[i], data[i]))
 			hasPassed = false;
 	}
@@ -1021,9 +1013,9 @@ grafic_writeWindowed_test(void)
 	bool     hasPassed   = true;
 	int      rank        = 0;
 	grafic_t grafic;
-	uint32_t idxLo[3]    = { 1, 1, 0 };
-	uint32_t dims[3]     = { 2, 2, 1 };
-	uint32_t size[3]     = { 4, 5, 2 };
+	uint32_t idxLo[3]    = {1, 1, 0};
+	uint32_t dims[3]     = {2, 2, 1};
+	uint32_t size[3]     = {4, 5, 2};
 	size_t   numElements = 2 * 2 * 1;
 	float    *data;
 #ifdef XMEM_TRACK_MEM
@@ -1043,10 +1035,10 @@ grafic_writeWindowed_test(void)
 	numElements = dims[0] * dims[1] * dims[2];
 
 	data        = xmalloc(sizeof(double) * 2 * numElements);
-	for (int k = 0; k < dims[2]; k++) {
-		for (int j = 0; j < dims[1]; j++) {
-			for (int i = 0; i < dims[0]; i++) {
-				int idx = i + (j + k * dims[1]) * dims[0];
+	for (uint32_t k = 0; k < dims[2]; k++) {
+		for (uint32_t j = 0; j < dims[1]; j++) {
+			for (uint32_t i = 0; i < dims[0]; i++) {
+				uint32_t idx = i + (j + k * dims[1]) * dims[0];
 				data[idx] = (float)idx;
 			}
 		}

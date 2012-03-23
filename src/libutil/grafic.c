@@ -399,7 +399,7 @@ grafic_makeEmptyFile(const grafic_t grafic)
 	b = (int)(numInPlane * sizeof(float));
 	if (grafic->fileEndianess != grafic->machineEndianess)
 		byteswap(&b, sizeof(int));
-	for (int i = 0; i < grafic->np3; i++) {
+	for (uint32_t i = 0; i < grafic->np3; i++) {
 		xfwrite(&b, sizeof(int), 1, f);
 		xfseek(f, numInPlane * sizeof(float), SEEK_CUR);
 		xfwrite(&b, sizeof(int), 1, f);
@@ -550,7 +550,7 @@ grafic_readSlab(grafic_t       grafic,
 	assert(grafic != NULL);
 	assert(data != NULL);
 	assert(numComponents > 0);
-	assert(slabNum >= 0 && slabNum < grafic->np3);
+	assert(slabNum >= 0 && slabNum < (int)grafic->np3);
 
 	numInPlane = grafic->np1 * grafic->np2;
 	doByteswap = grafic->machineEndianess != grafic->fileEndianess;

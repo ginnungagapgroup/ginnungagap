@@ -311,6 +311,7 @@ local_copyBufferToStai(const float *buffer, stai_t stai, int numValues);
 static void
 local_seekToPage(art_t art, int pageNumber);
 
+
 /**
  * @brief  Resets the base of the data stais.
  *
@@ -331,6 +332,7 @@ local_seekToPage(art_t art, int pageNumber);
  */
 inline static void
 local_rebaseStaisData(stai_t *data, int64_t offsetElements);
+
 
 /**
  * @brief  Helper function to set the first/last file/page depending on
@@ -361,6 +363,7 @@ local_calcFirstLast(int      normalizer,
                     uint64_t pAct,
                     int      *first,
                     int      *last);
+
 
 /**
  * @brief  Adjust the skip and act value to conform with a limited
@@ -398,6 +401,7 @@ local_calcSkipAct(int      normalizer,
                   uint64_t pAct,
                   uint64_t *pSkipCalc,
                   uint64_t *pActCalc);
+
 
 /**
  * @brief  Calculates how many digits an integer value has.
@@ -943,7 +947,7 @@ local_updateNumbers(art_t art)
 	uint64_t numParticles = artHeader_getNumParticlesTotal(art->header);
 	int      nrowc        = artHeader_getNrowc(art->header);
 
-	if (art->truncateNrowc && nrowc > ART_MAX_NROWC)
+	if (art->truncateNrowc && (nrowc > ART_MAX_NROWC))
 		nrowc = ART_MAX_NROWC;
 
 	art->numParticlesInPage = nrowc * nrowc;
@@ -978,7 +982,8 @@ local_writeComponent(art_t    art,
                      stai_t   component,
                      bool     doByteswap)
 {
-	if ((component == NULL) || (pSkip == art->numParticlesInPage)) {
+	if ((component == NULL)
+	    || (pSkip == (uint64_t)art->numParticlesInPage)) {
 		xfseek(art->f, art->numParticlesInPage * sizeof(float), SEEK_CUR);
 		return;
 	}
@@ -995,7 +1000,7 @@ local_writeComponent(art_t    art,
 	}
 
 	if (doByteswap) {
-		for (int i = 0; i < pWrite; i++)
+		for (uint64_t i = 0; i < pWrite; i++)
 			byteswap(buffer + i, sizeof(float));
 	}
 
@@ -1021,7 +1026,8 @@ local_readComponent(art_t    art,
                     stai_t   component,
                     bool     doByteswap)
 {
-	if ((component == NULL) || (pSkip == art->numParticlesInPage)) {
+	if ((component == NULL)
+	    || (pSkip == (uint64_t)art->numParticlesInPage)) {
 		xfseek(art->f, art->numParticlesInPage * sizeof(float), SEEK_CUR);
 		return;
 	}
@@ -1042,7 +1048,7 @@ local_readComponent(art_t    art,
 	       (long)(art->numParticlesInPage - pSkip - pRead) * sizeof(float),
 	       SEEK_CUR);
 	if (doByteswap) {
-		for (int i = 0; i < pRead; i++)
+		for (uint64_t i = 0; i < pRead; i++)
 			byteswap(buffer + i, sizeof(float));
 	}
 
@@ -1139,7 +1145,7 @@ local_calcSkipAct(int      normalizer,
                   uint64_t *pSkipCalc,
                   uint64_t *pActCalc)
 {
-	if (pSkip > normalizer)
+	if (pSkip > (uint32_t)normalizer)
 		*pSkipCalc = normalizer;
 	else
 		*pSkipCalc = pSkip;

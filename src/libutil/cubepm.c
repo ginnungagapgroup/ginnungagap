@@ -1351,7 +1351,7 @@ local_calcFirstLastFile(const cubepm_t cubepm,
 
 	assert(pSkip + pAct <= cubepm_calcTotalNumParts(cubepm));
 
-	while (pSkip > cubepm_getNPLocal(cubepm, curFile)) {
+	while (pSkip > (uint64_t)cubepm_getNPLocal(cubepm, curFile)) {
 		pSkip -= cubepm_getNPLocal(cubepm, curFile);
 		curFile++;
 	}
@@ -1363,7 +1363,7 @@ local_calcFirstLastFile(const cubepm_t cubepm,
 		pAct -= ((uint64_t)cubepm_getNPLocal(cubepm, curFile) - pSkip);
 		curFile++;
 	}
-	while (pAct > cubepm_getNPLocal(cubepm, curFile)) {
+	while (pAct > (uint64_t)cubepm_getNPLocal(cubepm, curFile)) {
 		pAct -= cubepm_getNPLocal(cubepm, curFile);
 		curFile++;
 	}

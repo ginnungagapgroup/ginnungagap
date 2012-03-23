@@ -39,5 +39,23 @@
 extern void
 byteswap(void *p, size_t s);
 
+/**
+ * @brief  Performs a bytswapping of the components of a vector.
+ *
+ * This will reverse the order of the bytes for each component of a vector
+ * (linear array).  I.e. a vector with 3 2byte components ABCDEF will be
+ * changed to BADCFE.
+ *
+ * @param[in,out]  *vec
+ *                    The data that should be swapped.
+ * @param[in]      sizeOfVec
+ *                    The total size in bytes of the vector.
+ * @param[in]      numComponents
+ *                    The number of components in the vector.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+byteswapVec(void *vec, size_t sizeOfVec, int numComponents);
 
 #endif

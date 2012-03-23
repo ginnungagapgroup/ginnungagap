@@ -30,7 +30,7 @@ tile_calcIdxsELAE(uint32_t           numGridCells,
 {
 	assert(numGridCells > 0);
 	assert(numTiles > 0 && numTiles <= numGridCells);
-	assert(tileNumber >= 0 && tileNumber < numTiles);
+	assert(tileNumber < numTiles);
 	assert(idxLo != NULL);
 	assert(idxHi != NULL);
 
@@ -86,7 +86,7 @@ tile_calcIdxsELAB(uint32_t           numGridCells,
 {
 	assert(numGridCells > 0);
 	assert(numTiles > 0 && numTiles <= numGridCells);
-	assert(tileNumber >= 0 && tileNumber < numTiles);
+	assert(tileNumber < numTiles);
 	assert(idxLo != NULL);
 	assert(idxHi != NULL);
 

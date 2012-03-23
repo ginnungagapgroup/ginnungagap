@@ -46,6 +46,16 @@ stai_new(void         *base,
 }
 
 extern stai_t
+stai_clone(const stai_t stai)
+{
+	assert(stai != NULL);
+
+	return stai_new(stai->base,
+	                stai->sizeOfElementInBytes,
+	                stai->strideInBytes);
+}
+
+extern stai_t
 stai_cloneWithDifferentBase(const stai_t stai, void *newBase)
 {
 	assert(stai != NULL);
