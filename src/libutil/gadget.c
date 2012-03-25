@@ -470,6 +470,8 @@ gadget_setTOCOfFile(gadget_t    gadget,
 	if (gadget->tocs[fileNumber] != NULL)
 		gadgetTOC_del(&(gadget->tocs[fileNumber]));
 	gadget->tocs[fileNumber] = toc;
+	if (toc != NULL)
+		gadgetTOC_setFileVersion(toc, gadget_getFileVersion(gadget));
 }
 
 /*--- Getter ------------------------------------------------------------*/

@@ -234,7 +234,10 @@ gadget_setHeaderOfFile(gadget_t       gadget,
  * @brief  Sets the table of content for a given file.
  *
  * If there is already a table of content for the requested file, then it
- * will be deleted before the new one is set.
+ * will be deleted before the new one is set.  When using this function,
+ * file version stored in the TOC will be set to the file version used in
+ * the Gadget file object, i.e. the offsets stored in the TOC might be
+ * recalculated.
  *
  * @param[in,out]  gadget
  *                    The Gadget file object.  Must not be @c NULL.
