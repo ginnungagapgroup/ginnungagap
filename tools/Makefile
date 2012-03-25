@@ -1,4 +1,4 @@
-# Copyright (C) 2010, 2011, Steffen Knollmann
+# Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
@@ -20,6 +20,7 @@ all:
 	$(MAKE) -C showFreqs all
 	$(MAKE) -C makeMask all
 	$(MAKE) -C realSpaceConstraints all
+	$(MAKE) -C fileTools all
 	@echo ""
 	@echo "+-------------------------------+"
 	@echo "|   Done with the tools         |"
@@ -35,6 +36,7 @@ clean:
 	$(MAKE) -C showFreqs clean
 	$(MAKE) -C makeMask clean
 	$(MAKE) -C realSpaceConstraints clean
+	$(MAKE) -C fileTools clean
 
 tests:
 	$(MAKE) -C estimateMemReq tests
@@ -44,6 +46,7 @@ tests:
 	$(MAKE) -C showFreqs tests
 	$(MAKE) -C makeMask tests
 	$(MAKE) -C realSpaceConstraints tests
+	$(MAKE) -C fileTools tests
 
 tests-clean:
 	$(MAKE) -C estimateMemReq tests-clean
@@ -53,6 +56,7 @@ tests-clean:
 	$(MAKE) -C showFreqs tests-clean
 	$(MAKE) -C makeMask tests-clean
 	$(MAKE) -C realSpaceConstraints tests-clean
+	$(MAKE) -C fileTools tests-clean
 
 dist-clean:
 	$(MAKE) -C estimateMemReq dist-clean
@@ -62,6 +66,7 @@ dist-clean:
 	$(MAKE) -C showFreqs dist-clean
 	$(MAKE) -C makeMask dist-clean
 	$(MAKE) -C realSpaceConstraints dist-clean
+	$(MAKE) -C fileTools dist-clean
 
 install:
 	$(MAKE) -C estimateMemReq install
@@ -71,3 +76,4 @@ install:
 	$(MAKE) -C showFreqs install
 	$(MAKE) -C makeMask install
 	$(MAKE) -C realSpaceConstraints install
+	$(MAKE) -C fileTools install

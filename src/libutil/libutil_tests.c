@@ -1,5 +1,6 @@
 // Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
+// This file is part of 'ginnungagap'.
 
 
 /*--- Includes ----------------------------------------------------------*/
@@ -15,6 +16,11 @@
 #include "bov_tests.h"
 #include "grafic_tests.h"
 #include "cubepm_tests.h"
+#include "gadgetVersion_tests.h"
+#include "gadgetBlock_tests.h"
+#include "gadgetTOC_tests.h"
+#include "gadgetHeader_tests.h"
+#include "gadget_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,12 +40,12 @@
 
 
 /*--- Macros ------------------------------------------------------------*/
-#define RUNTEST(a, hasFailed)  \
-    if (!(local_runtest(a))) { \
-		hasFailed = true;      \
-	} else {                   \
-		if (!hasFailed)        \
-			hasFailed = false; \
+#define RUNTEST(a, hasFailed)   \
+    if (!(local_runtest(a))) {  \
+		hasFailed = true;       \
+	} else {                    \
+		if (!hasFailed)         \
+			hasFailed = false;  \
 	}
 
 #ifdef WITH_MPI
@@ -69,7 +75,7 @@ local_runtestMPI(bool       (*f
 
 /*--- M A I N -----------------------------------------------------------*/
 int
-main(int argc, char **argv)
+main(void)
 {
 	bool hasFailed = false;
 	int  rank      = 0;
@@ -235,6 +241,68 @@ main(int argc, char **argv)
 		printf("\nRunning tests for cubepm:\n");
 		RUNTEST(&cubepm_new_test, hasFailed);
 		RUNTEST(&cubepm_del_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for gadgetVersion:\n");
+		RUNTEST(&gadgetVersion_getVersionFromFile_test, hasFailed);
+		RUNTEST(&gadgetVersion_getNameFromType_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for gadgetBlock:\n");
+		RUNTEST(&gadgetBlock_getNameFromType_test, hasFailed);
+		RUNTEST(&gadgetBlock_getTypeFromName_test, hasFailed);
+		RUNTEST(&gadgetBlock_getNumComponents_test, hasFailed);
+		RUNTEST(&gadgetBlock_isInteger_test, hasFailed);
+		RUNTEST(&gadgetBlock_getNumPartsInBlock_test, hasFailed);
+		RUNTEST(&gadgetBlock_writereadDescriptor_test, hasFailed);
+		RUNTEST(&gadgetBlock_readDescriptorString_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for gadgetTOC:\n");
+		RUNTEST(&gadgetTOC_new_test, hasFailed);
+		RUNTEST(&gadgetTOC_newFromFile_test, hasFailed);
+		RUNTEST(&gadgetTOC_clone_test, hasFailed);
+		RUNTEST(&gadgetTOC_del_test, hasFailed);
+		RUNTEST(&gadgetTOC_setFileVersion_test, hasFailed);
+		RUNTEST(&gadgetTOC_getFileVersion_test, hasFailed);
+		RUNTEST(&gadgetTOC_blockExists_test, hasFailed);
+		RUNTEST(&gadgetTOC_blockExistsByName_test, hasFailed);
+		RUNTEST(&gadgetTOC_getOffsetForBlock_test, hasFailed);
+		RUNTEST(&gadgetTOC_getSizeInBytesForBlock_test, hasFailed);
+		RUNTEST(&gadgetTOC_getNameInV2FilesForBlock_test, hasFailed);
+		RUNTEST(&gadgetTOC_getOffsetBySeqNumber_test, hasFailed);
+		RUNTEST(&gadgetTOC_getTypeBySeqNumber_test, hasFailed);
+		RUNTEST(&gadgetTOC_getSizeInBytesBySeqNumber_test, hasFailed);
+		RUNTEST(&gadgetTOC_getNameBySeqNumber_test, hasFailed);
+		RUNTEST(&gadgetTOC_getTotalFileSize_test, hasFailed);
+		RUNTEST(&gadgetTOC_addEntryByName_test, hasFailed);
+		RUNTEST(&gadgetTOC_addEntryByType_test, hasFailed);
+		RUNTEST(&gadgetTOC_calcSizes_test, hasFailed);
+		RUNTEST(&gadgetTOC_calcOffset_test, hasFailed);
+		RUNTEST(&gadgetTOC_seekToData_test, hasFailed);
+		RUNTEST(&gadgetTOC_seekToDescriptor_test, hasFailed);
+		RUNTEST(&gadgetTOC_isValid_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for gadgetHeader:\n");
+		RUNTEST(&gadgetHeader_new_test, hasFailed);
+		RUNTEST(&gadgetHeader_del_test, hasFailed);
+		RUNTEST(&gadgetHeader_setNall_test, hasFailed);
+		RUNTEST(&gadgetHeader_getNumPartsInFileWithMass_test, hasFailed);
+		RUNTEST(&gadgetHeader_getNumPartsInBlock_test, hasFailed);
+	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for gadget:\n");
+		RUNTEST(&gadget_new_test, hasFailed);
+		RUNTEST(&gadget_newSimple_test, hasFailed);
+		RUNTEST(&gadget_del_test, hasFailed);
+		RUNTEST(&gadget_writeHeaderToCurrentFile_test, hasFailed);
+		RUNTEST(&gadget_writeBlockToCurrentFile_test, hasFailed);
 	}
 
 #ifdef WITH_MPI
