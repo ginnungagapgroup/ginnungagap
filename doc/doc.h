@@ -13,6 +13,9 @@
  * this file and to enable automatic syntax highlighting.
  */
 
+
+/*--- MAIN PAGE ---------------------------------------------------------*/
+
 /**
  * @mainpage Reference documentation for ginnungagap
  *
@@ -26,6 +29,9 @@
  * Furthermore, tools are provided to generate realisations at different
  * resolution levels while keeping the large scale structure fixed (by
  * means of refining the underlying white noise field).
+ *
+ * See @ref pageQuickstart for a quick run-through, explaining how to
+ * generate a box at two different resolution levels.
  *
  * @section requirements  Requirements
  *
@@ -51,7 +57,7 @@
  *        OpenMP features of ginnungagap.
  *        See @ref pageDeps_FFTW3 for instruction on how to build FFTW on
  *        your system.
-    </dd>
+ *  </dd>
  *  <dt>Build tools</dt>
  *  <dd>A make command should be available.  Ginnugagap has been tested
  *      with GNU make and other makes might not support all features
@@ -71,7 +77,7 @@
  *   <dd>This library is used to generate random numbers of high quality
  *       in parallel. You will most likely want to use this library, the
  *       only way to not use it, is to use a pre-generated white noise
- *       field.  The required version is SPRNG2.0b and please note that
+ *       field.  The required version is 2.0b and please note that
  *       you only need the serial version, i.e. do not build SPRNG with
  *       MPI support.  See @ref pageDeps_SPRNG for build
  *       instructions.</dd>
@@ -105,9 +111,210 @@
  * </dl>
  */
 
+
+/*--- Page: Configuring -------------------------------------------------*/
+
 /**
  * @page pageConfigureScript Configuring the Build of Ginnungagap
+ *
+ * @section pageConfigureScript_General Basics
+ *
+ * To compile the code, the two files @c config.h and @c Makefile.config
+ * must be generated.  While it is possible to write them by hand, the
+ * easiest way is to use the @c configure script.  That script accepts a
+ * variety of switches to enable/disable functionality and provide the build
+ * system with correct path information (if required).
+ *
+ * The most basic invocation would be <tt>./configure</tt>, which produces:
+ * @code
+ * $ ./configure
+ * Configuring ginnungagap 0.6.0
+ *  o generating `Makefile.config'... done
+ *  o generating `config.h'... done
+ *
+ * Summary
+ *  o features in use/code properties:
+ *      WITH_SPRNG	1
+ *      WITH_FFT_FFTW3	1
+ *      NDIM	3
+ *      ENABLE_WRITING	1
+ *  o features NOT in use:
+ *      WITH_OPENMP
+ *      WITH_MPI
+ *      WITH_MPITRACE
+ *      WITH_SILO
+ *      WITH_HDF5
+ *      WITH_FFT_FFTW2
+ *      ENABLE_DOUBLE
+ *      ENABLE_DEBUG
+ *      WITH_PROC_DIR
+ *  o programs and program options:
+ *      CC       = gcc
+ *      MPICC    =
+ *      CFLAGS   =  -Wall -std=c99
+ *      CPPFLAGS =  -I/include
+ *      DEPCC    = gcc
+ *      LD       = ld
+ *      LDFLAGS  =  -L/lib
+ *      LIBS     =  -lsprng -lfftw3 -lfftw3f -L/usr/lib -lgsl -lgslcblas -lm
+ *      AR       = ar
+ *      MAKE     = make
+ *
+ * To build ginnungagap, run `make all'.
+ * To generate the code documention execute `make doc'.
+ *
+ * Have a lot of fun!
+ * @endcode
+ * @b Note: The exact details of that output may be different for you.
+ *
+ * The interesting part is the Summary section, which will tell you quickly
+ * what options are and are not in use; in this case, only SPRNG and FFTW3
+ * are used.  Also, the tools used to compile the code and their parameters
+ * are listed.
+ *
+ * @section pageConfigureScript_Feature  Enabling a Feature
+ *
+ * To enable a feature, the suitable @c configure switch(es) must be
+ * provided.  For activating HDF5:
+ * @code
+ * $ ./configure --with-hdf5
+ * [..]
+ * Summary
+ *  o features in use/code properties:
+ *      WITH_SPRNG	1
+ *      WITH_HDF5	1
+ *      WITH_FFT_FFTW3	1
+ *      NDIM	3
+ *      ENABLE_WRITING	1
+ *  o features NOT in use:
+ *      WITH_OPENMP
+ *      WITH_MPI
+ *      WITH_MPITRACE
+ *      WITH_SILO
+ *      WITH_FFT_FFTW2
+ *      ENABLE_DOUBLE
+ *      ENABLE_DEBUG
+ *      WITH_PROC_DIR
+ *  o programs and program options:
+ *      CC       = gcc
+ *      MPICC    =
+ *      CFLAGS   =  -Wall -std=c99
+ *      CPPFLAGS =  -I/include
+ *      DEPCC    = gcc
+ *      LD       = ld
+ *      LDFLAGS  =  -L/lib
+ *      LIBS     =  -lsprng -lhdf5 -lz -lm -lfftw3 -lfftw3f -L/usr/lib \
+ *                  -lgsl -lgslcblas -lm -lm
+ *      AR       = ar
+ *      MAKE     = make
+ * [..]
+ * @endcode
+ * Note that WITH_HDF5 now moved to the features in use and the required
+ * libraries have been added to LIBS.
+ *
+ * To be able to compile the code now (by running @c make), the paths need
+ * to be properly set so that the compiler can find the necessary header
+ * files and the linker the necessary (static) libraries.
+ *
+ * The configure script provides standardized ways to do this, i.e.
+ * <dl>
+ *  <dt><tt>--with-hdf5-prefix</tt></dt>
+ *  <dd>Gives the prefix under which the HDF5 library is installed.</dd>
+ *  <dt><tt>--with-hdf5-inc-dir</tt></dt>
+ *  <dd>Gives the actual directory in which to find the HDF5 header.</dd>
+ *  <dt><tt>--with-hdf5-lib-dir</tt></dt>
+ *  <dd>The directory in which to find the libaries.</dd>
+ *  <dt><tt>--with-hdf5-libs</tt></dt>
+ *  <dd>The LIBS required for linking.</dd>
+ * </dl>
+ *
+ * To tell the build system to use the HDF5 installation in
+ * <tt>/some/obscure/location/hdf5-1.8.7/</tt>, the proper command would be:
+ * @code
+ * $ ./configure --with-hdf5 \
+ *               --with-hdf5-prefix=/some/obscure/location/hdf5-1.8.7/
+ * @endcode
+ * this will then search for the headers in
+ * <tt>/some/obscure/location/hdf5-1.8.7/include</tt> and the libraries in
+ * <tt>/some/obscure/location/hdf5-1.8.7/lib</tt>.  An equivalent invocation
+ * would be
+ * @code
+ * $ ./configure --with-hdf5 \
+ *         --with-hdf5-inc-dir=/some/obscure/location/hdf5-1.8.7/include
+ *         --with-hdf5-lib-dir=/some/obscure/location/hdf5-1.8.7/lib
+ * @endcode
+ * @b Note: The version explicitly giving the include and the library
+ * directory are only needed if the installation of the feature that should
+ * be used it pretty obscure indeed.  In most cases it should be sufficient
+ * to specify the correct @c prefix.
+ *
+ * @section pageConfigureScript_FeatureAvail Available Features
+ *
+ * To get an up-to-date list of options run
+ * @code
+ * $ ./configure --help
+ * @endcode
+ *
+ * This will also provide you with detailed explanations of what the
+ * different options do.
+ *
+ * @section pageConfigureScript_Systems Using Systems
+ *
+ * It can become very tedious to specify the correct prefix information
+ * every time the configure script is run.  To ease in that, the script
+ * provides a special flag <tt>--system</tt>.
+ *
+ * This will setup the required path-information for a given system (that
+ * the build system knows about). I.e.
+ * @code
+ * ./configure --with-mpi --with-hdf5 --system=curie
+ * @endcode
+ * will configure the build to use MPI and HDF5 and the path information to
+ * work on curie.
+ *
+ * The system information is read from <tt>configure.systems</tt> and, if it
+ * exists, from <tt>configure.systems.own</tt>.  The former is distributed
+ * with ginnungagap and should not be changed.  To use your own system
+ * configuration, you should write your own <tt>configure.systems.own</tt>.
+ * In <tt>doc/examples/</tt> you can find a template file.
+ *
+ * To define a system @c myMachine that sets up the path information for
+ * some things, the @c configure.systems.own should look like
+ * @code
+ * OWNSYSTEMTYPE=true
+ * case $SYSTEMTYPE in
+ *     myMachine)
+ *         WITH_MPI=true
+ *         WITH_MPI_PREFIX=/opt/openmpi
+ *         WITH_FFT_PREFIX=/opt/fftw
+ *         WITH_SPRNG_INC_DIR=/opt/sprng/include
+ *         WITH_SPRNG_LIB_DIR=/opt/sprng/lib
+ *         WITH_HDF5_PREFIX=/some/obscure/location/hdf5-1.8.7/
+ *         ;;
+ *     *)
+ *         OWNSYSTEMTYPE=false
+ *         ;;
+ * esac
+ * @endcode
+ *
+ * It is possible to use advanced configuration Voodoo in this
+ * file, i.e. all flags which are being defined in the configure script are
+ * available to <tt>configure.systems.own</tt>.  It is hence possible to
+ * conditionally define things, e.g.
+ * @code
+ *         if test "x$WITH_HDF5" = "xtrue"
+ *         then
+ *             WITH_HDF5_PREFIX=/some/obscure/location/hdf5-1.8.7/
+ *         fi
+ * @endcode
+ * For this to have the intended effect however, the <tt>--system</tt>
+ * switch @b must come after the <tt>--with-hdf5</tt> switch.  It is hence
+ * recommended to use the <tt>--system</tt> switch as late as possible in
+ * the invocation of @c configure.
  */
+
+
+/*--- Page: Writing INI Files -------------------------------------------*/
 
 /**
  * @page pageInputfile Writing Input Files.
@@ -180,13 +387,17 @@
  *
  * @section pageInputfile_Examples Examples
  *
+ * The ginnungagap package comes with a few example ini files in
+ * @c doc/examples/.  In the next section, a simple ini file is presented,
+ * where the meaning of each key-value pair is explained.
+ *
  * @subsection pageInputfile_Examples_Simple  Very simple example
  *
  * @code
  *
  * [Ginnungagap]
- * # Using a 200^3 grid
- * dim1D = 200
+ * # Using a 128^3 grid
+ * dim1D = 128
  * # in a 99 Mpc/h box
  * boxsizeInMpch = 99
  * # starting at redshift 40.
@@ -211,23 +422,27 @@
  * powerSpectrumKmax = 1e4
  * powerSpectrumNumPoints = 501
  * transferFunctionType = EisensteinHu1998
+ * ## Note:  Instead of the four lines above, you can also read a tabulated
+ * ## power spectrum from a file with
+ * #powerSpectrumFileName = myPk.txt
  *
  * [Output]
  * # The output is written as grafic format
- * writerType = grafic
+ * type = grafic
+ * # The outout files are prefixed with 'ic' (this will lead to files with
+ * # the names 'ic_velx', and so on).
+ * prefix = ic
  * # and the details are in that section.
  * writerSection = OutputGrafic
  *
  * [OutputGrafic]
- * # The output files should start with ic_ (the writer will
- * # successively add delta, velx, vely, and velz).
  * prefix = ic_
  * # We do not write white noise files with this writer.
  * isWhiteNoise = false
- * # The size of the grid is 200^3 (MUST be consistent with dim1D)
- * size = 200, 200, 200
+ * # The size of the grid is 128^3 (MUST be consistent with dim1D)
+ * size = 128, 128, 128
  * # This is boxsizeInMpch / dim1D / modelHubble
- * dx = 0.69718309859154937
+ * dx = 1.0893485915492958
  * # This is just 1. / (zInit + 1.)
  * astart = 0.024390243902439025
  * # The matter content of the universe (must be consistent with
@@ -243,6 +458,8 @@
  * [WhiteNoise]
  * # We want to use the RNG
  * useFile = false
+ * # The section in which to look for the information on how to generate the
+ * # random numbers.
  * rngSectionName = rng
  * # And no writing of the WN please.
  * dumpWhiteNoise = false
@@ -253,7 +470,9 @@
  * nProcs = 1 0 0
  *
  * [rng]
- * # SPRNG Voodoo
+ * # SPRNG Voodoo (sets the generator type, in this case, 4 is the lagged
+ * # Fibonacci generator, find out more by reading the SPRNG
+ * # documentation).
  * generator = 4
  * # We use a total of 256 streams (so using more than 256 MPI processes
  * # will not work, and, in fact, 256 must be exactly divisible by the
@@ -265,10 +484,273 @@
  * @endcode
  */
 
+
+/*--- Page: Quickstart --------------------------------------------------*/
+
+/**
+ * @page pageQuickstart Quickstart
+ *
+ * The following explains how to use ginnungagap (and tools) to generated
+ * initial conditions in Gadget format for a 128^3 and a 384^3 simulation
+ * which both share the same large scale mode, i.e. the 384^3 increases the
+ * resolution of the 128^3 base simulation by a factor 3 in each dimension.
+ *
+ * <ul>
+ *  <li>@ref pageQuickstart_Build</li>
+ *  <li>@ref pageQuickstart_Base</li>
+ *  <li>@ref pageQuickstart_Scale</li>
+ *  <li>@ref pageQuickstart_HighRes</li>
+ * </ul>
+ *
+ * @section pageQuickstart_Build  Configuring and Compiling the Code
+ *
+ * The first step is to configure and compile the code to have the necessary
+ * executables.  For this, unpack your ginnungagap tarball and run the
+ * configure script:
+ * @code
+ * $ tar xf ginnungagap-0.6.0.tar.bz2
+ * $ cd ginnungagap-0.6.0
+ * $ ./configure --with-mpi --with-openmp
+ * @endcode
+ * @b Note: This requires your system to be setup correctly so that it will
+ * find the MPI libraries/runtime, and the SPRNG and GSL libraries.  Try
+ * <tt>./configure --help</tt> to find out how to do that or see
+ * @ref pageConfigureScript.
+ *
+ * You can now build the code with
+ * @code
+ * $ make -j all
+ * @endcode
+ * (The -j is used to speed up the build process and may be safely omitted)
+ *
+ * This will leave you with all codes compiled but in their respective
+ * source directories, as a convenience you may now run
+ * @code
+ * make install
+ * @endcode
+ * which will create a directory @c bin/ and move all executables there.
+ * @b Note: You can specify the directory to which to move the binaries with
+ * the @c --prefix configure-option.
+ *
+ * @section pageQuickstart_Base Generating the Base Box
+ *
+ * We will now generate the required fields for the 128^3 box.  For this,
+ * first change into a new sub-directory:
+ * @code
+ * $ mkdir -p quickstart/128
+ * $ cd quickstart/128
+ * @endcode
+ *
+ * Now generate the ini file for ginnungagap so that
+ * @code
+ * $ cat 128.ini
+ * [Ginnungagap]
+ * dim1D = 128
+ * boxsizeInMpch = 250
+ * zInit = 80.0
+ * normalisationMode = sigma8
+ * gridName = testGrid
+ * doHistograms = true
+ * histogramNumBins = 67
+ * histogramExtremeWN = 7.
+ * histogramExtremeDens = .5
+ * histogramExtremeVel = 250.
+ *
+ * [Output]
+ * type = grafic
+ * prefix = ic_128
+ * writerSection = OutputGrafic
+ *
+ * [OutputGrafic]
+ * isWhiteNoise = false
+ * size = 128, 128, 128
+ * dx = 2.750880281690141
+ * astart = 0.012345679012345678
+ * omegam = 0.2669
+ * omegav = 0.734
+ * h0 = 71
+ *
+ * [WhiteNoise]
+ * useFile = false
+ * rngSectionName = rng
+ * dumpWhiteNoise = true
+ * writerSection = WhiteNoiseWriter
+ *
+ * [WhiteNoiseWriter]
+ * type = grafic
+ * prefix = wn_128
+ * isWhiteNoise = true
+ * size = 128, 128, 128
+ * iseed = 4422
+ *
+ * [MPI]
+ * nProcs = 1 0 0
+ *
+ * [Cosmology]
+ * modelOmegaRad0 = 8.348451673443855e-05
+ * modelOmegaLambda0 = 0.734
+ * modelOmegaMatter0 = 0.2669
+ * modelOmegaBaryon0 = 0.0449
+ * modelHubble = 0.71
+ * modelSigma8 = 0.801
+ * modelNs = 0.963
+ * modelTempCMB = 2.725
+ * powerSpectrumKmin = 1e-5
+ * powerSpectrumKmax = 1e4
+ * powerSpectrumNumPoints = 501
+ * transferFunctionType = EisensteinHu1998
+ *
+ * [rng]
+ * generator = 4
+ * numStreamsTotal = 256
+ * randomSeed = 4422
+ * @endcode
+ *
+ * We can now run the code and generate the various fields for the 128^3
+ * box:
+ * @code
+ * $ mpiexec -n 1 ../../bin/ginnungagap 128.ini
+ * [..lots of output..]
+ * $ ls
+ * 128.ini             histogram.velz.dat  ic_128_velz         Pk.wn.dat
+ * 128.ini.dump        histogram.wn.dat    Pk.deltak.dat       wn_128_delta
+ * histogram.dens.dat  ic_128_delta        Pk.input.dat
+ * histogram.velx.dat  ic_128_velx         Pk.input_z0.dat
+ * histogram.vely.dat  ic_128_vely         Pk.input_zinit.dat
+ * @endcode
+ * The interesting fields are @c ic_128_velx, @c ic_128_vely,
+ * @c ic_128_velz, and @c wn_128_delta, which are the velocity fields and
+ * the white-noise field, respectively.  The files prefixed with @c Pk are
+ * the power spectra, with @c input being the input P(k), @c delta the power
+ * spectrum of the actual realization, and @c wn the power spectrum of the
+ * white noise.  Additionally, histograms for the various fields are also
+ * computed and stored in the files prefixed with @c histogram.  The file
+ * @c 128.ini.dump is input ini file with all fields that were not used
+ * commented out (it is worthwhile to check the file to see if everything
+ * that was set was also used, for this example, it should).
+ *
+ * With the velocity fields at hand, we can generate the Gadget file by
+ * using one of the tools provided with ginnungagap:
+ * @code
+ * $ ../../bin/grafic2gadget --omegaBaryon0 0.0449 --numfiles 1 \
+ *                           ic_128_velx ic_128_vely ic_128_velz \
+ *                           128.dat
+ * @endcode
+ *
+ * @section pageQuickstart_Scale Increasing the Resolution
+ *
+ * We will now use the just generated 128^3 box to generate the same box at
+ * a higher resolution.  First, let's change the directory
+ * @code
+ * $ mkdir ../384
+ * $ cd ../384
+ * @endcode
+ *
+ * We now need to create an ini file for the scaling, i.e.
+ * @code
+ * $ cat scale.ini
+ * [Setup]
+ * boxsizeInMpch = 250
+ * inputDim1D = 128
+ * outputDim1D = 384
+ * useFileForInput = true
+ * seedIn = 221
+ * seedOut = 1235135
+ * readerSecName = InputReader
+ * writerSecName = OutputWriter
+ *
+ * [InputReader]
+ * type = grafic
+ * path = ../128
+ * prefix = wn_128
+ * qualifier = _delta
+ *
+ * [OutputWriter]
+ * type = grafic
+ * prefix = wn_384
+ * isWhiteNoise = true
+ * size = 384, 384, 384
+ * iseed = 1235135
+ * @endcode
+ * This will produce the file @c wn_384_delta which contains the properly
+ * enhanced white noise field for the higher resolution box.
+ *
+ * @section pageQuickstart_HighRes Generating the High Resolution Box
+ *
+ * We will now have to do essentially the same as in
+ * @ref pageQuickstart_Base, only the ini file will be slightly different.
+ * We can omit the @c [RNG] section and have to adjust a few things to
+ * account for the higher resolution, i.e.
+ * @code
+ * $ cat 384.ini
+ * [Ginnungagap]
+ * dim1D = 384
+ * boxsizeInMpch = 250
+ * zInit = 80.0
+ * normalisationMode = sigma8
+ * gridName = testGrid
+ * doHistograms = true
+ * histogramNumBins = 67
+ * histogramExtremeWN = 7.
+ * histogramExtremeDens = .5
+ * histogramExtremeVel = 250.
+ *
+ * [Output]
+ * type = grafic
+ * prefix = ic_128
+ * writerSection = OutputGrafic
+ *
+ * [OutputGrafic]
+ * isWhiteNoise = false
+ * size = 384, 384, 384
+ * dx = 0.9169600938967136
+ * astart = 0.012345679012345678
+ * omegam = 0.2669
+ * omegav = 0.734
+ * h0 = 71
+ *
+ * [WhiteNoise]
+ * useFile = true
+ * rngSectionName = rng
+ * dumpWhiteNoise = false
+ * readerSection = WhiteNoiseReader
+ *
+ * [WhiteNoiseReader]
+ * type = grafic
+ * prefix = wn_384
+ * qualifier = _delta
+ * isWhiteNoise = true
+ *
+ * [MPI]
+ * nProcs = 1 0 0
+ *
+ * [Cosmology]
+ * modelOmegaRad0 = 8.348451673443855e-05
+ * modelOmegaLambda0 = 0.734
+ * modelOmegaMatter0 = 0.2669
+ * modelOmegaBaryon0 = 0.0449
+ * modelHubble = 0.71
+ * modelSigma8 = 0.801
+ * modelNs = 0.963
+ * modelTempCMB = 2.725
+ * powerSpectrumKmin = 1e-5
+ * powerSpectrumKmax = 1e4
+ * powerSpectrumNumPoints = 501
+ * transferFunctionType = EisensteinHu1998
+ * @endcode
+ *
+ * Now it is just a question of generating the velocity fields and from
+ * those the Gadget ICs just as we did before (with adjusted file names, of
+ * course).
+ */
+
+
+/*--- Page: External Dependencies ---------------------------------------*/
+
 /**
  * @page pageDeps External Dependencies.
  *
- * Silo can be found here: https://wci.llnl.gov/codes/silo/ 
+ * Silo can be found here: https://wci.llnl.gov/codes/silo/
  *
  * @section pageDeps_SPRNG  Building SPRNG
  *
