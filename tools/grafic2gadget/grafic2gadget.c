@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -163,10 +163,9 @@ grafic2gadget_run(grafic2gadget_t g2g)
 	local_checkForIDOverflow(np, g2g->useLongIDs, g2g->doGas);
 	baseHeader = local_getBaseHeader(gadget, boxsize, aInit, model, np,
 	                                 g2g->doGas, g2g->useLongIDs);
-	toc = local_getTOC();
-	gadgetTOC_setFileVersion(toc, gadget_getFileVersion(gadget));
+	toc        = local_getTOC();
 
-	numPlane = np[0] * np[1];
+	numPlane   = np[0] * np[1];
 	for (int i = 0; i < g2g->numGadgetFiles; i++) {
 		int            numSlabStart, numSlabEnd, numSlabs;
 		int64_t        numLocal;
@@ -174,7 +173,7 @@ grafic2gadget_run(grafic2gadget_t g2g)
 		float          *vel, *pos;
 		void           *id;
 		uint32_t       npLocal[6] = {0, 0, 0, 0, 0, 0};
-		double      massArr[6] = {0., 0., 0., 0., 0., 0.};
+		double         massArr[6] = {0., 0., 0., 0., 0., 0.};
 		gadgetHeader_t myHeader;
 
 		local_getSlabNumbers(i, g2g->numGadgetFiles, np[2],
@@ -468,14 +467,11 @@ local_vel2pos(float    *vel,
 		pos[i * 3]     += (float)boxsize;
 		pos[i * 3 + 1] += (float)boxsize;
 		pos[i * 3 + 2] += (float)boxsize;
-		pos[i * 3]      = (float)fmod(pos[i * 3]
-		                              + vFact * vel[i * 3],
+		pos[i * 3]      = (float)fmod(pos[i * 3] + vFact * vel[i * 3],
 		                              boxsize);
-		pos[i * 3 + 1] = (float)fmod(pos[i * 3 + 1]
-		                             + vFact * vel[i * 3 + 1],
+		pos[i * 3 + 1] = (float)fmod(pos[i * 3 + 1] + vFact * vel[i * 3 + 1],
 		                             boxsize);
-		pos[i * 3 + 2] = (float)fmod(pos[i * 3 + 2]
-		                             + vFact * vel[i * 3 + 2],
+		pos[i * 3 + 2] = (float)fmod(pos[i * 3 + 2] + vFact * vel[i * 3 + 2],
 		                             boxsize);
 	}
 }
