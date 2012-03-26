@@ -3,6 +3,9 @@
 git log \
 	ginnungagap-0.5.0-alpha.. \
 	--pretty=format:"(%Cgreen%h%Creset) %C(yellow)%s%Creset%n%w(50,4)%Cblue%ad%n%w(76,4,4)%b"
+# The same but without color
+git log ginnungagap-0.5.3-alpha.. --pretty=format:"(%h) %s%n%w(50,4)%ad%n%w(76,4,4)%b"
 
 # This simply gives some numbers about the amount of changes
 git diff ginnungagap-0.5.0-alpha.. --shortstat
+

@@ -213,6 +213,28 @@ gridRegular_replacePatch(gridRegular_t grid,
 extern void
 gridRegular_transpose(gridRegular_t grid, int dimA, int dimB);
 
+/**
+ * @brief  Retrieves for a permuted grid the current index of an original
+ *         dimension.
+ *
+ * If the grid has been permuted, than this function can be used to obtain
+ * that dimension which corresponds to an original dimension. I.e. if the x-
+ * and y- dimension have been permuted, than this function will return 1
+ * when @c originalDim is 0 and 0 if @c originalDim is 1.
+ *
+ * @param[in]  grid
+ *                The grid ti query.  This must be a valid grid reference,
+ *                passing @c NULL is undefined.
+ * @param[in]  originalDim
+ *                The original dimension for which to find out what the
+ *                current dimension is.
+ *
+ * @return  Returns the (index of the) current dimension of an original
+ *          dimension.
+ */
+extern int
+gridRegular_getCurrentDim(const gridRegular_t grid, int originalDim);
+
 
 /** @} */
 

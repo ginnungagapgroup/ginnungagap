@@ -1,10 +1,112 @@
-Copyright (C) 2010, 2011, Steffen Knollmann
+Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 
 This file contains an overview of the major enhancement, bug fixes, or
 other things for each version of ginnungagap since version 0.5.0.  If
 relevant, the entries contain the short hash of the according commits to
 the repository, smaller changes will not be listed individually but
 paraphrased.
+
+
+Version 0.6.0
+-------------
+
+This is the release of version 0.6.0 bringing major changes to the
+grid writing and reading infrastructure (see below for more details).
+Most notably, the HDF5 support has been finished and shows excellent
+performance on curie (~5GB/s writing, ~10GB/s reading).
+
+Additionally, this release finally fixes the permutation error of the
+velocity fields in the OpenMP-only case (see 982f47b below).  On other
+fronts the code documentation has been updated, now completely
+documenting the code configuration files (mainly relevant config.h.in).
+Ginnungagap is now available from: https://code.google.com/p/ginnungagap/
+
+Changes from 0.5.3-alpha:
+ 157 files changed, 8238 insertions(+), 2274 deletions(-)
+
+(982f47b) [FIX] Resolves the permutation error in OpenMP.
+    This solves the problem that the velocity fields in the OpenMP only run 
+    were permuted.  This was done by finally evaluating the actual 
+    permutation of the grid instead of relying on a hardcoded permutation
+    in g9pInit.c that was only correct for the MPI case.  The grid now has
+    an additional function that returns the current dimenions (or rather,
+    the index with 0 being x, 1, being y, and so on) of an original
+    dimension.
+
+(b2db841) Documentation update.
+    This finishes the description of how to configure the build of 
+    ginnungagap.  Additionally, it adds a quick-start example run-through
+    to explain how to use ginnungagap.  The example ini-file in the
+    'Writing Input Files' section has been adjusted to the slightly changed
+    ini format.
+
+(7ed0f30) [FIX] Adds missing ifdef guard around HDF5 things.
+    The factory methods for the HDF5 reader should only be compiled if HDF5 
+    is available.
+
+(a012fba) Minor tweaks in the WN writing/reading.
+    This changes the way the WN reader/writer are setup in ginnungagap, 
+    instead of having them constructed from the [WhiteNoise] section, they 
+    are now constructed from bespoke sections names there.
+
+    Also, this adds two example ini files for use with ginnungagap.
+
+(b5f9b8a) Removes the (dis-functional) SILO grid reader.
+    The SILO grid reader is now removed from the code basis, it never
+    worked anyways and there is no point in carrying aroung bit-rotting
+    code.
+
+(d51db07) Updates the grid reader infrastructure.
+    The grid reader now uses a similar setup as the grid writer, common IO 
+    functionality between reading and writing is outsourced to a separate 
+    file.  This changes also changes the INI format for the grid reader, 
+    most notably, the type is now specified as 'type = ..' instead of
+    'readerType = ..'.  Additionally, all reader will now read a filename 
+    split up into path, prefix, qualifier, and suffix; this replaces the
+    old
+    'graficFileName = ..' et al.
+
+    Furthermore, the grid reading is now included in the unit testing of
+    the grid library (at least for BOV and HDF5) and the code documentation
+    has been updated.  The sample ini file for 'realSpaceConstraints' has
+    been adjusted to work with the new reading routines.
+
+    The main code (and tools) only had to be changed trivially to account 
+    for the change.
+
+(f9699a5) Overhauling the grid writer.
+    The writer now uses a streamlined code structure under the hood and 
+    allows now for more flexibility in writing.  The construction of
+    writers from ini files has been factored out into a factory module and
+    during that, the structure of the ini files changed slightly.
+
+    The grafic writer now will not cycle through the _delta, _velx and so
+    on names anymore but relies on the user to set the proper file name. 
+    The HDF5 writer properly deals with multiple calls.  The Silo writer
+    has been adjusted to reflect the changes in the code structure.
+
+    As a main feature, the grid writer now will never overwrite a file 
+    unless explicitly requested by the user.
+
+    On a side, the whole code basis has been adjusted to now work with all 
+    three grid writers for generating velocity fields et al.  This required 
+    including explicit renaming calls in ginnungagap to keep the names in 
+    the files (when the file type supports that: HDF5, SILO) consistent
+    with what is actually in the file.  Also, ginnungagap will now write
+    separate files for the overdensity and for each of the velocity
+    components (possibly spilt over many subfiles, as in the case of
+    Silo in MPI mode).
+
+(8205b8f) Documenation updates.
+    Now config.h and version.h are fully documented.  Actually, the 
+    documentation is in the .in files, as they are used to auto-generate
+    the actual files.
+
+(9a18057) Adds a filename module to the utility library.
+    Fri Jan 13 03:01:44 2012 +0000
+
+(bb3df6d) Sets the path for HDF5 on curie.
+    Wed Jan 11 02:52:55 2012 +0100
 
 Version 0.5.3-alpha
 -------------------

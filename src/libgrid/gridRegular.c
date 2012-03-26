@@ -434,7 +434,7 @@ gridRegular_transpose(gridRegular_t grid, int dimA, int dimB)
 	uint32_t tmpInt;
 	int      tmpIntSign;
 
-	assert(grid != 0);
+	assert(grid != NULL);
 	assert(dimA >= 0 && dimA < NDIM);
 	assert(dimB >= 0 && dimB < NDIM);
 
@@ -453,6 +453,26 @@ gridRegular_transpose(gridRegular_t grid, int dimA, int dimB)
 }
 
 #undef LOCAL_SWAP
+
+extern int
+gridRegular_getCurrentDim(const gridRegular_t grid, int originalDim)
+{
+	assert(grid != NULL);
+	assert(originalDim >=0 && originalDim < NDIM);
+
+	int currentDim = -1;
+
+	for (int i = 0; i < NDIM; i++) {
+		if (grid->permute[i] == originalDim) {
+			currentDim = i;
+			break;
+		}
+	}
+
+	assert(currentDim != -1);
+
+	return currentDim;
+}
 
 /*--- Implementations of local functions --------------------------------*/
 inline static void
