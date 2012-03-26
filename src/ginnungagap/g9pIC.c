@@ -122,6 +122,7 @@ local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kMaxGrid);
 static double
 local_getDisplacementToVelocityFactor(cosmoModel_t model, double aInit);
 
+
 /**
  * @brief  Helper functions that calculates the normalisation factor of the
  *         second order velocity field.
@@ -131,12 +132,22 @@ local_getDisplacementToVelocityFactor(cosmoModel_t model, double aInit);
  * @param[in]  aInit
  *                The initial expansion factor for which to calculate
  *                the conversion factor.
- * 
+ *
  * @return  Returns the conversion factor to go from displacement field to
  *          velocities for the second order displacement field.
  */
 static double
 local_getDisplacementToVelocityFactor2lpt(cosmoModel_t model, double aInit);
+
+static void
+local_calcVelFromDeltaActual(const int               direction,
+                             const gridPointUint32_t idxLo,
+                             const gridPointUint32_t dimsPatch,
+                             const gridPointUint32_t kMaxGrid,
+                             const gridPointUint32_t dimsGrid,
+                             const double            norm,
+                             const double            waveNumToFreq,
+                             fpvComplex_t *restrict  data);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -154,8 +165,8 @@ g9pIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
 	assert(gridFFT != NULL);
 	assert(pk != NULL);
 
-	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch, idxLo,
-	                   kMaxGrid);
+	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch,
+	                   idxLo, kMaxGrid);
 	wavenumToFreq = 2. * M_PI / (boxsizeInMpch);
 	norm          = sqrt(gridRegularFFT_getNorm(gridFFT));
 	norm         *= pow(1. / (boxsizeInMpch), 1.5);
@@ -204,6 +215,7 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
                        double           aInit,
                        g9pICMode_t      mode)
 {
+	gridRegular_t     grid;
 	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
 	fpvComplex_t      *data;
 	double            wavenumToFreq, norm;
@@ -213,51 +225,24 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
 
 	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch, idxLo,
 	                   kMaxGrid);
+	grid          = gridRegularFFT_getGridFFTed(gridFFT);
 	wavenumToFreq = 2. * M_PI / (boxsizeInMpch);
 	norm          = local_getDisplacementToVelocityFactor(model, aInit);
 
-#ifdef _OPENMP
-#  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
-	dimsGrid, data, norm, mode)
-#endif
-	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
-		int64_t k2 = k + idxLo[2];
-		k2 = (k2 > kMaxGrid[2]) ? k2 - dimsGrid[2] : k2;
-		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
-			int64_t k1 = j + idxLo[1];
-			k1 = (k1 > kMaxGrid[1]) ? k1 - dimsGrid[1] : k1;
-			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
-				int64_t  k0 = i + idxLo[0];
-				double   kCellSqr;
-				uint64_t idx;
-
-				k0        = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
-				idx       = i + (j + k * dimsPatch[1]) * dimsPatch[0];
-				kCellSqr  = (double)(k0 * k0 + k1 * k1 + k2 * k2);
-				kCellSqr *= wavenumToFreq * wavenumToFreq;
-
-				if ((k0 == 0) && (k1 == 0) && (k2 == 0)) {
-					data[idx] = 0.0;
-				} else if (mode == G9PIC_MODE_VX) {
-					data[idx] *= (fpv_t)(norm * k1 * wavenumToFreq
-					                     / kCellSqr) * I;
-					data[idx]  = (k1 == kMaxGrid[1]) ?
-					             FPV_C(0.0) : data[idx];
-				} else if (mode == G9PIC_MODE_VY) {
-					data[idx] *= (fpv_t)(norm * k2 * wavenumToFreq
-					                     / kCellSqr) * I;
-					data[idx]  = (k2 == kMaxGrid[2]) ?
-					             FPV_C(0.0) : data[idx];
-				} else {
-					data[idx] *= (fpv_t)(norm * k0 * wavenumToFreq
-					                     / kCellSqr) * I;
-					data[idx]  = (k0 == kMaxGrid[0]) ?
-					             FPV_C(0.0) : data[idx];
-				}
-			}
-		}
+	if (mode == G9PIC_MODE_VX) {
+		local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 0),
+		                             idxLo, dimsPatch, kMaxGrid,
+		                             dimsGrid, norm, wavenumToFreq, data);
+	} else if (mode == G9PIC_MODE_VY) {
+		local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 1),
+		                             idxLo, dimsPatch, kMaxGrid,
+		                             dimsGrid, norm, wavenumToFreq, data);
+	} else {
+		local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 2),
+		                             idxLo, dimsPatch, kMaxGrid,
+		                             dimsGrid, norm, wavenumToFreq, data);
 	}
-} /* ginnungagapIC_calcVelFromDelta */
+}
 
 extern void
 g9pIC_calcDDPhiFromDelta(gridRegularFFT_t gridFFT,
@@ -272,8 +257,8 @@ g9pIC_calcDDPhiFromDelta(gridRegularFFT_t gridFFT,
 	assert(d1 >= 0 && d1 < NDIM);
 	assert(d2 >= 0 && d2 < NDIM);
 
-	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch, idxLo,
-	                   kMaxGrid);
+	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch,
+	                   idxLo, kMaxGrid);
 
 #ifdef _OPENMP
 #  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
@@ -330,8 +315,8 @@ g9pIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
 
 	assert(gridFFT != NULL);
 
-	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch, idxLo,
-	                   kMaxGrid);
+	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch,
+	                   idxLo, kMaxGrid);
 	wavenumToFreq = 2. * M_PI * 1. / boxsizeInMpch;
 	volume        = boxsizeInMpch * boxsizeInMpch * boxsizeInMpch;
 	P             = xmalloc(sizeof(double) * kMaxGrid[0]);
@@ -417,17 +402,17 @@ local_getGridStuff(gridRegularFFT_t  gridFFT,
 	gridRegular_t grid;
 	gridPatch_t   patch;
 
-	grid  = gridRegularFFT_getGridFFTed(gridFFT);
+	grid = gridRegularFFT_getGridFFTed(gridFFT);
 	gridRegular_getDims(grid, dimsGrid);
 	patch = gridRegular_getPatchHandle(grid, 0);
 	gridPatch_getDims(patch, dimsPatch);
 	gridPatch_getIdxLo(patch, idxLo);
 	*data = gridPatch_getVarDataHandle(patch, 0);
 
-	for (int i = 0; i < NDIM; i++) {
+	for (int i = 0; i < NDIM; i++)
 		kMaxGrid[i] = dim1D / 2;
-	}
-	kMaxGrid[1]++; // This is the r2c FFT dimension
+	kMaxGrid[gridRegular_getCurrentDim(grid, 0)]++; // This is the r2c FFT
+	                                                // dimension
 }
 
 #ifdef WITH_MPI
@@ -477,3 +462,58 @@ local_getDisplacementToVelocityFactor2lpt(cosmoModel_t model, double aInit)
 
 	return adot * 100. * growthVel2;
 }
+
+#define WRAP_WAVENUM(k, kmax, dims) \
+    k = (k > kmax) ? k - dims : k
+
+#define WAVE_SQR(k) \
+    (k[0] * k[0] + k[1] * k[1] + k[2] * k[2])
+
+static void
+local_calcVelFromDeltaActual(const int               direction,
+                             const gridPointUint32_t idxLo,
+                             const gridPointUint32_t dimsPatch,
+                             const gridPointUint32_t kMaxGrid,
+                             const gridPointUint32_t dimsGrid,
+                             const double            norm,
+                             const double            wavenumToFreq,
+                             fpvComplex_t *restrict  data)
+{
+	const double wavenumToFreqSqr = wavenumToFreq * wavenumToFreq;
+#ifdef _OPENMP
+#  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
+	dimsGrid, data)
+#endif
+	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
+		int64_t kReal[3];
+		kReal[2] = k + idxLo[2];
+		WRAP_WAVENUM(kReal[2], kMaxGrid[2], dimsGrid[2]);
+		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
+			kReal[1] = j + idxLo[1];
+			WRAP_WAVENUM(kReal[1], kMaxGrid[1], dimsGrid[1]);
+			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
+				double   kCellSqr;
+				uint64_t idx;
+
+				kReal[0] = i + idxLo[0];
+				WRAP_WAVENUM(kReal[0], kMaxGrid[0], dimsGrid[0]);
+
+				idx      = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCellSqr = ((double)(WAVE_SQR(kReal))) * wavenumToFreqSqr;
+
+				if ((kReal[0] == 0) && (kReal[1] == 0)
+				    && (kReal[2] == 0)) {
+					data[idx] = 0.0;
+				} else {
+					data[idx] *= (fpv_t)(norm * kReal[direction]
+					                     * wavenumToFreq / kCellSqr) * I;
+					data[idx]  = (kReal[direction] == kMaxGrid[direction]) ?
+					             FPV_C(0.0) : data[idx];
+				}
+			}
+		}
+	}
+} /* local_calcVelFromDeltaActual */
+
+#undef WRAP_WAVENUM
+#undef WAVE_SQR
