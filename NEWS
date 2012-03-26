@@ -7,19 +7,38 @@ the repository, smaller changes will not be listed individually but
 paraphrased.
 
 
-Version 0.6.0-beta
-------------------
+Version 0.6.0
+-------------
 
-This is the beta release of version 0.6.0 bringing major changes to the
+This is the release of version 0.6.0 bringing major changes to the
 grid writing and reading infrastructure (see below for more details).
 Most notably, the HDF5 support has been finished and shows excellent
-performance on curie (~5GB/s writing, ~10GB/s reading).  On other fronts
-the code documentation has been updated, now completely documenting the
-code configuration files (mainly relevant config.h.in).  Also,
-ginnungagap is now available from: https://code.google.com/p/ginnungagap/
+performance on curie (~5GB/s writing, ~10GB/s reading).
+
+Additionally, this release finally fixes the permutation error of the
+velocity fields in the OpenMP-only case (see 982f47b below).  On other
+fronts the code documentation has been updated, now completely
+documenting the code configuration files (mainly relevant config.h.in).
+Ginnungagap is now available from: https://code.google.com/p/ginnungagap/
 
 Changes from 0.5.3-alpha:
- 150 files changed, 7521 insertions(+), 2207 deletions(-)
+ 157 files changed, 8238 insertions(+), 2274 deletions(-)
+
+(982f47b) [FIX] Resolves the permutation error in OpenMP.
+    This solves the problem that the velocity fields in the OpenMP only run 
+    were permuted.  This was done by finally evaluating the actual 
+    permutation of the grid instead of relying on a hardcoded permutation
+    in g9pInit.c that was only correct for the MPI case.  The grid now has
+    an additional function that returns the current dimenions (or rather,
+    the index with 0 being x, 1, being y, and so on) of an original
+    dimension.
+
+(b2db841) Documentation update.
+    This finishes the description of how to configure the build of 
+    ginnungagap.  Additionally, it adds a quick-start example run-through
+    to explain how to use ginnungagap.  The example ini-file in the
+    'Writing Input Files' section has been adjusted to the slightly changed
+    ini format.
 
 (7ed0f30) [FIX] Adds missing ifdef guard around HDF5 things.
     The factory methods for the HDF5 reader should only be compiled if HDF5 
