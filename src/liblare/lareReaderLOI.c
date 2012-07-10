@@ -76,7 +76,7 @@ lareReaderLOI_read(lareReader_t reader)
 	gridPointUint32_t dims;
 
 	assert(reader != NULL);
-	assert(reader->type == LAREIO_TYPE_LEGACY);
+	assert(reader->type == LAREIO_TYPE_LOI);
 	tmp = (lareReaderLOI_t)reader;
 
 	f   = xfopen(tmp->fileName, "r");
