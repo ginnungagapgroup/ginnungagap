@@ -25,6 +25,37 @@
 
 /*--- Implementations of exported functions -----------------------------*/
 extern bool
+tile_calcNDIdxsELAE_test(void)
+{
+	bool     hasPassed      = true;
+	int      rank           = 0;
+	uint32_t idxLo[2], idxHi[2];
+	uint32_t numGridCells[] = {17, 25};
+	uint32_t numTiles[]     = {2, 3};
+	uint32_t tilePosition[] = {1, 2};
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	tile_calcNDIdxsELAE(2, numGridCells, numTiles, tilePosition,
+	                    idxLo, idxHi);
+
+	if (idxLo[0] != 8)
+		hasPassed = false;
+	if (idxHi[0] != 16)
+		hasPassed = false;
+	if (idxLo[1] != 16)
+		hasPassed = false;
+	if (idxHi[1] != 24)
+		hasPassed = false;
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 tile_calcIdxsELAE_test(void)
 {
 	bool     hasPassed = true;
@@ -67,14 +98,14 @@ tile_calcIdxsELAE_test(void)
 		hasPassed = false;
 
 	return hasPassed ? true : false;
-}
+} /* tile_calcIdxsELAE_test */
 
 extern bool
 tile_calcTileNumberForIdxELAE_test(void)
 {
-	bool hasPassed = true;
-	int  rank      = 0;
-	uint32_t tileNumber,correct, idx;
+	bool     hasPassed = true;
+	int      rank      = 0;
+	uint32_t tileNumber, correct, idx;
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -93,14 +124,14 @@ tile_calcTileNumberForIdxELAE_test(void)
 
 	// Grid of 27 in 5 tiles, 3x5 + 2x6
 	for (idx = 0, correct = 0; correct < 3; correct++) {
-		for (int i=0; i < 5; i++) {
+		for (int i = 0; i < 5; i++) {
 			tileNumber = tile_calcTileNumberForIdxELAE(27, 5, idx++);
 			if (tileNumber != correct)
 				hasPassed = false;
 		}
 	}
 	for (; correct < 5; correct++) {
-		for (int i=0; i < 6; i++) {
+		for (int i = 0; i < 6; i++) {
 			tileNumber = tile_calcTileNumberForIdxELAE(27, 5, idx++);
 			if (tileNumber != correct)
 				hasPassed = false;
@@ -108,13 +139,44 @@ tile_calcTileNumberForIdxELAE_test(void)
 	}
 
 	return hasPassed ? true : false;
+} /* tile_calcTileNumberForIdxELAE_test */
+
+extern bool
+tile_calcNDIdxsELAB_test(void)
+{
+	bool     hasPassed      = true;
+	int      rank           = 0;
+	uint32_t idxLo[2], idxHi[2];
+	uint32_t numGridCells[] = {17, 25};
+	uint32_t numTiles[]     = {2, 3};
+	uint32_t tilePosition[] = {1, 2};
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	tile_calcNDIdxsELAB(2, numGridCells, numTiles, tilePosition,
+	                    idxLo, idxHi);
+
+	if (idxLo[0] != 9)
+		hasPassed = false;
+	if (idxHi[0] != 16)
+		hasPassed = false;
+	if (idxLo[1] != 17)
+		hasPassed = false;
+	if (idxHi[1] != 24)
+		hasPassed = false;
+
+	return hasPassed ? true : false;
 }
 
 extern bool
 tile_calcIdxsELAB_test(void)
 {
-	bool hasPassed = true;
-	int  rank      = 0;
+	bool     hasPassed = true;
+	int      rank      = 0;
 	uint32_t idxLo, idxHi;
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -153,14 +215,14 @@ tile_calcIdxsELAB_test(void)
 		hasPassed = false;
 
 	return hasPassed ? true : false;
-}
+} /* tile_calcIdxsELAB_test */
 
 extern bool
 tile_calcTileNumberForIdxELAB_test(void)
 {
-	bool hasPassed = true;
-	int  rank      = 0;
-	uint32_t tileNumber,correct, idx;
+	bool     hasPassed = true;
+	int      rank      = 0;
+	uint32_t tileNumber, correct, idx;
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -179,14 +241,14 @@ tile_calcTileNumberForIdxELAB_test(void)
 
 	// Grid of 27 in 5 tiles, 2x6 + 3x5
 	for (idx = 0, correct = 0; correct < 2; correct++) {
-		for (int i=0; i < 6; i++) {
+		for (int i = 0; i < 6; i++) {
 			tileNumber = tile_calcTileNumberForIdxELAB(27, 5, idx++);
 			if (tileNumber != correct)
 				hasPassed = false;
 		}
 	}
 	for (; correct < 5; correct++) {
-		for (int i=0; i < 5; i++) {
+		for (int i = 0; i < 5; i++) {
 			tileNumber = tile_calcTileNumberForIdxELAB(27, 5, idx++);
 			if (tileNumber != correct)
 				hasPassed = false;
@@ -194,7 +256,7 @@ tile_calcTileNumberForIdxELAB_test(void)
 	}
 
 	return hasPassed ? true : false;
-}
+} /* tile_calcTileNumberForIdxELAB_test */
 
 extern bool
 tile_calcNumLargeTilesEven_test(void)
