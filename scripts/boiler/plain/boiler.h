@@ -22,4 +22,12 @@
 /*--- Prototypes of exported functions ----------------------------------*/
 
 
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup GROUP GROUP
+ * @ingroup GROUP
+ * @brief DESC.
+ */
+
 #endif

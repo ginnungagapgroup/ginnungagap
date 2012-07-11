@@ -31,4 +31,12 @@ extern void
 boiler_del(boiler_t *boiler);
 
 
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup GROUP GROUP
+ * @ingroup GROUP
+ * @brief DESC.
+ */
+
 #endif
