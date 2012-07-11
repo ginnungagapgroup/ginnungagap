@@ -2,16 +2,16 @@
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
-#ifndef G9PMASK_TESTS_H
-#define G9PMASK_TESTS_H
+#ifndef G9PMASKIO_TESTS_H
+#define G9PMASKIO_TESTS_H
 
 
 /*--- Doxygen file description ------------------------------------------*/
 
 /**
- * @file libg9p/g9pMask_tests.h
- * @ingroup  libg9pMaskTest
- * @brief  Tests for @ref libg9pMask.
+ * @file  libg9p/g9pMaskIO_tests.h
+ * @ingroup  libg9pMaskIOTest
+ * @brief  Provides the inferface for the tests for @ref libg9pMaskIO.
  */
 
 
@@ -22,21 +22,19 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern bool
-g9pMask_verifyCreationOfMinMaxMask(void);
+g9pMaskIO_verifyCreationFromIniExternalHierarchy(void);
 
 extern bool
-g9pMask_verifyMaxNumCells(void);
-
-extern bool
-g9pMask_verifyNumCellsEmptyMask(void);
+g9pMaskIO_verifyCreationFromIniWithHierarchyFromIni(void);
 
 
 /*--- Doxygen group definitions -----------------------------------------*/
 
 /**
- * @libg9pMaskTest Mask Tests
- * @ingroup libg9pMask
- * @brief  Provides tests for the mask object.
+ * @defgroup libg9pMaskIOTest Mask IO Tests
+ * @ingroup libg9pMaskIO
+ * @brief Provides tests for the IO routines of @ref libg9pMaskIO.
  */
+
 
 #endif

@@ -74,6 +74,8 @@ g9pHierarchy_getRef(g9pHierarchy_t h);
 extern void
 g9pHierarchy_del(g9pHierarchy_t *h);
 
+extern uint8_t
+g9pHierarchy_getNumLevels(const g9pHierarchy_t h);
 
 /**
  *

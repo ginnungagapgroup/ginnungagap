@@ -77,6 +77,17 @@ g9pMask_del(g9pMask_t *mask)
 }
 
 extern uint64_t
+g9pMask_getNumCellsInMask(const g9pMask_t mask)
+{
+	assert(mask != NULL);
+
+	uint64_t numCells = g9pHierarchy_getDim1DAtLevel(mask->hierarchy,
+	                                                 mask->maskLevel);
+
+	return POW_NDIM(numCells);
+}
+
+extern uint64_t
 g9pMask_getNumCellsInMaskTile(const g9pMask_t mask)
 {
 	return g9pMask_getMaxNumCellsInTileForLevel(mask, mask->maskLevel);
@@ -129,12 +140,16 @@ g9pMask_getNumCellsInTileForLevel(const g9pMask_t mask,
 	assert(tile < mask->totalNumTiles);
 	assert(level >= mask->minLevel && level <= mask->maxLevel);
 
-	if (mask->maskTiles[tile] == NULL)
-		return UINT64_C(0);
+	uint64_t numCells = UINT64_C(0);
+
+	if (mask->maskTiles[tile] == NULL) {
+		if (level == mask->minLevel)
+			numCells = g9pMask_getMaxNumCellsInTileForLevel(mask, level);
+		return numCells;
+	}
 
 	uint64_t     numCellsInTile = g9pMask_getNumCellsInMaskTile(mask);
 	const int8_t *thisTileData  = mask->maskTiles[tile];
-	uint64_t     numCells       = UINT64_C(0);
 #ifdef WITH_OPENMP
 #  pragma omp parallel for reduction(+:numCells)
 #endif
@@ -163,6 +178,8 @@ g9pMask_getNumCellsInTile(const g9pMask_t mask,
 		numCells[i] = UINT64_C(0);
 
 	if (mask->maskTiles[tile] == NULL) {
+		numCells[0] = g9pMask_getMaxNumCellsInTileForLevel(mask,
+		                                                   mask->minLevel);
 		return numCells;
 	}
 
@@ -184,6 +201,9 @@ static g9pMask_t
 local_allocateEmptyMask()
 {
 	g9pMask_t mask = xmalloc(sizeof(struct g9pMask_struct));
+
+	mask->totalNumTiles = 0;
+	mask->maskTiles     = NULL;
 
 	return mask;
 }

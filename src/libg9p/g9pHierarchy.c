@@ -111,6 +111,14 @@ g9pHierarchy_del(g9pHierarchy_t *h)
 	*h = NULL;
 }
 
+extern uint8_t
+g9pHierarchy_getNumLevels(const g9pHierarchy_t h)
+{
+	assert(h != NULL);
+
+	return h->numLevels;
+}
+
 extern const uint32_t *
 g9pHierarchy_getDim1Ds(const g9pHierarchy_t h, uint32_t *dims)
 {

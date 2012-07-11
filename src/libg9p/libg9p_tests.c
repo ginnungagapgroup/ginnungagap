@@ -7,6 +7,7 @@
 #include "g9pHierarchy_tests.h"
 #include "g9pHierarchyIO_tests.h"
 #include "g9pMask_tests.h"
+#include "g9pMaskIO_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,6 +87,21 @@ main(int argc, char **argv)
 		printf("\nRunning tests for g9pMask:\n");
 	}
 	RUNTEST(&g9pMask_verifyCreationOfMinMaxMask, hasFailed);
+	RUNTEST(&g9pMask_verifyMaxNumCells, hasFailed);
+	RUNTEST(&g9pMask_verifyNumCellsEmptyMask, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
+
+	if (rank == 0) {
+		printf("\nRunning tests for g9pMaskIO:\n");
+	}
+	RUNTEST(&g9pMaskIO_verifyCreationFromIniExternalHierarchy,
+	        hasFailed);
+	RUNTEST(&g9pMaskIO_verifyCreationFromIniWithHierarchyFromIni,
+	        hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);

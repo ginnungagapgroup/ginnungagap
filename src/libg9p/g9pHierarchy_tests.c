@@ -60,6 +60,11 @@ g9pHierarchy_verifyComplexCreationMethodsAreIdentical(void)
 	h1 = g9pHierarchy_newWithDims(numLevels, dims);
 	h2 = g9pHierarchy_newWithExplicitFactors(numLevels, minDim1D, factors);
 
+	if (g9pHierarchy_getNumLevels(h1) != g9pHierarchy_getNumLevels(h2))
+		hasPassed = false;
+	if (g9pHierarchy_getNumLevels(h1) != numLevels)
+		hasPassed = false;
+
 	const uint32_t *h1Dims = g9pHierarchy_getDim1Ds(h1, NULL);
 	uint32_t       h2Dims[numLevels];
 	g9pHierarchy_getDim1Ds(h2, h2Dims);

@@ -46,6 +46,9 @@ extern void
 g9pMask_del(g9pMask_t *g9pMask);
 
 extern uint64_t
+g9pMask_getNumCellsInMask(const g9pMask_t mask);
+
+extern uint64_t
 g9pMask_getNumCellsInMaskTile(const g9pMask_t mask);
 
 extern uint64_t
