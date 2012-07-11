@@ -9,10 +9,12 @@ include ../../Makefile.config
 .PHONY: all clean dist-clean tests tests-clean
 
 sources = g9pHierarchy.c \
+          g9pHierarchyIO.c \
           g9pMask.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
                g9pHierarchy_tests.c \
+               g9pHierarchyIO_tests.c \
                g9pMask_tests.c
 
 ifeq ($(WITH_MPI), "true")

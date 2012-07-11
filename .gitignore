@@ -32,6 +32,8 @@ src/libdata/libdata_tests
 
 src/liblare/liblare_tests
 
+src/libg9p/libg9p_tests
+
 tools/makeSiloRoot/makeSiloRoot
 
 tools/grafic2bov/grafic2bov
