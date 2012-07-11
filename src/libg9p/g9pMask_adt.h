@@ -23,16 +23,16 @@
 
 /*--- ADT implementation ------------------------------------------------*/
 struct g9pMask_struct {
-	const g9pHierarchy_t hierarchy;
-	uint8_t              maskLevel;
-	uint8_t              minLevel;
-	uint8_t              maxLevel;
-	uint8_t              tileLevel;
+	g9pHierarchy_t    hierarchy;
+	uint8_t           maskLevel;
+	uint8_t           minLevel;
+	uint8_t           maxLevel;
+	uint8_t           tileLevel;
 
-	uint32_t             totalNumTiles;
-	gridPointUint32_t    numTiles;
-	int8_t               **maskTiles;
-	bool                 isEmpty;
+	uint32_t          totalNumTiles;
+	gridPointUint32_t numTiles;
+	int8_t            **maskTiles;
+	bool              isEmpty;
 };
 
 

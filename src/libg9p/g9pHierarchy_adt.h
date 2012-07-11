@@ -18,12 +18,15 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "g9pConfig.h"
 #include <stdint.h>
+#include "../libutil/refCounter.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 
 /** @brief  The main hierarchy structure. */
 struct g9pHierarchy_struct {
+	/// @brief The reference counter.
+	refCounter_t refCounter;
 	/// @brief Number of levels.
 	uint8_t  numLevels;
 	/// @breif The resolutions of each level.

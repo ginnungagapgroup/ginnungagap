@@ -41,16 +41,15 @@ local_allocateTilePointer(g9pMask_t mask);
 
 /*--- Implementations of exported functions -----------------------------*/
 extern g9pMask_t
-g9pMask_newMinMaxTiledMask(const g9pHierarchy_t hierarchy,
-                           const uint8_t        maskLevel,
-                           const uint8_t        minLevel,
-                           const uint8_t        maxLevel,
-                           const uint8_t        tileLevel)
+g9pMask_newMinMaxTiledMask(g9pHierarchy_t hierarchy,
+                           const uint8_t  maskLevel,
+                           const uint8_t  minLevel,
+                           const uint8_t  maxLevel,
+                           const uint8_t  tileLevel)
 {
-	struct g9pMask_struct tmp  = {.hierarchy = hierarchy, .maskTiles = NULL};
-	g9pMask_t             mask = local_allocateEmptyMask();
-	memcpy(mask, &tmp, sizeof(struct g9pMask_struct));
+	g9pMask_t mask = local_allocateEmptyMask();
 
+	mask->hierarchy = hierarchy;
 	mask->maskLevel = maskLevel;
 	mask->minLevel  = minLevel;
 	mask->maxLevel  = maxLevel;
@@ -71,6 +70,7 @@ g9pMask_del(g9pMask_t *mask)
 		if ((*mask)->maskTiles[i] != NULL)
 			xfree((*mask)->maskTiles[i]);
 	xfree((*mask)->maskTiles);
+	g9pHierarchy_del(&((*mask)->hierarchy));
 
 	xfree(*mask);
 	*mask = NULL;

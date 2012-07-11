@@ -36,11 +36,11 @@ typedef struct g9pMask_struct *g9pMask_t;
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern g9pMask_t
-g9pMask_newMinMaxTiledMask(const g9pHierarchy_t hierarchy,
-                           const uint8_t        maskLevel,
-                           const uint8_t        minLevel,
-                           const uint8_t        maxLevel,
-                           const uint8_t        tileLevel);
+g9pMask_newMinMaxTiledMask(g9pHierarchy_t hierarchy,
+                           const uint8_t  maskLevel,
+                           const uint8_t  minLevel,
+                           const uint8_t  maxLevel,
+                           const uint8_t  tileLevel);
 
 extern void
 g9pMask_del(g9pMask_t *g9pMask);

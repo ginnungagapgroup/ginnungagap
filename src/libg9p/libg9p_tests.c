@@ -65,6 +65,7 @@ main(int argc, char **argv)
 	        hasFailed);
 	RUNTEST(&g9pHierarchy_verifyDimsSelections, hasFailed);
 	RUNTEST(&g9pHierarchy_verifyFactorSelections, hasFailed);
+	RUNTEST(&g9pHierarchy_verifyReferenceCounting, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);

@@ -20,6 +20,7 @@
 #include <string.h>
 #include "../libutil/xmem.h"
 #include "../libutil/tile.h"
+#include "../libutil/refCounter.h"
 
 
 /*--- Implementation of main structure ----------------------------------*/
@@ -50,7 +51,7 @@ g9pHierarchy_newWithDims(uint8_t numLevels, const uint32_t *const dim1Ds)
 	memcpy(h->dim1Ds, dim1Ds, sizeof(uint32_t) * numLevels);
 	local_fillFactorsFromDims(h);
 
-	return h;
+	return g9pHierarchy_getRef(h);
 }
 
 extern g9pHierarchy_t
@@ -67,7 +68,7 @@ g9pHierarchy_newWithSimpleFactor(uint8_t  numLevels,
 
 	local_fillDimsFromFactors(h);
 
-	return h;
+	return g9pHierarchy_getRef(h);
 }
 
 extern g9pHierarchy_t
@@ -83,6 +84,16 @@ g9pHierarchy_newWithExplicitFactors(uint8_t               numLevels,
 
 	local_fillDimsFromFactors(h);
 
+	return g9pHierarchy_getRef(h);
+}
+
+extern g9pHierarchy_t
+g9pHierarchy_getRef(g9pHierarchy_t h)
+{
+	assert(h != NULL);
+
+	refCounter_ref(&(h->refCounter));
+
 	return h;
 }
 
@@ -91,9 +102,11 @@ g9pHierarchy_del(g9pHierarchy_t *h)
 {
 	assert(h != NULL && *h != NULL);
 
-	xfree((*h)->dim1Ds);
-	xfree((*h)->factors);
-	xfree(*h);
+	if (refCounter_deref(&((*h)->refCounter))) {
+		xfree((*h)->dim1Ds);
+		xfree((*h)->factors);
+		xfree(*h);
+	}
 
 	*h = NULL;
 }
@@ -184,6 +197,7 @@ local_allocate(uint8_t numLevels)
 	g9pHierarchy_t h;
 
 	h            = xmalloc(sizeof(struct g9pHierarchy_struct));
+	refCounter_init(&(h->refCounter));
 	h->numLevels = numLevels;
 	h->dim1Ds    = xmalloc(sizeof(uint32_t) * numLevels);
 	h->factors   = xmalloc(sizeof(uint32_t) * numLevels);

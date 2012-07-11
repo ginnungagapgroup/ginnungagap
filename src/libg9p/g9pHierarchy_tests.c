@@ -219,6 +219,52 @@ g9pHierarchy_verifyFactorSelections(void)
 	return hasPassed ? true : false;
 } /* g9pHierarchy_verifyFactorSelections */
 
+extern bool
+g9pHierarchy_verifyReferenceCounting(void)
+{
+	bool           hasPassed = true;
+	int            rank      = 0;
+	g9pHierarchy_t h1, h2, h3;
+#ifdef XMEM_TRACK_MEM
+	size_t         allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Running %s... ", __func__);
+
+	h1 = local_getComplexHierarchy();
+	h2 = g9pHierarchy_getRef(h1);
+	if (h1 != h2)
+		hasPassed = false;
+	g9pHierarchy_del(&h1);
+	if (h1 == h2)
+		hasPassed = false;
+
+	h3 = g9pHierarchy_getRef(h2);
+	const uint32_t *dimsH2 = g9pHierarchy_getDim1Ds(h2, NULL);
+	const uint32_t *dimsH3 = g9pHierarchy_getDim1Ds(h3, NULL);
+
+	if (dimsH2 != dimsH3)
+		hasPassed = false;
+
+	g9pHierarchy_del(&h3);
+
+	if (dimsH2[2] != dimsH3[2])
+		hasPassed = false;
+
+	g9pHierarchy_del(&h2);
+
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 
 /*--- Implementations of local functions --------------------------------*/
 static g9pHierarchy_t

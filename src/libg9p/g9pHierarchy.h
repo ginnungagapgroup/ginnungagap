@@ -57,6 +57,9 @@ g9pHierarchy_newWithExplicitFactors(uint8_t               numLevels,
                                     uint32_t              minDim1D,
                                     const uint32_t *const factors);
 
+extern g9pHierarchy_t
+g9pHierarchy_getRef(g9pHierarchy_t h);
+
 
 /**
  * @brief  Deletes a hierarchy freeing all associated memory.

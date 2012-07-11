@@ -33,6 +33,9 @@ g9pHierarchy_verifyDimsSelections(void);
 extern bool
 g9pHierarchy_verifyFactorSelections(void);
 
+extern bool
+g9pHierarchy_verifyReferenceCounting(void);
+
 
 /*--- Doxygen group definitions -----------------------------------------*/
 

@@ -85,7 +85,6 @@ g9pMask_verifyCreationOfMinMaxMask(void)
 
 	xfree(tmp);
 	g9pMask_del(&mask);
-	g9pHierarchy_del(&h);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
 		hasPassed = false;
