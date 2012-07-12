@@ -30,6 +30,9 @@ g9pMask_verifyMaxNumCells(void);
 extern bool
 g9pMask_verifyNumCellsEmptyMask(void);
 
+extern bool
+g9pMask_verifyCreationOfGridStructure(void);
+
 
 /*--- Doxygen group definitions -----------------------------------------*/
 

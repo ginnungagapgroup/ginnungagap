@@ -19,6 +19,8 @@
 #include <string.h>
 #include "../libutil/utilMath.h"
 #include "../libutil/xmem.h"
+#include "../libutil/lIdx.h"
+#include "../libutil/tile.h"
 
 
 /*--- Implementation of main structure ----------------------------------*/
@@ -74,6 +76,87 @@ g9pMask_del(g9pMask_t *mask)
 
 	xfree(*mask);
 	*mask = NULL;
+}
+
+extern uint8_t
+g9pMask_getMaskLevel(const g9pMask_t mask)
+{
+	assert(mask != NULL);
+
+	return mask->maskLevel;
+}
+
+extern uint8_t
+g9pMask_getMinLevel(const g9pMask_t mask)
+{
+	assert(mask != NULL);
+
+	return mask->minLevel;
+}
+
+extern uint8_t
+g9pMask_getMaxLevel(const g9pMask_t mask)
+{
+	assert(mask != NULL);
+
+	return mask->maxLevel;
+}
+
+extern uint8_t
+g9pMask_getTileLevel(const g9pMask_t mask)
+{
+	assert(mask != NULL);
+
+	return mask->tileLevel;
+}
+
+extern uint32_t
+g9pMask_getTotalNumTiles(const g9pMask_t mask)
+{
+	assert(mask != NULL);
+
+	return mask->totalNumTiles;
+}
+
+extern const uint32_t *
+g9pMask_getNumTiles(const g9pMask_t mask)
+{
+	assert(mask != NULL);
+
+	return mask->numTiles;
+}
+
+extern int8_t *
+g9pMask_getTileData(g9pMask_t mask, uint32_t tile)
+{
+	assert(mask != NULL);
+	assert(tile < mask->totalNumTiles);
+
+	return mask->maskTiles[tile];
+}
+
+extern int8_t *
+g9pMask_setTileData(g9pMask_t mask, uint32_t tile, int8_t *data)
+{
+	assert(mask != NULL);
+	assert(tile < mask->totalNumTiles);
+
+	int8_t *oldData = NULL;
+
+	if (mask->maskTiles[tile] != data) {
+		oldData               = mask->maskTiles[tile];
+		mask->maskTiles[tile] = data;
+	}
+
+	return oldData;
+}
+
+extern uint32_t
+g9pMask_getDim1D(const g9pMask_t mask)
+{
+	assert(mask != NULL);
+
+	return g9pHierarchy_getDim1DAtLevel(mask->hierarchy, mask->maskLevel);
 }
 
 extern uint64_t
@@ -193,6 +276,32 @@ g9pMask_getNumCellsInTile(const g9pMask_t mask,
 	}
 
 	return numCells;
+}
+
+extern gridRegular_t
+g9pMask_getEmptyGridStructure(const g9pMask_t mask)
+{
+	gridPointDbl_t    origin, extent;
+	gridPointUint32_t dims;
+
+	for (int i = 0; i < NDIM; i++) {
+		origin[i] = 0.0;
+		extent[i] = 1.0;
+		dims[i]   = g9pMask_getDim1D(mask);
+	}
+
+	gridRegular_t grid = gridRegular_new("Mask", origin, extent, dims);
+	gridRegular_attachVar(grid, dataVar_new("Mask", DATAVARTYPE_INT8, 1));
+
+	for (uint32_t i = 0; i < mask->totalNumTiles; i++) {
+		gridPointUint32_t idxLo, idxHi, tilePos;
+		lIdx_toCoord3d(i, mask->numTiles, tilePos);
+		tile_calcNDIdxsELAE(NDIM, dims, mask->numTiles, tilePos,
+		                    idxLo, idxHi);
+		gridRegular_attachPatch(grid, gridPatch_new(idxLo, idxHi));
+	}
+
+	return grid;
 }
 
 /*--- Implementations of local functions --------------------------------*/

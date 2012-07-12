@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include "g9pHierarchy.h"
 #include "../libgrid/gridPoint.h"
+#include "../libgrid/gridRegular.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -44,6 +45,33 @@ g9pMask_newMinMaxTiledMask(g9pHierarchy_t hierarchy,
 
 extern void
 g9pMask_del(g9pMask_t *g9pMask);
+
+extern uint8_t
+g9pMask_getMaskLevel(const g9pMask_t mask);
+
+extern uint8_t
+g9pMask_getMinLevel(const g9pMask_t mask);
+
+extern uint8_t
+g9pMask_getMaxLevel(const g9pMask_t mask);
+
+extern uint8_t
+g9pMask_getTileLevel(const g9pMask_t mask);
+
+extern uint32_t
+g9pMask_getTotalNumTiles(const g9pMask_t mask);
+
+extern const uint32_t *
+g9pMask_getNumTiles(const g9pMask_t mask);
+
+extern int8_t *
+g9pMask_getTileData(g9pMask_t mask, uint32_t tile);
+
+extern int8_t *
+g9pMask_setTileData(g9pMask_t mask, uint32_t tile, int8_t *data);
+
+extern uint32_t
+g9pMask_getDim1D(const g9pMask_t mask);
 
 extern uint64_t
 g9pMask_getNumCellsInMask(const g9pMask_t mask);
@@ -68,6 +96,10 @@ extern uint64_t *
 g9pMask_getNumCellsInTile(const g9pMask_t mask,
                           uint32_t        tile,
                           uint64_t        *numCells);
+
+
+extern gridRegular_t
+g9pMask_getEmptyGridStructure(const g9pMask_t mask);
 
 
 /*--- Doxygen group definitions -----------------------------------------*/

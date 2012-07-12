@@ -63,6 +63,9 @@ g9pMask_verifyCreationOfMinMaxMask(void)
 	if (g9pMask_getNumCellsInMaskTile(mask) != tileCells)
 		hasPassed = false;
 
+	if (g9pMask_getDim1D(mask) != g_dims[5])
+		hasPassed = false;
+
 	g9pMask_del(&mask);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -70,7 +73,7 @@ g9pMask_verifyCreationOfMinMaxMask(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* g9pMask_verifyCreationOfMinMaxMask */
 
 extern bool
 g9pMask_verifyMaxNumCells(void)
@@ -109,7 +112,7 @@ g9pMask_verifyMaxNumCells(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* g9pMask_verifyMaxNumCells */
 
 extern bool
 g9pMask_verifyNumCellsEmptyMask(void)
@@ -143,7 +146,7 @@ g9pMask_verifyNumCellsEmptyMask(void)
 
 	// Now test getting all numCells, only minLevel should have cells
 	uint64_t expected[7] = {numCellsMinLevel, UINT64_C(0), UINT64_C(0),
-		                    UINT64_C(0), UINT64_C(0), UINT64_C(0),
+		                    UINT64_C(0),      UINT64_C(0), UINT64_C(0),
 		                    UINT64_C(0)};
 	uint64_t *tmp = g9pMask_getNumCellsInTile(mask, 2, NULL);
 
@@ -158,6 +161,55 @@ g9pMask_verifyNumCellsEmptyMask(void)
 		hasPassed = false;
 
 	xfree(tmp);
+	g9pMask_del(&mask);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} /* g9pMask_verifyNumCellsEmptyMask */
+
+extern bool
+g9pMask_verifyCreationOfGridStructure(void)
+{
+	bool   hasPassed      = true;
+	int    rank           = 0;
+#ifdef XMEM_TRACK_MEM
+	size_t allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	g9pHierarchy_t h    = local_getHierarchy();
+	g9pMask_t      mask = g9pMask_newMinMaxTiledMask(h, 5, 3, 9, 2);
+	gridRegular_t  grid = g9pMask_getEmptyGridStructure(mask);
+
+	uint32_t numPatches = gridRegular_getNumPatches(grid);
+	if (g9pMask_getTotalNumTiles(mask) != gridRegular_getNumPatches(grid))
+		hasPassed = false;
+
+	uint64_t numCellsInTile = g9pMask_getNumCellsInMaskTile(mask);
+	
+	gridPatch_t patch;
+	for (uint32_t i = 0 ; i<numPatches; i++) {
+		patch = gridRegular_getPatchHandle(grid, i);
+		if (gridPatch_getNumCells(patch) != numCellsInTile)
+			hasPassed = false;
+	}
+
+	gridPointUint32_t idxLo;
+	gridPatch_getIdxLo(patch, idxLo);
+	for (int i = 0; i<NDIM; i++) {
+		if (idxLo[i] != 168) // 24 cells per tile, 192 cell total (1D)
+			hasPassed = false;
+	}
+
+	gridRegular_del(&grid);
 	g9pMask_del(&mask);
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)

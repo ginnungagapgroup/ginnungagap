@@ -18,6 +18,9 @@
 #include "g9pHierarchyIO.h"
 #include <assert.h>
 #include "../libutil/xmem.h"
+#include "../libutil/diediedie.h"
+#include "../libgrid/gridWriter.h"
+#include "../libgrid/gridReader.h"
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -47,6 +50,12 @@ local_verifyLevels(uint8_t              maskLevel,
                    uint8_t              tileLevel,
                    const g9pHierarchy_t h);
 
+static void
+local_mvDataMask2Grid(g9pMask_t mask, gridRegular_t grid);
+
+static void
+local_mvDataGrid2Mask(g9pMask_t mask, gridRegular_t grid);
+
 
 /*--- Implementations of exported functions -----------------------------*/
 extern g9pMask_t
@@ -69,6 +78,37 @@ g9pMaskIO_newFromIni(parse_ini_t    ini,
 
 	return g9pMask_newMinMaxTiledMask(h, maskLevel, minLevel, maxLevel,
 	                                  tileLevel);
+}
+
+extern void
+g9pMaskIO_write(g9pMask_t mask, gridWriter_t writer)
+{
+	gridRegular_t grid = g9pMask_getEmptyGridStructure(mask);
+
+	local_mvDataMask2Grid(mask, grid);
+
+	gridWriter_activate(writer);
+	gridWriter_writeGridRegular(writer, grid);
+	gridWriter_deactivate(writer);
+
+	local_mvDataGrid2Mask(mask, grid);
+
+	gridRegular_del(&grid);
+}
+
+extern void
+g9pMaskIO_read(g9pMask_t mask, gridReader_t reader)
+{
+	gridRegular_t grid = g9pMask_getEmptyGridStructure(mask);
+
+	for (int i = 0; i < gridRegular_getNumPatches(grid); i++) {
+		gridPatch_t patch = gridRegular_getPatchHandle(grid, i);
+		gridReader_readIntoPatchForVar(reader, patch, 0);
+	}
+
+	local_mvDataGrid2Mask(mask, grid);
+
+	gridRegular_del(&grid);
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -167,7 +207,7 @@ local_verifyLevels(uint8_t              maskLevel,
                    uint8_t              tileLevel,
                    const g9pHierarchy_t h)
 {
-	uint8_t hLevels   = g9pHierarchy_getNumLevels(h);
+	uint8_t hLevels = g9pHierarchy_getNumLevels(h);
 
 	if (maxLevel > hLevels) {
 		fprintf(stderr, "FATAL:  maxLevel (%i) > hierarchyLevels (%i)\n",
@@ -188,5 +228,31 @@ local_verifyLevels(uint8_t              maskLevel,
 		fprintf(stderr, "FATAL:  tileLevel (%i) > minLevel (%i)\n",
 		        (int)tileLevel, (int)minLevel);
 		exit(EXIT_FAILURE);
+	}
+}
+
+static void
+local_mvDataMask2Grid(g9pMask_t mask, gridRegular_t grid)
+{
+	const uint32_t numTiles = g9pMask_getTotalNumTiles(mask);
+	for (uint32_t i; i < numTiles; i++) {
+		gridPatch_t patch = gridRegular_getPatchHandle(grid, i);
+
+		gridPatch_replaceVarData(patch, 0, g9pMask_getTileData(mask, i));
+	}
+}
+
+static void
+local_mvDataGrid2Mask(g9pMask_t mask, gridRegular_t grid)
+{
+	const uint32_t numTiles = g9pMask_getTotalNumTiles(mask);
+	for (uint32_t i; i < numTiles; i++) {
+		int8_t      *d;
+		gridPatch_t patch = gridRegular_getPatchHandle(grid, i);
+
+		d = g9pMask_setTileData(mask, i, gridPatch_popVarData(patch, 0));
+
+		if (d != NULL)
+			diediedie(EXIT_FAILURE);
 	}
 }
