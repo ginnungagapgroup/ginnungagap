@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -274,6 +274,20 @@ gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData);
  */
 extern void
 gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);
+
+/**
+ * @brief  Retrieves (and removes) the data of for the requested variable.
+ *
+ * @param[in,out]  patch
+ *                    The patch to work with.
+ * @param[in]      idxOfVarData
+ *                    The index of the variable for which to pop the data.
+ *
+ * @return  Returns the pointer to the data.  This might be @c NULL if the
+ *          data for the requested variable was not allocated.
+ */
+extern void *
+gridPatch_popVarData(gridPatch_t patch, int idxOfVarData);
 
 
 /**

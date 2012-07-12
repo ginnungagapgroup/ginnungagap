@@ -97,6 +97,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridPatch_allocateVarData_test, hasFailed);
 	RUNTEST(&gridPatch_freeVarData_test, hasFailed);
 	RUNTEST(&gridPatch_replaceVarData_test, hasFailed);
+	RUNTEST(&gridPatch_popVarData_test, hasFailed);
 	RUNTEST(&gridPatch_getVarHandle_test, hasFailed);
 	RUNTEST(&gridPatch_getVarDataHandle_test, hasFailed);
 	RUNTEST(&gridPatch_getVarDataHandleByVar_test, hasFailed);

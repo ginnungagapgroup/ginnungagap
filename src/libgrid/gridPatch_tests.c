@@ -661,6 +661,62 @@ gridPatch_replaceVarData_test(void)
 } /* gridPatch_replaceVarData_test */
 
 extern bool
+gridPatch_popVarData_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridPatch_t       gridPatch;
+	dataVar_t         var;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, 1);
+	for (int i = 0; i < NDIM; i++) {
+		idxLo[i] = 0;
+		idxHi[i] = 1;
+	}
+	gridPatch   = gridPatch_new(idxLo, idxHi);
+	gridPatch_attachVar(gridPatch, var);
+
+	void *tmp = gridPatch_popVarData(gridPatch, 0);
+	if (tmp != NULL)
+		hasPassed = false;
+
+	gridPatch_allocateVarData(gridPatch, 0);
+	void *tmp1 = gridPatch_popVarData(gridPatch, 0);
+	if (tmp1 == NULL)
+		hasPassed = false;
+
+	void *tmp2 = gridPatch_popVarData(gridPatch, 0);
+	if (tmp2 != NULL)
+		hasPassed = false;
+
+	gridPatch_replaceVarData(gridPatch, 0, tmp1);
+	tmp2 = gridPatch_popVarData(gridPatch, 0);
+	if (tmp1 != tmp2)
+		hasPassed = false;
+
+	gridPatch_replaceVarData(gridPatch, 0, tmp1);
+	gridPatch_del(&gridPatch);
+	dataVar_del(&var);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 gridPatch_getVarHandle_test(void)
 {
 	bool              hasPassed = true;

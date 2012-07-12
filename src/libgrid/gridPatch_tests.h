@@ -149,6 +149,15 @@ extern bool
 gridPatch_replaceVarData_test(void);
 
 /**
+ * @brief  This will test gridPatch_popVarData().
+ *
+ * @return  Returns @c true if the test succeeded and @c false
+ *          otherwise.
+ */
+extern bool
+gridPatch_popVarData_test(void);
+
+/**
  * @brief  This will test gridPatch_getVarHandle().
  *
  * @return  Returns @c true if the test succeeded and @c false

@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -374,6 +374,16 @@ gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData)
 	var     = gridPatch_getVarHandle(patch, idxOfVarData);
 	if (oldData != NULL)
 		dataVar_freeMemory(var, oldData);
+}
+
+extern void *
+gridPatch_popVarData(gridPatch_t patch, int idxOfVarData)
+{
+	assert(patch != NULL);
+	assert(idxOfVarData >= 0
+	       && idxOfVarData < varArr_getLength(patch->varData));
+
+	return varArr_replace(patch->varData, idxOfVarData, NULL);
 }
 
 extern dataVar_t
