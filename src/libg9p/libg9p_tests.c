@@ -8,6 +8,7 @@
 #include "g9pHierarchyIO_tests.h"
 #include "g9pMask_tests.h"
 #include "g9pMaskIO_tests.h"
+#include "g9pMaskShapelet_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -103,6 +104,16 @@ main(int argc, char **argv)
 	        hasFailed);
 	RUNTEST(&g9pMaskIO_verifyCreationFromIniWithHierarchyFromIni,
 	        hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
+
+	if (rank == 0) {
+		printf("\nRunning tests for g9pMaskShapelet:\n");
+	}
+	RUNTEST(&g9pMaskShapelet_verifyShapelet, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
