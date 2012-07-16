@@ -59,7 +59,10 @@ echo "files ending on .h and .c to derive some statistical information"
 echo "on the size of this project."
 echo ""
 showForDir src/ginnungagap
+showForDir src/libg9p
+showForDir src/liblare
 showForDir src/libgrid
+showForDir src/libdata
 showForDir src/libcosmo
 showForDir src/libutil
 showForDir src
