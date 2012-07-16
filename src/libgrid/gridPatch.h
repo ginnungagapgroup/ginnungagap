@@ -18,6 +18,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPoint.h"
+#include <math.h>
 #include "../libdata/dataVar.h"
 
 
@@ -275,6 +276,7 @@ gridPatch_freeVarData(gridPatch_t patch, int idxOfVarData);
 extern void
 gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);
 
+
 /**
  * @brief  Retrieves (and removes) the data of for the requested variable.
  *
@@ -439,6 +441,32 @@ gridPatch_putWindowedData(gridPatch_t       patch,
                           gridPointUint32_t idxLo,
                           gridPointUint32_t idxHi,
                           const void        *data);
+
+
+/**
+ * @brief  Calculates the distance vector of a point from the patch.
+ *
+ * @param[in]   point
+ *                 The point for which to calculate the distance vector.
+ *                 Must not be @c NULL.
+ * @param[in]   patch
+ *                 The patch from which to calculate the distance. Must not
+ *                 be @c NULL.
+ * @param[in]   periodicDims
+ *                 This can be a the dimension of a larger grid on which to
+ *                 perform wrapping i.e. the shortest distance might be
+ *                 wrapped over the corners.  Can be @c NULL in which case
+ *                 the actual non-periodic distance is calculated.
+ * @param[out]  dist
+ *                 The distance vector.
+ *
+ * @return  Returns the norm of the distance vector.
+ */
+extern double
+gridPatch_calcDistanceVector(const gridPatch_t       patch,
+                             const gridPointUint32_t point,
+                             const gridPointUint32_t periodicDims,
+                             gridPointInt64_t        dist);
 
 
 /** @} */

@@ -105,6 +105,7 @@ main(int argc, char **argv)
 	RUNTEST(&gridPatch_transpose_test, hasFailed);
 	RUNTEST(&gridPatch_getWindowedDataCopy_test, hasFailed);
 	RUNTEST(&gridPatch_putWindowedData_test, hasFailed);
+	RUNTEST(&gridPatch_calcDistanceVector_test, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
