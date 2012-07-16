@@ -12,14 +12,16 @@ sources = g9pHierarchy.c \
           g9pHierarchyIO.c \
           g9pMask.c \
           g9pMaskIO.c \
-          g9pMaskShapelet.c
+          g9pMaskShapelet.c \
+          g9pMaskCreator.c
 
 sourcesTests = lib${LIBNAME}_tests.c \
                g9pHierarchy_tests.c \
                g9pHierarchyIO_tests.c \
                g9pMask_tests.c \
                g9pMaskIO_tests.c \
-               g9pMaskShapelet_tests.c
+               g9pMaskShapelet_tests.c \
+               g9pMaskCreator_tests.c
 
 ifeq ($(WITH_MPI), "true")
 CC=$(MPICC)

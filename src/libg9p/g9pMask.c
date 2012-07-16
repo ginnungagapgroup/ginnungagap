@@ -41,7 +41,7 @@ static void
 local_allocateTilePointer(g9pMask_t mask);
 
 
-/*--- Implementations of exported functions -----------------------------*/
+/*--- Implementations: Creating and Deleting ----------------------------*/
 extern g9pMask_t
 g9pMask_newMinMaxTiledMask(g9pHierarchy_t hierarchy,
                            const uint8_t  maskLevel,
@@ -78,6 +78,7 @@ g9pMask_del(g9pMask_t *mask)
 	*mask = NULL;
 }
 
+/*--- Implementations: Member Accessors ---------------------------------*/
 extern uint8_t
 g9pMask_getMaskLevel(const g9pMask_t mask)
 {
@@ -151,6 +152,15 @@ g9pMask_setTileData(g9pMask_t mask, uint32_t tile, int8_t *data)
 	return oldData;
 }
 
+extern g9pHierarchy_t
+g9pMask_getHierarchyRef(g9pMask_t mask)
+{
+	assert(mask != NULL);
+
+	return g9pHierarchy_getRef(mask->hierarchy);
+}
+
+/*--- Implementations: Getter, Mask Level Specific ----------------------*/
 extern uint32_t
 g9pMask_getDim1D(const g9pMask_t mask)
 {
@@ -176,6 +186,7 @@ g9pMask_getNumCellsInMaskTile(const g9pMask_t mask)
 	return g9pMask_getMaxNumCellsInTileForLevel(mask, mask->maskLevel);
 }
 
+/*--- Implementations: Getter, Theoretical Number of Cells in Tile ------*/
 extern uint64_t
 g9pMask_getMaxNumCellsInTileForLevel(const g9pMask_t mask,
                                      uint8_t         level)
@@ -214,6 +225,7 @@ g9pMask_getMaxNumCellsInTile(const g9pMask_t mask,
 	return numCells;
 }
 
+/*--- Implementations: Getter, Actual Cell Counts -----------------------*/
 extern uint64_t
 g9pMask_getNumCellsInTileForLevel(const g9pMask_t mask,
                                   uint32_t        tile,
@@ -231,14 +243,22 @@ g9pMask_getNumCellsInTileForLevel(const g9pMask_t mask,
 		return numCells;
 	}
 
-	uint64_t     numCellsInTile = g9pMask_getNumCellsInMaskTile(mask);
 	const int8_t *thisTileData  = mask->maskTiles[tile];
-#ifdef WITH_OPENMP
-#  pragma omp parallel for reduction(+:numCells)
-#endif
-	for (uint64_t i = 0; i < numCellsInTile; i++) {
+
+	const uint64_t nCTL  = g9pMask_getMaxNumCellsInTileForLevel(mask, level);
+	const uint64_t nCTM  = g9pMask_getNumCellsInMaskTile(mask);
+	const uint64_t nCFac = nCTL < nCTM ? nCTM / nCTL : nCTL / nCTM;
+
+	for (uint64_t i = 0; i < nCTL; i++) {
 		if (thisTileData[i] == level)
 			numCells++;
+	}
+
+	if (nCTL < nCTM) {
+		assert(numCells % nCFac == 0);
+		numCells /= nCFac;
+	} else {
+		numCells *= nCFac;
 	}
 
 	return numCells;
@@ -275,9 +295,26 @@ g9pMask_getNumCellsInTile(const g9pMask_t mask,
 		numCells[thisTileData[i] - mask->minLevel]++;
 	}
 
+	for (uint8_t i = mask->minLevel; i < mask->maskLevel; i++) {
+		uint64_t factor = g9pHierarchy_getFactorBetweenLevel(mask->hierarchy,
+		                                                     i,
+		                                                     mask->maskLevel);
+		factor = POW_NDIM(factor);
+		assert(numCells[i - mask->minLevel] % factor == 0);
+		numCells[i - mask->minLevel] /= factor;
+	}
+	for (uint8_t i = mask->maskLevel + 1; i <= mask->maxLevel; i++) {
+		uint64_t factor = g9pHierarchy_getFactorBetweenLevel(mask->hierarchy,
+		                                                     i,
+		                                                     mask->maskLevel);
+		factor = POW_NDIM(factor);
+		numCells[i - mask->minLevel] *= factor;
+	}
+
 	return numCells;
 }
 
+/*--- Implementations: Convenience Functions ----------------------------*/
 extern gridRegular_t
 g9pMask_getEmptyGridStructure(const g9pMask_t mask)
 {

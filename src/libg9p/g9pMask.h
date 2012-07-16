@@ -36,6 +36,12 @@ typedef struct g9pMask_struct *g9pMask_t;
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
+
+/**
+ * @name  Creating and Deleting
+ * @{
+ */
+
 extern g9pMask_t
 g9pMask_newMinMaxTiledMask(g9pHierarchy_t hierarchy,
                            const uint8_t  maskLevel,
@@ -45,6 +51,14 @@ g9pMask_newMinMaxTiledMask(g9pHierarchy_t hierarchy,
 
 extern void
 g9pMask_del(g9pMask_t *g9pMask);
+
+
+/** @} */
+
+/**
+ * @name  Member Accessors
+ * @{
+ */
 
 extern uint8_t
 g9pMask_getMaskLevel(const g9pMask_t mask);
@@ -70,6 +84,17 @@ g9pMask_getTileData(g9pMask_t mask, uint32_t tile);
 extern int8_t *
 g9pMask_setTileData(g9pMask_t mask, uint32_t tile, int8_t *data);
 
+extern g9pHierarchy_t
+g9pMask_getHierarchyRef(g9pMask_t mask);
+
+
+/** @} */
+
+/**
+ * @name  Getter: Mask Level Specific
+ * @{
+ */
+
 extern uint32_t
 g9pMask_getDim1D(const g9pMask_t mask);
 
@@ -79,6 +104,14 @@ g9pMask_getNumCellsInMask(const g9pMask_t mask);
 extern uint64_t
 g9pMask_getNumCellsInMaskTile(const g9pMask_t mask);
 
+
+/** @} */
+
+/**
+ * @name  Getter: Theoretical Number of Cells in Tile
+ * @{
+ */
+
 extern uint64_t
 g9pMask_getMaxNumCellsInTileForLevel(const g9pMask_t mask,
                                      uint8_t         level);
@@ -86,6 +119,14 @@ g9pMask_getMaxNumCellsInTileForLevel(const g9pMask_t mask,
 extern uint64_t *
 g9pMask_getMaxNumCellsInTile(const g9pMask_t mask,
                              uint64_t        *numCells);
+
+
+/** @} */
+
+/**
+ * @name  Getter: Actual Cell Counts
+ * @{
+ */
 
 extern uint64_t
 g9pMask_getNumCellsInTileForLevel(const g9pMask_t mask,
@@ -98,9 +139,18 @@ g9pMask_getNumCellsInTile(const g9pMask_t mask,
                           uint64_t        *numCells);
 
 
+/** @} */
+
+/**
+ * @name  Convenience Functions
+ * @{
+ */
+
 extern gridRegular_t
 g9pMask_getEmptyGridStructure(const g9pMask_t mask);
 
+
+/** @} */
 
 /*--- Doxygen group definitions -----------------------------------------*/
 
