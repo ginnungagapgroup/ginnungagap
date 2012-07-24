@@ -16,6 +16,10 @@ bin/
 
 src/libgrid/libgrid_tests
 src/libgrid/*Test*.silo
+src/libgrid/outGridChunking.h5
+src/libgrid/outGridChunkingCompress.h5
+src/libgrid/outGridSimple.h5
+
 
 src/libutil/libutil_tests
 src/libutil/empty.grafic
