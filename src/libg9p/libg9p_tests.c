@@ -105,6 +105,8 @@ main(int argc, char **argv)
 	        hasFailed);
 	RUNTEST(&g9pMaskIO_verifyCreationFromIniWithHierarchyFromIni,
 	        hasFailed);
+	RUNTEST(&g9pMaskIO_verifyReadWriteSimple,
+	        hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);

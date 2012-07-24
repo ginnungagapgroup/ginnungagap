@@ -27,6 +27,9 @@ g9pMaskIO_verifyCreationFromIniExternalHierarchy(void);
 extern bool
 g9pMaskIO_verifyCreationFromIniWithHierarchyFromIni(void);
 
+extern bool
+g9pMaskIO_verifyReadWriteSimple(void);
+
 
 /*--- Doxygen group definitions -----------------------------------------*/
 

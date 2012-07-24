@@ -235,7 +235,7 @@ static void
 local_mvDataMask2Grid(g9pMask_t mask, gridRegular_t grid)
 {
 	const uint32_t numTiles = g9pMask_getTotalNumTiles(mask);
-	for (uint32_t i; i < numTiles; i++) {
+	for (uint32_t i = 0; i < numTiles; i++) {
 		gridPatch_t patch = gridRegular_getPatchHandle(grid, i);
 
 		gridPatch_replaceVarData(patch, 0, g9pMask_getTileData(mask, i));
@@ -246,7 +246,7 @@ static void
 local_mvDataGrid2Mask(g9pMask_t mask, gridRegular_t grid)
 {
 	const uint32_t numTiles = g9pMask_getTotalNumTiles(mask);
-	for (uint32_t i; i < numTiles; i++) {
+	for (uint32_t i = 0; i < numTiles; i++) {
 		int8_t      *d;
 		gridPatch_t patch = gridRegular_getPatchHandle(grid, i);
 
