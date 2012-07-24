@@ -19,6 +19,7 @@
 #include "gridConfig.h"
 #include "gridWriter.h"
 #include <stdbool.h>
+#include <assert.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif

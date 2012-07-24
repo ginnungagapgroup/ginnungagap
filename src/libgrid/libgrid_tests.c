@@ -15,13 +15,12 @@
 #include "gridReaderFactory_tests.h"
 #include "gridReader_tests.h"
 #include "gridReaderBov_tests.h"
-#ifdef WITH_SILO
-#  include "gridWriterSilo_tests.h"
-#  include "gridReaderSilo_tests.h"
-#endif
 #ifdef WITH_HDF5
 #  include "gridWriterHDF5_tests.h"
 #  include "gridReaderHDF5_tests.h"
+#endif
+#ifdef WITH_SILO
+#  include "gridWriterSilo_tests.h"
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -254,36 +253,6 @@ main(int argc, char **argv)
 	global_max_allocated_bytes = 0;
 #endif
 
-#ifdef WITH_SILO
-	if (rank == 0) {
-		printf("\nRunning tests for gridWriterSilo:\n");
-	}
-	RUNTEST(&gridWriterSilo_new_test, hasFailed);
-#  ifdef WITH_MPI
-	RUNTEST(&gridWriterSilo_initParallel_test, hasFailed);
-#  endif
-	RUNTEST(&gridWriterSilo_del_test, hasFailed);
-	RUNTEST(&gridWriterSilo_activate_test, hasFailed);
-	RUNTEST(&gridWriterSilo_deactivate_test, hasFailed);
-	RUNTEST(&gridWriterSilo_writeGridPatch_test, hasFailed);
-	RUNTEST(&gridWriterSilo_writeGridRegular_test, hasFailed);
-#  ifdef XMEM_TRACK_MEM
-	if (rank == 0)
-		xmem_info(stdout);
-	global_max_allocated_bytes = 0;
-#  endif
-
-	if (rank == 0) {
-		printf("\nRunning tests for gridReaderSilo:\n");
-	}
-	RUNTEST(&gridReaderSilo_newFromIni_test, hasFailed);
-	RUNTEST(&gridReaderSilo_del_test, hasFailed);
-#  ifdef XMEM_TRACK_MEM
-	if (rank == 0)
-		xmem_info(stdout);
-	global_max_allocated_bytes = 0;
-#  endif
-#endif
 
 #ifdef WITH_HDF5
 	if (rank == 0) {
@@ -312,6 +281,26 @@ main(int argc, char **argv)
 	RUNTEST(&gridReaderHDF5_getH5File_test, hasFailed);
 	RUNTEST(&gridReaderHDF5_readIntoPatch_test, hasFailed);
 	RUNTEST(&gridReaderHDF5_readIntoPatchForVar_test, hasFailed);
+#  ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#  endif
+#endif
+
+#ifdef WITH_SILO
+	if (rank == 0) {
+		printf("\nRunning tests for gridWriterSilo:\n");
+	}
+	RUNTEST(&gridWriterSilo_new_test, hasFailed);
+#  ifdef WITH_MPI
+	//RUNTEST(&gridWriterSilo_initParallel_test, hasFailed);
+#  endif
+	RUNTEST(&gridWriterSilo_del_test, hasFailed);
+	RUNTEST(&gridWriterSilo_activate_test, hasFailed);
+	RUNTEST(&gridWriterSilo_deactivate_test, hasFailed);
+	RUNTEST(&gridWriterSilo_writeGridPatch_test, hasFailed);
+	RUNTEST(&gridWriterSilo_writeGridRegular_test, hasFailed);
 #  ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
