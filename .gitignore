@@ -54,6 +54,8 @@ tools/makeMask/makeMask
 
 tools/realSpaceConstraints/realSpaceConstraints
 
+tools/generateICs/generateICs
+
 tmp/
 
 doc/Doxyfile
