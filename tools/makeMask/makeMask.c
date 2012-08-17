@@ -203,13 +203,13 @@ makeMask_run(makeMask_t mama)
 
 	assert(mama != NULL);
 
-	timing = timer_start("  Generating empty mask");
+	timing = timer_start_text("  Generating empty mask... ");
 	local_createEmptyMask(mama);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 
-	timing = timer_start("  Marking refinement levels");
+	timing = timer_start_text("  Marking refinement levels... ");
 	local_markRegions(mama);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 
 	local_writeMask(mama);
 	local_doHistogram(mama);
@@ -321,11 +321,11 @@ local_writeMask(makeMask_t mama)
 {
 	double timing;
 
-	timing = timer_start("  Writing mask to file");
+	timing = timer_start_text("  Writing mask to file... ");
 	gridWriter_activate(mama->writer);
 	gridWriter_writeGridRegular(mama->writer, mama->grid);
 	gridWriter_deactivate(mama->writer);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 }
 
 inline static void
@@ -339,11 +339,12 @@ local_doHistogram(makeMask_t mama)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
-	timing = timer_start("  Generating histogram");
+	timing = timer_start_text("  Generating histogram... ");
 	histo  = gridHistogram_new(mama->setup->numLevels, -0.5,
 	                           mama->setup->numLevels - 0.5);
 	gridHistogram_calcGridRegularDistrib(histo, mama->distrib, 0);
 	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 	if (rank == 0) {
 		uint64_t numTotalParts = 0;
 		int      particleMult  = 1;
