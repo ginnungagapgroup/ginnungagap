@@ -37,7 +37,7 @@
 #define PACKAGE_VERSION_MAJOR 0
 
 /** @brief  The minor version of the package. */
-#define PACKAGE_VERSION_MINOR 6
+#define PACKAGE_VERSION_MINOR 7
 
 /** @brief  The micro version of the package. */
 #define PACKAGE_VERSION_MICRO 0
