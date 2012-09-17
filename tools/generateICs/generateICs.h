@@ -19,6 +19,8 @@
 #include "generateICsConfig.h"
 #include <stdio.h>
 #include "../../src/libcosmo/cosmoModel.h"
+#include "../../src/libg9p/g9pHierarchy.h"
+#include "../../src/libg9p/g9pMask.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -81,6 +83,44 @@ extern void
 generateICs_setCosmoModel(generateICs_t genics,
                           cosmoModel_t  model);
 
+
+/**
+ * @brief  Sets the hierarchy to use.
+ *
+ * If a hierarchy is already attached, the execution will fail.
+ *
+ * @param[in,out]  genics
+ *                    The application object to work with.  Passing @c NULL
+ *                    is undefined.
+ * @param[in]      hierarchy
+ *                    The hierarchy that should be attached.  The caller
+ *                    relinquishes control of the object. Passing @c NULL is
+ *                    allowed.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+generateICs_setHierarchy(generateICs_t  genics,
+                         g9pHierarchy_t hierarchy);
+
+/**
+ * @brief  Sets the mask to use.
+ *
+ * If a mask is already attached, the execution will fail.
+ *
+ * @param[in,out]  genics
+ *                    The application object to work with.  Passing @c NULL
+ *                    is undefined.
+ * @param[in]      mask
+ *                    The mask that should be attached.  The caller
+ *                    relinquishes control of the object. Passing @c NULL is
+ *                    allowed.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+generateICs_setMask(generateICs_t genics,
+                    g9pMask_t     mask);
 
 /**
  * @brief  Sets the boxsize in Mpc/h.
@@ -201,6 +241,36 @@ generateICs_setPrefix(generateICs_t genics, char *prefix);
  */
 extern cosmoModel_t
 generateICs_getCosmoModel(const generateICs_t genics);
+
+
+/**
+ * @brief  Retrieves the hierarchy.
+ *
+ * @param[in]  genics
+ *                The application object to query.
+ *
+ * @return  Returns the hierarchy used.  This might be @c NULL if no
+ *          hierarchy has been previously set.  The application keeps
+ *          control of the hierarchy object, the calling function should
+ *          hence take care with the retrieved handle.
+ */
+extern g9pHierarchy_t
+generateICs_getHierarchy(const generateICs_t genics);
+
+
+/**
+ * @brief  Retrieves the mask.
+ *
+ * @param[in]  genics
+ *                The application object to query.
+ *
+ * @return  Returns the mask used.  This might be @c NULL if no mask has
+ *          been previously set.  The application keeps control of the mask
+ *          object, the calling function should hence take care with the
+ *          retrieved handle.
+ */
+extern g9pMask_t
+generateICs_getMask(const generateICs_t genics);
 
 
 /**

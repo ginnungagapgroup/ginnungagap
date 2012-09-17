@@ -32,6 +32,10 @@
 #include "../../src/libdata/dataVar.h"
 #include "../../src/libcosmo/cosmo.h"
 #include "../../src/libcosmo/cosmoModel.h"
+#include "../../src/libg9p/g9pHierarchy.h"
+#include "../../src/libg9p/g9pHierarchyIO.h"
+#include "../../src/libg9p/g9pMask.h"
+#include "../../src/libg9p/g9pMaskIO.h"
 #include "../../src/libutil/parse_ini.h"
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/xstring.h"
@@ -54,6 +58,8 @@ struct generateICs_IniData_struct {
 	char   *outputSection;
 	/** @brief  Stores key @c cosmologySection. */
 	char   *cosmologySection;
+	/** @brief  Stores key @c hierarchySection. */
+	char   *hierarchySection;
 	/** @brief  Stores key @c maskSection. */
 	char   *maskSection;
 };
@@ -197,9 +203,18 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	generateICs_setDoGas(genics, iniData->doGas);
 	generateICs_setDoLongIDs(genics, iniData->doLongIDs);
 
-	cosmoModel_t model = cosmoModel_newFromIni(ini,
-	                                           iniData->cosmologySection);
+	cosmoModel_t model;
+	model = cosmoModel_newFromIni(ini, iniData->cosmologySection);
 	generateICs_setCosmoModel(genics, model);
+
+	g9pHierarchy_t hierarchy;
+	hierarchy = g9pHierarchyIO_newFromIni(ini, iniData->hierarchySection);
+	generateICs_setHierarchy(genics, hierarchy);
+
+	g9pMask_t mask;
+	mask = g9pMaskIO_newFromIni(ini, iniData->maskSection,
+	                            generateICs_getHierarchy(genics));
+	generateICs_setMask(genics, mask);
 
 	local_newFromIni_output(ini, iniData->outputSection, genics);
 
@@ -330,6 +345,11 @@ local_iniDataNewFromIni_section(generateICs_iniData_t iniData,
 	                          &(iniData->cosmologySection))) {
 		iniData->cosmologySection
 		    = xstrdup(GENERATEICSCONFIG_DEFAULT_COSMOLOGYSECTION);
+	}
+	if (!parse_ini_get_string(ini, "hierarchySection", secName,
+	                          &(iniData->hierarchySection))) {
+		iniData->hierarchySection = xstrdup(
+		    GENERATEICSCONFIG_DEFAULT_HIERARCHYSECTION);
 	}
 	if (!parse_ini_get_string(ini, "maskSection", secName,
 	                          &(iniData->maskSection))) {

@@ -16,6 +16,7 @@
 #include "generateICsConfig.h"
 #include "generateICs.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 #include <inttypes.h>
 #include <math.h>
@@ -29,6 +30,8 @@
 #include "../../src/libcosmo/cosmo.h"
 #include "../../src/libutil/utilMath.h"
 #include "../../src/libutil/xmem.h"
+#include "../../src/libutil/timer.h"
+#include "../../src/libutil/diediedie.h"
 #include "../../src/libutil/gadget.h"
 #include "../../src/libutil/gadgetHeader.h"
 #include "../../src/libutil/gadgetTOC.h"
@@ -63,6 +66,20 @@ inline static void
 local_init(generateICs_t genics);
 
 
+/**
+ * @brief  Helper function for generateICs_run().
+ *
+ * @param[in,out]  genics
+ *                    The application to work with.
+ * @param[in]      i
+ *                    The file number to work on.
+ *
+ * @return  Returns nothing.
+ */
+static void
+local_doFile(generateICs_t genics, int i);
+
+
 /*--- Exported functions: Creating and deleting -------------------------*/
 extern generateICs_t
 generateICs_new(void)
@@ -83,6 +100,10 @@ generateICs_del(generateICs_t *genics)
 
 	if ((*genics)->model != NULL)
 		cosmoModel_del(&(*genics)->model);
+	if ((*genics)->hierarchy != NULL)
+		g9pHierarchy_del(&(*genics)->hierarchy);
+	if ((*genics)->mask != NULL)
+		g9pMask_del(&(*genics)->mask);
 	if ((*genics)->prefix != NULL)
 		xfree((*genics)->prefix);
 
@@ -101,6 +122,32 @@ generateICs_setCosmoModel(generateICs_t genics, cosmoModel_t model)
 		cosmoModel_del(&model);
 
 	genics->model = model;
+}
+
+extern void
+generateICs_setHierarchy(generateICs_t genics, g9pHierarchy_t hierarchy)
+{
+	assert(genics != NULL);
+
+	if (genics->hierarchy != NULL) {
+		fprintf(stderr, "ERROR: The hierarchy can only be set once.\n");
+		diediedie(EXIT_FAILURE);
+	}
+
+	genics->hierarchy = hierarchy;
+}
+
+extern void
+generateICs_setMask(generateICs_t genics, g9pMask_t mask)
+{
+	assert(genics != NULL);
+
+	if (genics->mask != NULL) {
+		fprintf(stderr, "ERROR: The mask can only be set once.\n");
+		diediedie(EXIT_FAILURE);
+	}
+
+	genics->mask = mask;
 }
 
 extern void
@@ -163,6 +210,22 @@ generateICs_getCosmoModel(const generateICs_t genics)
 	assert(genics != NULL);
 
 	return genics->model;
+}
+
+extern g9pHierarchy_t
+generateICs_getHierarchy(const generateICs_t genics)
+{
+	assert(genics != NULL);
+
+	return genics->hierarchy;
+}
+
+extern g9pMask_t
+generateICs_getMask(const generateICs_t genics)
+{
+	assert(genics != NULL);
+
+	return genics->mask;
 }
 
 extern double
@@ -228,15 +291,20 @@ generateICs_run(generateICs_t genics)
 {
 	assert(genics != NULL);
 
+	//generateICsMap_t map = generateICsMap_new(genics->hierarchy,
+	//                                          genics->mask);
+
 	if (genics->rank == 0)
 		generateICs_printSummary(genics, stdout);
 
 	for (uint32_t i = 0; i < genics->numFiles; i++) {
-		if (genics->rank == 0)
-			fprintf(stdout, "  * Working on file %" PRIu32 "\n");
-		// DO WORK
-		if (genics->rank == 0)
-			fprintf(stdout, "    done\n");
+		printf(" * Working on file %i\n", i);
+		double timing = timer_start();
+
+		local_doFile(genics, i);
+
+		timing = timer_stop(timing);
+		printf("      File processed in in %.2fs\n", timing);
 	}
 }
 
@@ -267,10 +335,17 @@ local_init(generateICs_t genics)
 #endif
 
 	genics->model         = NULL;
+	genics->hierarchy     = NULL;
+	genics->mask          = NULL;
 	genics->boxsizeInMpch = 0.0;
 	genics->aInit         = 0.0;
 	genics->doGas         = false;
 	genics->doLongIDs     = false;
 	genics->numFiles      = 0;
 	genics->prefix        = NULL;
+}
+
+static void
+local_doFile(generateICs_t genics, int i)
+{
 }

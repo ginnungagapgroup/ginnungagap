@@ -22,7 +22,7 @@
 /*--- Defines -----------------------------------------------------------*/
 
 /** @brief  Gives the default section name for the setup from ini files. */
-#define GENERATEICSCONFIG_DEFAULT_SECTIONNAME "generateICs"
+#define GENERATEICSCONFIG_DEFAULT_SECTIONNAME "GenerateICs"
 
 /** @brief  Gives the default for doing gas particles or not. */
 #define GENERATEICSCONFIG_DEFAULT_DOGAS false
@@ -44,6 +44,9 @@
 
 /** @brief  Gives the default prefix for the level sections. */
 #define GENERATEICSCONFIG_DEFAULT_LEVELSECTIONPREFIX "Level_"
+
+/** @brief  The default name of the section for the hierarchy.*/
+#define GENERATEICSCONFIG_DEFAULT_HIERARCHYSECTION "Hierarchy"
 
 /** @brief  The default name of the section for the mask information.*/
 #define GENERATEICSCONFIG_DEFAULT_MASKSECTION "Mask"
