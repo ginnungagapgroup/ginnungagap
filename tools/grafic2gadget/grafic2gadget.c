@@ -45,7 +45,8 @@ local_getBaseHeader(gadget_t     gadget,
                     cosmoModel_t model,
                     uint32_t     np[3],
                     bool         doGas,
-                    bool         useLongIDs);
+                    bool         useLongIDs,
+                    double       posFactor);
 
 static gadgetTOC_t
 local_getTOC(void);
@@ -81,10 +82,11 @@ local_vel2pos(float    *vel,
               float    *pos,
               uint64_t num,
               double   boxsize,
-              double   vFact);
+              double   vFact,
+              double   posFactor);
 
 static void
-local_convertVel(float *vel, uint64_t num, double aInit);
+local_convertVel(float *vel, uint64_t num, double aInit, double velFactor);
 
 static void
 local_checkForIDOverflow(uint32_t np[3], bool useLongIDs, bool doGas);
@@ -99,7 +101,9 @@ grafic2gadget_new(const char *graficFileNameVx,
                   int        numOutFiles,
                   bool       force,
                   bool       useLong,
-                  double     omegaBaryon0)
+                  double     omegaBaryon0,
+                  double     posFactor,
+                  double     velFactor)
 {
 	grafic2gadget_t g2g;
 
@@ -119,6 +123,8 @@ grafic2gadget_new(const char *graficFileNameVx,
 	g2g->useLongIDs       = useLong;
 	g2g->doGas            = isgreater(omegaBaryon0, 0.0) ? true : false;
 	g2g->omegaBaryon0     = g2g->doGas ? omegaBaryon0 : 0.0;
+	g2g->posFactor        = posFactor;
+	g2g->velFactor        = velFactor;
 
 	return g2g;
 }
@@ -162,7 +168,8 @@ grafic2gadget_run(grafic2gadget_t g2g)
 	                 g2g->omegaBaryon0);
 	local_checkForIDOverflow(np, g2g->useLongIDs, g2g->doGas);
 	baseHeader = local_getBaseHeader(gadget, boxsize, aInit, model, np,
-	                                 g2g->doGas, g2g->useLongIDs);
+	                                 g2g->doGas, g2g->useLongIDs,
+	                                 g2g->posFactor);
 	toc        = local_getTOC();
 
 	numPlane   = np[0] * np[1];
@@ -218,8 +225,9 @@ grafic2gadget_run(grafic2gadget_t g2g)
 			local_initposid(pos, (uint32_t *)id, np,
 			                numSlabStart, numSlabEnd, dx,
 			                g2g->doGas);
-		local_vel2pos(vel, pos, numLocalParticles, boxsize, vFact);
-		local_convertVel(vel, numLocalParticles, aInit);
+		local_vel2pos(vel, pos, numLocalParticles, boxsize, vFact,
+		              g2g->posFactor);
+		local_convertVel(vel, numLocalParticles, aInit, g2g->velFactor);
 
 		gadget_open(gadget, GADGET_MODE_WRITE_CREATE, i);
 		gadget_writeHeaderToCurrentFile(gadget);
@@ -297,7 +305,8 @@ local_getBaseHeader(gadget_t     gadget,
                     cosmoModel_t model,
                     uint32_t     np[3],
                     bool         doGas,
-                    bool         useLongIDs)
+                    bool         useLongIDs,
+                    double       posFactor)
 {
 	uint64_t       npall[6];
 	double         massarr[6];
@@ -328,7 +337,7 @@ local_getBaseHeader(gadget_t     gadget,
 	gadgetHeader_setRedshift(header, cosmo_a2z(aInit));
 	gadgetHeader_setNall(header, npall);
 	gadgetHeader_setNumFiles(header, numFiles);
-	gadgetHeader_setBoxsize(header, boxsize);
+	gadgetHeader_setBoxsize(header, boxsize * posFactor);
 	gadgetHeader_setOmega0(header, cosmoModel_getOmegaMatter0(model));
 	gadgetHeader_setOmegaLambda(header, cosmoModel_getOmegaLambda0(model));
 	gadgetHeader_setHubbleParameter(header, cosmoModel_getSmallH(model));
@@ -458,7 +467,8 @@ local_vel2pos(float    *vel,
               float    *pos,
               uint64_t num,
               double   boxsize,
-              double   vFact)
+              double   vFact,
+              double   posFactor)
 {
 #ifdef _OPENMP
 #  pragma omp parallel for
@@ -467,19 +477,19 @@ local_vel2pos(float    *vel,
 		pos[i * 3]     += (float)boxsize;
 		pos[i * 3 + 1] += (float)boxsize;
 		pos[i * 3 + 2] += (float)boxsize;
-		pos[i * 3]      = (float)fmod(pos[i * 3] + vFact * vel[i * 3],
-		                              boxsize);
-		pos[i * 3 + 1] = (float)fmod(pos[i * 3 + 1] + vFact * vel[i * 3 + 1],
-		                             boxsize);
-		pos[i * 3 + 2] = (float)fmod(pos[i * 3 + 2] + vFact * vel[i * 3 + 2],
-		                             boxsize);
+		pos[i * 3]      = (float)(fmod(pos[i * 3] + vFact * vel[i * 3],
+		                               boxsize) * posFactor);
+		pos[i * 3 + 1]  = (float)(fmod(pos[i * 3 + 1] + vFact * vel[i * 3 + 1],
+		                               boxsize) * posFactor);
+		pos[i * 3 + 2]  = (float)(fmod(pos[i * 3 + 2] + vFact * vel[i * 3 + 2],
+		                               boxsize) * posFactor);
 	}
 }
 
 static void
-local_convertVel(float *vel, uint64_t num, double aInit)
+local_convertVel(float *vel, uint64_t num, double aInit, double velFactor)
 {
-	double fac = 1. / (sqrt(aInit));
+	double fac = 1. / (sqrt(aInit)) * velFactor;
 
 #ifdef _OPENMP
 #  pragma omp parallel for
