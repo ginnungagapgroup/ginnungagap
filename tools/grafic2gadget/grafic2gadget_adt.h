@@ -22,6 +22,8 @@ struct grafic2gadget_struct {
 	bool   useLongIDs;
 	double omegaBaryon0;
 	bool   doGas;
+	double posFactor; // Scales from Mpc/h to whatever (for kpc/h: 1000.)
+	double velFactor; // Sacles from km/s to whatever (for m/s: 1000.)
 };
 
 

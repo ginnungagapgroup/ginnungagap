@@ -1,4 +1,4 @@
-# Copyright (C) 2011 Steffen Knollmann
+# Copyright (C) 2011, 2012, Steffen Knollmann
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
@@ -23,9 +23,11 @@ sources = xmem.c \
           filename.c \
           bov.c \
           grafic.c \
-          gadget.c \
+          gadgetVersion.c \
+          gadgetBlock.c \
+          gadgetTOC.c \
           gadgetHeader.c \
-          gadgetUtil.c \
+          gadget.c \
           art.c \
           artHeader.c \
           cubepm.c \
@@ -33,6 +35,7 @@ sources = xmem.c \
           stai.c \
           varArr.c \
           myTest.c
+
 
 ifeq ($(WITH_MPI), "true")
 sources += commScheme.c \
@@ -51,7 +54,12 @@ sourcesTests = lib${LIBNAME}_tests.c \
                grafic_tests.c \
                cubepm_tests.c \
                stai_tests.c \
-               varArr_tests.c
+               varArr_tests.c \
+               gadgetVersion_tests.c \
+               gadgetBlock_tests.c \
+               gadgetTOC_tests.c \
+               gadgetHeader_tests.c \
+               gadget_tests.c
 
 ifeq ($(WITH_MPI), "true")
 sourcesTests += commScheme_tests.c \
@@ -81,7 +89,7 @@ dist-clean:
 tests:
 	$(MAKE) lib${LIBNAME}_tests
 ifeq ($(WITH_MPI), "true")
-	$(MPIEXEC) -n 16 ./lib${LIBNAME}_tests
+	mpiexec -n 16 ./lib${LIBNAME}_tests
 else
 	./lib${LIBNAME}_tests
 endif
@@ -89,6 +97,9 @@ endif
 tests-clean:
 	rm -f lib${LIBNAME}_tests $(sourcesTests:.c=.o)
 	rm -f writeTest.grafic writeWindowed.grafic empty.grafic gmon.out groupiTest.*
+	rm -f TEST_gadgetBlock.dat TEST_gadget_writing.dat
+	rm -f gadgetFake_v1.big.2.dat gadgetFake_v1.little.2.dat
+	rm -f gadgetFake_v2.big.2.dat gadgetFake_v2.little.2.dat
 
 lib${LIBNAME}_tests: lib${LIBNAME}.a \
                      $(sourcesTests:.c=.o)

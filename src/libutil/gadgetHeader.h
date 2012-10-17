@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -10,7 +10,7 @@
 
 /**
  * @file libutil/gadgetHeader.h
- * @ingroup libutilFilesGadget
+ * @ingroup libutilFilesGadgetHeader
  * @brief  This file provides the interface to Gadget headers.
  */
 
@@ -19,6 +19,8 @@
 #include "util_config.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include "gadgetBlock.h"
 
 
 /*--- Exported defines --------------------------------------------------*/
@@ -206,6 +208,14 @@ gadgetHeader_setFlagFeedback(gadgetHeader_t gadgetHeader, int32_t flag);
  * this and accept 64bit values which will be split accordingly and
  * assigned to the two storage locations.
  *
+ * The function will also switch the header object to using 64bit integers
+ * for the ID type if the total number of particles exceeds what can be
+ * represented with 32bit integers.  If this is unwanted, a further call to
+ * gadgetHeader_setUseLongIDs() is required to specifically tell the header
+ * object what kind of integer should be used for the IDs.  The code assumes
+ * that IDs should be stored in a format that minimizes the storage
+ * requirement.
+ *
  * @param[in,out]  gadgetHeader
  *                    The header object to modify.
  * @param[in]      nall
@@ -218,7 +228,7 @@ gadgetHeader_setNall(gadgetHeader_t gadgetHeader, const uint64_t nall[6]);
 
 
 /**
- * @brief  Sets whether the simulations used cooling.
+ * @brief  Sets whether the simulation used cooling.
  *
  * @param[in,out]  gadgetHeader
  *                    The header object to modify.
@@ -406,6 +416,31 @@ gadgetHeader_setFlagICInfo(gadgetHeader_t gadgetHeader, int32_t flag);
 extern void
 gadgetHeader_setLPTScalingFactor(gadgetHeader_t gadgetHeader,
                                  float          lptScalingFactor);
+
+
+/**
+ * @brief  Flags whether long IDs (64bit) should be used (as opposed to
+ *         32bit).
+ *
+ * This information is @c not stored in the header structure of Gadget
+ * files.  It is purely for logistic reasons (i.e. to be able to calculate
+ * sizes of the blocks).  Note that the code tries to be smart and assumes
+ * that only the minimal amount of memory is used to store the IDs.  This
+ * means that setting the total number of particles will trigger the usage
+ * of long IDs if the total number of particles exceeds the capacity of
+ * 32bit unsigned integers.
+ *
+ * @param[in,out]  gadgetHeader
+ *                    The header object to modify.
+ * @param[in]      useLongIDs
+ *                    Passing @c true indicates that IDs should be stored as
+ *                    64bit integers, whereas @c false reverts to using
+ *                    32bit integers.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+gadgetHeader_setUseLongIDs(gadgetHeader_t gadgetHeader, bool useLongIDs);
 
 
 /** @} */
@@ -676,6 +711,19 @@ extern float
 gadgetHeader_getLPTScalingFactor(const gadgetHeader_t gadgetHeader);
 
 
+/**
+ * @brief  Checks whether long IDs (64bit) are used or not.
+ *
+ * @param[in]  gadgetHeader
+ *                The header object to query.
+ *
+ * @return  Returns @c true if the IDs are 64bit and @c false if they are
+ *          32bit.
+ */
+extern bool
+gadgetHeader_getUseLongIDs(const gadgetHeader_t gadgetHeader);
+
+
 /** @} */
 
 /**
@@ -683,6 +731,18 @@ gadgetHeader_getLPTScalingFactor(const gadgetHeader_t gadgetHeader);
  *
  * @{
  */
+
+/**
+ * @brief  Retrieves the total number of particles in the file set.
+ *
+ * @param[in]  header
+ *                The header to use.
+ *
+ * @return  Returns the number of all particles in the file set.
+ */
+extern uint64_t
+gadgetHeader_getTotalNumParts(const gadgetHeader_t header);
+
 
 /**
  * @brief  Queries the total number of particles stored in the file.
@@ -694,8 +754,63 @@ gadgetHeader_getLPTScalingFactor(const gadgetHeader_t gadgetHeader);
  *
  * @sa gadgetHeader_getNp()
  */
-extern uint64_t
+extern uint32_t
 gadgetHeader_getNumPartsInFile(const gadgetHeader_t gadgetHeader);
+
+
+/**
+ * @brief  Gets the number of particles in the file that have individual
+ *         masses stored in the mass block.
+ *
+ * @param[in,out]  gadgetHeader
+ *                    The header that should be queried.  Must not be
+ *                    @c NULL.
+ *
+ * @return  Returns the number of particles that do not have a global mass.
+ *
+ * @sa gadgetHeader_getNumPartsInBlock(), gadgetBlock_getNumPartsInBlock()
+ */
+extern uint32_t
+gadgetHeader_getNumPartsInFileWithMass(const gadgetHeader_t gadgetHeader);
+
+
+/**
+ * @brief  Retrieves the number of particles that contribute to a given
+ *         block (in the file).
+ *
+ * @param[in]  header
+ *                The header to use.  Must not be @c NULL.
+ * @param[in]  block
+ *                The block for which to calculate the number of particles.
+ *                Note that this only makes sense for actual data blocks,
+ *                i.e. the number returned is undefined for the blocks
+ *                #GADGETBLOCK_UNKNOWN and #GADGETBLOCK_HEADER.
+ *
+ * @return  Returns the number of particles in a given block.
+ *
+ * @sq gadgetBlock_getNumPartsInBlock()
+ */
+extern uint32_t
+gadgetHeader_getNumPartsInBlock(const gadgetHeader_t header,
+                                const gadgetBlock_t  block);
+
+
+/**
+ * @brief  Gets the size of one element in the arrays depending on the
+ *         block.
+ *
+ * @param[in]  gadgetHeader
+ *                The header to query.  Must not be @c NULL.
+ * @param[in]  block
+ *                The block for which to get the size of one element.  Must
+ *                be neither #GADGETBLOCK_UNKNOWN nor
+ *                #GADGETBLOCK_HEADER.
+ *
+ * @return  Returns the size of one element in the requested block in bytes.
+ */
+extern size_t
+gadgetHeader_sizeOfElement(const gadgetHeader_t gadgetHeader,
+                           gadgetBlock_t        block);
 
 
 /** @} */
@@ -721,11 +836,17 @@ gadgetHeader_getNumPartsInFile(const gadgetHeader_t gadgetHeader);
  * @param[in,out]  *f
  *                    A file pointer to readable file positioned
  *                    correctly to receive the header.
+ * @param[in]      doByteSwapping
+ *                    This selects whether the header values should be
+ *                    written in system endianess (@c false) or in
+ *                    byteswapped order (@c true).
  *
  * @return  Returns nothing.
  */
 extern void
-gadgetHeader_write(const gadgetHeader_t gadgetHeader, FILE *f);
+gadgetHeader_write(const gadgetHeader_t gadgetHeader,
+                   FILE                 *f,
+                   bool                 doByteSwap);
 
 
 /**
@@ -748,9 +869,36 @@ gadgetHeader_write(const gadgetHeader_t gadgetHeader, FILE *f);
  * @return  Returns nothing.
  */
 extern void
-gadgetHeader_read(gadgetHeader_t gadgetHeader, FILE *f);
+gadgetHeader_read(gadgetHeader_t gadgetHeader, FILE *f, bool doByteSwap);
+
+
+/**
+ * @brief  Prints the content of the header to a stream in a pretty way.
+ *
+ * @param[in]      header
+ *                    The header to print.
+ * @param[in]      *prefix
+ *                    Each output line is prefixed by this string.  May be
+ *                    @c NULL.
+ * @param[in,out]  *f
+ *                    The stream to write to.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+gadgetHeader_prettyPrint(const gadgetHeader_t header,
+                         const char           *prefix,
+                         FILE                 *f);
 
 
 /** @} */
+
+/*--- Doxygen group definition ------------------------------------------*/
+
+/**
+ * @defgroup libutilFilesGadgetHeader Gadget Header
+ * @ingroup libutilFilesGadget
+ * @brief Provides functionality to deal with Gadget headers.
+ */
 
 #endif

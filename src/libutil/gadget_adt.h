@@ -17,10 +17,14 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "util_config.h"
+#include "gadget.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "gadget.h"
+#include "gadgetVersion.h"
+#include "gadgetHeader.h"
+#include "gadgetTOC.h"
+#include "../libutil/endian.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -28,17 +32,23 @@
 /** @brief The main Gadget structure holding all required information. */
 struct gadget_struct {
 	/** @brief The number of files comprising the snapshot. */
-	int            numFiles;
-	/** @brief Indicates the Gadget file version (Gadget v1 vs. v2). */
-	int            fileVersion;
+	int             numFiles;
+	/** @brief Indicates the Gadget file version. */
+	gadgetVersion_t fileVersion;
 	/** @brief An array of length #numFiles holding the file names. */
-	char           **fileNames;
-	/** @brief An array of length #numFiles holding the file pointer. */
-	FILE           **f;
+	char            **fileNames;
+	/** @brief Keeps track whether the values need to be byteswapped. */
+	bool            doByteSwap;
+	/** @brief The file pointer to the currently opened file in the set. */
+	FILE            *f;
 	/** @brief The mode in which the snapshot is opened. */
-	gadgetMode_t   mode;
+	gadget_mode_t   mode;
+	/** @brief Keeps track of the last file that was opened. */
+	int             lastOpened;
 	/** @brief An array of length #numFiles holding the headers. */
-	gadgetHeader_t *headers;
+	gadgetHeader_t  *headers;
+	/** @brief An array of length #numFiles holding the TOC of each file. */
+	gadgetTOC_t     *tocs;
 };
 
 #endif

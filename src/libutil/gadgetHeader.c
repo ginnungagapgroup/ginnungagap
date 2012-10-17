@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -7,7 +7,7 @@
 
 /**
  * @file libutil/gadgetHeader.c
- * @ingroup libutilFilesGadget
+ * @ingroup libutilFilesGadgetHeader
  * @brief  This file provides the implementation of the Gadget header
  *         object.
  */
@@ -20,8 +20,10 @@
 #include <string.h>
 #include <math.h>
 #include <inttypes.h>
+#include "gadgetBlock.h"
 #include "../libutil/xmem.h"
 #include "../libutil/xfile.h"
+#include "../libutil/byteswap.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -30,13 +32,66 @@
 
 /*--- Local defines -----------------------------------------------------*/
 
+/** @brief The number of the gas particle type. */
+#define LOCAL_GAS 0
+/** @brief The number of the halo particle type. */
+#define LOCAL_HALO 1
+/** @brief The number of the disk particle type. */
+#define LOCAL_DISK 2
+/** @brief The number of the bulge particle type. */
+#define LOCAL_BULGE 3
+/** @brief The number of the star particle type. */
+#define LOCAL_STARS 4
+/** @brief The number of the boundary particle type. */
+#define LOCAL_BNDRY 5
+
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+/**
+ * @brief  This will write the header values to the file.
+ *
+ * This will only write the header values and not the delimiting block size
+ * integers.
+ *
+ * @param[in,out]  header
+ *                    The header to write.
+ * @param[in,out]  *f
+ *                    The file pointer to write to.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_actualWriteHeader(const gadgetHeader_t header, FILE *f);
 
+
+/**
+ * @brief  Will read the header values from a file.
+ *
+ * This file must be positioned at the first value of the header (and not at
+ * the delimiting block size integer).
+ *
+ * @param[in,out]  header
+ *                    The header to read into.
+ * @param[in,out]  *f
+ *                    The file from which to read.
+ *
+ * @return  Returns nothing.
+ */
 static void
 local_actualReadHeader(gadgetHeader_t header, FILE *f);
+
+
+/**
+ * @brief  Will byteswap all header values.
+ *
+ * @param[in,out]  header
+ *                    The header to byteswap.
+ *
+ * @return  Returns nothing.
+ */
+static void
+local_byteswapHeader(gadgetHeader_t header);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -69,6 +124,7 @@ gadgetHeader_new(void)
 	gadgetHeader->flagdoubleprecision = 0;
 	gadgetHeader->flagicinfo          = 0;
 	gadgetHeader->lptscalingfactor    = 0.0f;
+	gadgetHeader->useLongIDs          = false;
 
 	return gadgetHeader;
 }
@@ -154,10 +210,16 @@ gadgetHeader_setNall(gadgetHeader_t gadgetHeader, const uint64_t nall[6])
 {
 	assert(gadgetHeader != NULL);
 
+	uint64_t totalNumParts = UINT64_C(0);
+
 	for (int i = 0; i < 6; i++) {
+		totalNumParts             += nall[i];
 		gadgetHeader->nall[i]      = (uint32_t)nall[i];
 		gadgetHeader->nallhighw[i] = (uint32_t)(nall[i] >> 32);
 	}
+
+	if (totalNumParts > ((1L << 32) - 1L))
+		gadgetHeader->useLongIDs = true;
 }
 
 extern void
@@ -259,6 +321,14 @@ gadgetHeader_setLPTScalingFactor(gadgetHeader_t gadgetHeader,
 	assert(gadgetHeader != NULL);
 
 	gadgetHeader->lptscalingfactor = lptScalingFactor;
+}
+
+extern void
+gadgetHeader_setUseLongIDs(gadgetHeader_t gadgetHeader, bool useLongIDs)
+{
+	assert(gadgetHeader != NULL);
+
+	gadgetHeader->useLongIDs = useLongIDs;
 }
 
 extern void
@@ -420,10 +490,33 @@ gadgetHeader_getLPTScalingFactor(const gadgetHeader_t gadgetHeader)
 	return gadgetHeader->lptscalingfactor;
 }
 
+extern bool
+gadgetHeader_getUseLongIDs(const gadgetHeader_t gadgetHeader)
+{
+	assert(gadgetHeader != NULL);
+
+	return gadgetHeader->useLongIDs;
+}
+
 extern uint64_t
+gadgetHeader_getTotalNumParts(const gadgetHeader_t header)
+{
+	assert(header != NULL);
+
+	uint64_t totalNumParts = UINT64_C(0);
+
+	for (int i = 0; i < 6; i++) {
+		uint64_t tmp = header->nallhighw[i];
+		totalNumParts += (tmp << 32) + header->nall[i];
+	}
+
+	return totalNumParts;
+}
+
+extern uint32_t
 gadgetHeader_getNumPartsInFile(const gadgetHeader_t gadgetHeader)
 {
-	uint64_t numPartsInFile = 0;
+	uint64_t numPartsInFile = UINT64_C(0);
 
 	assert(gadgetHeader != NULL);
 
@@ -433,8 +526,54 @@ gadgetHeader_getNumPartsInFile(const gadgetHeader_t gadgetHeader)
 	return numPartsInFile;
 }
 
+extern uint32_t
+gadgetHeader_getNumPartsInFileWithMass(const gadgetHeader_t gadgetHeader)
+{
+	assert(gadgetHeader != NULL);
+
+	return gadgetBlock_getNumPartsInBlock(GADGETBLOCK_MASS,
+	                                      gadgetHeader->np,
+	                                      gadgetHeader->massarr);
+}
+
+extern uint32_t
+gadgetHeader_getNumPartsInBlock(const gadgetHeader_t header,
+                                const gadgetBlock_t  block)
+{
+	assert(header != NULL);
+	assert(block != GADGETBLOCK_UNKNOWN);
+	assert(block != GADGETBLOCK_HEAD);
+
+	return gadgetBlock_getNumPartsInBlock(block,
+	                                      header->np,
+	                                      header->massarr);
+}
+
+extern size_t
+gadgetHeader_sizeOfElement(const gadgetHeader_t gadgetHeader,
+                           gadgetBlock_t        block)
+{
+	assert(gadgetHeader != NULL);
+	assert(block != GADGETBLOCK_UNKNOWN);
+	assert(block != GADGETBLOCK_HEAD);
+
+	size_t   size;
+	uint32_t numComponents;
+
+	if (gadgetHeader_getFlagDoublePrecision(gadgetHeader) != 0)
+		size = sizeof(double);
+	else
+		size = sizeof(float);
+
+	numComponents = gadgetBlock_getNumComponents(block);
+
+	return size * numComponents;
+}
+
 extern void
-gadgetHeader_write(const gadgetHeader_t gadgetHeader, FILE *f)
+gadgetHeader_write(const gadgetHeader_t gadgetHeader,
+                   FILE                 *f,
+                   bool                 doByteSwap)
 {
 	static const uint32_t thisBlockSize = GADGETHEADER_SIZE;
 
@@ -442,21 +581,28 @@ gadgetHeader_write(const gadgetHeader_t gadgetHeader, FILE *f)
 	assert(f != NULL);
 
 	xfwrite(&thisBlockSize, sizeof(uint32_t), 1, f);
-	local_actualWriteHeader(gadgetHeader, f);
+	if (doByteSwap) {
+		gadgetHeader_t copy = gadgetHeader_clone(gadgetHeader);
+		local_byteswapHeader(copy);
+		local_actualWriteHeader(copy, f);
+		gadgetHeader_del(&copy);
+	} else {
+		local_actualWriteHeader(gadgetHeader, f);
+	}
 	xfwrite(&thisBlockSize, sizeof(uint32_t), 1, f);
 }
 
 extern void
-gadgetHeader_read(gadgetHeader_t gadgetHeader, FILE *f)
+gadgetHeader_read(gadgetHeader_t gadgetHeader, FILE *f, bool doByteSwap)
 {
 	uint32_t blockSize1, blockSize2;
 
 	assert(gadgetHeader != NULL);
 	assert(f != NULL);
 
-	xfread(&blockSize1, sizeof(uint32_t), 1, f);
+	gadgetBlock_readBlockSize(f, &blockSize1, doByteSwap);
 	local_actualReadHeader(gadgetHeader, f);
-	xfread(&blockSize2, sizeof(uint32_t), 1, f);
+	gadgetBlock_readBlockSize(f, &blockSize2, doByteSwap);
 
 	if (blockSize1 != blockSize2) {
 		fprintf(stderr,
@@ -467,9 +613,96 @@ gadgetHeader_read(gadgetHeader_t gadgetHeader, FILE *f)
 	}
 }
 
+extern void
+gadgetHeader_prettyPrint(const gadgetHeader_t header,
+                         const char           *prefix,
+                         FILE                 *f)
+{
+	assert(header != NULL);
+	assert(f != NULL);
+
+	const char *p = (prefix == NULL) ? "" : prefix;
+	uint64_t   nall[6];
+
+	gadgetHeader_getNall(header, nall);
+
+	fprintf(f, "%sNumber of particles in file (sum: %" PRIu32 "):\n",
+	        p, gadgetHeader_getNumPartsInFile(header));
+	fprintf(f, "%s  Gas:    %" PRIu32 "\n", p, header->np[LOCAL_GAS]);
+	fprintf(f, "%s  Halo:   %" PRIu32 "\n", p, header->np[LOCAL_HALO]);
+	fprintf(f, "%s  Disk:   %" PRIu32 "\n", p, header->np[LOCAL_DISK]);
+	fprintf(f, "%s  Bulge:  %" PRIu32 "\n", p, header->np[LOCAL_BULGE]);
+	fprintf(f, "%s  Stars:  %" PRIu32 "\n", p, header->np[LOCAL_STARS]);
+	fprintf(f, "%s  Bndry:  %" PRIu32 "\n", p, header->np[LOCAL_BNDRY]);
+
+	fprintf(f, "%sTotal number of particles in file (sum: %" PRIu64 "):\n",
+	        p, gadgetHeader_getTotalNumParts(header));
+	fprintf(f, "%s  Gas:   %" PRIu64 "\n", p, nall[LOCAL_GAS]);
+	fprintf(f, "%s  Halo:  %" PRIu64 "\n", p, nall[LOCAL_HALO]);
+	fprintf(f, "%s  Disk:  %" PRIu64 "\n", p, nall[LOCAL_DISK]);
+	fprintf(f, "%s  Bulge: %" PRIu64 "\n", p, nall[LOCAL_BULGE]);
+	fprintf(f, "%s  Stars: %" PRIu64 "\n", p, nall[LOCAL_STARS]);
+	fprintf(f, "%s  Bndry: %" PRIu64 "\n", p, nall[LOCAL_BNDRY]);
+
+	fprintf(f, "%sTotal number of particles (low word):\n", p);
+	fprintf(f, "%s  Gas:   %" PRIu32 "\n", p, header->nall[LOCAL_GAS]);
+	fprintf(f, "%s  Halo:  %" PRIu32 "\n", p, header->nall[LOCAL_HALO]);
+	fprintf(f, "%s  Disk:  %" PRIu32 "\n", p, header->nall[LOCAL_DISK]);
+	fprintf(f, "%s  Bulge: %" PRIu32 "\n", p, header->nall[LOCAL_BULGE]);
+	fprintf(f, "%s  Stars: %" PRIu32 "\n", p, header->nall[LOCAL_STARS]);
+	fprintf(f, "%s  Bndry: %" PRIu32 "\n", p, header->nall[LOCAL_BNDRY]);
+
+	fprintf(f, "%sTotal number of particles (high word):\n", p);
+	fprintf(f, "%s  Gas:   %" PRIu32 "\n", p, header->nallhighw[LOCAL_GAS]);
+	fprintf(f, "%s  Halo:  %" PRIu32 "\n", p, header->nallhighw[LOCAL_HALO]);
+	fprintf(f, "%s  Disk:  %" PRIu32 "\n", p, header->nallhighw[LOCAL_DISK]);
+	fprintf(f, "%s  Bulge: %" PRIu32 "\n",
+	        p, header->nallhighw[LOCAL_BULGE]);
+	fprintf(f, "%s  Stars: %" PRIu32 "\n",
+	        p, header->nallhighw[LOCAL_STARS]);
+	fprintf(f, "%s  Bndry: %" PRIu32 "\n",
+	        p, header->nallhighw[LOCAL_BNDRY]);
+
+	fprintf(f, "%sMass arrays:\n", p);
+	fprintf(f, "%s  Gas:    %e\n", p, header->massarr[LOCAL_GAS]);
+	fprintf(f, "%s  Halo:   %e\n", p, header->massarr[LOCAL_HALO]);
+	fprintf(f, "%s  Disk:   %e\n", p, header->massarr[LOCAL_DISK]);
+	fprintf(f, "%s  Bulge:  %e\n", p, header->massarr[LOCAL_BULGE]);
+	fprintf(f, "%s  Stars:  %e\n", p, header->massarr[LOCAL_STARS]);
+	fprintf(f, "%s  Bndry:  %e\n", p, header->massarr[LOCAL_BNDRY]);
+
+	fprintf(f, "%sTime                 :  %e\n", p, header->time);
+	fprintf(f, "%sRedshift             :  %e\n", p, header->redshift);
+	fprintf(f, "%sFlag SFR             :  %" PRIi32 "\n",
+	        p, header->flagsfr);
+	fprintf(f, "%sFlag Feedback        :  %" PRIi32 "\n",
+	        p, header->flagfeedback);
+	fprintf(f, "%sFlag Cooling         :  %" PRIi32 "\n",
+	        p, header->flagcooling);
+	fprintf(f, "%sNumber of files      :  %" PRIi32 "\n",
+	        p, header->numfiles);
+	fprintf(f, "%sBoxsize              :  %e\n", p, header->boxsize);
+	fprintf(f, "%sOmega0               :  %e\n", p, header->omega0);
+	fprintf(f, "%sOmegaLambda          :  %e\n", p, header->omegalambda);
+	fprintf(f, "%sh                    :  %e\n", p, header->hubbleparameter);
+	fprintf(f, "%sFlag stellar age     :  %" PRIi32 "\n",
+	        p, header->flagstellarage);
+	fprintf(f, "%sFlag metal           :  %" PRIi32 "\n",
+	        p, header->flagmetal);
+	fprintf(f, "%sFlag entropy         :  %" PRIi32 "\n",
+	        p, header->flagentropy);
+	fprintf(f, "%sFlag double precision:  %" PRIi32 "\n",
+	        p, header->flagdoubleprecision);
+	fprintf(f, "%sFlag ic info         :  %" PRIi32 "\n",
+	        p, header->flagicinfo);
+	fprintf(f, "%sLPT scaling factor   :  %e\n",
+	        p, header->lptscalingfactor);
+} /* gadgetHeader_prettyPrint */
+
 /*--- Implementations of local functions --------------------------------*/
 static void
-local_actualWriteHeader(const gadgetHeader_t header, FILE *f)
+local_actualWriteHeader(const gadgetHeader_t header,
+                        FILE                 *f)
 {
 	uint8_t fill[GADGETHEADER_SIZE_UNUSED];
 
@@ -525,4 +758,31 @@ local_actualReadHeader(gadgetHeader_t header, FILE *f)
 	xfread(&(header->flagicinfo), sizeof(int32_t), 1, f);
 	xfread(&(header->lptscalingfactor), sizeof(float), 1, f);
 	xfread(fill, sizeof(int8_t), GADGETHEADER_SIZE_UNUSED, f);
+}
+
+static void
+local_byteswapHeader(gadgetHeader_t header)
+{
+	for (int i = 0; i < 6; i++) {
+		byteswap(header->np + i, sizeof(uint32_t));
+		byteswap(header->massarr + i, sizeof(double));
+		byteswap(header->nall + i, sizeof(uint32_t));
+		byteswap(header->nallhighw + i, sizeof(uint32_t));
+	}
+	byteswap(&(header->time), sizeof(double));
+	byteswap(&(header->redshift), sizeof(double));
+	byteswap(&(header->flagsfr), sizeof(int32_t));
+	byteswap(&(header->flagfeedback), sizeof(int32_t));
+	byteswap(&(header->flagcooling), sizeof(int32_t));
+	byteswap(&(header->numfiles), sizeof(int32_t));
+	byteswap(&(header->boxsize), sizeof(double));
+	byteswap(&(header->omega0), sizeof(double));
+	byteswap(&(header->omegalambda), sizeof(double));
+	byteswap(&(header->hubbleparameter), sizeof(double));
+	byteswap(&(header->flagstellarage), sizeof(int32_t));
+	byteswap(&(header->flagmetal), sizeof(int32_t));
+	byteswap(&(header->flagentropy), sizeof(int32_t));
+	byteswap(&(header->flagdoubleprecision), sizeof(int32_t));
+	byteswap(&(header->flagicinfo), sizeof(int32_t));
+	byteswap(&(header->lptscalingfactor), sizeof(float));
 }

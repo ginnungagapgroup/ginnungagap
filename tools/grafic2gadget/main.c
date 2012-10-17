@@ -39,6 +39,8 @@ static int    localNumGadgetFiles    = 1;
 static bool   localForce             = false;
 static bool   localUseLong           = false;
 static double localOmegaBaryon0      = 0.0;
+static double localPosFactor         = 1.0;
+static double localVelFactor         = 1.0;
 
 
 /*--- Prototypes of local functions -------------------------------------*/
@@ -96,6 +98,10 @@ local_initEnvironment(int *argc, char ***argv)
 	localUseLong = cmdline_checkOptSetByNum(cmdline, 4);
 	if (cmdline_checkOptSetByNum(cmdline, 5))
 		cmdline_getOptValueByNum(cmdline, 5, &localOmegaBaryon0);
+	if (cmdline_checkOptSetByNum(cmdline, 6))
+		cmdline_getOptValueByNum(cmdline, 6, &localPosFactor);
+	if (cmdline_checkOptSetByNum(cmdline, 7))
+		cmdline_getOptValueByNum(cmdline, 7, &localVelFactor);
 
 	cmdline_getArgValueByNum(cmdline, 0, &localGraficFileNameVx);
 	cmdline_getArgValueByNum(cmdline, 1, &localGraficFileNameVy);
@@ -150,7 +156,7 @@ local_cmdlineSetup(void)
 {
 	cmdline_t cmdline;
 
-	cmdline = cmdline_new(4, 6, THIS_PROGNAME);
+	cmdline = cmdline_new(4, 8, THIS_PROGNAME);
 	(void)cmdline_addOpt(cmdline, "version",
 	                     "This will output a version information.",
 	                     false, CMDLINE_TYPE_NONE);
@@ -170,6 +176,14 @@ local_cmdlineSetup(void)
 	                     "The density of baryons (in units of the "
 	                     "critical density).",
 	                     false, CMDLINE_TYPE_DOUBLE);
+	(void)cmdline_addOpt(cmdline, "posFactor",
+	                     "Defaults to 1. Use e.g. 1000 to write "
+	                     "positions in kpc/h instead of Mpc/h",
+	                     true, CMDLINE_TYPE_DOUBLE);
+	(void)cmdline_addOpt(cmdline, "velFactor",
+	                     "Defaults to 1. Use e.g. 1000 to write "
+	                     "velocities in m/s instead of km/s",
+	                     true, CMDLINE_TYPE_DOUBLE);
 	(void)cmdline_addArg(cmdline, "The grafic file containing vx.",
 	                     CMDLINE_TYPE_STRING);
 	(void)cmdline_addArg(cmdline, "The grafic file containing vy.",
@@ -219,7 +233,9 @@ local_getG2g(void)
 	                        localNumGadgetFiles,
 	                        localForce,
 	                        localUseLong,
-	                        localOmegaBaryon0);
+	                        localOmegaBaryon0,
+	                        localPosFactor,
+	                        localVelFactor);
 
 	return g2g;
 }
