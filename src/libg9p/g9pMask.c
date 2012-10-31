@@ -40,6 +40,9 @@ local_setTilingFromHierarchy(g9pMask_t mask);
 static void
 local_allocateTilePointer(g9pMask_t mask);
 
+static uint64_t *
+local_initNumCellVector(const g9pMask_t mask, uint64_t *numCells);
+
 
 /*--- Implementations: Creating and Deleting ----------------------------*/
 extern g9pMask_t
@@ -216,7 +219,7 @@ g9pMask_getMaxNumCellsInTile(const g9pMask_t mask,
 {
 	assert(mask != NULL);
 
-	uint8_t numLevel = mask->maxLevel - mask->minLevel + 1;
+	uint8_t numLevel = g9pMask_getNumLevel(mask);
 
 	if (numCells == NULL)
 		numCells = xmalloc(sizeof(uint64_t) * numLevel);
@@ -278,13 +281,7 @@ g9pMask_getNumCellsInTile(const g9pMask_t mask,
 	assert(mask != NULL);
 	assert(tile < mask->totalNumTiles);
 
-	uint8_t numLevel = g9pMask_getNumLevel(mask);
-
-	if (numCells == NULL)
-		numCells = xmalloc(sizeof(uint64_t) * numLevel);
-
-	for (uint8_t i = 0; i < numLevel; i++)
-		numCells[i] = UINT64_C(0);
+	numCells = local_initNumCellVector(mask, numCells);
 
 	if (mask->maskTiles[tile] == NULL) {
 		numCells[0] = g9pMask_getMaxNumCellsInTileForLevel(mask,
@@ -294,9 +291,6 @@ g9pMask_getNumCellsInTile(const g9pMask_t mask,
 
 	uint64_t     numCellsInTile = g9pMask_getNumCellsInMaskTile(mask);
 	const int8_t *thisTileData  = mask->maskTiles[tile];
-#ifdef WITH_OPENMP
-#  pragma omp parallel for reduction(+:numCells)
-#endif
 	for (uint64_t i = 0; i < numCellsInTile; i++) {
 		numCells[thisTileData[i] - mask->minLevel]++;
 	}
@@ -316,6 +310,25 @@ g9pMask_getNumCellsInTile(const g9pMask_t mask,
 		factor = POW_NDIM(factor);
 		numCells[i - mask->minLevel] *= factor;
 	}
+
+	return numCells;
+}
+
+extern uint64_t *
+g9pMask_getNumCellsTotal(const g9pMask_t mask, uint64_t *numCells)
+{
+	assert(mask != NULL);
+	
+	numCells = local_initNumCellVector(mask, numCells);
+	uint64_t *numCellsLocal;
+	const uint8_t numLevel = g9pMask_getNumLevel(mask);
+
+	for (uint32_t i=0; i<mask->totalNumTiles; i++) {
+		numCellsLocal = g9pMask_getNumCellsInTile(mask, i, numCellsLocal);
+		for (uint8_t j=0; j<numLevel; j++)
+			numCells[j] += numCellsLocal[j];
+	}
+	xfree(numCellsLocal);
 
 	return numCells;
 }
@@ -385,4 +398,18 @@ local_allocateTilePointer(g9pMask_t mask)
 		mask->maskTiles[i] = NULL;
 	}
 	mask->isEmpty = true;
+}
+
+static uint64_t *
+local_initNumCellVector(const g9pMask_t mask, uint64_t *numCells)
+{
+	uint8_t numLevel = g9pMask_getNumLevel(mask);
+
+	if (numCells == NULL)
+		numCells = xmalloc(sizeof(uint64_t) * numLevel);
+
+	for (uint8_t i = 0; i < numLevel; i++)
+		numCells[i] = UINT64_C(0);
+
+	return numCells;
 }

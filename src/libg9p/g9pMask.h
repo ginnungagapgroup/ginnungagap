@@ -140,6 +140,9 @@ g9pMask_getNumCellsInTile(const g9pMask_t mask,
                           uint32_t        tile,
                           uint64_t        *numCells);
 
+extern uint64_t *
+g9pMask_getNumCellsTotal(const g9pMask_t mask, uint64_t *numCells);
+
 
 /** @} */
 
