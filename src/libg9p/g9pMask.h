@@ -87,6 +87,8 @@ g9pMask_setTileData(g9pMask_t mask, uint32_t tile, int8_t *data);
 extern g9pHierarchy_t
 g9pMask_getHierarchyRef(g9pMask_t mask);
 
+extern int8_t
+g9pMask_getNumLevel(const g9pMask_t mask);
 
 /** @} */
 

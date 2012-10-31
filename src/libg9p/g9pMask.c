@@ -160,6 +160,12 @@ g9pMask_getHierarchyRef(g9pMask_t mask)
 	return g9pHierarchy_getRef(mask->hierarchy);
 }
 
+extern int8_t
+g9pMask_getNumLevel(const g9pMask_t mask)
+{
+	return mask->maxLevel - mask->minLevel + 1;
+}
+
 /*--- Implementations: Getter, Mask Level Specific ----------------------*/
 extern uint32_t
 g9pMask_getDim1D(const g9pMask_t mask)
@@ -272,7 +278,7 @@ g9pMask_getNumCellsInTile(const g9pMask_t mask,
 	assert(mask != NULL);
 	assert(tile < mask->totalNumTiles);
 
-	uint8_t numLevel = mask->maxLevel - mask->minLevel + 1;
+	uint8_t numLevel = g9pMask_getNumLevel(mask);
 
 	if (numCells == NULL)
 		numCells = xmalloc(sizeof(uint64_t) * numLevel);
