@@ -10,6 +10,7 @@
 #include "g9pMaskIO_tests.h"
 #include "g9pMaskShapelet_tests.h"
 #include "g9pMaskCreator_tests.h"
+#include "g9pICMap_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -138,6 +139,16 @@ main(int argc, char **argv)
 	        hasFailed);
 	RUNTEST(&g9pMaskCreator_verifyMaskIfTwoCellsAreTaggedSlightOverlap,
 	        hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
+
+	if (rank == 0) {
+		printf("\nRunning tests for g9pICMap:\n");
+	}
+	RUNTEST(&g9pICMap_verifySimpleMapCreation, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
