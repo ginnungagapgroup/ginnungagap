@@ -49,6 +49,9 @@ g9pMask_newMinMaxTiledMask(g9pHierarchy_t hierarchy,
                            const uint8_t  maxLevel,
                            const uint8_t  tileLevel);
 
+extern g9pMask_t
+g9pMask_getRef(g9pMask_t m);
+
 extern void
 g9pMask_del(g9pMask_t *g9pMask);
 

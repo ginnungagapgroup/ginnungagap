@@ -103,7 +103,6 @@ g9pICMap_verifySimpleMapCreation(void)
 		hasPassed = false;
 
 	g9pICMap_del(&map);	
-	g9pHierarchy_del(&h);
 
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)

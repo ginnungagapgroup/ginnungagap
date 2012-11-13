@@ -83,6 +83,7 @@ g9pICMap_del(g9pICMap_t *g9pICMap)
 	if ((*g9pICMap)->gasLevel != NULL)
 		xfree((*g9pICMap)->gasLevel);
 	g9pMask_del(&((*g9pICMap)->mask));
+	g9pHierarchy_del(&((*g9pICMap)->hierarchy));
 	xfree(*g9pICMap);
 
 	*g9pICMap = NULL;

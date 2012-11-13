@@ -18,11 +18,14 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "g9pConfig.h"
 #include "g9pHierarchy.h"
+#include "../libutil/refCounter.h"
 #include "../libgrid/gridPoint.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
 struct g9pMask_struct {
+	/// @brief The reference counter.
+	refCounter_t refCounter;
 	g9pHierarchy_t    hierarchy;
 	uint8_t           maskLevel;
 	uint8_t           minLevel;

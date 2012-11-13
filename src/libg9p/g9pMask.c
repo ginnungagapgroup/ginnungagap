@@ -63,7 +63,17 @@ g9pMask_newMinMaxTiledMask(g9pHierarchy_t hierarchy,
 	local_setTilingFromHierarchy(mask);
 	local_allocateTilePointer(mask);
 
-	return mask;
+	return g9pMask_getRef(mask);
+}
+
+extern g9pMask_t
+g9pMask_getRef(g9pMask_t m)
+{
+	assert(m != NULL);
+
+	refCounter_ref(&(m->refCounter));
+
+	return m;
 }
 
 extern void
@@ -367,6 +377,7 @@ local_allocateEmptyMask()
 {
 	g9pMask_t mask = xmalloc(sizeof(struct g9pMask_struct));
 
+	refCounter_init(&(mask->refCounter));
 	mask->totalNumTiles = 0;
 	mask->maskTiles     = NULL;
 
