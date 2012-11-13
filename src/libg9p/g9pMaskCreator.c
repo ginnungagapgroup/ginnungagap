@@ -118,6 +118,8 @@ g9pMaskCreator_fromCells(g9pMask_t               mask,
 		local_fixTaintedLowLevelCells(patch, mask);
 		g9pMask_setTileData(mask, i, gridPatch_popVarData(patch, 0));
 	}
+	g9pMaskShapelet_del(&sl);
+	gridRegular_del(&grid);
 }
 
 /*--- Implementations of local functions --------------------------------*/
