@@ -35,6 +35,7 @@
 #include "../../src/libutil/gadget.h"
 #include "../../src/libutil/gadgetHeader.h"
 #include "../../src/libutil/gadgetTOC.h"
+#include "../../src/libg9p/g9pICMap.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -71,13 +72,16 @@ local_init(generateICs_t genics);
  *
  * @param[in,out]  genics
  *                    The application to work with.
- * @param[in]      i
+ * @param[in]      map
+ *                    The mapping of tiles onto the files, include auxiliary
+ *                    information about the number of cells in each file.
+ * @param[in]      file
  *                    The file number to work on.
  *
  * @return  Returns nothing.
  */
 static void
-local_doFile(generateICs_t genics, int i);
+local_doFile(generateICs_t genics, const g9pICMap_t map, int file);
 
 
 /*--- Exported functions: Creating and deleting -------------------------*/
@@ -291,8 +295,7 @@ generateICs_run(generateICs_t genics)
 {
 	assert(genics != NULL);
 
-	//generateICsMap_t map = generateICsMap_new(genics->hierarchy,
-	//                                          genics->mask);
+	g9pICMap_t map = g9pICMap_new(genics->numFiles, 0, NULL, genics->mask);
 
 	if (genics->rank == 0)
 		generateICs_printSummary(genics, stdout);
@@ -301,11 +304,13 @@ generateICs_run(generateICs_t genics)
 		printf(" * Working on file %i\n", i);
 		double timing = timer_start();
 
-		local_doFile(genics, i);
+		local_doFile(genics, map, i);
 
 		timing = timer_stop(timing);
 		printf("      File processed in in %.2fs\n", timing);
 	}
+
+	g9pICMap_del(&map);
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -346,6 +351,28 @@ local_init(generateICs_t genics)
 }
 
 static void
-local_doFile(generateICs_t genics, int i)
+local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 {
+	uint32_t       firstTile      = g9pICMap_getFirstTileInFile(map, file);
+	uint32_t       lastTile       = g9pICMap_getLastTileInFile(map, file);
+	const uint64_t *numCells      = g9pICMap_getNumCellsPerLevelInFile(map,
+	                                                                   file);
+	const int8_t   numLevel       = g9pMask_getNumLevel(genics->mask);
+	uint64_t       numPartsInFile = UINT64_C(0);
+	for (int i = 0; i < numLevel; i++)
+		numPartsInFile += numCells[i];
+
+	fpv_t     *vel = xmalloc(sizeof(fpv_t) * numPartsInFile);
+	fpv_t     *pos = xmalloc(sizeof(fpv_t) * numPartsInFile);
+	const int sizeOfId
+	    = genics->doLongIDs ? sizeof(uint32_t) : sizeof(uint64_t);
+	void      *id = xmalloc(sizeOfId * numPartsInFile);
+
+	for (uint32_t i = firstTile; i <= lastTile; i++) {
+		;
+	}
+
+	xfree(id);
+	xfree(pos);
+	xfree(vel);
 }
