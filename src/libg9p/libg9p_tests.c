@@ -11,6 +11,7 @@
 #include "g9pMaskShapelet_tests.h"
 #include "g9pMaskCreator_tests.h"
 #include "g9pICMap_tests.h"
+#include "g9pDataStore_tests.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -149,6 +150,17 @@ main(int argc, char **argv)
 		printf("\nRunning tests for g9pICMap:\n");
 	}
 	RUNTEST(&g9pICMap_verifySimpleMapCreation, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
+
+	if (rank == 0) {
+		printf("\nRunning tests for g9pDataStore:\n");
+	}
+	RUNTEST(&g9pDataStore_verifyCreation, hasFailed);
+	RUNTEST(&g9pDataStore_verifyFileNames, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
