@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -11,7 +11,7 @@
 /**
  * @file libutil/utilMath.h
  * @ingroup libutilMisc
- * @brief This file defines useful mathematical constants.
+ * @brief This file defines useful mathematical constants and macros.
  */
 
 
@@ -92,6 +92,14 @@
  * @brief  Calculates the fourth power of a value.
  */
 #define POW4(a) ((a) * (a) * (a) * (a))
+
+/**
+ * @brief  Clips a value to be between min/max (inclusive).
+ *
+ * Values smaller than @c min will be set to @c min, values larger than
+ * @c max will be set to @c max.
+ */
+#define CLIP(a, min, max) ((a) < (min) ? (min) : ((a) > (max) ? (max) : (a)))
 
 
 /*--- Prototypes of exported functions ----------------------------------*/

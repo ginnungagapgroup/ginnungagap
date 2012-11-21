@@ -35,11 +35,12 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
+
+/** @brief  Number of digits used for the file numbers. */
+#define LOCAL_NUMFILEDIGITS 3
 #ifdef WITH_MPI
 /** @brief  The prefix used for the directories in the files. */
 #  define LOCAL_DIRPREFIX "domain_"
-/** @brief  Number of digits used for the file numbers. */
-#  define LOCAL_NUMFILEDIGITS 3
 /** @brief  Number of digitis used for the directory numbers. */
 #  define LOCAL_NUMDIRDIGITS 5
 /** @brief  The MPI tag used in the PMPIO communication. */
@@ -316,6 +317,7 @@ local_getPatchVarName(dataVar_t var, const char *patchName, char *varName);
 static bool
 local_dirExistsInFile(DBfile *db, const char *dname);
 
+
 /** @} */
 
 /*--- Implementations of abstract functions -----------------------------*/
@@ -364,7 +366,7 @@ gridWriterSilo_deactivate(gridWriter_t writer)
 	gridWriterSilo_t w = (gridWriterSilo_t)writer;
 
 	assert(w != NULL);
-	assert(w->type == GRIDIO_TYPE_SILO);
+	assert(w->base.type == GRIDIO_TYPE_SILO);
 #ifdef WITH_MPI
 	assert(w->baton != NULL);
 #endif
@@ -373,7 +375,7 @@ gridWriterSilo_deactivate(gridWriter_t writer)
 #ifdef WITH_MPI
 		PMPIO_HandOffBaton(w->baton, w->f);
 #else
-		local_closeDB(w->f, tmp);
+		local_closeDB(w->f, (void *)w);
 #endif
 		gridWriter_setIsInactive(writer);
 	}
@@ -392,8 +394,8 @@ gridWriterSilo_writeGridPatch(gridWriter_t   writer,
 	gridPointUint32_t idxLo;
 
 	assert(tmp != NULL);
-	assert(tmp->type == GRIDIO_TYPE_SILO);
-	assert(tmp->isActive);
+	assert(tmp->base.type == GRIDIO_TYPE_SILO);
+	assert(tmp->base.isActive);
 	assert(patch != NULL);
 	assert(patchName != NULL);
 
@@ -428,8 +430,8 @@ gridWriterSilo_writeGridRegular(gridWriter_t  writer,
 	int              *meshTypes;
 
 	assert(tmp != NULL);
-	assert(tmp->type == GRIDIO_TYPE_SILO);
-	assert(tmp->isActive);
+	assert(tmp->base.type == GRIDIO_TYPE_SILO);
+	assert(tmp->base.isActive);
 	assert(grid != NULL);
 
 #ifdef WITH_MPI
@@ -556,7 +558,7 @@ extern void
 gridWriterSilo_free(gridWriterSilo_t w)
 {
 	assert(w != NULL);
-	assert(w->file == NULL);
+	assert(w->f == NULL);
 
 	if (w->dirName != NULL)
 		xfree(w->dirName);

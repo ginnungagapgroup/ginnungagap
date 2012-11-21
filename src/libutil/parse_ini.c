@@ -684,9 +684,9 @@ local_parse_secname(const char *line)
 	size_t secname_len = 0;
 	char   *rtn;
 
-	/* Count all alphanumeric character in the section name */
+	/* Count all non-blank characters in the section name */
 	while ((line[n] != '\0') && (line[n] != ']')) {
-		if (isalnum(line[n]))
+		if (!isblank(line[n]))
 			secname_len++;
 		n++;
 	}
@@ -704,7 +704,7 @@ local_parse_secname(const char *line)
 	n           = 1;
 	secname_len = 0;
 	while ((line[n] != '\0') && (line[n] != ']')) {
-		if (isalnum(line[n])) {
+		if (!isblank(line[n])) {
 			rtn[secname_len] = line[n];
 			secname_len++;
 		}

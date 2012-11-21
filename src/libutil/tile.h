@@ -36,6 +36,41 @@
  */
 
 /**
+ * @brief  Calculate the indices for a given multidimensional tile
+ *
+ * @param[in]   nDim
+ *                 The dimensions and hence the minimal length for the
+ *                 arrays of the others parameters.  Must be a positive,
+ *                 non-negative number.
+ * @param[in]   *numGridCells
+ *                 The number of grid cells for each dimension. This must be
+ *                 a positive value.
+ * @param[in]   *numTiles
+ *                 The number of tiles,  This must be a positive number less
+ *                 or equal to the corresponding @c numGridCells.
+ * @param[in]   *tilePosition
+ *                 The position of the tile in each dimension.  This
+ *                 must be a value between (inclusive) @c 0 and (exclusive)
+ *                 the corresponding value of @c numGridCells.
+ * @param[out]  *idxLo
+ *                 Pointer to the external storage position that will
+ *                 receive the minimum index.  Passing @c NULL is
+ *                 undefined.
+ * @param[out]  *idxHi
+ *                 Like @c IdxLo but for the maximum index.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+tile_calcNDIdxsELAE(int                            nDim,
+                    uint32_t const *restrict const numGridCells,
+                    uint32_t const *restrict const numTiles,
+                    uint32_t const *restrict const tilePosition,
+                    uint32_t *restrict             idxLo,
+                    uint32_t *restrict             idxHi);
+
+
+/**
  * @brief  Calculates the indices for a given tile.
  *
  * @param[in]   numGridCells
@@ -63,6 +98,7 @@ tile_calcIdxsELAE(uint32_t           numGridCells,
                   uint32_t           tileNumber,
                   uint32_t *restrict idxLo,
                   uint32_t *restrict idxHi);
+
 
 /**
  * @brief  Calculates the tile a given index is located in.
@@ -96,6 +132,15 @@ tile_calcTileNumberForIdxELAE(uint32_t numGridCells,
  * @{
  */
 
+/** @copydoc tile_calcNDIdxsELAB() */
+extern void
+tile_calcNDIdxsELAB(int                            nDim,
+                    uint32_t const *restrict const numGridCells,
+                    uint32_t const *restrict const numTiles,
+                    uint32_t const *restrict const tilePosition,
+                    uint32_t *restrict             idxLo,
+                    uint32_t *restrict             idxHi);
+
 /** \copydoc tile_calcIdxsELAE() */
 extern void
 tile_calcIdxsELAB(uint32_t           numGridCells,
@@ -103,6 +148,7 @@ tile_calcIdxsELAB(uint32_t           numGridCells,
                   uint32_t           tileNumber,
                   uint32_t *restrict idxLo,
                   uint32_t *restrict idxHi);
+
 
 /** \copydoc tile_calcTileNumberForIdxELAE() */
 extern uint32_t

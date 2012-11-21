@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -24,28 +24,53 @@
 /**
  * @brief  This start a timer.
  *
+ * @return  Returns a number that can be passed to timer_stop() to
+ *          evaluate the elapsed time in seconds.
+ */
+extern double
+timer_start(void);
+
+/**
+ * @brief  This start a timer.
+ *
  * @param[in]  *text
  *                A short string that should give a name of what is
  *                being timed.
  *
  * @return  Returns a number that can be passed to timer_stop() to
- *          evaluate the elapsed time in second.s
+ *          evaluate the elapsed time in seconds.
  */
 extern double
-timer_start(const char *text);
+timer_start_text(const char *text);
 
 /**
  * @brief  This will stop a timer.
  *
  * @param[in]  timing
  *                The value obtained from a previous call of
- *                timer_start().
+ *                timer_start() or timer_start_text().
  *
  * @return  Returns the number of seconds elapsed between the call of
  *          timer_start() and timer_stop().
  */
 extern double
 timer_stop(double timing);
+
+/**
+ * @brief  This will stop a timer and report the elapsed time.
+ *
+ * @param[in]  timing
+ *                The value obtained from a previous call of
+ *                timer_start() or timer_start_text().
+ * @param[in]  *text
+ *                The text used to report the time, must contain a format
+ *                string for a double, eg <tt>.5%f</tt>.
+ *
+ * @return  Returns the number of seconds elapsed between the call of
+ *          timer_start() and timer_stop().
+ */
+extern double
+timer_stop_text(double timing, const char *text);
 
 
 #endif

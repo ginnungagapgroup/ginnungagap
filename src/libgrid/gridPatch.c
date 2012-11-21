@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -55,6 +55,7 @@ local_transposeVar(gridPatch_t patch,
 
 
 #if (NDIM == 2)
+
 /**
  * @brief  Performs a 2d transposition.
  *
@@ -77,6 +78,7 @@ local_transposeVar_2d(const void              *data,
 
 
 #elif (NDIM == 3)
+
 /**
  * @brief  Performs a 3d transposition of the first and second dimension.
  *
@@ -97,6 +99,7 @@ local_transposeVar102_3d(const void              *data,
                          const int               size,
                          const gridPointUint32_t dimsT);
 
+
 /**
  * @brief  Performs a 3d transposition of the first and third dimension.
  *
@@ -116,6 +119,7 @@ local_transposeVar210_3d(const void              *data,
                          void                    *dataT,
                          const int               size,
                          const gridPointUint32_t dimsT);
+
 
 /**
  * @brief  Performs a 3d transposition of the second and third dimension.
@@ -376,6 +380,16 @@ gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData)
 		dataVar_freeMemory(var, oldData);
 }
 
+extern void *
+gridPatch_popVarData(gridPatch_t patch, int idxOfVarData)
+{
+	assert(patch != NULL);
+	assert(idxOfVarData >= 0
+	       && idxOfVarData < varArr_getLength(patch->varData));
+
+	return varArr_replace(patch->varData, idxOfVarData, NULL);
+}
+
 extern dataVar_t
 gridPatch_getVarHandle(const gridPatch_t patch, int idxOfVar)
 {
@@ -575,6 +589,53 @@ gridPatch_putWindowedData(gridPatch_t       patch,
 	}
 #endif
 } /* gridPatch_putWindowedData */
+
+extern double
+gridPatch_calcDistanceVector(const gridPatch_t       patch,
+                             const gridPointUint32_t point,
+                             const gridPointUint32_t periodicDims,
+                             gridPointInt64_t        dist)
+{
+	assert(point != NULL);
+	assert(patch != NULL);
+	assert(dist != NULL);
+
+	double norm = 0.0;
+	for (int i = 0; i < NDIM; i++) {
+		bool flipSign = false;
+		dist[i] = 0;
+		if (point[i] < patch->idxLo[i]) {
+			dist[i] = patch->idxLo[i] - point[i];
+		} else if (point[i] >= patch->idxLo[i] + patch->dims[i]) {
+			dist[i]  = point[i] - (patch->idxLo[i] + patch->dims[i] - 1);
+			flipSign = true;
+		}
+		if (periodicDims != NULL) {
+			assert(point[i] < periodicDims[i]);
+			uint32_t tmp;
+			if (!flipSign) {
+				tmp = point[i] + periodicDims[i]
+				      - (patch->idxLo[i] + patch->dims[i] - 1);
+				if (tmp < dist[i]) {
+					dist[i] = tmp;
+					flipSign = true;
+				}
+			} else {
+				tmp = patch->idxLo[i] + periodicDims[i] - point[i];
+				if (tmp < dist[i]) {
+					dist[i] = tmp;
+					flipSign = false;
+				}
+			}
+		}
+
+		dist[i] = flipSign ? -dist[i] : dist[i];
+
+		norm   += dist[i] * dist[i];
+	}
+
+	return sqrt(norm);
+}
 
 /*--- Implementations of local functions --------------------------------*/
 

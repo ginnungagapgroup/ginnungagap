@@ -23,6 +23,15 @@
 /*--- Prototypes of exported functions ----------------------------------*/
 
 /**
+ * @brief  This will test tile_calcNDIdxsELAE().
+ *
+ * @return  Returns @c true if the test succeeded and @c false
+ *          otherwise.
+ */
+extern bool
+tile_calcNDIdxsELAE_test(void);
+
+/**
  * @brief  This will test tile_calcIdxsELAE().
  *
  * @return  Returns @c true if the test succeeded and @c false
@@ -39,6 +48,15 @@ tile_calcIdxsELAE_test(void);
  */
 extern bool
 tile_calcTileNumberForIdxELAE_test(void);
+
+/**
+ * @brief  This will test tile_calcNDIdxsELAB().
+ *
+ * @return  Returns @c true if the test succeeded and @c false
+ *          otherwise.
+ */
+extern bool
+tile_calcNDIdxsELAB_test(void);
 
 /**
  * @brief  This will test tile_calcIdxsELAB().

@@ -16,6 +16,10 @@ bin/
 
 src/libgrid/libgrid_tests
 src/libgrid/*Test*.silo
+src/libgrid/outGridChunking.h5
+src/libgrid/outGridChunkingCompress.h5
+src/libgrid/outGridSimple.h5
+
 
 src/libutil/libutil_tests
 src/libutil/empty.grafic
@@ -32,6 +36,10 @@ src/libdata/libdata_tests
 
 src/liblare/liblare_tests
 
+src/libg9p/libg9p_tests
+src/libg9p/tests/maskTestSimple.h5
+src/libg9p/simpleMask.silo
+
 tools/makeSiloRoot/makeSiloRoot
 
 tools/grafic2bov/grafic2bov
@@ -45,6 +53,8 @@ tools/showFreqs/showFreqs
 tools/makeMask/makeMask
 
 tools/realSpaceConstraints/realSpaceConstraints
+
+tools/generateICs/generateICs
 
 tmp/
 

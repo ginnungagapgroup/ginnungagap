@@ -22,6 +22,24 @@
 
 /*--- Implementations of exported functios ------------------------------*/
 extern void
+tile_calcNDIdxsELAE(int                            nDim,
+                    uint32_t const *restrict const numGridCells,
+                    uint32_t const *restrict const numTiles,
+                    uint32_t const *restrict const tilePosition,
+                    uint32_t *restrict             idxLo,
+                    uint32_t *restrict             idxHi)
+{
+	assert(nDim > 0);
+	assert(numGridCells != NULL);
+	assert(numTiles != NULL);
+	assert(tilePosition != NULL);
+
+	for (int i = 0; i < nDim; i++)
+		tile_calcIdxsELAE(numGridCells[i], numTiles[i], tilePosition[i],
+		                  idxLo + i, idxHi + i);
+}
+
+extern void
 tile_calcIdxsELAE(uint32_t           numGridCells,
                   uint32_t           numTiles,
                   uint32_t           tileNumber,
@@ -75,6 +93,24 @@ tile_calcTileNumberForIdxELAE(uint32_t numGridCells,
 	}
 
 	return tileNumber;
+}
+
+extern void
+tile_calcNDIdxsELAB(int                            nDim,
+                    uint32_t const *restrict const numGridCells,
+                    uint32_t const *restrict const numTiles,
+                    uint32_t const *restrict const tilePosition,
+                    uint32_t *restrict             idxLo,
+                    uint32_t *restrict             idxHi)
+{
+	assert(nDim > 0);
+	assert(numGridCells != NULL);
+	assert(numTiles != NULL);
+	assert(tilePosition != NULL);
+
+	for (int i = 0; i < nDim; i++)
+		tile_calcIdxsELAB(numGridCells[i], numTiles[i], tilePosition[i],
+		                  idxLo + i, idxHi + i);
 }
 
 extern void

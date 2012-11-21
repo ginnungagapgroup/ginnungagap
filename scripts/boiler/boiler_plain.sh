@@ -5,7 +5,7 @@
 #
 if [ $# -ne 2 ]
 then
-	echo "Usage: `basename $0` trgtName config.g"
+	echo "Usage: `basename $0` trgtName config.h"
 	exit 1
 fi
 

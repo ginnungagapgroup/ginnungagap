@@ -109,7 +109,6 @@ local_getAccessPropsFileAccessMPI(MPI_Comm comm);
 static hid_t
 local_getDSCreationPropList(const gridWriterHDF5_t writer);
 
-
 /**
  * @brief  Helper function to write the data of a variable at a given patch.
  *
@@ -117,27 +116,22 @@ local_getDSCreationPropList(const gridWriterHDF5_t writer);
  *                The variable that should be written.
  * @param[in]  patch
  *                The patch that should be written.
+ * @param[in]  dataSet
+ *                The HDF5 dataset to work with.
  * @param[in]  dt
  *                The HDF5 datatype corresponding to the variable.
  * @param[in]  gridSize
  *                The extent of the grid that should be written.  Note that
  *                the patch may be smaller.
- * @param[in]  fileHandle
- *                The HDF5 file handle giving the file the data should be
- *                written to.
- * @param[in]  dsCreationPropList
- *                The property list with which to create the file data
- *                space (deals with chunking, compression and checksumming).
  *
  * @return  Returns nothing.
  */
 inline static void
 local_writeVariableAtPatch(dataVar_t   var,
                            gridPatch_t patch,
+                           hid_t       dataSet,
                            hid_t       dt,
-                           hid_t       gridSize,
-                           hid_t       fileHandle,
-                           hid_t       dsCreationPropList);
+                           hid_t       gridSize);
 
 
 /**
@@ -225,9 +219,12 @@ gridWriterHDF5_writeGridPatch(gridWriter_t   writer,
 	for (int i = 0; i < numVars; i++) {
 		dataVar_t var = gridPatch_getVarHandle(patch, i);
 		hid_t     dt  = dataVar_getHDF5Datatype(var);
-
-		local_writeVariableAtPatch(var, patch, dt, patchSize,
-		                           w->fileHandle, dsCreationPropList);
+		hid_t     dataSet = H5Dcreate(w->fileHandle, dataVar_getName(var),
+		                              dt, patchSize, H5P_DEFAULT,
+		                              dsCreationPropList,
+		                              H5P_DEFAULT);
+		local_writeVariableAtPatch(var, patch, dataSet, dt, patchSize);
+		H5Dclose(dataSet);
 	}
 }
 
@@ -254,14 +251,18 @@ gridWriterHDF5_writeGridRegular(gridWriter_t  writer,
 	dsCreationPropList = local_getDSCreationPropList(w);
 
 	for (int i = 0; i < numVars; i++) {
-		dataVar_t var = gridRegular_getVarHandle(grid, i);
-		hid_t     dt  = dataVar_getHDF5Datatype(var);
+		dataVar_t var     = gridRegular_getVarHandle(grid, i);
+		hid_t     dt      = dataVar_getHDF5Datatype(var);
+		hid_t     dataSet = H5Dcreate(w->fileHandle, dataVar_getName(var),
+		                              dt, gridSize, H5P_DEFAULT,
+		                              dsCreationPropList,
+		                              H5P_DEFAULT);
 		for (int j = 0; j < numPatches; j++) {
 			gridPatch_t patch = gridRegular_getPatchHandle(grid, j);
 			assert(w->fileHandle != H5I_INVALID_HID);
-			local_writeVariableAtPatch(var, patch, dt, gridSize,
-			                           w->fileHandle, dsCreationPropList);
+			local_writeVariableAtPatch(var, patch, dataSet, dt, gridSize);
 		}
+		H5Dclose(dataSet);
 	}
 	H5Sclose(gridSize);
 }
@@ -500,22 +501,15 @@ local_getDSCreationPropList(const gridWriterHDF5_t writer)
 inline static void
 local_writeVariableAtPatch(dataVar_t   var,
                            gridPatch_t patch,
+                           hid_t       dataSet,
                            hid_t       dt,
-                           hid_t       gridSize,
-                           hid_t       fileHandle,
-                           hid_t       dsCreationPropList)
+                           hid_t       gridSize)
 {
-	hid_t             dataSet;
 	hid_t             transProps = H5P_DEFAULT;
 	gridPointUint32_t dimsPatch;
 	hid_t             dataSpacePatch, dataSpaceFile;
 	void              *data = gridPatch_getVarDataHandleByVar(patch, var);
 
-	dataSet = H5Dcreate(fileHandle, dataVar_getName(var),
-	                    dt, gridSize,
-	                    H5P_DEFAULT,
-	                    dsCreationPropList,
-	                    H5P_DEFAULT);
 #ifdef WITH_MPI
 	transProps = H5Pcreate(H5P_DATASET_XFER);
 	assert(transProps >= 0);
@@ -541,7 +535,6 @@ local_writeVariableAtPatch(dataVar_t   var,
 	H5Sclose(dataSpaceFile);
 	if (transProps != H5P_DEFAULT)
 		H5Pclose(transProps);
-	H5Dclose(dataSet);
 } /* local_writeVariableAtPatch */
 
 static bool

@@ -326,39 +326,39 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 
 	stat   = gridStatistics_new();
 
-	timing = timer_start("  Filling input grid");
+	timing = timer_start_text("  Filling input grid... ");
 	local_fillInputGrid(te->gridIn, te->reader, te->setup->seedIn);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 
-	timing = timer_start("  Calculating statistics on input grid");
+	timing = timer_start_text("  Calculating statistics on input grid... ");
 	gridStatistics_calcGridRegular(stat, te->gridIn, 0);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 	if (rank == 0)
 		gridStatistics_printPretty(stat, stdout, "  ");
 
 	if (te->writerIn != NULL) {
-		timing = timer_start("  Writing input grid to file");
+		timing = timer_start_text("  Writing input grid to file... ");
 		gridWriter_activate(te->writerIn);
 		gridWriter_writeGridRegular(te->writerIn, te->gridIn);
 		gridWriter_deactivate(te->writerIn);
-		timing = timer_stop(timing);
+		timing = timer_stop_text(timing, "took %.5fs\n");
 	}
 
-	timing = timer_start("  Filling output grid");
+	timing = timer_start_text("  Filling output grid... ");
 	local_fillOutputGrid(te->gridOut, te->gridIn, te->setup->seedOut);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 
-	timing = timer_start("  Calculating statistics on output grid");
+	timing = timer_start_text("  Calculating statistics on output grid... ");
 	gridStatistics_calcGridRegular(stat, te->gridOut, 0);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 	if (rank == 0)
 		gridStatistics_printPretty(stat, stdout, "  ");
 
-	timing = timer_start("  Writing output grid to file");
+	timing = timer_start_text("  Writing output grid to file... ");
 	gridWriter_activate(te->writer);
 	gridWriter_writeGridRegular(te->writer, te->gridOut);
 	gridWriter_deactivate(te->writer);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 
 	gridStatistics_del(&stat);
 } /* realSpaceConstraints_run */

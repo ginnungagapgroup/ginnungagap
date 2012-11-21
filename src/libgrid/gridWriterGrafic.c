@@ -127,17 +127,15 @@ gridWriterGrafic_activate(gridWriter_t writer)
 extern void
 gridWriterGrafic_deactivate(gridWriter_t writer)
 {
-	gridWriterGrafic_t w = (gridWriterGrafic_t)writer;
-
-	assert(w != NULL);
-	assert(w->base.type == GRIDIO_TYPE_GRAFIC);
+	assert(writer != NULL);
+	assert(writer->type == GRIDIO_TYPE_GRAFIC);
 #ifdef WITH_MPI
-	assert(w->groupi != NULL);
+	assert(((gridWriterGrafic_t)writer)->groupi != NULL);
 #endif
 
 	if (gridWriter_isActive(writer)) {
 #ifdef WITH_MPI
-		groupi_release(w->groupi);
+		groupi_release(((gridWriterGrafic_t)writer)->groupi);
 #endif
 		gridWriter_setIsInactive(writer);
 	}
