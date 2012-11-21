@@ -22,7 +22,7 @@
  */
 
 /** @brief The state of the package (0: alpha, 1: beta, 2: release). */
-#define PACKAGE_STATE 2
+#define PACKAGE_STATE 0
 
 /** @brief  The name of the package. */
 #define PACKAGE_NAME          "ginnungagap"
@@ -40,7 +40,7 @@
 #define PACKAGE_VERSION_MINOR 7
 
 /** @brief  The micro version of the package. */
-#define PACKAGE_VERSION_MICRO 1
+#define PACKAGE_VERSION_MICRO 0
 
 #if (PACKAGE_STATE == 0)
 #  define PACKAGE_VERSION_EXTRA "(alpha)"
