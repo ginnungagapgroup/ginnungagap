@@ -49,6 +49,7 @@ partBunch_del(partBunch_t *bunch)
 
 	if (partBunch_isAllocated(*bunch))
 		partBunch_freeMem(*bunch);
+	varArr_truncate((*bunch)->data);
 	dataParticle_del(&((*bunch)->desc));
 	varArr_del(&((*bunch)->data));
 	xfree(*bunch);
