@@ -42,6 +42,10 @@ gadgetHeader_getNumPartsInFileWithMass_test(void);
 extern bool
 gadgetHeader_getNumPartsInBlock_test(void);
 
+/** @brief  Tests gadgetHeader_sizeOfElement(). */
+extern bool
+gadgetHeader_sizeOfElement_test(void);
+
 
 /*--- Doxygen group definition ------------------------------------------*/
 

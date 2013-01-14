@@ -227,4 +227,56 @@ gadgetHeader_getNumPartsInBlock_test(void)
 	return hasPassed ? true : false;
 }
 
+extern bool
+gadgetHeader_sizeOfElement_test(void)
+{
+	bool           hasPassed      = true;
+	int            rank           = 0;
+	gadgetHeader_t header;
+#ifdef XMEM_TRACK_MEM
+	size_t         allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	header = gadgetHeader_new();
+
+	if (gadgetHeader_sizeOfElement(header, GADGETBLOCK_POS_) != 12)
+		hasPassed = false;
+	if (gadgetHeader_sizeOfElement(header, GADGETBLOCK_ID__) != 4)
+		hasPassed = false;
+
+	gadgetHeader_setFlagDoublePrecision(header, 1);
+	if (gadgetHeader_sizeOfElement(header, GADGETBLOCK_POS_) != 24)
+		hasPassed = false;
+	if (gadgetHeader_sizeOfElement(header, GADGETBLOCK_ID__) != 4)
+		hasPassed = false;
+
+	gadgetHeader_setFlagDoublePrecision(header, 0);
+	gadgetHeader_setUseLongIDs(header, true);
+	if (gadgetHeader_sizeOfElement(header, GADGETBLOCK_POS_) != 12)
+		hasPassed = false;
+	if (gadgetHeader_sizeOfElement(header, GADGETBLOCK_ID__) != 8)
+		hasPassed = false;
+
+	gadgetHeader_setFlagDoublePrecision(header, 1);
+	if (gadgetHeader_sizeOfElement(header, GADGETBLOCK_POS_) != 24)
+		hasPassed = false;
+	if (gadgetHeader_sizeOfElement(header, GADGETBLOCK_ID__) != 8)
+		hasPassed = false;
+
+	gadgetHeader_del(&header);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+
 /*--- Implementations of local functions --------------------------------*/

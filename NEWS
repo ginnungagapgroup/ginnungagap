@@ -1,4 +1,4 @@
-Copyright (C) 2010, 2011, 2012, Steffen Knollmann
+Copyright (C) 2010, 2011, 2012, 2013, Steffen Knollmann
 
 This file contains an overview of the major enhancement, bug fixes, or
 other things for each version of ginnungagap since version 0.5.0.  If
@@ -6,6 +6,66 @@ relevant, the entries contain the short hash of the according commits to
 the repository, smaller changes will not be listed individually but
 paraphrased.
 
+Version 0.6.2
+-------------
+
+This is a bug-fix release correcting an issue with the longIDs options
+of grafic2gadget.
+
+Changes from 0.6.1:
+ 5 files changed, 68 insertions(+), 6 deletions(-)
+
+(c308eda) [FIX] Fixes issue with long ids in Gadget module.
+    When calculating the size of an element in a block, the ID block needs 
+    to be treated separately from the floating-point blocks, i.e. the 
+    previous check whether the file is written in double precision is not 
+    correct to get the size of ID (which is quite independent on what the 
+    floating point precision is).
+
+    Fixed by checking if the block for to calculate the size is the ID
+    block and then deducing the size per element from the state of the long
+    ID flag of the header code structure (note that Gadget files do not
+    store the width of the IDs explicitly, they have to be deduced from the
+    block size).
+
+    Adds a new test to check the sizes of elements in blocks to verify that 
+    all combinations of single/double precision and 32/64 bit IDs report
+    the correct sizes.
+
+    Also corrects the description of the flag values in the doxygen comment 
+    for gadgetHeader_setFlagDoublePrecision().
+
+Version 0.6.1
+-------------
+
+This is the release of version 0.6.1 bringing the addition of small
+command line tools to work with various file types (Gadget, CubePM,
+ART) and options for grafic2gadget to change the velocity and positions
+units (allowing to write files in kpc/h instead of Mpc/h).
+
+Changes from 0.6.0:
+ 47 files changed, 9231 insertions(+), 362 deletions(-)
+
+(56eb90a) Adds options to choose units in grafic2gadget.
+    This adds the command line options --posFactor and --velFactor to 
+    grafic2gadget, which work as multiplier when last touching the 
+    position/velocity arrays.  The position factor is a bit special, as it 
+    also is used to write the boxsize parameter of the Gadget file header
+    in the appropriate unit.
+    Using
+      grafic2gadget ic_velx ic_vely ic_velz icMpc.gadget and
+      grafic2gadget --posFactor 1000. ic_velx ic_vely ic_velz ickpc.gadget 
+    will produce two Gadget files, the first one with positions in Mpc/h, 
+    the second one with positions in kpc/h.
+
+(ece51e9) Merge branch 'fancyGadget' into develop
+    This overhauls the underlying code dealing with Gadget files,
+    allowing for more flexibility in handling.
+
+(2190bee) Adds the fileTools.
+    This is a collection of small commandline tools to explore different 
+    cosmological file types.  Currently supported are ART, CubePM, and 
+    Gadget.
 
 Version 0.6.1
 -------------
