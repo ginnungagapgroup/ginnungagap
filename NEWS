@@ -1,4 +1,4 @@
-Copyright (C) 2010, 2011, 2012, Steffen Knollmann
+Copyright (C) 2010, 2011, 2012, 2013, Steffen Knollmann
 
 This file contains an overview of the major enhancement, bug fixes, or
 other things for each version of ginnungagap since version 0.5.0.  If
@@ -6,6 +6,34 @@ relevant, the entries contain the short hash of the according commits to
 the repository, smaller changes will not be listed individually but
 paraphrased.
 
+Version 0.6.2
+-------------
+
+This is a bug-fix release correcting an issue with the longIDs options
+of grafic2gadget.
+
+Changes from 0.6.1:
+ 5 files changed, 68 insertions(+), 6 deletions(-)
+
+(c308eda) [FIX] Fixes issue with long ids in Gadget module.
+    When calculating the size of an element in a block, the ID block needs 
+    to be treated separately from the floating-point blocks, i.e. the 
+    previous check whether the file is written in double precision is not 
+    correct to get the size of ID (which is quite independent on what the 
+    floating point precision is).
+
+    Fixed by checking if the block for to calculate the size is the ID
+    block and then deducing the size per element from the state of the long
+    ID flag of the header code structure (note that Gadget files do not
+    store the width of the IDs explicitly, they have to be deduced from the
+    block size).
+
+    Adds a new test to check the sizes of elements in blocks to verify that 
+    all combinations of single/double precision and 32/64 bit IDs report
+    the correct sizes.
+
+    Also corrects the description of the flag values in the doxygen comment 
+    for gadgetHeader_setFlagDoublePrecision().
 
 Version 0.6.1
 -------------
