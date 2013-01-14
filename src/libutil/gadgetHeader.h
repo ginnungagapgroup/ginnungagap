@@ -376,8 +376,8 @@ gadgetHeader_setFlagEntropy(gadgetHeader_t gadgetHeader, int32_t flag);
  * @param[in,out]  gadgetHeader
  *                    The header object to modify.
  * @param[in]      flag
- *                    The flag, should be either 0 (no metallicity) or 1
- *                    (with metallicity).
+ *                    The flag, should be either 0 (single precision)
+ *                    or 1 (double precision).
  *
  * @return  Returns nothing.
  */
