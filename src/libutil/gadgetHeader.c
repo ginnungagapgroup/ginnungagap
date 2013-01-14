@@ -560,10 +560,15 @@ gadgetHeader_sizeOfElement(const gadgetHeader_t gadgetHeader,
 	size_t   size;
 	uint32_t numComponents;
 
-	if (gadgetHeader_getFlagDoublePrecision(gadgetHeader) != 0)
-		size = sizeof(double);
-	else
-		size = sizeof(float);
+	if (block == GADGETBLOCK_ID__) {
+		size = gadgetHeader->useLongIDs ? sizeof(uint64_t)
+		                                : sizeof(uint32_t);
+	} else {
+		if (gadgetHeader_getFlagDoublePrecision(gadgetHeader) != 0)
+			size = sizeof(double);
+		else
+			size = sizeof(float);
+	}
 
 	numComponents = gadgetBlock_getNumComponents(block);
 

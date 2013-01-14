@@ -294,6 +294,7 @@ main(void)
 		RUNTEST(&gadgetHeader_setNall_test, hasFailed);
 		RUNTEST(&gadgetHeader_getNumPartsInFileWithMass_test, hasFailed);
 		RUNTEST(&gadgetHeader_getNumPartsInBlock_test, hasFailed);
+		RUNTEST(&gadgetHeader_sizeOfElement_test, hasFailed);
 	}
 
 	if (rank == 0) {
