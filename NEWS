@@ -67,38 +67,6 @@ Changes from 0.6.0:
     cosmological file types.  Currently supported are ART, CubePM, and 
     Gadget.
 
-Version 0.6.1
--------------
-
-This is the release of version 0.6.1 bringing the addition of small
-command line tools to work with various file types (Gadget, CubePM,
-ART) and options for grafic2gadget to change the velocity and positions
-units (allowing to write files in kpc/h instead of Mpc/h).
-
-Changes from 0.6.0:
- 47 files changed, 9231 insertions(+), 362 deletions(-)
-
-(56eb90a) Adds options to choose units in grafic2gadget.
-    This adds the command line options --posFactor and --velFactor to 
-    grafic2gadget, which work as multiplier when last touching the 
-    position/velocity arrays.  The position factor is a bit special, as it 
-    also is used to write the boxsize parameter of the Gadget file header
-    in the appropriate unit.
-    Using
-      grafic2gadget ic_velx ic_vely ic_velz icMpc.gadget and
-      grafic2gadget --posFactor 1000. ic_velx ic_vely ic_velz ickpc.gadget 
-    will produce two Gadget files, the first one with positions in Mpc/h, 
-    the second one with positions in kpc/h.
-
-(ece51e9) Merge branch 'fancyGadget' into develop
-    This overhauls the underlying code dealing with Gadget files,
-    allowing for more flexibility in handling.
-
-(2190bee) Adds the fileTools.
-    This is a collection of small commandline tools to explore different 
-    cosmological file types.  Currently supported are ART, CubePM, and 
-    Gadget.
-
 Version 0.6.0
 -------------
 
