@@ -4,6 +4,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "g9pConfig.h"
+#include "g9pFieldID_tests.h"
 #include "g9pHierarchy_tests.h"
 #include "g9pHierarchyIO_tests.h"
 #include "g9pMask_tests.h"
@@ -61,6 +62,16 @@ main(int argc, char **argv)
 		printf("\nTesting %s on %i %s\n",
 		       NAME, size, size > 1 ? "tasks" : "task");
 	}
+
+	if (rank == 0) {
+		printf("\nRunning tests for g9pFieldID:\n");
+	}
+	RUNTEST(&g9pFieldID_getStr_test, hasFailed);
+#ifdef XMEM_TRACK_MEM
+	if (rank == 0)
+		xmem_info(stdout);
+	global_max_allocated_bytes = 0;
+#endif
 
 	if (rank == 0) {
 		printf("\nRunning tests for g9pHierarchy:\n");

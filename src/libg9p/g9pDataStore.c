@@ -90,26 +90,22 @@ g9pDataStore_getDir(const g9pDataStore_t ds, uint8_t level)
 }
 
 extern filename_t
-g9pDataStore_getFileName(const g9pDataStore_t ds, uint8_t level, int which)
+g9pDataStore_getFileName(const g9pDataStore_t ds,
+                         uint8_t              level,
+                         g9pFieldID_t         fid)
 {
 	assert(ds != NULL);
 	assert(level < g9pHierarchy_getNumLevels(ds->hierarchy));
-	assert(which >= 0 && which <= NDIM + 1);
 
-	char *dir  = g9pDataStore_getDir(ds, level);
-	char *path = xstrmerge(ds->path, dir);
+	char       *dir  = g9pDataStore_getDir(ds, level);
+	char       *path = xstrmerge(ds->path, dir);
 
 	filename_t fn;
-	if (which == 0)
-		fn = filename_newFull(path, ds->name, "_wn", NULL);
-	else if (which == 1)
-		fn = filename_newFull(path, ds->name, "_delta", NULL);
-	else if (which == 2)
-		fn = filename_newFull(path, ds->name, "_velx", NULL);
-	else if (which == 3)
-		fn = filename_newFull(path, ds->name, "_vely", NULL);
-	else
-		fn = filename_newFull(path, ds->name, "_velz", NULL);
+
+	char *tmp = xstrmerge("_", g9pFieldID_getStr(fid));
+	fn = filename_newFull(path, ds->name, tmp, NULL);
+
+	xfree(tmp);
 	xfree(path);
 	xfree(dir);
 

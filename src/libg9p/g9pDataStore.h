@@ -17,6 +17,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "g9pConfig.h"
+#include "g9pFieldID.h"
 #include "g9pHierarchy.h"
 #include "../libutil/filename.h"
 
@@ -42,7 +43,9 @@ extern char *
 g9pDataStore_getDir(const g9pDataStore_t ds, uint8_t level);
 
 extern filename_t
-g9pDataStore_getFileName(const g9pDataStore_t ds, uint8_t level, int which);
+g9pDataStore_getFileName(const g9pDataStore_t ds,
+                         uint8_t              level,
+                         g9pFieldID_t         fid);
 
 
 /*--- Doxygen group definitions -----------------------------------------*/
