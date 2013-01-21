@@ -57,52 +57,34 @@ g9pICMap_verifySimpleMapCreation(void)
 		printf("Testing %s... ", __func__);
 
 	// 2 4 8 16 32 64 128
-	g9pHierarchy_t          h = g9pHierarchy_newWithSimpleFactor(7, 2, 2);
+	g9pHierarchy_t h = g9pHierarchy_newWithSimpleFactor(7, 2, 2);
 	// Mask at 32^3, minLevel at 16^3, maxLevel at 128^3, tiling at 2^3
-	g9pMask_t               m = g9pMask_newMinMaxTiledMask(h, 4, 3, 6, 0);
+	g9pMask_t      m = g9pMask_newMinMaxTiledMask(h, 4, 3, 6, 0);
 
 	map = g9pICMap_new(3, 0, NULL, m);
 
 	const uint64_t *numCells;
-	uint32_t firstTile, lastTile;
+	uint32_t       firstTile, lastTile;
 
-	firstTile = g9pICMap_getFirstTileInFile(map, 0);
-	lastTile = g9pICMap_getLastTileInFile(map, 0);
-	numCells = g9pICMap_getNumCellsPerLevelInFile(map, 0);
-	if (numCells[0] != 512 * (lastTile - firstTile + 1))
-		hasPassed = false;
-	if (numCells[1] != 0)
-		hasPassed = false;
-	if (numCells[2] != 0)
-		hasPassed = false;
-	if (numCells[3] != 0)
-		hasPassed = false;
+	for (uint32_t i = 0; i < 3; i++) {
+		firstTile = g9pICMap_getFirstTileInFile(map, i);
+		lastTile  = g9pICMap_getLastTileInFile(map, i);
+		numCells  = g9pICMap_getNumCellsPerLevelInFile(map, i);
+		if (numCells[0] != 512 * (lastTile - firstTile + 1))
+			hasPassed = false;
+		if (numCells[1] != 0)
+			hasPassed = false;
+		if (numCells[2] != 0)
+			hasPassed = false;
+		if (numCells[3] != 0)
+			hasPassed = false;
+		if (g9pICMap_getFileForTile(map, firstTile) != i)
+			hasPassed = false;
+		if (g9pICMap_getFileForTile(map, lastTile) != i)
+			hasPassed = false;
+	}
 
-	firstTile = g9pICMap_getFirstTileInFile(map, 1);
-	lastTile = g9pICMap_getLastTileInFile(map, 1);
-	numCells = g9pICMap_getNumCellsPerLevelInFile(map, 1);
-	if (numCells[0] != 512 * (lastTile - firstTile + 1))
-		hasPassed = false;
-	if (numCells[1] != 0)
-		hasPassed = false;
-	if (numCells[2] != 0)
-		hasPassed = false;
-	if (numCells[3] != 0)
-		hasPassed = false;
-
-	firstTile = g9pICMap_getFirstTileInFile(map, 2);
-	lastTile = g9pICMap_getLastTileInFile(map, 2);
-	numCells = g9pICMap_getNumCellsPerLevelInFile(map, 2);
-	if (numCells[0] != 512 * (lastTile - firstTile + 1))
-		hasPassed = false;
-	if (numCells[1] != 0)
-		hasPassed = false;
-	if (numCells[2] != 0)
-		hasPassed = false;
-	if (numCells[3] != 0)
-		hasPassed = false;
-
-	g9pICMap_del(&map);	
+	g9pICMap_del(&map);
 
 #ifdef XMEM_TRACK_MEM
 	if (allocatedBytes != global_allocated_bytes)
@@ -110,6 +92,6 @@ g9pICMap_verifySimpleMapCreation(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} /* g9pICMap_verifySimpleMapCreation */
 
 /*--- Implementations of local functions --------------------------------*/

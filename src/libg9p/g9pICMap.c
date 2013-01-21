@@ -37,10 +37,10 @@ local_calcNumCellsPerFile(g9pICMap_t map);
 
 /*--- Implementations of exported functions -----------------------------*/
 extern g9pICMap_t
-g9pICMap_new(uint32_t  numFiles,
-             uint32_t  numGasLevel,
-             int8_t    *gasLevel,
-             g9pMask_t mask)
+g9pICMap_new(uint32_t     numFiles,
+             uint32_t     numGasLevel,
+             const int8_t *gasLevel,
+             g9pMask_t    mask)
 {
 	g9pICMap_t map;
 
@@ -87,6 +87,23 @@ g9pICMap_del(g9pICMap_t *g9pICMap)
 	xfree(*g9pICMap);
 
 	*g9pICMap = NULL;
+}
+
+extern uint32_t
+g9pICMap_getFileForTile(const g9pICMap_t map, const uint32_t tile)
+{
+	assert(map != NULL);
+	assert(tile < g9pMask_getTotalNumTiles(map->mask));
+
+	uint32_t file = 0;
+	while ((file < map->numFiles) && (map->lastTileIdx[file] < tile)) {
+		file++;
+	}
+	assert(file < map->numFiles);
+	assert(map->lastTileIdx[file] >= tile);
+	assert(map->firstTileIdx[file] <= tile);
+
+	return file;
 }
 
 extern uint32_t
@@ -145,11 +162,11 @@ local_calcNumCellsPerFile(g9pICMap_t map)
 
 	for (uint32_t i = 0; i < map->numFiles; i++) {
 		uint32_t j = map->firstTileIdx[i];
-		for (int8_t k = 0; k < numLevel; k++) 
+		for (int8_t k = 0; k < numLevel; k++)
 			map->numCells[i * numLevel + k] = UINT64_C(0);
 		do {
 			tmp = g9pMask_getNumCellsInTile(map->mask, j, tmp);
-			for (int8_t k = 0; k < numLevel; k++) 
+			for (int8_t k = 0; k < numLevel; k++)
 				map->numCells[i * numLevel + k] += tmp[k];
 		} while (++j <= map->lastTileIdx[i]);
 	}
