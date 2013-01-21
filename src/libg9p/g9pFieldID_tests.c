@@ -38,7 +38,6 @@ g9pFieldID_getStr_test(void)
 {
 	bool         hasPassed = true;
 	int          rank      = 0;
-	g9pFieldID_t g9pFieldID;
 #ifdef XMEM_TRACK_MEM
 	size_t       allocatedBytes = global_allocated_bytes;
 #endif
