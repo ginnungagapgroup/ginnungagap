@@ -33,6 +33,14 @@ g9pMask_verifyNumCellsEmptyMask(void);
 extern bool
 g9pMask_verifyCreationOfGridStructure(void);
 
+/**
+ * @brief  Verifies that referencing/dereferencing works as expected.
+ *
+ * @return  Returns @c true if the test passed and @c false otherwise.
+ */
+extern bool
+g9pMask_verifyDelete(void);
+
 
 /*--- Doxygen group definitions -----------------------------------------*/
 

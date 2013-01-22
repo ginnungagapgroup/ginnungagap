@@ -81,13 +81,16 @@ g9pMask_del(g9pMask_t *mask)
 {
 	assert(mask != NULL && *mask != NULL);
 
-	for (uint32_t i = 0; i < (*mask)->totalNumTiles; i++)
-		if ((*mask)->maskTiles[i] != NULL)
-			xfree((*mask)->maskTiles[i]);
-	xfree((*mask)->maskTiles);
-	g9pHierarchy_del(&((*mask)->hierarchy));
+	if (refCounter_deref(&((*mask)->refCounter))) {
+		for (uint32_t i = 0; i < (*mask)->totalNumTiles; i++)
+			if ((*mask)->maskTiles[i] != NULL)
+				xfree((*mask)->maskTiles[i]);
+		xfree((*mask)->maskTiles);
+		g9pHierarchy_del(&((*mask)->hierarchy));
 
-	xfree(*mask);
+		xfree(*mask);
+	}
+
 	*mask = NULL;
 }
 

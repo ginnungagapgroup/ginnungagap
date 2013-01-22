@@ -219,6 +219,47 @@ g9pMask_verifyCreationOfGridStructure(void)
 	return hasPassed ? true : false;
 }
 
+extern bool
+g9pMask_verifyDelete(void)
+{
+	bool hasPassed  = true;
+	int    rank           = 0;
+#ifdef XMEM_TRACK_MEM
+	size_t allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	g9pHierarchy_t h    = local_getHierarchy();
+	g9pMask_t      mask = g9pMask_newMinMaxTiledMask(h, 5, 3, 9, 2);
+	g9pMask_t      mask2 = g9pMask_getRef(mask);
+
+	if (mask != mask2)
+		hasPassed = false;
+
+	g9pMask_del(&mask);
+	if (mask != NULL || mask == mask2)
+		hasPassed = false;
+
+	mask = g9pMask_getRef(mask2);
+	if (mask != mask2)
+		hasPassed = false;
+
+	g9pMask_del(&mask);
+	g9pMask_del(&mask2);
+
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static g9pHierarchy_t
 local_getHierarchy(void)

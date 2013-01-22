@@ -106,6 +106,7 @@ main(int argc, char **argv)
 	RUNTEST(&g9pMask_verifyMaxNumCells, hasFailed);
 	RUNTEST(&g9pMask_verifyNumCellsEmptyMask, hasFailed);
 	RUNTEST(&g9pMask_verifyCreationOfGridStructure, hasFailed);
+	RUNTEST(&g9pMask_verifyDelete, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);
