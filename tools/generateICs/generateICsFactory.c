@@ -34,6 +34,7 @@
 #include "../../src/libcosmo/cosmoModel.h"
 #include "../../src/libg9p/g9pHierarchy.h"
 #include "../../src/libg9p/g9pHierarchyIO.h"
+#include "../../src/libg9p/g9pDataStore.h"
 #include "../../src/libg9p/g9pMask.h"
 #include "../../src/libg9p/g9pMaskIO.h"
 #include "../../src/libutil/parse_ini.h"
@@ -60,6 +61,8 @@ struct generateICs_IniData_struct {
 	char   *cosmologySection;
 	/** @brief  Stores key @c hierarchySection. */
 	char   *hierarchySection;
+	/** @brief  Store the key @c datastoreSection. */
+	char   *datastoreSection;
 	/** @brief  Stores key @c maskSection. */
 	char   *maskSection;
 };
@@ -211,9 +214,12 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	hierarchy = g9pHierarchyIO_newFromIni(ini, iniData->hierarchySection);
 	generateICs_setHierarchy(genics, hierarchy);
 
+	g9pDataStore_t datastore = NULL;
+	generateICs_setDataStore(genics, datastore);
+
 	g9pMask_t mask;
 	mask = g9pMaskIO_newFromIni(ini, iniData->maskSection,
-	                            generateICs_getHierarchy(genics));
+	                            g9pHierarchy_getRef(hierarchy));
 	generateICs_setMask(genics, mask);
 
 	local_newFromIni_output(ini, iniData->outputSection, genics);

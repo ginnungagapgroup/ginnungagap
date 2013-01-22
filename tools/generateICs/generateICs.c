@@ -106,6 +106,8 @@ generateICs_del(generateICs_t *genics)
 		cosmoModel_del(&(*genics)->model);
 	if ((*genics)->hierarchy != NULL)
 		g9pHierarchy_del(&(*genics)->hierarchy);
+	if ((*genics)->datastore != NULL)
+		g9pDataStore_del(&(*genics)->datastore);
 	if ((*genics)->mask != NULL)
 		g9pMask_del(&(*genics)->mask);
 	if ((*genics)->prefix != NULL)
@@ -139,6 +141,19 @@ generateICs_setHierarchy(generateICs_t genics, g9pHierarchy_t hierarchy)
 	}
 
 	genics->hierarchy = hierarchy;
+}
+
+extern void
+generateICs_setDataStore(generateICs_t genics, g9pDataStore_t datastore)
+{
+	assert(genics != NULL);
+
+	if (genics->datastore != NULL) {
+		fprintf(stderr, "ERROR: The datastore can only be set once.\n");
+		diediedie(EXIT_FAILURE);
+	}
+
+	genics->datastore = datastore;
 }
 
 extern void
@@ -224,6 +239,14 @@ generateICs_getHierarchy(const generateICs_t genics)
 	return genics->hierarchy;
 }
 
+extern g9pDataStore_t
+generateICs_getDataStore(const generateICs_t genics)
+{
+	assert(genics != NULL);
+
+	return genics->datastore;
+}
+
 extern g9pMask_t
 generateICs_getMask(const generateICs_t genics)
 {
@@ -295,7 +318,8 @@ generateICs_run(generateICs_t genics)
 {
 	assert(genics != NULL);
 
-	g9pICMap_t map = g9pICMap_new(genics->numFiles, 0, NULL, genics->mask);
+	g9pICMap_t map = g9pICMap_new(genics->numFiles, 0, NULL,
+	                              g9pMask_getRef(genics->mask));
 
 	if (genics->rank == 0)
 		generateICs_printSummary(genics, stdout);
@@ -341,6 +365,7 @@ local_init(generateICs_t genics)
 
 	genics->model         = NULL;
 	genics->hierarchy     = NULL;
+	genics->datastore     = NULL;
 	genics->mask          = NULL;
 	genics->boxsizeInMpch = 0.0;
 	genics->aInit         = 0.0;
@@ -369,7 +394,13 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 	void      *id = xmalloc(sizeOfId * numPartsInFile);
 
 	for (uint32_t i = firstTile; i <= lastTile; i++) {
-		;
+		uint64_t numCellsInTile[numLevel];
+		(void)g9pMask_getNumCellsInTile(genics->mask, i, numCellsInTile);
+		for (int8_t j = 0; j < numLevel; j++) {
+			if (numCellsInTile[j] > UINT64_C(0)) {
+				; // Read this tile
+			}
+		}
 	}
 
 	xfree(id);

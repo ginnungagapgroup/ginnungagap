@@ -21,6 +21,7 @@
 #include "../../src/libgrid/gridReader.h"
 #include "../../src/libcosmo/cosmoModel.h"
 #include "../../src/libg9p/g9pHierarchy.h"
+#include "../../src/libg9p/g9pDataStore.h"
 #include "../../src/libg9p/g9pMask.h"
 
 
@@ -38,6 +39,8 @@ struct generateICs_struct {
 	cosmoModel_t   model;
 	/** @brief  Stores the hierarchy. */
 	g9pHierarchy_t hierarchy;
+	/** @brief  Stores the data store object (maps to file names). */
+	g9pDataStore_t datastore;
 	/** @brief  Stores the mask. */
 	g9pMask_t      mask;
 	/** @brief  The boxsize in Mpc/h. */

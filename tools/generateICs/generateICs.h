@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include "../../src/libcosmo/cosmoModel.h"
 #include "../../src/libg9p/g9pHierarchy.h"
+#include "../../src/libg9p/g9pDataStore.h"
 #include "../../src/libg9p/g9pMask.h"
 
 
@@ -102,6 +103,25 @@ generateICs_setCosmoModel(generateICs_t genics,
 extern void
 generateICs_setHierarchy(generateICs_t  genics,
                          g9pHierarchy_t hierarchy);
+
+/**
+ * @brief  Sets the datastore to use.
+ *
+ * If a datastore is already attached, the execution will fail.
+ *
+ * @param[in,out]  genics
+ *                    The application object to work with.  Passing @c NULL
+ *                    is undefined.
+ * @param[in]      datastore
+ *                    The datastore that should be attached.  The caller
+ *                    relinquishes control of the object. Passing @c NULL is
+ *                    allowed.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+generateICs_setDataStore(generateICs_t  genics,
+                         g9pDataStore_t datastore);
 
 /**
  * @brief  Sets the mask to use.
@@ -256,6 +276,20 @@ generateICs_getCosmoModel(const generateICs_t genics);
  */
 extern g9pHierarchy_t
 generateICs_getHierarchy(const generateICs_t genics);
+
+/**
+ * @brief  Retrieves the datastore.
+ *
+ * @param[in]  genics
+ *                The application object to query.
+ *
+ * @return  Returns the datastore used.  This might be @c NULL if no
+ *          datastore has been previously set.  The application keeps
+ *          control of the datastore object, the calling function should
+ *          hence take care with the retrieved handle.
+ */
+extern g9pDataStore_t
+generateICs_getDataStore(const generateICs_t genics);
 
 
 /**
