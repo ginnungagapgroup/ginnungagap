@@ -387,8 +387,8 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 	for (int i = 0; i < numLevel; i++)
 		numPartsInFile += numCells[i];
 
-	fpv_t     *vel = xmalloc(sizeof(fpv_t) * numPartsInFile);
-	fpv_t     *pos = xmalloc(sizeof(fpv_t) * numPartsInFile);
+	fpv_t     *vel = xmalloc(sizeof(fpv_t) * numPartsInFile * 3);
+	fpv_t     *pos = xmalloc(sizeof(fpv_t) * numPartsInFile * 3);
 	const int sizeOfId
 	    = genics->doLongIDs ? sizeof(uint32_t) : sizeof(uint64_t);
 	void      *id = xmalloc(sizeOfId * numPartsInFile);
@@ -398,7 +398,20 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 		(void)g9pMask_getNumCellsInTile(genics->mask, i, numCellsInTile);
 		for (int8_t j = 0; j < numLevel; j++) {
 			if (numCellsInTile[j] > UINT64_C(0)) {
-				; // Read this tile
+#if 0
+				patch = local_getPatchForTileOnLevel(i, j);
+
+				reader = g9pDataStore_getReader(genics->datastore, j, vel_x);
+				gridReader_readIntoPatchForVar(reader, patch, 0);
+				reader = g9pDataStore_getReader(genics->datastore, j, vel_y);
+				gridReader_readIntoPatchForVar(reader, patch, 1);
+				reader = g9pDataStore_getReader(genics->datastore, j, vel_z);
+				gridReader_readIntoPatchForVar(reader, patch, 2);
+				local_copyToVel(vel + offset * 3, patch);
+
+				local_setupIDs(((char *)id) + offset * sizeOfId, patch);
+				local_setupPos(pos + offset * 3, patch);
+#endif
 			}
 		}
 	}
