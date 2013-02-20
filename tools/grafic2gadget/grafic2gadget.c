@@ -30,7 +30,7 @@
 /*--- Prototypes of local functions -------------------------------------*/
 static void
 local_getFactors(grafic_t     grafic,
-                 uint32_t     np[3],
+                 uint64_t     np[3],
                  double       *dx,
                  double       *boxsize,
                  double       *vFact,
@@ -43,7 +43,7 @@ local_getBaseHeader(gadget_t     gadget,
                     double       boxsize,
                     double       aInit,
                     cosmoModel_t model,
-                    uint32_t     np[3],
+                    uint64_t     np[3],
                     bool         doGas,
                     bool         useLongIDs,
                     double       posFactor);
@@ -62,7 +62,7 @@ local_getSlabNumbers(int i,
 static void
 local_initposid(float    *pos,
                 uint32_t *id,
-                uint32_t np[3],
+                uint64_t np[3],
                 int      zStart,
                 int      zEnd,
                 double   dx,
@@ -71,7 +71,7 @@ local_initposid(float    *pos,
 static void
 local_initposidLong(float    *pos,
                     uint64_t *id,
-                    uint32_t np[3],
+                    uint64_t np[3],
                     int      zStart,
                     int      zEnd,
                     double   dx,
@@ -89,7 +89,7 @@ static void
 local_convertVel(float *vel, uint64_t num, double aInit, double velFactor);
 
 static void
-local_checkForIDOverflow(uint32_t np[3], bool useLongIDs, bool doGas);
+local_checkForIDOverflow(uint64_t np[3], bool useLongIDs, bool doGas);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -147,7 +147,7 @@ extern void
 grafic2gadget_run(grafic2gadget_t g2g)
 {
 	grafic_t       gvx, gvy, gvz;
-	uint32_t       np[3];
+	uint64_t       np[3];
 	uint64_t       numPlane;
 	double         dx, boxsize, vFact, aInit;
 	cosmoModel_t   model;
@@ -217,14 +217,15 @@ grafic2gadget_run(grafic2gadget_t g2g)
 		}
 		if (g2g->doGas)
 			memcpy(vel + 3 * numLocal, vel, 3 * numLocal * sizeof(float));
-		if (g2g->useLongIDs)
+		if (g2g->useLongIDs) {
 			local_initposidLong(pos, (uint64_t *)id, np,
 			                    numSlabStart, numSlabEnd, dx,
 			                    g2g->doGas);
-		else
+		} else {
 			local_initposid(pos, (uint32_t *)id, np,
 			                numSlabStart, numSlabEnd, dx,
 			                g2g->doGas);
+		}
 		local_vel2pos(vel, pos, numLocalParticles, boxsize, vFact,
 		              g2g->posFactor);
 		local_convertVel(vel, numLocalParticles, aInit, g2g->velFactor);
@@ -268,7 +269,7 @@ grafic2gadget_run(grafic2gadget_t g2g)
 /*--- Implementations of local functions --------------------------------*/
 static void
 local_getFactors(grafic_t     grafic,
-                 uint32_t     np[3],
+                 uint64_t     np[3],
                  double       *dx,
                  double       *boxsize,
                  double       *vFact,
@@ -276,10 +277,14 @@ local_getFactors(grafic_t     grafic,
                  cosmoModel_t *model,
                  double       omegaBaryon0)
 {
+	uint32_t np32[3];
 	double error, adot, growthVel;
 	float  h0;
 
-	grafic_getSize(grafic, np);
+	grafic_getSize(grafic, np32);
+	np[0] = np32[0];
+	np[1] = np32[1];
+	np[2] = np32[2];
 	h0       = grafic_getH0(grafic);
 	*dx      = grafic_getDx(grafic);
 	*aInit   = grafic_getAstart(grafic);
@@ -303,7 +308,7 @@ local_getBaseHeader(gadget_t     gadget,
                     double       boxsize,
                     double       aInit,
                     cosmoModel_t model,
-                    uint32_t     np[3],
+                    uint64_t     np[3],
                     bool         doGas,
                     bool         useLongIDs,
                     double       posFactor)
@@ -319,9 +324,7 @@ local_getBaseHeader(gadget_t     gadget,
 		massarr[i] = 0;
 	}
 
-	npall[1]    = np[0];
-	npall[1]   *= np[1];
-	npall[1]   *= np[2];
+	npall[1]    = np[0] * np[1] * np[2];
 	massarr[1]  = boxsize * boxsize * boxsize * omegaMatter0 / (npall[1]);
 	massarr[1] *= COSMO_RHO_CRIT0 * 1e-10;
 
@@ -387,28 +390,28 @@ local_getSlabNumbers(int i,
 static void
 local_initposid(float    *pos,
                 uint32_t *id,
-                uint32_t np[3],
+                uint64_t np[3],
                 int      zStart,
                 int      zEnd,
                 double   dx,
                 bool     doGas)
 {
-	uint64_t numTotal  = np[0] * np[1] * np[2];
-	uint64_t numOffset = np[0] * np[1] * (zEnd - zStart + 1);
+	const uint64_t numTotal  = np[0] * np[1] * np[2];
+	const uint64_t numOffset = np[0] * np[1] * (zEnd - zStart + 1);
 
 #ifdef _OPENMP
 #  pragma omp parallel for
 #endif
-	for (int k = zStart; k <= zEnd; k++) {
-		for (uint32_t j = 0; j < np[1]; j++) {
-			for (uint32_t i = 0; i < np[0]; i++) {
+	for (int64_t k = zStart; k <= zEnd; k++) {
+		for (uint64_t j = 0; j < np[1]; j++) {
+			for (uint64_t i = 0; i < np[0]; i++) {
 				size_t idx = i + j * np[0] + (k - zStart) * np[1] * np[0];
 				id[idx]          = i + j * np[0] + k * np[1] * np[0];
 				pos[idx * 3]     = (float)((i + .5) * dx);
 				pos[idx * 3 + 1] = (float)((j + .5) * dx);
 				pos[idx * 3 + 2] = (float)((k + .5) * dx);
 				if (doGas) {
-					double gasPosOffset = .25 * dx;
+					const double gasPosOffset = .25 * dx;
 					id[idx + numOffset]              = id[idx];
 					id[idx]                         += (uint32_t)numTotal;
 					pos[numOffset * 3 + idx * 3]     = pos[idx * 3];
@@ -426,14 +429,14 @@ local_initposid(float    *pos,
 static void
 local_initposidLong(float    *pos,
                     uint64_t *id,
-                    uint32_t np[3],
+                    uint64_t np[3],
                     int      zStart,
                     int      zEnd,
                     double   dx,
                     bool     doGas)
 {
-	uint64_t numTotal  = np[0] * np[1] * np[2];
-	uint64_t numOffset = np[0] * np[1] * (zEnd - zStart + 1);
+	const uint64_t numTotal  = np[0] * np[1] * np[2];
+	const uint64_t numOffset = np[0] * np[1] * (zEnd - zStart + 1);
 
 #ifdef _OPENMP
 #  pragma omp parallel for
@@ -447,15 +450,15 @@ local_initposidLong(float    *pos,
 				pos[idx * 3 + 1] = (float)((j + .5) * dx);
 				pos[idx * 3 + 2] = (float)((k + .5) * dx);
 				if (doGas) {
-					double gasOffset = .25 * dx;
-					id[idx + numOffset]             = id[idx];
-					id[idx]                        += numTotal;
-					pos[numTotal * 3 + idx * 3]     = pos[idx * 3];
-					pos[numTotal * 3 + idx * 3 + 1] = pos[idx * 3 + 1];
-					pos[numTotal * 3 + idx * 3 + 2] = pos[idx * 3 + 2];
-					pos[idx * 3]                   += gasOffset;
-					pos[idx * 3 + 1]               += gasOffset;
-					pos[idx * 3 + 2]               += gasOffset;
+					const double gasPosOffset = .25 * dx;
+					id[idx + numOffset]              = id[idx];
+					id[idx]                         += numTotal;
+					pos[numOffset * 3 + idx * 3]     = pos[idx * 3];
+					pos[numOffset * 3 + idx * 3 + 1] = pos[idx * 3 + 1];
+					pos[numOffset * 3 + idx * 3 + 2] = pos[idx * 3 + 2];
+					pos[idx * 3]                    += gasPosOffset;
+					pos[idx * 3 + 1]                += gasPosOffset;
+					pos[idx * 3 + 2]                += gasPosOffset;
 				}
 			}
 		}
@@ -502,16 +505,29 @@ local_convertVel(float *vel, uint64_t num, double aInit, double velFactor)
 }
 
 static void
-local_checkForIDOverflow(uint32_t np[3], bool useLongIDs, bool doGas)
+local_checkForIDOverflow(uint64_t np[3], bool useLongIDs, bool doGas)
 {
-	uint64_t numParticles;
+	uint64_t numParticles = np[0];
 
-	numParticles  = np[0];
+	if (numParticles > UINT64_MAX / np[1]) {
+		fprintf(stderr, "Overflowing number of particles.");
+		diediedie(EXIT_FAILURE);
+	}
 	numParticles *= np[1];
+
+	if (numParticles > UINT64_MAX / np[2]) {
+		fprintf(stderr, "Overflowing number of particles.");
+		diediedie(EXIT_FAILURE);
+	}
 	numParticles *= np[2];
 
-	if (doGas)
+	if (doGas) {
+		if (numParticles > UINT64_MAX / 2) {
+			fprintf(stderr, "Overflowing number of particles.");
+			diediedie(EXIT_FAILURE);
+		}
 		numParticles *= 2;
+	}
 
 	if ((numParticles > UINT32_MAX) && !useLongIDs) {
 		fprintf(stderr, "WARNING:  IDs are overflowing!\n");
