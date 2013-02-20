@@ -40,7 +40,7 @@
 #define PACKAGE_VERSION_MINOR 6
 
 /** @brief  The micro version of the package. */
-#define PACKAGE_VERSION_MICRO 2
+#define PACKAGE_VERSION_MICRO 3
 
 #if (PACKAGE_STATE == 0)
 #  define PACKAGE_VERSION_EXTRA "(alpha)"
