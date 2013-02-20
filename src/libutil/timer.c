@@ -77,6 +77,7 @@ extern double
 timer_stop(double timing)
 {
 #if (defined WITH_MPI)
+	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	timing += MPI_Wtime();
 	{
