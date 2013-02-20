@@ -406,14 +406,13 @@ local_initposid(float    *pos,
 		for (uint64_t j = 0; j < np[1]; j++) {
 			for (uint64_t i = 0; i < np[0]; i++) {
 				size_t idx = i + j * np[0] + (k - zStart) * np[1] * np[0];
-				id[idx]          = i + j * np[0] + k * np[1] * np[0];
+				id[idx]          = 1 + i + j * np[0] + k * np[1] * np[0];
 				pos[idx * 3]     = (float)((i + .5) * dx);
 				pos[idx * 3 + 1] = (float)((j + .5) * dx);
 				pos[idx * 3 + 2] = (float)((k + .5) * dx);
 				if (doGas) {
 					const double gasPosOffset = .25 * dx;
-					id[idx + numOffset]              = id[idx];
-					id[idx]                         += (uint32_t)numTotal;
+					id[idx + numOffset]              = id[idx] + (uint32_t)numTotal;
 					pos[numOffset * 3 + idx * 3]     = pos[idx * 3];
 					pos[numOffset * 3 + idx * 3 + 1] = pos[idx * 3 + 1];
 					pos[numOffset * 3 + idx * 3 + 2] = pos[idx * 3 + 2];
@@ -445,14 +444,13 @@ local_initposidLong(float    *pos,
 		for (uint64_t j = 0; j < np[1]; j++) {
 			for (uint64_t i = 0; i < np[0]; i++) {
 				size_t idx = i + j * np[0] + (k - zStart) * np[1] * np[0];
-				id[idx]          = i + j * np[0] + k * np[1] * np[0];
+				id[idx]          = 1 + i + j * np[0] + k * np[1] * np[0];
 				pos[idx * 3]     = (float)((i + .5) * dx);
 				pos[idx * 3 + 1] = (float)((j + .5) * dx);
 				pos[idx * 3 + 2] = (float)((k + .5) * dx);
 				if (doGas) {
 					const double gasPosOffset = .25 * dx;
-					id[idx + numOffset]              = id[idx];
-					id[idx]                         += numTotal;
+					id[idx + numOffset]              = id[idx] + numTotal;
 					pos[numOffset * 3 + idx * 3]     = pos[idx * 3];
 					pos[numOffset * 3 + idx * 3 + 1] = pos[idx * 3 + 1];
 					pos[numOffset * 3 + idx * 3 + 2] = pos[idx * 3 + 2];
