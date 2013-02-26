@@ -33,6 +33,9 @@ g9pMask_verifyNumCellsEmptyMask(void);
 extern bool
 g9pMask_verifyCreationOfGridStructure(void);
 
+extern bool
+g9pMask_verifyCreationOfPatch(void);
+
 /**
  * @brief  Verifies that referencing/dereferencing works as expected.
  *

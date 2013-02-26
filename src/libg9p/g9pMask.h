@@ -157,6 +157,9 @@ g9pMask_getNumCellsTotal(const g9pMask_t mask, uint64_t *numCells);
 extern gridRegular_t
 g9pMask_getEmptyGridStructure(const g9pMask_t mask);
 
+extern gridPatch_t
+g9pMask_getEmptyPatchForTile(const g9pMask_t mask, const uint32_t tile);
+
 
 /** @} */
 

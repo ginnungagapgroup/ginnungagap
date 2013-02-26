@@ -95,14 +95,14 @@ g9pMask_verifyMaxNumCells(void)
 	mask = g9pMask_newMinMaxTiledMask(h, 5, 3, 9, 2);
 
 	// Tests clipping
-	if (g9pMask_getMaxNumCellsInTileForLevel(mask, 2)
-	    != g9pMask_getMaxNumCellsInTileForLevel(mask, 3))
+	if ( g9pMask_getMaxNumCellsInTileForLevel(mask, 2)
+	     != g9pMask_getMaxNumCellsInTileForLevel(mask, 3) )
 		hasPassed = false;
 
 	uint64_t tmp[g_numLevels];
 	g9pMask_getMaxNumCellsInTile(mask, tmp);
 
-	if (tmp[4] != POW_NDIM(g_dims[7]) / POW_NDIM(g_dims[2]))
+	if ( tmp[4] != POW_NDIM(g_dims[7]) / POW_NDIM(g_dims[2]) )
 		hasPassed = false;
 
 	g9pMask_del(&mask);
@@ -134,14 +134,14 @@ g9pMask_verifyNumCellsEmptyMask(void)
 	mask = g9pMask_newMinMaxTiledMask(h, 5, 3, 9, 2);
 
 	// Empty tile means populate completely with minLevel
-	if (g9pMask_getNumCellsInTileForLevel(mask, 2, 3) == UINT64_C(0))
+	if ( g9pMask_getNumCellsInTileForLevel(mask, 2, 3) == UINT64_C(0) )
 		hasPassed = false;
 	uint64_t numCellsMinLevel = POW_NDIM(g_dims[3]) / POW_NDIM(g_dims[2]);
 	if (g9pMask_getNumCellsInTileForLevel(mask, 2, 3) != numCellsMinLevel)
 		hasPassed = false;
 
 	// Empty tile shouldn't have cells on level > minLevel
-	if (g9pMask_getNumCellsInTileForLevel(mask, 2, 8) != UINT64_C(0))
+	if ( g9pMask_getNumCellsInTileForLevel(mask, 2, 8) != UINT64_C(0) )
 		hasPassed = false;
 
 	// Now test getting all numCells, only minLevel should have cells
@@ -157,7 +157,7 @@ g9pMask_verifyNumCellsEmptyMask(void)
 		hasPassed = false;
 
 	g9pMask_getMaxNumCellsInTile(mask, tmp);
-	if (tmp[4] != POW_NDIM(g_dims[7]) / POW_NDIM(g_dims[2]))
+	if ( tmp[4] != POW_NDIM(g_dims[7]) / POW_NDIM(g_dims[2]) )
 		hasPassed = false;
 
 	xfree(tmp);
@@ -185,18 +185,18 @@ g9pMask_verifyCreationOfGridStructure(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	g9pHierarchy_t h    = local_getHierarchy();
-	g9pMask_t      mask = g9pMask_newMinMaxTiledMask(h, 5, 3, 9, 2);
-	gridRegular_t  grid = g9pMask_getEmptyGridStructure(mask);
+	g9pHierarchy_t h          = local_getHierarchy();
+	g9pMask_t      mask       = g9pMask_newMinMaxTiledMask(h, 5, 3, 9, 2);
+	gridRegular_t  grid       = g9pMask_getEmptyGridStructure(mask);
 
-	uint32_t numPatches = gridRegular_getNumPatches(grid);
-	if (g9pMask_getTotalNumTiles(mask) != gridRegular_getNumPatches(grid))
+	uint32_t       numPatches = gridRegular_getNumPatches(grid);
+	if ( g9pMask_getTotalNumTiles(mask) != gridRegular_getNumPatches(grid) )
 		hasPassed = false;
 
-	uint64_t numCellsInTile = g9pMask_getNumCellsInMaskTile(mask);
-	
+	uint64_t    numCellsInTile = g9pMask_getNumCellsInMaskTile(mask);
+
 	gridPatch_t patch;
-	for (uint32_t i = 0 ; i<numPatches; i++) {
+	for (uint32_t i = 0; i < numPatches; i++) {
 		patch = gridRegular_getPatchHandle(grid, i);
 		if (gridPatch_getNumCells(patch) != numCellsInTile)
 			hasPassed = false;
@@ -204,7 +204,7 @@ g9pMask_verifyCreationOfGridStructure(void)
 
 	gridPointUint32_t idxLo;
 	gridPatch_getIdxLo(patch, idxLo);
-	for (int i = 0; i<NDIM; i++) {
+	for (int i = 0; i < NDIM; i++) {
 		if (idxLo[i] != 168) // 24 cells per tile, 192 cell total (1D)
 			hasPassed = false;
 	}
@@ -217,12 +217,12 @@ g9pMask_verifyCreationOfGridStructure(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} // g9pMask_verifyCreationOfGridStructure
 
 extern bool
-g9pMask_verifyDelete(void)
+g9pMask_verifyCreationOfPatch(void)
 {
-	bool hasPassed  = true;
+	bool   hasPassed      = true;
 	int    rank           = 0;
 #ifdef XMEM_TRACK_MEM
 	size_t allocatedBytes = global_allocated_bytes;
@@ -236,13 +236,67 @@ g9pMask_verifyDelete(void)
 
 	g9pHierarchy_t h    = local_getHierarchy();
 	g9pMask_t      mask = g9pMask_newMinMaxTiledMask(h, 5, 3, 9, 2);
+	gridRegular_t  grid = g9pMask_getEmptyGridStructure(mask);
+	gridPatch_t    p, pG;
+
+	uint32_t       numPatches = gridRegular_getNumPatches(grid);
+	for (uint32_t i = 0; i < numPatches; i++) {
+		pG = gridRegular_getPatchHandle(grid, i);
+		p  = g9pMask_getEmptyPatchForTile(mask, i);
+
+		if ( gridPatch_getNumCells(p) != gridPatch_getNumCells(pG) )
+			hasPassed = false;
+
+		gridPointUint32_t idxLo, dims;
+		gridPointUint32_t idxLoG, dimsG;
+		gridPatch_getIdxLo(p, idxLo);
+		gridPatch_getDims(p, dims);
+		gridPatch_getIdxLo(pG, idxLoG);
+		gridPatch_getDims(pG, dimsG);
+		for (int i = 0; i < NDIM; i++) {
+			if (idxLo[i] != idxLoG[i])
+				hasPassed = false;
+			if (dims[i] != dimsG[i])
+				hasPassed = false;
+		}
+		gridPatch_del(&p);
+	}
+
+
+	gridRegular_del(&grid);
+	g9pMask_del(&mask);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} // g9pMask_verifyCreationOfPatch
+
+extern bool
+g9pMask_verifyDelete(void)
+{
+	bool   hasPassed      = true;
+	int    rank           = 0;
+#ifdef XMEM_TRACK_MEM
+	size_t allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	g9pHierarchy_t h     = local_getHierarchy();
+	g9pMask_t      mask  = g9pMask_newMinMaxTiledMask(h, 5, 3, 9, 2);
 	g9pMask_t      mask2 = g9pMask_getRef(mask);
 
 	if (mask != mask2)
 		hasPassed = false;
 
 	g9pMask_del(&mask);
-	if (mask != NULL || mask == mask2)
+	if ( (mask != NULL) || (mask == mask2) )
 		hasPassed = false;
 
 	mask = g9pMask_getRef(mask2);
@@ -258,7 +312,7 @@ g9pMask_verifyDelete(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} // g9pMask_verifyDelete
 
 /*--- Implementations of local functions --------------------------------*/
 static g9pHierarchy_t
