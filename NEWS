@@ -6,6 +6,41 @@ relevant, the entries contain the short hash of the according commits to
 the repository, smaller changes will not be listed individually but
 paraphrased.
 
+Version 0.6.3
+-------------
+
+This is a bug-fix release correcting issues with the longIDs options
+of grafic2gadget appearing when trying to use more than 2^32 particles
+and/or gas particles.
+
+Changes from 0.6.2:
+ 1 file changed, 53 insertions(+), 37 deletions(-)
+
+(d4bebd4) [FIX] Fixes integer overflows in grafic2gadget
+    This is a modified version of a patch provided by Gustavo.
+
+    When computing number of particles as a product of the components of a 
+    32bit array, then the individual operation are performed in 32bit, thus 
+    potentially overflowing, even though the result is assigned to an 64bit 
+    integer.
+
+    The code now uses an array of 64bit integers to store the number of 
+    particles in each dimension, thus eliminating the intermediate 32bit 
+    multiplications.  Additionally, the overflow check function will now 
+    verify that the total number of particles fits in a 64bit integer (will 
+    be some time before that limit is reached..) and terminate the 
+    generation if a 64bit integer would be overflowing.
+
+    The 32->64bit conversion is also done in the function initialising 
+    positions/ids for 32bit IDs.  grafic2gadget does allow to generate IDs 
+    in 32bit even though those are not enough, it merely emits a warning 
+    that the IDs are overflowing.  So technically the same problem could 
+    appear there.
+
+    The function initialising positions and 64bit IDs also had a bug when 
+    gas particles are used: The arrays were indexed by using numTotal 
+    instead of numOffset, wildly running over array bounds and segfaulting.
+
 Version 0.6.2
 -------------
 
