@@ -249,6 +249,7 @@ main(void)
 		printf("\nRunning tests for gadgetVersion:\n");
 		RUNTEST(&gadgetVersion_getVersionFromFile_test, hasFailed);
 		RUNTEST(&gadgetVersion_getNameFromType_test, hasFailed);
+		RUNTEST(&gadgetVersion_getTypeFromName_test, hasFailed);
 	}
 
 	if (rank == 0) {

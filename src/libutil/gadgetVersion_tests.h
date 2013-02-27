@@ -22,13 +22,17 @@
 
 /*--- Prototypes of exported functions ----------------------------------*/
 
-/** @brief  Tests gadgetTOC_(). */
+/** @brief  Tests gadgetVersion_getVersionFromFile(). */
 extern bool
 gadgetVersion_getVersionFromFile_test(void);
 
-/** @brief  Tests gadgetTOC_newFromFile(). */
+/** @brief  Tests gadgetVersion_getNameFromType(). */
 extern bool
 gadgetVersion_getNameFromType_test(void);
+
+/** @brief  Tests gadgetVersion_getTypeFromName(). */
+extern bool
+gadgetVersion_getTypeFromName_test(void);
 
 
 /*--- Doxygen group definition ------------------------------------------*/

@@ -38,12 +38,12 @@
 extern bool
 gadgetVersion_getVersionFromFile_test(void)
 {
-	bool        hasPassed = true;
-	int         rank      = 0;
-	FILE *f;
+	bool            hasPassed = true;
+	int             rank      = 0;
+	FILE            *f;
 	gadgetVersion_t ver;
 #ifdef XMEM_TRACK_MEM
-	size_t      allocatedBytes = global_allocated_bytes;
+	size_t          allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -52,25 +52,25 @@ gadgetVersion_getVersionFromFile_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	f = xfopen("tests/gadgetFake_v1.little.dat", "rb");
+	f   = xfopen("tests/gadgetFake_v1.little.dat", "rb");
 	ver = gadgetVersion_getVersionFromFile(f);
 	xfclose(&f);
 	if (ver != GADGETVERSION_ONE)
 		hasPassed = false;
 
-	f = xfopen("tests/gadgetFake_v1.big.dat", "rb");
+	f   = xfopen("tests/gadgetFake_v1.big.dat", "rb");
 	ver = gadgetVersion_getVersionFromFile(f);
 	xfclose(&f);
 	if (ver != GADGETVERSION_ONE)
 		hasPassed = false;
 
-	f = xfopen("tests/gadgetFake_v2.little.dat", "rb");
+	f   = xfopen("tests/gadgetFake_v2.little.dat", "rb");
 	ver = gadgetVersion_getVersionFromFile(f);
 	xfclose(&f);
 	if (ver != GADGETVERSION_TWO)
 		hasPassed = false;
 
-	f = xfopen("tests/gadgetFake_v2.big.dat", "rb");
+	f   = xfopen("tests/gadgetFake_v2.big.dat", "rb");
 	ver = gadgetVersion_getVersionFromFile(f);
 	xfclose(&f);
 	if (ver != GADGETVERSION_TWO)
@@ -82,15 +82,15 @@ gadgetVersion_getVersionFromFile_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} // gadgetVersion_getVersionFromFile_test
 
 extern bool
 gadgetVersion_getNameFromType_test(void)
 {
-	bool        hasPassed = true;
-	int         rank      = 0;
+	bool   hasPassed      = true;
+	int    rank           = 0;
 #ifdef XMEM_TRACK_MEM
-	size_t      allocatedBytes = global_allocated_bytes;
+	size_t allocatedBytes = global_allocated_bytes;
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -109,7 +109,39 @@ gadgetVersion_getNameFromType_test(void)
 #endif
 
 	return hasPassed ? true : false;
-}
+} // gadgetVersion_getNameFromType_test
 
+extern bool
+gadgetVersion_getTypeFromName_test(void)
+{
+	bool   hasPassed      = true;
+	int    rank           = 0;
+#ifdef XMEM_TRACK_MEM
+	size_t allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	if (gadgetVersion_getTypeFromName("Unknown") != GADGETVERSION_UNKNOWN)
+		hasPassed = false;
+
+	if (gadgetVersion_getTypeFromName("asd") != GADGETVERSION_UNKNOWN)
+		hasPassed = false;
+
+	if (gadgetVersion_getTypeFromName("v1 (no block descriptors)") !=
+	    GADGETVERSION_ONE)
+		hasPassed = false;
+
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+} // gadgetVersion_getTypeFromName_test
 
 /*--- Implementations of local functions --------------------------------*/
