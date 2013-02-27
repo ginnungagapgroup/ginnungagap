@@ -10,6 +10,9 @@ progName = generateICs
 
 sources = main.c \
           $(progName).c \
+          $(progName)Data.c \
+          $(progName)Mode.c \
+          $(progName)Out.c \
           $(progName)Factory.c
 
 ifeq ($(WITH_MPI), "true")

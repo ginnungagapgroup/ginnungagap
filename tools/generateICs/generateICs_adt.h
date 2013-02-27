@@ -18,6 +18,11 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "generateICsConfig.h"
+
+#include "generateICsData.h"
+#include "generateICsMode.h"
+#include "generateICsOut.h"
+
 #include "../../src/libgrid/gridReader.h"
 #include "../../src/libcosmo/cosmoModel.h"
 #include "../../src/libg9p/g9pHierarchy.h"
@@ -30,31 +35,26 @@
 /** @brief  The main structure of the generateICs application. */
 struct generateICs_struct {
 	/** @brief  Stores the size of MPI communicator. */
-	int            size;
+	int size;
 	/** @brief  Stores the rank of this MPI task. */
-	int            rank;
+	int rank;
 	/** @brief  Stores the number of threads that should be used. */
-	int            numThreads;
-	/** @brief  Stores the cosmological model. */
-	cosmoModel_t   model;
+	int numThreads;
+
+	/** @brief  Stores the operational mode. */
+	generateICsMode_t mode;
+	/** @brief  Stores the resolution independent data. */
+	generateICsData_t data;
+
 	/** @brief  Stores the hierarchy. */
 	g9pHierarchy_t hierarchy;
 	/** @brief  Stores the data store object (maps to file names). */
 	g9pDataStore_t datastore;
 	/** @brief  Stores the mask. */
 	g9pMask_t      mask;
-	/** @brief  The boxsize in Mpc/h. */
-	double         boxsizeInMpch;
-	/** @brief  The initial expansion factor. */
-	double         aInit;
-	/** @brief  Flag to indicate whether gas particles are used. */
-	bool           doGas;
-	/** @brief  Flag to indicate whether long IDs are used. */
-	bool           doLongIDs;
-	/** @brief  The number of output files. */
-	uint32_t       numFiles;
-	/** @brief  The prefix of the output files. */
-	char           *prefix;
+
+	/** @brief  Stores the output information. */
+	generateICsOut_t out;
 };
 
 

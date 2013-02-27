@@ -201,14 +201,18 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	                                  GENERATEICSCONFIG_DEFAULT_SECTIONNAME);
 
 	genics = generateICs_new();
-	generateICs_setBoxsizeInMpch(genics, iniData->boxsizeInMpch);
-	generateICs_setAInit(genics, cosmo_z2a(iniData->zInit));
-	generateICs_setDoGas(genics, iniData->doGas);
-	generateICs_setDoLongIDs(genics, iniData->doLongIDs);
 
-	cosmoModel_t model;
+	generateICsMode_t mode;
+	mode = generateICsMode_new(iniData->doGas, iniData->doLongIDs);
+	generateICs_setMode(genics, mode);
+
+	generateICsData_t data;
+	cosmoModel_t      model;
 	model = cosmoModel_newFromIni(ini, iniData->cosmologySection);
-	generateICs_setCosmoModel(genics, model);
+	data  = generateICsData_new(iniData->boxsizeInMpch,
+	                            cosmo_z2a(iniData->zInit),
+	                            model);
+	generateICs_setData(genics, data);
 
 	g9pHierarchy_t hierarchy;
 	hierarchy = g9pHierarchyIO_newFromIni(ini, iniData->hierarchySection);
@@ -218,8 +222,8 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	generateICs_setDataStore(genics, datastore);
 
 	g9pMask_t mask;
-	mask = g9pMaskIO_newFromIni(ini, iniData->maskSection,
-	                            g9pHierarchy_getRef(hierarchy));
+	mask = g9pMaskIO_newFromIni( ini, iniData->maskSection,
+	                             g9pHierarchy_getRef(hierarchy) );
 	generateICs_setMask(genics, mask);
 
 	local_newFromIni_output(ini, iniData->outputSection, genics);
@@ -227,7 +231,7 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	local_iniDataDel(&iniData);
 
 	return genics;
-}
+} // generateICsFactory_newFromIni
 
 /*--- Implementations of local functions --------------------------------*/
 
@@ -236,7 +240,7 @@ local_iniDataNewFromIni(parse_ini_t ini, const char *sectionName)
 {
 	generateICs_iniData_t iniData;
 
-	iniData = xmalloc(sizeof(struct generateICs_IniData_struct));
+	iniData = xmalloc( sizeof(struct generateICs_IniData_struct) );
 	local_iniDataInit(iniData);
 
 	local_iniDataNewFromIni_boxsize(iniData, ini, sectionName);
@@ -267,12 +271,12 @@ local_iniDataDel(generateICs_iniData_t *iniData)
 	assert(iniData != NULL);
 	assert(*iniData != NULL);
 
-	if ((*iniData)->outputSection != NULL)
-		xfree((*iniData)->outputSection);
-	if ((*iniData)->cosmologySection != NULL)
-		xfree((*iniData)->cosmologySection);
-	if ((*iniData)->maskSection != NULL)
-		xfree((*iniData)->maskSection);
+	if ( (*iniData)->outputSection != NULL )
+		xfree( (*iniData)->outputSection );
+	if ( (*iniData)->cosmologySection != NULL )
+		xfree( (*iniData)->cosmologySection );
+	if ( (*iniData)->maskSection != NULL )
+		xfree( (*iniData)->maskSection );
 
 	xfree(*iniData);
 }
@@ -312,8 +316,8 @@ local_iniDataNewFromIni_doGas(generateICs_iniData_t iniData,
 	assert(ini != NULL);
 	assert(secName != NULL);
 
-	if (!parse_ini_get_bool(ini, "doGas", secName,
-	                        &(iniData->doGas))) {
+	if ( !parse_ini_get_bool( ini, "doGas", secName,
+	                          &(iniData->doGas) ) ) {
 		iniData->doGas = GENERATEICSCONFIG_DEFAULT_DOGAS;
 	}
 }
@@ -327,8 +331,8 @@ local_iniDataNewFromIni_doLongIDs(generateICs_iniData_t iniData,
 	assert(ini != NULL);
 	assert(secName != NULL);
 
-	if (!parse_ini_get_bool(ini, "doLongIDs", secName,
-	                        &(iniData->doLongIDs))) {
+	if ( !parse_ini_get_bool( ini, "doLongIDs", secName,
+	                          &(iniData->doLongIDs) ) ) {
 		iniData->doLongIDs = GENERATEICSCONFIG_DEFAULT_DOLONGIDS;
 	}
 }
@@ -342,27 +346,27 @@ local_iniDataNewFromIni_section(generateICs_iniData_t iniData,
 	assert(ini != NULL);
 	assert(secName != NULL);
 
-	if (!parse_ini_get_string(ini, "outputSection", secName,
-	                          &(iniData->outputSection))) {
+	if ( !parse_ini_get_string( ini, "outputSection", secName,
+	                            &(iniData->outputSection) ) ) {
 		iniData->outputSection = xstrdup(
 		    GENERATEICSCONFIG_DEFAULT_OUTPUTSECTION);
 	}
-	if (!parse_ini_get_string(ini, "cosmologySection", secName,
-	                          &(iniData->cosmologySection))) {
+	if ( !parse_ini_get_string( ini, "cosmologySection", secName,
+	                            &(iniData->cosmologySection) ) ) {
 		iniData->cosmologySection
 		    = xstrdup(GENERATEICSCONFIG_DEFAULT_COSMOLOGYSECTION);
 	}
-	if (!parse_ini_get_string(ini, "hierarchySection", secName,
-	                          &(iniData->hierarchySection))) {
+	if ( !parse_ini_get_string( ini, "hierarchySection", secName,
+	                            &(iniData->hierarchySection) ) ) {
 		iniData->hierarchySection = xstrdup(
 		    GENERATEICSCONFIG_DEFAULT_HIERARCHYSECTION);
 	}
-	if (!parse_ini_get_string(ini, "maskSection", secName,
-	                          &(iniData->maskSection))) {
+	if ( !parse_ini_get_string( ini, "maskSection", secName,
+	                            &(iniData->maskSection) ) ) {
 		iniData->maskSection = xstrdup(
 		    GENERATEICSCONFIG_DEFAULT_MASKSECTION);
 	}
-}
+} // local_iniDataNewFromIni_section
 
 inline static void
 local_newFromIni_output(parse_ini_t   ini,
@@ -371,10 +375,17 @@ local_newFromIni_output(parse_ini_t   ini,
 {
 	uint32_t numFiles;
 	char     *prefix;
+	char     *version;
 
 	getFromIni(&numFiles, parse_ini_get_uint32, ini, "numFiles", secName);
 	getFromIni(&prefix, parse_ini_get_string, ini, "prefix", secName);
+	getFromIni(&version, parse_ini_get_string, ini, "version", secName);
 
-	generateICs_setNumFiles(genics, numFiles);
-	generateICs_setPrefix(genics, prefix);
-}
+	generateICsOut_t out;
+	out = generateICsOut_new( prefix, numFiles,
+	                          gadgetVersion_getTypeFromName(version) );
+	generateICs_setOut(genics, out);
+
+	xfree(prefix);
+	xfree(version);
+} // local_newFromIni_output
