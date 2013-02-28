@@ -55,6 +55,8 @@ struct generateICs_IniData_struct {
 	bool   doGas;
 	/** @brief  Stores key @c doLongIDs. */
 	bool   doLongIDs;
+	/** @brief  Stores key @c ginnungagapSection. */
+	char   *g9pSection;
 	/** @brief  Stores key @c inputSection. */
 	char   *inputSection;
 	/** @brief  Stores key @c outputSection. */
@@ -67,8 +69,6 @@ struct generateICs_IniData_struct {
 	char   *datastoreSection;
 	/** @brief  Stores key @c maskSection. */
 	char   *maskSection;
-	/** @brief  Stores key @c ginnungagapSection. */
-	char   *g9pSection;
 };
 
 /** @brief  Short name for a reference to the helper structure.  */
@@ -290,6 +290,8 @@ local_iniDataInit(generateICs_iniData_t iniData)
 	iniData->inputSection     = NULL;
 	iniData->outputSection    = NULL;
 	iniData->cosmologySection = NULL;
+	iniData->hierarchySection = NULL;
+	iniData->datastoreSection = NULL;
 	iniData->maskSection      = NULL;
 }
 
@@ -307,6 +309,10 @@ local_iniDataDel(generateICs_iniData_t *iniData)
 		xfree( (*iniData)->outputSection );
 	if ( (*iniData)->cosmologySection != NULL )
 		xfree( (*iniData)->cosmologySection );
+	if ( (*iniData)->hierarchySection != NULL )
+		xfree( (*iniData)->hierarchySection );
+	if ( (*iniData)->datastoreSection != NULL )
+		xfree( (*iniData)->datastoreSection );
 	if ( (*iniData)->maskSection != NULL )
 		xfree( (*iniData)->maskSection );
 
