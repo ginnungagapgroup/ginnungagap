@@ -86,11 +86,19 @@ static void
 local_doFile(generateICs_t genics, const g9pICMap_t map, int file);
 
 static void
+local_writeGadgetFile(generateICs_t genics,
+                      int           file,
+                      fpv_t         *pos,
+                      fpv_t         *vel,
+                      void          *id,
+                      uint64_t      numParticles);
+
+static void
 local_doTile(const gridPatch_t       patch,
              fpv_t                   *vel,
              fpv_t                   *pos,
              void                    *id,
-             const size_t            sizeOfId,
+             bool                    useLongIds,
              const gridPointUint32_t fullDims);
 
 
@@ -259,6 +267,11 @@ generateICs_run(generateICs_t genics)
 	g9pICMap_t map = g9pICMap_new( genics->out->numFiles, 0, NULL,
 	                               g9pMask_getRef(genics->mask) );
 
+	const uint32_t    tmp      = g9pMask_getDim1D(genics->mask);
+	gridPointUint32_t fullDims = {tmp, tmp, tmp};
+	generateICsOut_initBaseHeader(genics->out, genics->data, fullDims,
+	                              genics->mode);
+
 	if (genics->rank == 0)
 		generateICs_printSummary(genics, stdout);
 
@@ -318,9 +331,7 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 	const uint64_t *numCells      = g9pICMap_getNumCellsPerLevelInFile(map,
 	                                                                   file);
 	const int8_t   numLevel       = g9pMask_getNumLevel(genics->mask);
-	uint64_t       numPartsInFile = UINT64_C(0);
-	for (int i = 0; i < numLevel; i++)
-		numPartsInFile += numCells[i];
+	uint64_t       numPartsInFile = UINT64_C(4096);
 
 	fpv_t             *vel = xmalloc(sizeof(fpv_t) * numPartsInFile * 3);
 	fpv_t             *pos = xmalloc(sizeof(fpv_t) * numPartsInFile * 3);
@@ -363,8 +374,8 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 				gridReader_readIntoPatchForVar(genics->in->velz, patch, 2);
 
 				local_doTile(patch, vel + offset * 3, pos + offset * 3,
-				             ( (char *)id + offset * sizeOfId ), sizeOfId,
-				             fullDims);
+				             ( (char *)id + offset * sizeOfId ),
+				             genics->mode->useLongIDs, fullDims);
 				offset += numCellsInTile[j];
 
 				gridPatch_del(&patch);
@@ -375,17 +386,63 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 	dataVar_del(&varVelx);
 	dataVar_del(&varVely);
 	dataVar_del(&varVelz);
+
+	local_writeGadgetFile(genics, file, pos, vel, id, numPartsInFile);
+
 	xfree(id);
 	xfree(pos);
 	xfree(vel);
 } // local_doFile
 
 static void
+local_writeGadgetFile(generateICs_t genics,
+                      int           file,
+                      fpv_t         *pos,
+                      fpv_t         *vel,
+                      void          *id,
+                      uint64_t      numParticles)
+{
+	uint32_t       npLocal[6] = {0, numParticles, 0, 0, 0, 0};
+	double         massArr[6] = {0., 0., 0., 0., 0., 0.};
+	gadgetHeader_t myHeader;
+
+	myHeader = gadgetHeader_clone(genics->out->baseHeader);
+	gadgetHeader_setNp(myHeader, npLocal);
+	gadgetTOC_calcSizes(genics->out->toc, npLocal, massArr, false,
+	                    genics->mode->useLongIDs);
+	gadgetTOC_calcOffset(genics->out->toc);
+	gadget_setHeaderOfFile(genics->out->gadget, file, myHeader);
+	gadget_setTOCOfFile( genics->out->gadget, file,
+	                     gadgetTOC_clone(genics->out->toc) );
+	gadget_open(genics->out->gadget, GADGET_MODE_WRITE_CREATE, file);
+	gadget_writeHeaderToCurrentFile(genics->out->gadget);
+	{
+		stai_t stai;
+		stai = stai_new( pos, 3 * sizeof(float), 3 * sizeof(float) );
+		gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_POS_,
+		                               0, numParticles, stai);
+		stai_del(&stai);
+		stai = stai_new( vel, 3 * sizeof(float), 3 * sizeof(float) );
+		gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_VEL_,
+		                               0, numParticles, stai);
+		stai_del(&stai);
+		if (genics->mode->useLongIDs)
+			stai = stai_new( id, sizeof(uint64_t), sizeof(uint64_t) );
+		else
+			stai = stai_new( id, sizeof(uint32_t), sizeof(uint32_t) );
+		gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_ID__,
+		                               0, numParticles, stai);
+		stai_del(&stai);
+	}
+	gadget_close(genics->out->gadget);
+} // local_writeGadgetFile
+
+static void
 local_doTile(const gridPatch_t       patch,
              fpv_t                   *vel,
              fpv_t                   *pos,
              void                    *id,
-             const size_t            sizeOfId,
+             bool                    useLongIds,
              const gridPointUint32_t fullDims)
 {
 	gridPointUint32_t dims, idxLo;
@@ -398,7 +455,8 @@ local_doTile(const gridPatch_t       patch,
 
 	gridPatch_getIdxLo(patch, idxLo);
 	gridPatch_getDims(patch, dims);
-	printf("Patch dims: (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
+	printf("Patch idxLo: (%u,%u,%u)\n", idxLo[0], idxLo[1], idxLo[2]);
+	printf("Patch dims:  (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
 
 	gridPointUint32_t p;
 	uint64_t          i = 0;
@@ -413,7 +471,7 @@ local_doTile(const gridPatch_t       patch,
 				pos[i * 3 + 1] = (fpv_t)( (p[1] + .5) * dx );
 				pos[i * 3 + 2] = (fpv_t)( (p[2] + .5) * dx );
 
-				if (sizeOfId == 4) {
+				if (!useLongIds) {
 					( (uint32_t *)id )[i] = lIdx_fromCoord3d(p, fullDims);
 				} else {
 					( (uint64_t *)id )[i] = lIdx_fromCoord3d(p, fullDims);
