@@ -21,6 +21,7 @@
 
 #include "generateICsData.h"
 #include "generateICsMode.h"
+#include "generateICsIn.h"
 #include "generateICsOut.h"
 
 #include "../../src/libgrid/gridReader.h"
@@ -53,6 +54,8 @@ struct generateICs_struct {
 	/** @brief  Stores the mask. */
 	g9pMask_t      mask;
 
+	/** @brief  Stores the input information. */
+	generateICsIn_t in;
 	/** @brief  Stores the output information. */
 	generateICsOut_t out;
 };

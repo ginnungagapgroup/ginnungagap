@@ -116,6 +116,8 @@ generateICs_del(generateICs_t *genics)
 		generateICsMode_del( &( (*genics)->mode ) );
 	if ( (*genics)->data != NULL )
 		generateICsData_del( &( (*genics)->data ) );
+	if ( (*genics)->in != NULL )
+		generateICsIn_del( &( (*genics)->in ) );
 	if ( (*genics)->out != NULL )
 		generateICsOut_del( &( (*genics)->out ) );
 	if ( (*genics)->hierarchy != NULL )
@@ -151,6 +153,17 @@ generateICs_setData(generateICs_t genics, generateICsData_t data)
 		generateICsData_del( &(genics->data) );
 
 	genics->data = data;
+}
+
+extern void
+generateICs_setIn(generateICs_t genics, generateICsIn_t in)
+{
+	assert(genics != NULL);
+
+	if (genics->in != NULL)
+		generateICsIn_del( &(genics->in) );
+
+	genics->in = in;
 }
 
 extern void
@@ -290,6 +303,7 @@ local_init(generateICs_t genics)
 
 	genics->mode      = NULL;
 	genics->data      = NULL;
+	genics->in        = NULL;
 	genics->out       = NULL;
 	genics->hierarchy = NULL;
 	genics->datastore = NULL;
@@ -315,7 +329,6 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 	void              *id      = xmalloc(sizeOfId * numPartsInFile);
 
 	uint64_t          offset   = 0;
-	gridReader_t      reader   = NULL;
 	const uint32_t    tmp      = g9pMask_getDim1D(genics->mask);
 	gridPointUint32_t fullDims = {tmp, tmp, tmp};
 
@@ -323,6 +336,9 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 	varVelx = dataVar_new("velx", DATAVARTYPE_FPV, 1);
 	varVely = dataVar_new("vely", DATAVARTYPE_FPV, 1);
 	varVelz = dataVar_new("velz", DATAVARTYPE_FPV, 1);
+
+	printf("numPartsInFile = %lu\n", numPartsInFile);
+	printf("fullDims = (%u, %u, %u)\n", fullDims[0], fullDims[1], fullDims[2]);
 
 	for (uint32_t i = firstTile; i <= lastTile; i++) {
 		uint64_t numCellsInTile[numLevel];
@@ -336,12 +352,15 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 				(void)gridPatch_attachVar(patch, varVely);
 				(void)gridPatch_attachVar(patch, varVelz);
 
+				printf("Working on tile %u, level %i (%i cells)\n",
+				       i, (int)j, (int)numCellsInTile[j]);
+
 				//reader = g9pDataStore_getReader(genics->datastore, j, vel_x);
-				gridReader_readIntoPatchForVar(reader, patch, 0);
+				gridReader_readIntoPatchForVar(genics->in->velx, patch, 0);
 				//reader = g9pDataStore_getReader(genics->datastore, j, vel_y);
-				gridReader_readIntoPatchForVar(reader, patch, 1);
+				gridReader_readIntoPatchForVar(genics->in->vely, patch, 1);
 				//reader = g9pDataStore_getReader(genics->datastore, j, vel_z);
-				gridReader_readIntoPatchForVar(reader, patch, 2);
+				gridReader_readIntoPatchForVar(genics->in->velz, patch, 2);
 
 				local_doTile(patch, vel + offset * 3, pos + offset * 3,
 				             ( (char *)id + offset * sizeOfId ), sizeOfId,
@@ -379,12 +398,13 @@ local_doTile(const gridPatch_t       patch,
 
 	gridPatch_getIdxLo(patch, idxLo);
 	gridPatch_getDims(patch, dims);
+	printf("Patch dims: (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
 
 	gridPointUint32_t p;
 	uint64_t          i = 0;
 	for (p[2] = idxLo[2]; p[2] < idxLo[2] + dims[2]; p[2]++) {
 		for (p[1] = idxLo[1]; p[1] < idxLo[1] + dims[1]; p[1]++) {
-			for (p[0] = idxLo[0]; p[0] < idxLo[0] + dims[0]; p[1]++) {
+			for (p[0] = idxLo[0]; p[0] < idxLo[0] + dims[0]; p[0]++) {
 				vel[i * 3]     = velxP[i];
 				vel[i * 3 + 1] = velyP[i];
 				vel[i * 3 + 2] = velzP[i];

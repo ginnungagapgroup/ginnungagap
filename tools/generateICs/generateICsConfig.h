@@ -30,11 +30,14 @@
 /** @brief  Gives the default for using 64bit IDs or not. */
 #define GENERATEICSCONFIG_DEFAULT_DOLONGIDS false
 
-/** @brief  Gives the default prefix for the level section names. */
-#define GENERATEICSCONFIG_DEFAULT_BUFFERSECTION "Buffer"
+/** @brief  Gives the default prefix for the ginnungagap section name. */
+#define GENERATEICSCONFIG_DEFAULT_GINNUNGAGAPSECTION "Ginnungagap"
 
 /** @brief  The default name of the section from which to setup the cosmology.*/
 #define GENERATEICSCONFIG_DEFAULT_COSMOLOGYSECTION "Cosmology"
+
+/** @brief  The default name of the section for the input information.*/
+#define GENERATEICSCONFIG_DEFAULT_INPUTSECTION "Input"
 
 /** @brief  The default name of the section for the output information.*/
 #define GENERATEICSCONFIG_DEFAULT_OUTPUTSECTION "Output"

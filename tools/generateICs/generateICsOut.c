@@ -55,7 +55,7 @@ generateICsOut_new(const char *prefix, int outputFiles, gadgetVersion_t v)
 extern void
 generateICsOut_del(generateICsOut_t *genicsOut)
 {
-	assert(generateICsOut != NULL && *genicsOut != NULL);
+	assert(genicsOut != NULL && *genicsOut != NULL);
 
 	gadgetTOC_del( &( (*genicsOut)->toc ) );
 	if ( (*genicsOut)->baseHeader != NULL ) {

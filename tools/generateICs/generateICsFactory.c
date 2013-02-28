@@ -55,6 +55,8 @@ struct generateICs_IniData_struct {
 	bool   doGas;
 	/** @brief  Stores key @c doLongIDs. */
 	bool   doLongIDs;
+	/** @brief  Stores key @c inputSection. */
+	char   *inputSection;
 	/** @brief  Stores key @c outputSection. */
 	char   *outputSection;
 	/** @brief  Stores key @c cosmologySection. */
@@ -65,6 +67,8 @@ struct generateICs_IniData_struct {
 	char   *datastoreSection;
 	/** @brief  Stores key @c maskSection. */
 	char   *maskSection;
+	/** @brief  Stores key @c ginnungagapSection. */
+	char   *g9pSection;
 };
 
 /** @brief  Short name for a reference to the helper structure.  */
@@ -169,13 +173,33 @@ local_iniDataNewFromIni_section(generateICs_iniData_t iniData,
 
 /**
  * @brief  Helper function for generateICsFactory_newFromIni() dealing with
+ *         the input.
+ *
+ * @param[in,out]  ini
+ *                    The ini file to work with.
+ * @param[in]      *levelSection
+ *                    The name of the section from which to construct the
+ *                    input details.
+ * @param[in,out]  genics
+ *                    The object to work with.
+ *
+ * @return  Returns nothing.
+ */
+inline static void
+local_newFromIni_input(parse_ini_t   ini,
+                       const char    *secName,
+                       generateICs_t genics);
+
+
+/**
+ * @brief  Helper function for generateICsFactory_newFromIni() dealing with
  *         the output.
  *
  * @param[in,out]  ini
  *                    The ini file to work with.
  * @param[in]      *levelSection
  *                    The name of the section from which to construct the
- *                    readers.
+ *                    output details.
  * @param[in,out]  genics
  *                    The object to work with.
  *
@@ -226,6 +250,7 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	                             g9pHierarchy_getRef(hierarchy) );
 	generateICs_setMask(genics, mask);
 
+	local_newFromIni_input(ini, iniData->inputSection, genics);
 	local_newFromIni_output(ini, iniData->outputSection, genics);
 
 	local_iniDataDel(&iniData);
@@ -243,11 +268,12 @@ local_iniDataNewFromIni(parse_ini_t ini, const char *sectionName)
 	iniData = xmalloc( sizeof(struct generateICs_IniData_struct) );
 	local_iniDataInit(iniData);
 
-	local_iniDataNewFromIni_boxsize(iniData, ini, sectionName);
-	local_iniDataNewFromIni_zInit(iniData, ini, sectionName);
 	local_iniDataNewFromIni_doGas(iniData, ini, sectionName);
 	local_iniDataNewFromIni_doLongIDs(iniData, ini, sectionName);
 	local_iniDataNewFromIni_section(iniData, ini, sectionName);
+
+	local_iniDataNewFromIni_boxsize(iniData, ini, iniData->g9pSection);
+	local_iniDataNewFromIni_zInit(iniData, ini, iniData->g9pSection);
 
 	return iniData;
 }
@@ -260,6 +286,8 @@ local_iniDataInit(generateICs_iniData_t iniData)
 	iniData->zInit            = 0.0;
 	iniData->doGas            = false;
 	iniData->doLongIDs        = false;
+	iniData->g9pSection       = NULL;
+	iniData->inputSection     = NULL;
 	iniData->outputSection    = NULL;
 	iniData->cosmologySection = NULL;
 	iniData->maskSection      = NULL;
@@ -271,6 +299,10 @@ local_iniDataDel(generateICs_iniData_t *iniData)
 	assert(iniData != NULL);
 	assert(*iniData != NULL);
 
+	if ( (*iniData)->g9pSection != NULL )
+		xfree( (*iniData)->g9pSection );
+	if ( (*iniData)->inputSection != NULL )
+		xfree( (*iniData)->inputSection );
 	if ( (*iniData)->outputSection != NULL )
 		xfree( (*iniData)->outputSection );
 	if ( (*iniData)->cosmologySection != NULL )
@@ -346,6 +378,16 @@ local_iniDataNewFromIni_section(generateICs_iniData_t iniData,
 	assert(ini != NULL);
 	assert(secName != NULL);
 
+	if ( !parse_ini_get_string( ini, "ginnungagapSection", secName,
+	                            &(iniData->g9pSection) ) ) {
+		iniData->g9pSection = xstrdup(
+		    GENERATEICSCONFIG_DEFAULT_GINNUNGAGAPSECTION);
+	}
+	if ( !parse_ini_get_string( ini, "inputSection", secName,
+	                            &(iniData->inputSection) ) ) {
+		iniData->inputSection = xstrdup(
+		    GENERATEICSCONFIG_DEFAULT_INPUTSECTION);
+	}
 	if ( !parse_ini_get_string( ini, "outputSection", secName,
 	                            &(iniData->outputSection) ) ) {
 		iniData->outputSection = xstrdup(
@@ -369,23 +411,53 @@ local_iniDataNewFromIni_section(generateICs_iniData_t iniData,
 } // local_iniDataNewFromIni_section
 
 inline static void
+local_newFromIni_input(parse_ini_t   ini,
+                       const char    *secName,
+                       generateICs_t genics)
+{
+	char         *name;
+	gridReader_t reader[3];
+
+	getFromIni(&name, parse_ini_get_string, ini, "velxSection", secName);
+	reader[0] = gridReaderFactory_newReaderFromIni(ini, name);
+	xfree(name);
+
+	getFromIni(&name, parse_ini_get_string, ini, "velySection", secName);
+	reader[1] = gridReaderFactory_newReaderFromIni(ini, name);
+	xfree(name);
+
+	getFromIni(&name, parse_ini_get_string, ini, "velzSection", secName);
+	reader[2] = gridReaderFactory_newReaderFromIni(ini, name);
+	xfree(name);
+
+	generateICs_setIn( genics,
+	                   generateICsIn_new(reader[0], reader[1], reader[2]) );
+}
+
+inline static void
 local_newFromIni_output(parse_ini_t   ini,
                         const char    *secName,
                         generateICs_t genics)
 {
-	uint32_t numFiles;
-	char     *prefix;
-	char     *version;
+	uint32_t        numFiles;
+	char            *prefix;
+	char            *version;
+	gadgetVersion_t ver;
 
 	getFromIni(&numFiles, parse_ini_get_uint32, ini, "numFiles", secName);
 	getFromIni(&prefix, parse_ini_get_string, ini, "prefix", secName);
-	getFromIni(&version, parse_ini_get_string, ini, "version", secName);
+	if ( !parse_ini_get_string(ini, "version", secName,
+	                           &version) ) {
+		ver = GADGETVERSION_ONE;
+	} else {
+		ver = gadgetVersion_getTypeFromName(version);
+		xfree(version);
+	}
 
 	generateICsOut_t out;
-	out = generateICsOut_new( prefix, numFiles,
-	                          gadgetVersion_getTypeFromName(version) );
+	out = generateICsOut_new(prefix, numFiles, ver);
+
 	generateICs_setOut(genics, out);
 
 	xfree(prefix);
-	xfree(version);
 } // local_newFromIni_output

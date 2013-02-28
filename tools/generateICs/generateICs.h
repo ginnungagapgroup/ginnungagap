@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include "generateICsMode.h"
 #include "generateICsData.h"
+#include "generateICsIn.h"
 #include "generateICsOut.h"
 #include "../../src/libcosmo/cosmoModel.h"
 #include "../../src/libg9p/g9pHierarchy.h"
@@ -74,6 +75,9 @@ generateICs_setMode(generateICs_t genics, generateICsMode_t mode);
 
 extern void
 generateICs_setData(generateICs_t genics, generateICsData_t data);
+
+extern void
+generateICs_setIn(generateICs_t genics, generateICsIn_t in);
 
 extern void
 generateICs_setOut(generateICs_t genics, generateICsOut_t out);
