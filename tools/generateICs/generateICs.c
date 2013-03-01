@@ -140,114 +140,10 @@ generateICs_del(generateICs_t *genics)
 	*genics = NULL;
 } // generateICs_del
 
-/*--- Exported function: Setter -----------------------------------------*/
-extern void
-generateICs_setMode(generateICs_t genics, generateICsMode_t mode)
-{
-	assert(genics != NULL);
 
-	if (genics->mode != NULL)
-		generateICsMode_del( &(genics->mode) );
+/*--- Include getter/setter function ------------------------------------*/
+#include "generateICs_impl.c"
 
-	genics->mode = mode;
-}
-
-extern void
-generateICs_setData(generateICs_t genics, generateICsData_t data)
-{
-	assert(genics != NULL);
-
-	if (genics->data != NULL)
-		generateICsData_del( &(genics->data) );
-
-	genics->data = data;
-}
-
-extern void
-generateICs_setIn(generateICs_t genics, generateICsIn_t in)
-{
-	assert(genics != NULL);
-
-	if (genics->in != NULL)
-		generateICsIn_del( &(genics->in) );
-
-	genics->in = in;
-}
-
-extern void
-generateICs_setOut(generateICs_t genics, generateICsOut_t out)
-{
-	assert(genics != NULL);
-
-	if (genics->out != NULL)
-		generateICsOut_del( &(genics->out) );
-
-	genics->out = out;
-}
-
-extern void
-generateICs_setHierarchy(generateICs_t genics, g9pHierarchy_t hierarchy)
-{
-	assert(genics != NULL);
-
-	if (genics->hierarchy != NULL) {
-		fprintf(stderr, "ERROR: The hierarchy can only be set once.\n");
-		diediedie(EXIT_FAILURE);
-	}
-
-	genics->hierarchy = hierarchy;
-}
-
-extern void
-generateICs_setDataStore(generateICs_t genics, g9pDataStore_t datastore)
-{
-	assert(genics != NULL);
-
-	if (genics->datastore != NULL) {
-		fprintf(stderr, "ERROR: The datastore can only be set once.\n");
-		diediedie(EXIT_FAILURE);
-	}
-
-	genics->datastore = datastore;
-}
-
-extern void
-generateICs_setMask(generateICs_t genics, g9pMask_t mask)
-{
-	assert(genics != NULL);
-
-	if (genics->mask != NULL) {
-		fprintf(stderr, "ERROR: The mask can only be set once.\n");
-		diediedie(EXIT_FAILURE);
-	}
-
-	genics->mask = mask;
-}
-
-/*--- Exported function: Getter -----------------------------------------*/
-extern g9pHierarchy_t
-generateICs_getHierarchy(const generateICs_t genics)
-{
-	assert(genics != NULL);
-
-	return genics->hierarchy;
-}
-
-extern g9pDataStore_t
-generateICs_getDataStore(const generateICs_t genics)
-{
-	assert(genics != NULL);
-
-	return genics->datastore;
-}
-
-extern g9pMask_t
-generateICs_getMask(const generateICs_t genics)
-{
-	assert(genics != NULL);
-
-	return genics->mask;
-}
 
 /*--- Exported function: Using ------------------------------------------*/
 extern void
@@ -267,13 +163,13 @@ generateICs_run(generateICs_t genics)
 	g9pICMap_t map = g9pICMap_new( genics->out->numFiles, 0, NULL,
 	                               g9pMask_getRef(genics->mask) );
 
+	if (genics->rank == 0)
+		generateICs_printSummary(genics, stdout);
+
 	const uint32_t    tmp      = g9pMask_getDim1D(genics->mask);
 	gridPointUint32_t fullDims = {tmp, tmp, tmp};
 	generateICsOut_initBaseHeader(genics->out, genics->data, fullDims,
 	                              genics->mode);
-
-	if (genics->rank == 0)
-		generateICs_printSummary(genics, stdout);
 
 	for (uint32_t i = 0; i < genics->out->numFiles; i++) {
 		printf(" * Working on file %i\n", i);
