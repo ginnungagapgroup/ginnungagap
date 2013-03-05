@@ -166,6 +166,12 @@ grafic2gadget_run(grafic2gadget_t g2g)
 
 	local_getFactors(gvx, np, &dx, &boxsize, &vFact, &aInit, &model,
 	                 g2g->omegaBaryon0);
+	if (np[2] < g2g->numGadgetFiles) {
+		fprintf(stderr,
+		        "Cannot write more files than planes, reduce the number "
+		        "of Gadget files.\n");
+		diediedie(EXIT_FAILURE);
+	}
 	local_checkForIDOverflow(np, g2g->useLongIDs, g2g->doGas);
 	baseHeader = local_getBaseHeader(gadget, boxsize, aInit, model, np,
 	                                 g2g->doGas, g2g->useLongIDs,
