@@ -5,6 +5,7 @@ src/ginnungagap/ginnungagap
 .project
 .settings/
 .*.swp
+*.tar.bz2
 Makefile.config
 config.log
 config.h
@@ -26,6 +27,12 @@ src/libutil/empty.grafic
 src/libutil/groupiTest.*
 src/libutil/writeTest.grafic
 src/libutil/writeWindowed.grafic
+src/libutil/TEST_gadgetBlock.dat
+src/libutil/TEST_gadget_writing.dat
+src/libutil/gadgetFake_v1.big.2.dat
+src/libutil/gadgetFake_v1.little.2.dat
+src/libutil/gadgetFake_v2.big.2.dat
+src/libutil/gadgetFake_v2.little.2.dat
 
 src/libcosmo/libcosmo_tests
 src/libcosmo/pk_from_tf.dat
@@ -55,6 +62,16 @@ tools/makeMask/makeMask
 tools/realSpaceConstraints/realSpaceConstraints
 
 tools/generateICs/generateICs
+
+tools/fileTools/art_createTestFile
+tools/fileTools/art_describeFile
+tools/fileTools/art_dumpSelection
+tools/fileTools/art_peekHeader
+tools/fileTools/cubepm_describeFile
+tools/fileTools/cubepm_dumpSelection
+tools/fileTools/gadget_describeFile
+tools/fileTools/gadget_dumpSelection
+tools/fileTools/gadget_peekHeader
 
 tmp/
 
