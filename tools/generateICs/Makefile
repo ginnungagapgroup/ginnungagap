@@ -14,6 +14,7 @@ sources = main.c \
           $(progName)Mode.c \
           $(progName)In.c \
           $(progName)Out.c \
+          $(progName)Core.c \
           $(progName)Factory.c
 
 ifeq ($(WITH_MPI), "true")

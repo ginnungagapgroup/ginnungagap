@@ -18,6 +18,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "generateICsConfig.h"
 #include "../../src/libgrid/gridReader.h"
+#include "../../src/libdata/dataVar.h"
 
 
 /*--- ADT handle --------------------------------------------------------*/
@@ -29,6 +30,10 @@ struct generateICsIn_struct {
 	gridReader_t velx;
 	gridReader_t vely;
 	gridReader_t velz;
+	// Auto generated
+	dataVar_t    varVelx;
+	dataVar_t    varVely;
+	dataVar_t    varVelz;
 };
 
 

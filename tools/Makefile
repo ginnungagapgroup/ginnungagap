@@ -15,6 +15,7 @@ all:
 	@echo ""
 	$(MAKE) -C estimateMemReq all
 	$(MAKE) -C makeSiloRoot all
+	$(MAKE) -C generateICs all
 	$(MAKE) -C grafic2gadget all
 	$(MAKE) -C grafic2bov all
 	$(MAKE) -C showFreqs all
@@ -30,6 +31,7 @@ all:
 
 clean:
 	$(MAKE) -C estimateMemReq clean
+	$(MAKE) -C generateICs clean
 	$(MAKE) -C grafic2gadget clean
 	$(MAKE) -C grafic2bov clean
 	$(MAKE) -C makeSiloRoot clean
@@ -40,6 +42,7 @@ clean:
 
 tests:
 	$(MAKE) -C estimateMemReq tests
+	$(MAKE) -C generateICs tests
 	$(MAKE) -C grafic2gadget tests
 	$(MAKE) -C grafic2bov tests
 	$(MAKE) -C makeSiloRoot tests
@@ -50,6 +53,7 @@ tests:
 
 tests-clean:
 	$(MAKE) -C estimateMemReq tests-clean
+	$(MAKE) -C generateICs tests-clean
 	$(MAKE) -C grafic2gadget tests-clean
 	$(MAKE) -C grafic2bov tests-clean
 	$(MAKE) -C makeSiloRoot tests-clean
@@ -60,6 +64,7 @@ tests-clean:
 
 dist-clean:
 	$(MAKE) -C estimateMemReq dist-clean
+	$(MAKE) -C generateICs dist-clean
 	$(MAKE) -C grafic2gadget dist-clean
 	$(MAKE) -C grafic2bov dist-clean
 	$(MAKE) -C makeSiloRoot dist-clean
@@ -70,6 +75,7 @@ dist-clean:
 
 install:
 	$(MAKE) -C estimateMemReq install
+	$(MAKE) -C generateICs install
 	$(MAKE) -C grafic2gadget install
 	$(MAKE) -C grafic2bov install
 	$(MAKE) -C makeSiloRoot install

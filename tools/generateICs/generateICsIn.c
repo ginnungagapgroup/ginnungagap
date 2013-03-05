@@ -31,10 +31,14 @@ generateICsIn_new(gridReader_t velx, gridReader_t vely, gridReader_t velz)
 {
 	generateICsIn_t in;
 
-	in       = xmalloc( sizeof(struct generateICsIn_struct) );
-	in->velx = velx;
-	in->vely = vely;
-	in->velz = velz;
+	in          = xmalloc( sizeof(struct generateICsIn_struct) );
+	in->velx    = velx;
+	in->vely    = vely;
+	in->velz    = velz;
+
+	in->varVelx = dataVar_new("velx", DATAVARTYPE_FPV, 1);
+	in->varVely = dataVar_new("vely", DATAVARTYPE_FPV, 1);
+	in->varVelz = dataVar_new("velz", DATAVARTYPE_FPV, 1);
 
 	return in;
 }
@@ -43,6 +47,10 @@ extern void
 generateICsIn_del(generateICsIn_t *in)
 {
 	assert(in != NULL && *in != NULL);
+
+	dataVar_del( &( (*in)->varVelx ) );
+	dataVar_del( &( (*in)->varVely ) );
+	dataVar_del( &( (*in)->varVelz ) );
 
 	gridReader_del( &( (*in)->velx ) );
 	gridReader_del( &( (*in)->vely ) );
