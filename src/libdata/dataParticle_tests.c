@@ -159,7 +159,7 @@ dataParticle_addVar_test(void)
 	                                1);
 	var = dataVar_new("Bla", DATAVARTYPE_DOUBLE, 1);
 
-	dataParticle_addVar(dataParticle, var);
+	dataParticle_addVar(dataParticle, dataVar_getRef(var));
 	if (varArr_getLength(dataParticle->vars) != 1)
 		hasPassed = false;
 	if (varArr_getElementHandle(dataParticle->vars, 0) != var)

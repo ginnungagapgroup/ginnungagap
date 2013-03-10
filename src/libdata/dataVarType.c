@@ -31,6 +31,15 @@ dataVarType_sizeof(dataVarType_t type)
 	case DATAVARTYPE_INT:
 		size = sizeof(int);
 		break;
+	case DATAVARTYPE_INT32:
+		size = sizeof(int32_t);
+		break;
+	case DATAVARTYPE_INT64:
+		size = sizeof(int64_t);
+		break;
+	case DATAVARTYPE_FLOAT:
+		size = sizeof(float);
+		break;
 	case DATAVARTYPE_DOUBLE:
 		size = sizeof(double);
 		break;
@@ -49,6 +58,7 @@ dataVarType_isFloating(dataVarType_t type)
 {
 	switch (type) {
 	case DATAVARTYPE_DOUBLE:
+	case DATAVARTYPE_FLOAT:
 	case DATAVARTYPE_FPV:
 		return true;
 
@@ -65,6 +75,8 @@ dataVarType_isInteger(dataVarType_t type)
 	switch (type) {
 	case DATAVARTYPE_INT8:
 	case DATAVARTYPE_INT:
+	case DATAVARTYPE_INT32:
+	case DATAVARTYPE_INT64:
 		return true;
 
 	default:
@@ -78,10 +90,11 @@ extern bool
 dataVarType_isNativeFloat(dataVarType_t type)
 {
 	switch (type) {
+	case DATAVARTYPE_FLOAT:
 #ifndef ENABLE_DOUBLE
 	case DATAVARTYPE_FPV:
-		return true;
 #endif
+		return true;
 	default:
 		break;
 	}

@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2013, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -33,5 +33,8 @@ partBunch_isAllocated_test(void);
 
 extern bool
 partBunch_getNumParticles_test(void);
+
+extern bool
+partBunch_at_test(void);
 
 #endif
