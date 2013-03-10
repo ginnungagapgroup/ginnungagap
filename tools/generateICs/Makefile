@@ -45,6 +45,7 @@ install: $(progName)
 $(progName): $(sources:.c=.o) \
                      ../../src/libg9p/libg9p.a \
                      ../../src/libgrid/libgrid.a \
+                     ../../src/libpart/libpart.a \
                      ../../src/libdata/libdata.a \
 	                 ../../src/libcosmo/libcosmo.a \
 	                 ../../src/libutil/libutil.a
@@ -52,6 +53,7 @@ $(progName): $(sources:.c=.o) \
 	  -o $(progName) $(sources:.c=.o) \
                      ../../src/libg9p/libg9p.a \
 	                 ../../src/libgrid/libgrid.a \
+	                 ../../src/libpart/libpart.a \
 	                 ../../src/libdata/libdata.a \
 	                 ../../src/libcosmo/libcosmo.a \
 	                 ../../src/libutil/libutil.a \
@@ -64,6 +66,9 @@ $(progName): $(sources:.c=.o) \
 
 ../../src/libgrid/libgrid.a:
 	$(MAKE) -C ../../src/libgrid
+
+../../src/libpart/libpart.a:
+	$(MAKE) -C ../../src/libpart
 
 ../../src/libdata/libdata.a:
 	$(MAKE) -C ../../src/libdata

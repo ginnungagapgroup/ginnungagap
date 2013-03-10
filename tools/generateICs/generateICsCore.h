@@ -64,6 +64,11 @@ generateICsCore_vel2pos(generateICsCore_const_t d);
 extern void
 generateICsCore_convertVel(generateICsCore_const_t d);
 
+extern void
+generateICsCode_dm2Gas(generateICsCore_const_t d,
+                       const double            gasOffset,
+                       const uint64_t          npGasTotal);
+
 
 /*--- Doxygen group definitions -----------------------------------------*/
 

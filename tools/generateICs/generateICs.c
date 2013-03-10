@@ -39,6 +39,7 @@
 #include "../../src/libutil/gadgetTOC.h"
 #include "../../src/libg9p/g9pICMap.h"
 #include "../../src/libgrid/gridPatch.h"
+#include "../../src/libpart/partBunch.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -71,8 +72,7 @@ local_init(generateICs_t genics);
 
 static void
 local_setupCore(generateICsCore_t   core,
-                const generateICs_t genics,
-                uint32_t            tile);
+                const generateICs_t genics);
 
 
 /**
@@ -92,9 +92,9 @@ static void
 local_doFile(generateICs_t genics, const g9pICMap_t map, int file);
 
 static void
-local_writeGadgetFile(generateICs_t           genics,
-                      int                     file,
-                      generateICsCore_const_t core);
+local_writeGadgetFile(generateICs_t     genics,
+                      int               file,
+                      const partBunch_t particles);
 
 
 /*--- Exported functions: Creating and deleting -------------------------*/
@@ -226,46 +226,74 @@ local_computeNumParts(const generateICs_t genics, uint32_t tile)
 	uint64_t np;
 
 	np = g9pMask_getNumCellsInTileForLevel( genics->mask, tile,
-	                                        g9pMask_getMaxLevel(genics->mask) );
+	                                        g9pMask_getMinLevel(genics->mask) );
 
 	return np;
 }
 
 static void
 local_setupCore(generateICsCore_t   core,
-                const generateICs_t genics,
-                uint32_t            tile)
+                const generateICs_t genics)
 {
-	core->numParticles = local_computeNumParts(genics, tile);
-	core->pos          = xmalloc(sizeof(fpv_t) * (core->numParticles) * 3);
-	core->vel          = xmalloc(sizeof(fpv_t) * (core->numParticles) * 3);
-	if (genics->mode->useLongIDs)
-		core->id = xmalloc(sizeof(uint64_t) * core->numParticles);
-	else
-		core->id = xmalloc(sizeof(uint32_t) * core->numParticles);
-
 	core->fullDims[0] = g9pMask_getDim1D(genics->mask);
 	core->fullDims[1] = core->fullDims[0];
 	core->fullDims[2] = core->fullDims[0];
 
-	printf("numPartsInFile = %lu\n", core->numParticles);
-	printf("fullDims = (%u, %u, %u)\n", core->fullDims[0],
+	printf("   fullDims = (%u, %u, %u)\n", core->fullDims[0],
 	       core->fullDims[1], core->fullDims[2]);
-} // local_setupCore
+}
+
+static partBunch_t
+local_getParticleStorage(const generateICs_t genics,
+                         const uint32_t      firstTile,
+                         const uint32_t      lastTile)
+{
+	uint64_t numParticles = UINT64_C(0);
+	for (uint32_t i = firstTile; i <= lastTile; i++) {
+		numParticles += local_computeNumParts(genics, i);
+	}
+	if (genics->mode->doGas)
+		numParticles *= 2;
+
+	dataVar_t      var;
+	dataParticle_t desc = dataParticle_new("Standard", 0, 3);
+	var = dataVar_new("Position", DATAVARTYPE_FPV, NDIM);
+	(void)dataParticle_addVar(desc, var);
+	var = dataVar_new("Velocity", DATAVARTYPE_FPV, NDIM);
+	(void)dataParticle_addVar(desc, var);
+	if (genics->mode->useLongIDs)
+		var = dataVar_new("ID", DATAVARTYPE_INT64, 1);
+	else
+		var = dataVar_new("ID", DATAVARTYPE_INT32, 1);
+	(void)dataParticle_addVar(desc, var);
+	dataParticle_lock(desc);
+
+	partBunch_t particles = partBunch_new(desc, numParticles);
+	partBunch_allocMem(particles);
+
+	return particles;
+} // local_getParticleStorage
 
 static void
 local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 {
-	uint32_t          firstTile = g9pICMap_getFirstTileInFile(map, file);
-	uint32_t          lastTile  = g9pICMap_getLastTileInFile(map, file);
+	uint32_t    firstTile = g9pICMap_getFirstTileInFile(map, file);
+	uint32_t    lastTile  = g9pICMap_getLastTileInFile(map, file);
+	uint64_t    partsRead = UINT64_C(0);
 
-	generateICsCore_s core      = GENICSCORE_INIT_STRUCT(genics->data,
-	                                                     genics->mode);
+	partBunch_t particles = local_getParticleStorage(genics,
+	                                                 firstTile, lastTile);
+
+	generateICsCore_s core = GENICSCORE_INIT_STRUCT(genics->data,
+	                                                genics->mode);
+	local_setupCore(&core, genics);
 
 	for (uint32_t i = firstTile; i <= lastTile; i++) {
-		assert(i == firstTile);
-		local_setupCore(&core, genics, i);
-		core.patch = g9pMask_getEmptyPatchForTile(genics->mask, i);
+		core.numParticles = local_computeNumParts(genics, i);
+		core.pos          = partBunch_at(particles, 0, partsRead);
+		core.vel          = partBunch_at(particles, 1, partsRead);
+		core.id           = partBunch_at(particles, 2, partsRead);
+		core.patch        = g9pMask_getEmptyPatchForTile(genics->mask, i);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVelx);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVely);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVelz);
@@ -277,25 +305,45 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 		generateICsCore_toParticles(&core);
 
 		gridPatch_del( &(core.patch) );
+		partsRead += core.numParticles;
+	}
+	printf("   Particles read: %lu\n", partsRead);
+	{
+		uint64_t npGasTotal = core.fullDims[0];
+		npGasTotal *= core.fullDims[1];
+		npGasTotal *= core.fullDims[2];
+		core.numParticles = partBunch_getNumParticles(particles);
+		core.pos          = partBunch_at(particles, 0, 0);
+		core.vel          = partBunch_at(particles, 1, 0);
+		core.id           = partBunch_at(particles, 2, 0);
+		generateICsCode_dm2Gas(&core, 0.25, npGasTotal);
 	}
 
-	local_writeGadgetFile(genics, file, &core);
+	local_writeGadgetFile(genics, file, particles);
 
-	xfree(core.id);
-	xfree(core.pos);
-	xfree(core.vel);
+	partBunch_del(&particles);
 } // local_doFile
 
 static void
-local_writeGadgetFile(generateICs_t           genics,
-                      int                     file,
-                      generateICsCore_const_t core)
+local_writeGadgetFile(generateICs_t     genics,
+                      int               file,
+                      const partBunch_t particles)
 {
-	uint32_t       npLocal[6] = {0, core->numParticles, 0, 0, 0, 0};
+	uint32_t       npLocal[6] = {0, 0, 0, 0, 0, 0};
 	double         massArr[6] = {0., 0., 0., 0., 0., 0.};
 	gadgetHeader_t myHeader;
 
-	myHeader = gadgetHeader_clone(genics->out->baseHeader);
+	const uint64_t               np = partBunch_getNumParticles(particles);
+	if (genics->mode->doGas) {
+		assert(np % 2 == 0);
+		npLocal[0] = np / 2;
+		npLocal[1] = npLocal[0];
+	} else {
+		npLocal[1] = (uint32_t)np;
+	}
+
+	myHeader   = gadgetHeader_clone(genics->out->baseHeader);
+	gadgetHeader_getMassArr(myHeader, massArr);
 	gadgetHeader_setNp(myHeader, npLocal);
 	gadgetTOC_calcSizes(genics->out->toc, npLocal, massArr, false,
 	                    genics->mode->useLongIDs);
@@ -307,20 +355,25 @@ local_writeGadgetFile(generateICs_t           genics,
 	gadget_writeHeaderToCurrentFile(genics->out->gadget);
 	{
 		stai_t stai;
-		stai = stai_new( core->pos, 3 * sizeof(float), 3 * sizeof(float) );
+		stai = stai_new( partBunch_at(particles, 0, 0),
+		                 3 * sizeof(fpv_t), 3 * sizeof(fpv_t) );
 		gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_POS_,
-		                               0, core->numParticles, stai);
+		                               0, np, stai);
 		stai_del(&stai);
-		stai = stai_new( core->vel, 3 * sizeof(float), 3 * sizeof(float) );
+		stai = stai_new( partBunch_at(particles, 1, 0),
+		                 3 * sizeof(fpv_t), 3 * sizeof(fpv_t) );
 		gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_VEL_,
-		                               0, core->numParticles, stai);
+		                               0, np, stai);
 		stai_del(&stai);
-		if (genics->mode->useLongIDs)
-			stai = stai_new( core->id, sizeof(uint64_t), sizeof(uint64_t) );
-		else
-			stai = stai_new( core->id, sizeof(uint32_t), sizeof(uint32_t) );
+		if (genics->mode->useLongIDs) {
+			stai = stai_new( partBunch_at(particles, 2, 0),
+			                 sizeof(uint64_t), sizeof(uint64_t) );
+		} else {
+			stai = stai_new( partBunch_at(particles, 2, 0),
+			                 sizeof(uint32_t), sizeof(uint32_t) );
+		}
 		gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_ID__,
-		                               0, core->numParticles, stai);
+		                               0, np, stai);
 		stai_del(&stai);
 	}
 	gadget_close(genics->out->gadget);

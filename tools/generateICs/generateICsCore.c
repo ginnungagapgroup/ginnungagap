@@ -16,6 +16,7 @@
 #include "generateICsConfig.h"
 #include "generateICsCore.h"
 #include <assert.h>
+#include <string.h>
 #include "../../src/libutil/xmem.h"
 #include "../../src/libutil/lIdx.h"
 
@@ -47,8 +48,8 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 	gridPatch_getIdxLo(d->patch, idxLo);
 	gridPatch_getDims(d->patch, dims);
 
-	printf("Patch idxLo: (%u,%u,%u)\n", idxLo[0], idxLo[1], idxLo[2]);
-	printf("Patch dims:  (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
+	printf("   Patch idxLo: (%u,%u,%u)\n", idxLo[0], idxLo[1], idxLo[2]);
+	printf("   Patch dims:  (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
 
 	gridPointUint32_t p;
 	uint64_t          i = 0;
@@ -77,9 +78,9 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 extern void
 generateICsCore_vel2pos(generateICsCore_const_t d)
 {
-#define SCALE(d, k)                              \
+#define SCALE(d, k)                               \
 	(fmod(d->pos[k] + d->data->vFact * d->vel[k], \
-	     d->data->boxsizeInMpch) * d->data->posFactor)
+	      d->data->boxsizeInMpch) * d->data->posFactor)
 	for (uint64_t i = 0; i < d->numParticles; i++) {
 		d->pos[i * 3]     += (fpv_t)(d->data->boxsizeInMpch);
 		d->pos[i * 3]      = (fpv_t)( SCALE( d, (i * 3) ) );
@@ -101,5 +102,42 @@ generateICsCore_convertVel(generateICsCore_const_t d)
 		d->vel[i * 3 + 2] *= fac;
 	}
 }
+
+extern void
+generateICsCode_dm2Gas(generateICsCore_const_t d,
+                       const double            gasOffset,
+                       const uint64_t          npGasTotal)
+{
+	const double shift     = d->data->boxsizeInMpch / d->fullDims[0]
+	                         * gasOffset;
+	uint64_t     npGasOrDM = d->numParticles / 2;
+
+	printf("   Gas offset: %lf\n", shift);
+	printf("   Local gas particles: %lu\n", npGasOrDM);
+	printf("   Total gas particles: %lu\n", npGasTotal);
+
+	memcpy(d->pos + 3 * npGasOrDM, d->pos, sizeof(fpv_t) * 3 * npGasOrDM);
+	memcpy(d->vel + 3 * npGasOrDM, d->vel, sizeof(fpv_t) * 3 * npGasOrDM);
+	if (d->mode->useLongIDs) {
+		memcpy( (uint64_t *)(d->id) + npGasOrDM, d->id,
+		        sizeof(uint64_t) * npGasOrDM );
+	} else {
+		memcpy( (uint32_t *)(d->id) + npGasOrDM, d->id,
+		        sizeof(uint32_t) * npGasOrDM );
+	}
+
+	for (uint64_t i = 0; i < npGasOrDM; i++) {
+		d->pos[i * 3]     += shift;
+		d->pos[i * 3 + 1] += shift;
+		d->pos[i * 3 + 2] += shift;
+	}
+	for (uint64_t i = npGasOrDM; i < d->numParticles; i++) {
+		if (d->mode->useLongIDs) {
+			( (uint64_t *)(d->id) )[i] += npGasTotal;
+		} else {
+			( (uint32_t *)(d->id) )[i] += (uint32_t)npGasTotal;
+		}
+	}
+} // generateICsCode_dm2Gas
 
 /*--- Implementations of local functions --------------------------------*/
