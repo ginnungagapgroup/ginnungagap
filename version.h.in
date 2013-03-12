@@ -22,7 +22,7 @@
  */
 
 /** @brief The state of the package (0: alpha, 1: beta, 2: release). */
-#define PACKAGE_STATE 0
+#define PACKAGE_STATE 1
 
 /** @brief  The name of the package. */
 #define PACKAGE_NAME          "ginnungagap"
