@@ -308,8 +308,16 @@ local_count(void *data, dataVar_t var, uint64_t len, gridHistogram_t histo)
 
 	switch (type) {
 	case DATAVARTYPE_INT:
+	case DATAVARTYPE_INT32:
 	{
 		int *tmp = (int *)data;
+		for (uint64_t i = 0; i < len; i++)
+			local_countValue(tmp[i], histo);
+	}
+	break;
+	case DATAVARTYPE_INT64:
+	{
+		int64_t *tmp = (int64_t *)data;
 		for (uint64_t i = 0; i < len; i++)
 			local_countValue(tmp[i], histo);
 	}
@@ -324,6 +332,13 @@ local_count(void *data, dataVar_t var, uint64_t len, gridHistogram_t histo)
 	case DATAVARTYPE_DOUBLE:
 	{
 		double *tmp = (double *)data;
+		for (uint64_t i = 0; i < len; i++)
+			local_countValue(tmp[i], histo);
+	}
+	break;
+	case DATAVARTYPE_FLOAT:
+	{
+		float *tmp = (float *)data;
 		for (uint64_t i = 0; i < len; i++)
 			local_countValue(tmp[i], histo);
 	}
