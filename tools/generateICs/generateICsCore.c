@@ -85,6 +85,9 @@ generateICsCore_vel2pos(generateICsCore_const_t d)
 	( fmod( (fpv_t)( (d->pos[k] + d->data->vFact * d->vel[k]) \
 	                 * d->data->posFactor ),                  \
 	        (fpv_t)(d->data->boxsizeInMpch * d->data->posFactor) ) )
+#ifdef _OPENMP
+#  pragma omp parallel for
+#endif
 	for (uint64_t i = 0; i < d->numParticles; i++) {
 		d->pos[i * 3]     += (fpv_t)(d->data->boxsizeInMpch);
 		d->pos[i * 3]      = SCALE( d, (i * 3) );
@@ -100,6 +103,9 @@ extern void
 generateICsCore_convertVel(generateICsCore_const_t d)
 {
 	const fpv_t fac = d->data->velFactor / sqrt(d->data->aInit);
+#ifdef _OPENMP
+#  pragma omp parallel for
+#endif
 	for (uint64_t i = 0; i < d->numParticles; i++) {
 		d->vel[i * 3]     *= fac;
 		d->vel[i * 3 + 1] *= fac;
@@ -130,11 +136,17 @@ generateICsCode_dm2Gas(generateICsCore_const_t d,
 		        sizeof(uint32_t) * npGasOrDM );
 	}
 
+#ifdef _OPENMP
+#  pragma omp parallel for
+#endif
 	for (uint64_t i = 0; i < npGasOrDM; i++) {
 		d->pos[i * 3]     += shift;
 		d->pos[i * 3 + 1] += shift;
 		d->pos[i * 3 + 2] += shift;
 	}
+#ifdef _OPENMP
+#  pragma omp parallel for
+#endif
 	for (uint64_t i = npGasOrDM; i < d->numParticles; i++) {
 		if (d->mode->useLongIDs) {
 			( (uint64_t *)(d->id) )[i] += npGasTotal;
