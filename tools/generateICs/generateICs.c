@@ -308,7 +308,7 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 		partsRead += core.numParticles;
 	}
 	printf("   Particles read: %lu\n", partsRead);
-	{
+	if (genics->mode->doGas) {
 		uint64_t npGasTotal = core.fullDims[0];
 		npGasTotal *= core.fullDims[1];
 		npGasTotal *= core.fullDims[2];
