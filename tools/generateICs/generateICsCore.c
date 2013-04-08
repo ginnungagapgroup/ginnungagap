@@ -13,6 +13,7 @@
 
 
 /*--- Includes ----------------------------------------------------------*/
+#include <tgmath.h>
 #include "generateICsConfig.h"
 #include "generateICsCore.h"
 #include <assert.h>
@@ -78,19 +79,22 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 extern void
 generateICsCore_vel2pos(generateICsCore_const_t d)
 {
-#define SCALE(d, k)                               \
-	(fmod(d->pos[k] + d->data->vFact * d->vel[k], \
-	      d->data->boxsizeInMpch) * d->data->posFactor)
+// uses type generic fmod, i.e. float MOD(float, float) or
+// double MOD(double, double), depending on what fpv_t is
+#define SCALE(d, k)                                           \
+	( fmod( (fpv_t)( (d->pos[k] + d->data->vFact * d->vel[k]) \
+	                 * d->data->posFactor ),                  \
+	        (fpv_t)(d->data->boxsizeInMpch * d->data->posFactor) ) )
 	for (uint64_t i = 0; i < d->numParticles; i++) {
 		d->pos[i * 3]     += (fpv_t)(d->data->boxsizeInMpch);
-		d->pos[i * 3]      = (fpv_t)( SCALE( d, (i * 3) ) );
+		d->pos[i * 3]      = SCALE( d, (i * 3) );
 		d->pos[i * 3 + 1] += (fpv_t)(d->data->boxsizeInMpch);
-		d->pos[i * 3 + 1]  = (fpv_t)( SCALE( d, (i * 3 + 1) ) );
+		d->pos[i * 3 + 1]  = SCALE( d, (i * 3 + 1) );
 		d->pos[i * 3 + 2] += (fpv_t)(d->data->boxsizeInMpch);
-		d->pos[i * 3 + 2]  = (fpv_t)( SCALE( d, (i * 3 + 2) ) );
+		d->pos[i * 3 + 2]  = SCALE( d, (i * 3 + 2) );
 	}
 #undef SCALE
-}
+} // generateICsCore_vel2pos
 
 extern void
 generateICsCore_convertVel(generateICsCore_const_t d)
