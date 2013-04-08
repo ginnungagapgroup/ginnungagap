@@ -87,7 +87,7 @@ generateICsOut_initBaseHeader(generateICsOut_t        genicsOut,
 		massarr[i] = 0;
 	}
 
-	npall[1]    = np[0] * np[1] * np[2];
+	npall[1]    = (uint64_t)(np[0]) * (uint64_t)(np[1]) * (uint64_t)(np[2]);
 	massarr[1]  = boxsize * boxsize * boxsize * omegaMatter0 / (npall[1]);
 	massarr[1] *= COSMO_RHO_CRIT0 * 1e-10;
 
