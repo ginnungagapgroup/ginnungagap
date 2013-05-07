@@ -101,6 +101,10 @@ timer_stop_text(double timing, const char *text)
 {
 	int rank = 0;
 
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
 	timing = timer_stop(timing);
 
 	if (rank == 0) {
