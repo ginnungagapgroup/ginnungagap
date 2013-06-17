@@ -28,6 +28,9 @@ typedef int      gridPointInt_t[NDIM];
 /** @brief  A #NDIM tuple of 32bit unsigned integers. */
 typedef uint32_t gridPointUint32_t[NDIM];
 
+/** @brief  A #NDIM tuple of 64bit signed integers. */
+typedef int64_t  gridPointInt64_t[NDIM];
+
 /** @brief  A #NDIM tuple of doubles. */
 typedef double   gridPointDbl_t[NDIM];
 

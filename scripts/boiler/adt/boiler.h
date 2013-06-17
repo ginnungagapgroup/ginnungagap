@@ -1,4 +1,4 @@
-// Copyright (C) 2012, Steffen Knollmann
+// Copyright (C) 2013, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -30,5 +30,13 @@ boiler_new(void);
 extern void
 boiler_del(boiler_t *boiler);
 
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup GROUP GROUP
+ * @ingroup GROUP
+ * @brief DESC.
+ */
 
 #endif

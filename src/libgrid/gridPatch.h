@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -18,6 +18,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridPoint.h"
+#include <math.h>
 #include "../libdata/dataVar.h"
 
 
@@ -277,6 +278,21 @@ gridPatch_replaceVarData(gridPatch_t patch, int idxOfVarData, void *newData);
 
 
 /**
+ * @brief  Retrieves (and removes) the data of for the requested variable.
+ *
+ * @param[in,out]  patch
+ *                    The patch to work with.
+ * @param[in]      idxOfVarData
+ *                    The index of the variable for which to pop the data.
+ *
+ * @return  Returns the pointer to the data.  This might be @c NULL if the
+ *          data for the requested variable was not allocated.
+ */
+extern void *
+gridPatch_popVarData(gridPatch_t patch, int idxOfVarData);
+
+
+/**
  * @brief  Returns a handle to a variable attached to the patch.
  *
  * @param[in]  patch
@@ -425,6 +441,32 @@ gridPatch_putWindowedData(gridPatch_t       patch,
                           gridPointUint32_t idxLo,
                           gridPointUint32_t idxHi,
                           const void        *data);
+
+
+/**
+ * @brief  Calculates the distance vector of a point from the patch.
+ *
+ * @param[in]   point
+ *                 The point for which to calculate the distance vector.
+ *                 Must not be @c NULL.
+ * @param[in]   patch
+ *                 The patch from which to calculate the distance. Must not
+ *                 be @c NULL.
+ * @param[in]   periodicDims
+ *                 This can be a the dimension of a larger grid on which to
+ *                 perform wrapping i.e. the shortest distance might be
+ *                 wrapped over the corners.  Can be @c NULL in which case
+ *                 the actual non-periodic distance is calculated.
+ * @param[out]  dist
+ *                 The distance vector.
+ *
+ * @return  Returns the norm of the distance vector.
+ */
+extern double
+gridPatch_calcDistanceVector(const gridPatch_t       patch,
+                             const gridPointUint32_t point,
+                             const gridPointUint32_t periodicDims,
+                             gridPointInt64_t        dist);
 
 
 /** @} */

@@ -118,8 +118,10 @@ main(void)
 
 	if (rank == 0) {
 		printf("\nRunning tests for tile:\n");
+		RUNTEST(&tile_calcNDIdxsELAE_test, hasFailed);
 		RUNTEST(&tile_calcIdxsELAE_test, hasFailed);
 		RUNTEST(&tile_calcTileNumberForIdxELAE_test, hasFailed);
+		RUNTEST(&tile_calcNDIdxsELAB_test, hasFailed);
 		RUNTEST(&tile_calcIdxsELAB_test, hasFailed);
 		RUNTEST(&tile_calcTileNumberForIdxELAB_test, hasFailed);
 		RUNTEST(&tile_calcNumLargeTilesEven_test, hasFailed);
@@ -247,6 +249,7 @@ main(void)
 		printf("\nRunning tests for gadgetVersion:\n");
 		RUNTEST(&gadgetVersion_getVersionFromFile_test, hasFailed);
 		RUNTEST(&gadgetVersion_getNameFromType_test, hasFailed);
+		RUNTEST(&gadgetVersion_getTypeFromName_test, hasFailed);
 	}
 
 	if (rank == 0) {

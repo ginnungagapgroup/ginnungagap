@@ -319,8 +319,15 @@ dataVar_getHDF5Datatype(const dataVar_t var)
 	case DATAVARTYPE_DOUBLE:
 		baseDt = H5T_NATIVE_DOUBLE;
 		break;
+	case DATAVARTYPE_FLOAT:
+		baseDt = H5T_NATIVE_FLOAT;
+		break;
 	case DATAVARTYPE_INT:
+	case DATAVARTYPE_INT32:
 		baseDt = H5T_NATIVE_INT;
+		break;
+	case DATAVARTYPE_INT64:
+		baseDt = H5T_NATIVE_INT64;
 		break;
 	case DATAVARTYPE_INT8:
 		baseDt = H5T_NATIVE_CHAR;

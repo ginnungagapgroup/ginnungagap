@@ -108,6 +108,12 @@ gridReaderHDF5_getH5File(const gridReaderHDF5_t writer);
  * @defgroup libgridIOInHDF5 HDF5 Reader
  * @ingroup libgridIOIn
  * @brief  Provides the HDF5 reader.
+ *
+ * Note that the HDF5 reader will open the underlying HDF5 file on setting
+ * or resetting the file name (via gridReader_setFileName() or
+ * gridReader_overlayFileName()). The file will stay opened until the reader
+ * is destroyed, or another file handle is set via
+ * gridReaderHDF5_setH5File().
  */
 
 #endif

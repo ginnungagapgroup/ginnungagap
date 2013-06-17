@@ -64,6 +64,7 @@ main(int argc, char **argv)
 	RUNTEST(&partBunch_resize_test, hasFailed);
 	RUNTEST(&partBunch_isAllocated_test, hasFailed);
 	RUNTEST(&partBunch_getNumParticles_test, hasFailed);
+	RUNTEST(&partBunch_at_test, hasFailed);
 #ifdef XMEM_TRACK_MEM
 	if (rank == 0)
 		xmem_info(stdout);

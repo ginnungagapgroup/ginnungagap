@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2013, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -30,11 +30,11 @@ partBunch_new(dataParticle_t desc, uint64_t initialNumParts)
 {
 	partBunch_t bunch;
 
-	bunch               = xmalloc(sizeof(struct partBunch_struct));
+	bunch               = xmalloc( sizeof(struct partBunch_struct) );
 
-	bunch->desc         = dataParticle_getRef(desc);
+	bunch->desc         = desc;
 	bunch->numParticles = initialNumParts;
-	bunch->data         = varArr_new(dataParticle_getNumVars(desc));
+	bunch->data         = varArr_new( dataParticle_getNumVars(desc) );
 	for (int i = 0; i < dataParticle_getNumVars(desc); i++)
 		(void)varArr_insert(bunch->data, NULL);
 	bunch->isAllocated = false;
@@ -47,10 +47,11 @@ partBunch_del(partBunch_t *bunch)
 {
 	assert(bunch != NULL && *bunch != NULL);
 
-	if (partBunch_isAllocated(*bunch))
+	if ( partBunch_isAllocated(*bunch) )
 		partBunch_freeMem(*bunch);
-	dataParticle_del(&((*bunch)->desc));
-	varArr_del(&((*bunch)->data));
+	varArr_truncate( (*bunch)->data );
+	dataParticle_del( &( (*bunch)->desc ) );
+	varArr_del( &( (*bunch)->data ) );
 	xfree(*bunch);
 
 	*bunch = NULL;
@@ -60,13 +61,13 @@ extern void
 partBunch_allocMem(partBunch_t bunch)
 {
 	assert(bunch != NULL);
-	assert(!partBunch_isAllocated(bunch));
+	assert( !partBunch_isAllocated(bunch) );
 
-	if (bunch->numParticles > UINT64_C(0)) {
+	if ( bunch->numParticles > UINT64_C(0) ) {
 		for (int i = 0; i < varArr_getLength(bunch->data); i++) {
 			dataVar_t var = dataParticle_getVarHandle(bunch->desc, i);
-			(void)varArr_replace(bunch->data, i,
-			                     dataVar_getMemory(var, bunch->numParticles));
+			(void)varArr_replace( bunch->data, i,
+			                      dataVar_getMemory(var, bunch->numParticles) );
 		}
 	}
 
@@ -77,9 +78,9 @@ extern void
 partBunch_freeMem(partBunch_t bunch)
 {
 	assert(bunch != NULL);
-	assert(partBunch_isAllocated(bunch));
+	assert( partBunch_isAllocated(bunch) );
 
-	if (bunch->numParticles > UINT64_C(0)) {
+	if ( bunch->numParticles > UINT64_C(0) ) {
 		for (int i = 0; i < varArr_getLength(bunch->data); i++) {
 			void      *old;
 			dataVar_t var = dataParticle_getVarHandle(bunch->desc, i);
@@ -96,9 +97,9 @@ partBunch_resize(partBunch_t bunch, uint64_t numParticles)
 {
 	assert(bunch != NULL);
 
-	if (numParticles != partBunch_getNumParticles(bunch)) {
+	if ( numParticles != partBunch_getNumParticles(bunch) ) {
 		bool wasAllocated;
-		if ((wasAllocated = partBunch_isAllocated(bunch)))
+		if ( ( wasAllocated = partBunch_isAllocated(bunch) ) )
 			partBunch_freeMem(bunch);
 		bunch->numParticles = numParticles;
 		if (wasAllocated)
@@ -120,6 +121,20 @@ partBunch_getNumParticles(const partBunch_t bunch)
 	assert(bunch != NULL);
 
 	return bunch->numParticles;
+}
+
+extern void *
+partBunch_at(const partBunch_t bunch, const int idxOfVar, const uint64_t i)
+{
+	assert(bunch != NULL);
+	assert( idxOfVar >= 0 && idxOfVar < varArr_getLength(bunch->data) );
+	assert(i < bunch->numParticles);
+	assert(partBunch_isAllocated(bunch));
+
+	dataVar_t var   = dataParticle_getVarHandle(bunch->desc, idxOfVar);
+	void      *base = varArr_getElementHandle(bunch->data, idxOfVar);
+
+	return dataVar_getPointerByOffset(var, base, i);
 }
 
 /*--- Implementations of local functions --------------------------------*/

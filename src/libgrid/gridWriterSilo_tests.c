@@ -49,9 +49,9 @@ gridWriterSilo_new_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
-	if (strcmp(writer->prefix, LOCAL_TESTPREFIX) != 0)
-		hasPassed = false;
+	writer  = gridWriterSilo_new();
+	gridWriter_setFileName((gridWriter_t)writer, filename_newFull("./", LOCAL_TESTPREFIX, "", "silo"));
+	gridWriterSilo_setDbType(writer, DB_HDF5);
 	if (writer->dbType != DB_HDF5)
 		hasPassed = false;
 	gridWriterSilo_del((gridWriter_t *)&writer);
@@ -79,7 +79,9 @@ gridWriterSilo_del_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	writer = (gridWriter_t)gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
+	writer  = (gridWriter_t)gridWriterSilo_new();
+	gridWriter_setFileName(writer, filename_newFull("./", LOCAL_TESTPREFIX, "", "silo"));
+	gridWriterSilo_setDbType((gridWriterSilo_t)writer, DB_HDF5);
 #ifdef WITH_MPI
 	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #endif
@@ -111,7 +113,9 @@ gridWriterSilo_initParallel_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
+	writer  = gridWriterSilo_new();
+	gridWriter_setFileName((gridWriter_t)writer, filename_newFull("./", LOCAL_TESTPREFIX, "", "silo"));
+	gridWriterSilo_setDbType(writer, DB_HDF5);
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 	if (writer->baton == NULL)
 		hasPassed = false;
@@ -121,7 +125,9 @@ gridWriterSilo_initParallel_test(void)
 		hasPassed = false;
 	gridWriterSilo_del((gridWriter_t *)&writer);
 
-	writer           = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
+	writer  = gridWriterSilo_new();
+	gridWriter_setFileName((gridWriter_t)writer, filename_newFull("./", LOCAL_TESTPREFIX, "", "silo"));
+	gridWriterSilo_setDbType(writer, DB_HDF5);
 	writer->numFiles = size;
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 	if (writer->baton == NULL)
@@ -158,12 +164,17 @@ gridWriterSilo_activate_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
+	writer  = gridWriterSilo_new();
+	gridWriter_setFileName((gridWriter_t)writer,
+	                       filename_newFull(NULL, LOCAL_TESTPREFIX,
+	                                        NULL, ".silo"));
+	gridWriter_setOverwriteFileIfExists((gridWriter_t)writer, true);
+	gridWriterSilo_setDbType(writer, DB_HDF5);
 #ifdef WITH_MPI
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 #endif
 	gridWriterSilo_activate((gridWriter_t)writer);
-	if (writer->isActive != true)
+	if (writer->base.isActive != true)
 		hasPassed = false;
 	if (writer->f == NULL)
 		hasPassed = false;
@@ -193,13 +204,18 @@ gridWriterSilo_deactivate_test(void)
 	if (rank == 0)
 		printf("Testing %s... ", __func__);
 
-	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
+	writer  = gridWriterSilo_new();
+	gridWriter_setFileName((gridWriter_t)writer,
+	                       filename_newFull(NULL, LOCAL_TESTPREFIX,
+	                                        NULL, ".silo"));
+	gridWriter_setOverwriteFileIfExists((gridWriter_t)writer, true);
+	gridWriterSilo_setDbType(writer, DB_HDF5);
 #ifdef WITH_MPI
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 #endif
 	gridWriterSilo_activate((gridWriter_t)writer);
 	gridWriterSilo_deactivate((gridWriter_t)writer);
-	if (writer->isActive != false)
+	if (writer->base.isActive != false)
 		hasPassed = false;
 	if (writer->f != NULL)
 		hasPassed = false;
@@ -247,7 +263,12 @@ gridWriterSilo_writeGridPatch_test(void)
 	patch  = gridPatch_new(lo, hi);
 	patch2 = gridPatch_new(lo2, hi2);
 
-	writer = gridWriterSilo_new(LOCAL_TESTPREFIX_PATCH, DB_HDF5);
+	writer  = gridWriterSilo_new();
+	gridWriter_setFileName((gridWriter_t)writer,
+	                       filename_newFull(NULL, LOCAL_TESTPREFIX_PATCH,
+	                                        NULL, ".silo"));
+	gridWriter_setOverwriteFileIfExists((gridWriter_t)writer, true);
+	gridWriterSilo_setDbType(writer, DB_HDF5);
 #ifdef WITH_MPI
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 #endif
@@ -289,7 +310,12 @@ gridWriterSilo_writeGridRegular_test(void)
 	grid = local_getFakeGridRegular();
 	// TODO Initialize memory areas
 
-	writer = gridWriterSilo_new(LOCAL_TESTPREFIX, DB_HDF5);
+	writer  = gridWriterSilo_new();
+	gridWriter_setFileName((gridWriter_t)writer,
+	                       filename_newFull(NULL, LOCAL_TESTPREFIX,
+	                                        NULL, ".silo"));
+	gridWriter_setOverwriteFileIfExists((gridWriter_t)writer, true);
+	gridWriterSilo_setDbType(writer, DB_HDF5);
 #ifdef WITH_MPI
 	gridWriterSilo_initParallel((gridWriter_t)writer, MPI_COMM_WORLD);
 #endif

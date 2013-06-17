@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -661,6 +661,62 @@ gridPatch_replaceVarData_test(void)
 } /* gridPatch_replaceVarData_test */
 
 extern bool
+gridPatch_popVarData_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridPatch_t       gridPatch;
+	dataVar_t         var;
+	gridPointUint32_t idxLo;
+	gridPointUint32_t idxHi;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	var = dataVar_new("TEST", DATAVARTYPE_DOUBLE, 1);
+	for (int i = 0; i < NDIM; i++) {
+		idxLo[i] = 0;
+		idxHi[i] = 1;
+	}
+	gridPatch   = gridPatch_new(idxLo, idxHi);
+	gridPatch_attachVar(gridPatch, var);
+
+	void *tmp = gridPatch_popVarData(gridPatch, 0);
+	if (tmp != NULL)
+		hasPassed = false;
+
+	gridPatch_allocateVarData(gridPatch, 0);
+	void *tmp1 = gridPatch_popVarData(gridPatch, 0);
+	if (tmp1 == NULL)
+		hasPassed = false;
+
+	void *tmp2 = gridPatch_popVarData(gridPatch, 0);
+	if (tmp2 != NULL)
+		hasPassed = false;
+
+	gridPatch_replaceVarData(gridPatch, 0, tmp1);
+	tmp2 = gridPatch_popVarData(gridPatch, 0);
+	if (tmp1 != tmp2)
+		hasPassed = false;
+
+	gridPatch_replaceVarData(gridPatch, 0, tmp1);
+	gridPatch_del(&gridPatch);
+	dataVar_del(&var);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
+
+extern bool
 gridPatch_getVarHandle_test(void)
 {
 	bool              hasPassed = true;
@@ -994,6 +1050,115 @@ gridPatch_putWindowedData_test(void)
 
 	return hasPassed ? true : false;
 } /* gridPatch_putWindowedData_test */
+
+extern bool
+gridPatch_calcDistanceVector_test(void)
+{
+	bool              hasPassed = true;
+	int               rank      = 0;
+	gridPatch_t       patch;
+#ifdef XMEM_TRACK_MEM
+	size_t            allocatedBytes = global_allocated_bytes;
+#endif
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	if (rank == 0)
+		printf("Testing %s... ", __func__);
+
+	gridPointUint32_t idxLoPatch, idxHiPatch;
+	for (int i = 0; i < NDIM; i++) {
+		idxLoPatch[i] = 3;
+		idxHiPatch[i] = 7;
+	}
+	patch         = gridPatch_new(idxLoPatch, idxHiPatch);
+
+	gridPointUint32_t point;
+	for (int i = 0; i < NDIM; i++)
+		point[i] = 5;
+
+	gridPointInt64_t dist;
+	double norm;
+	norm = gridPatch_calcDistanceVector(patch, point, NULL, dist);
+	if (islessgreater(norm, 0.0))
+		hasPassed = false;
+	for (int i = 0; i < NDIM; i++) {
+		if (dist[i] != 0)
+			hasPassed = false;
+	}
+	
+	point[0] = 0;
+	norm = gridPatch_calcDistanceVector(patch, point, NULL, dist);
+	if (islessgreater(norm, 3.0))
+		hasPassed = false;
+	if (dist[0] != 3)
+		hasPassed = false;
+	for (int i = 1; i < NDIM; i++) {
+		if (dist[i] != 0)
+			hasPassed = false;
+	}
+		
+	point[0] = 8;
+	norm = gridPatch_calcDistanceVector(patch, point, NULL, dist);
+	if (islessgreater(norm, 1.0))
+		hasPassed = false;
+	if (dist[0] != -1)
+		hasPassed = false;
+	for (int i = 1; i < NDIM; i++) {
+		if (dist[i] != 0)
+			hasPassed = false;
+	}
+
+	point[0] = 31;
+	norm = gridPatch_calcDistanceVector(patch, point, NULL, dist);
+	if (islessgreater(norm, 24.0))
+		hasPassed = false;
+	if (dist[0] != -24)
+		hasPassed = false;
+	for (int i = 1; i < NDIM; i++) {
+		if (dist[i] != 0)
+			hasPassed = false;
+	}
+	
+	gridPointUint32_t periodic;
+	for (int i=0; i<NDIM; i++)
+		periodic[i] = 32;
+	norm = gridPatch_calcDistanceVector(patch, point, periodic, dist);
+	if (islessgreater(norm, 4.0))
+		hasPassed = false;
+	if (dist[0] != 4)
+		hasPassed = false;
+
+	point[0] = 11;
+	norm = gridPatch_calcDistanceVector(patch, point, periodic, dist);
+	if (dist[0] != -4)
+		hasPassed = false;
+
+	point[0] = 21;
+	norm = gridPatch_calcDistanceVector(patch, point, periodic, dist);
+	if (dist[0] != -14)
+		hasPassed = false;
+
+	periodic[0] = 8;
+	point[0] = 1;
+	norm = gridPatch_calcDistanceVector(patch, point, periodic, dist);
+	if (dist[0] != 2)
+		hasPassed = false;
+
+	point[0] = 0;
+	norm = gridPatch_calcDistanceVector(patch, point, periodic, dist);
+	if (dist[0] != -1)
+		hasPassed = false;
+
+	gridPatch_del(&patch);
+#ifdef XMEM_TRACK_MEM
+	if (allocatedBytes != global_allocated_bytes)
+		hasPassed = false;
+#endif
+
+	return hasPassed ? true : false;
+}
 
 /*--- Implementations of local functions --------------------------------*/
 #if (NDIM == 2)

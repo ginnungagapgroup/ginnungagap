@@ -1,4 +1,4 @@
-// Copyright (C) 2010, 2011, Steffen Knollmann
+// Copyright (C) 2010, 2011, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -44,38 +44,40 @@ static double CPS_INV = 1. / ((double)CLOCKS_PER_SEC);
 
 /*--- Implementations of exported functios ------------------------------*/
 extern double
-timer_start(const char *text)
+timer_start(void)
 {
-	double timing;
-	int    rank = 0;
+#if (defined WITH_MPI)
+	MPI_Barrier(MPI_COMM_WORLD);
+	return -MPI_Wtime();
+#elif (defined _OPENMP)
+	return -omp_get_wtime();
+#else
+	return -clock() * CPS_INV;
+#endif
+}
+
+extern double
+timer_start_text(const char *text)
+{
+	int rank = 0;
 
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
 	if (rank == 0) {
-		printf("%s... ", text);
+		printf("%s", text);
 		fflush(stdout);
 	}
 
-#if (defined WITH_MPI)
-	MPI_Barrier(MPI_COMM_WORLD);
-	timing = -MPI_Wtime();
-#elif (defined _OPENMP)
-	timing = -omp_get_wtime();
-#else
-	timing = -clock() * CPS_INV;
-#endif
-
-	return timing;
+	return timer_start();
 }
 
 extern double
 timer_stop(double timing)
 {
-	int rank = 0;
-
 #if (defined WITH_MPI)
+	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	timing += MPI_Wtime();
 	{
@@ -91,8 +93,22 @@ timer_stop(double timing)
 	timing += clock() * CPS_INV;
 #endif
 
+	return timing;
+}
+
+extern double
+timer_stop_text(double timing, const char *text)
+{
+	int rank = 0;
+
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
+	timing = timer_stop(timing);
+
 	if (rank == 0) {
-		printf("took %.5fs\n", timing);
+		printf(text, timing);
 		fflush(stdout);
 	}
 

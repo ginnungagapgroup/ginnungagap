@@ -26,6 +26,7 @@
 #include "../../src/libutil/cmdline.h"
 #include "../../src/libutil/cubepm.h"
 #include "../../src/libutil/stai.h"
+#include "../../src/libutil/diediedie.h"
 
 
 /*--- Local variables ---------------------------------------------------*/
@@ -184,7 +185,11 @@ main(int argc, char **argv)
 	dataDesc[5] = stai_new(data + 5, sizeof(double), 6 * sizeof(double));
 	actualRead  = cubepm_read(cubepm, localPartsSkip, localPartsRead,
 	                          dataDesc);
-	assert(actualRead == localPartsRead);
+	if (actualRead != localPartsRead) {
+		fprintf(stderr, "Expected to read %lu particles, but got %lu\n",
+		        localPartsRead, actualRead);
+		diediedie(EXIT_FAILURE);
+	}
 
 	if (localDoUnitConversion) {
 		double posFac, velFac;

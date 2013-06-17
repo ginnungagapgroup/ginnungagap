@@ -87,7 +87,7 @@ dataParticle_addVar(dataParticle_t desc, dataVar_t var)
 	assert(!dataParticle_isLocked(desc));
 	assert(varArr_getLength(desc->vars) < LOCAL_MAXNUMVARS);
 
-	return varArr_insert(desc->vars, dataVar_getRef(var));
+	return varArr_insert(desc->vars, var);
 }
 
 extern void

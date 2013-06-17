@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2013, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -38,6 +38,14 @@ partBunch_isAllocated(const partBunch_t bunch);
 
 extern uint64_t
 partBunch_getNumParticles(const partBunch_t bunch);
+
+
+/**
+ * @brief  Returns a pointer to the requested component at a requested
+ *         position.
+ */
+extern void *
+partBunch_at(const partBunch_t bunch, const int idxOfVar, const uint64_t i);
 
 
 #endif

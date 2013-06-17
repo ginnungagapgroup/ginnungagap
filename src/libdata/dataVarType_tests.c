@@ -43,6 +43,12 @@ dataVarType_sizeof_test(void)
 		hasPassed = false;
 	if (dataVarType_sizeof(DATAVARTYPE_DOUBLE) != sizeof(double))
 		hasPassed = false;
+	if (dataVarType_sizeof(DATAVARTYPE_FLOAT) != sizeof(float))
+		hasPassed = false;
+	if (dataVarType_sizeof(DATAVARTYPE_INT32) != sizeof(int32_t))
+		hasPassed = false;
+	if (dataVarType_sizeof(DATAVARTYPE_INT64) != sizeof(int64_t))
+		hasPassed = false;
 	if (dataVarType_sizeof(DATAVARTYPE_FPV) != sizeof(fpv_t))
 		hasPassed = false;
 #ifdef XMEM_TRACK_MEM
@@ -70,7 +76,13 @@ dataVarType_isFloating_test(void)
 
 	if (dataVarType_isFloating(DATAVARTYPE_INT))
 		hasPassed = false;
+	if (dataVarType_isFloating(DATAVARTYPE_INT32))
+		hasPassed = false;
+	if (dataVarType_isFloating(DATAVARTYPE_INT64))
+		hasPassed = false;
 	if (!dataVarType_isFloating(DATAVARTYPE_DOUBLE))
+		hasPassed = false;
+	if (!dataVarType_isFloating(DATAVARTYPE_FLOAT))
 		hasPassed = false;
 	if (!dataVarType_isFloating(DATAVARTYPE_FPV))
 		hasPassed = false;
@@ -98,6 +110,12 @@ dataVarType_isInteger_test(void)
 		printf("Testing %s... ", __func__);
 
 	if (!dataVarType_isInteger(DATAVARTYPE_INT))
+		hasPassed = false;
+	if (!dataVarType_isInteger(DATAVARTYPE_INT32))
+		hasPassed = false;
+	if (!dataVarType_isInteger(DATAVARTYPE_INT64))
+		hasPassed = false;
+	if (dataVarType_isInteger(DATAVARTYPE_FLOAT))
 		hasPassed = false;
 	if (dataVarType_isInteger(DATAVARTYPE_DOUBLE))
 		hasPassed = false;
@@ -127,6 +145,12 @@ dataVarType_isNativeFloat_test(void)
 		printf("Testing %s... ", __func__);
 
 	if (dataVarType_isNativeFloat(DATAVARTYPE_INT))
+		hasPassed = false;
+	if (dataVarType_isNativeFloat(DATAVARTYPE_INT32))
+		hasPassed = false;
+	if (dataVarType_isNativeFloat(DATAVARTYPE_INT64))
+		hasPassed = false;
+	if (!dataVarType_isNativeFloat(DATAVARTYPE_FLOAT))
 		hasPassed = false;
 	if (dataVarType_isNativeFloat(DATAVARTYPE_DOUBLE))
 		hasPassed = false;
@@ -161,6 +185,12 @@ dataVarType_isNativeDouble_test(void)
 		printf("Testing %s... ", __func__);
 
 	if (dataVarType_isNativeDouble(DATAVARTYPE_INT))
+		hasPassed = false;
+	if (dataVarType_isNativeDouble(DATAVARTYPE_INT32))
+		hasPassed = false;
+	if (dataVarType_isNativeDouble(DATAVARTYPE_INT64))
+		hasPassed = false;
+	if (dataVarType_isNativeDouble(DATAVARTYPE_FLOAT))
 		hasPassed = false;
 	if (!dataVarType_isNativeDouble(DATAVARTYPE_DOUBLE))
 		hasPassed = false;

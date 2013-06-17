@@ -336,24 +336,24 @@ local_doWhiteNoise(ginnungagap_t g9p, bool doDumpOfWhiteNoise)
 {
 	double timing;
 
-	timing = timer_start("  Setting up white noise");
+	timing = timer_start_text("  Setting up white noise... ");
 	g9pWN_setup(g9p->whiteNoise,
 	            g9p->grid,
 	            g9p->posOfDens);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 
 	if (doDumpOfWhiteNoise) {
-		timing = timer_start("  Writing white noise to file");
+		timing = timer_start_text("  Writing white noise to file... ");
 		g9pWN_dump(g9p->whiteNoise, g9p->grid);
-		timing = timer_stop(timing);
+		timing = timer_stop_text(timing, "took %.5fs\n");
 		if (g9p->setup->doHistograms)
 			local_doHistogram(g9p, 0, g9p->histoWN,
 			                  g9p->setup->nameHistogramWN);
 	}
 
-	timing = timer_start("  Going to k-space");
+	timing = timer_start_text("  Going to k-space... ");
 	gridRegularFFT_execute(g9p->gridFFT, GRIDREGULARFFT_FORWARD);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 }
 
 static void
@@ -363,13 +363,13 @@ local_doWhiteNoisePk(ginnungagap_t g9p)
 	cosmoPk_t pk;
 
 	if (g9p->setup->dim1D >= G9P_MINGRIDSIZE_FOR_PS) {
-		timing = timer_start("  Calculating P(k) for white noise");
+		timing = timer_start_text("  Calculating P(k) for white noise... ");
 		pk     = g9pIC_calcPkFromDelta(g9p->gridFFT,
 		                               g9p->setup->dim1D,
 		                               g9p->setup->boxsizeInMpch);
 		cosmoPk_dumpToFile(pk, g9p->setup->namePkWN, 1);
 		cosmoPk_del(&pk);
-		timing = timer_stop(timing);
+		timing = timer_stop_text(timing, "took %.5fs\n");
 	}
 }
 
@@ -378,12 +378,12 @@ local_doDeltaK(ginnungagap_t g9p)
 {
 	double timing;
 
-	timing = timer_start("  Generating delta(k)");
+	timing = timer_start_text("  Generating delta(k)... ");
 	g9pIC_calcDeltaFromWN(g9p->gridFFT,
 	                      g9p->setup->dim1D,
 	                      g9p->setup->boxsizeInMpch,
 	                      g9p->pk);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 }
 
 static void
@@ -393,13 +393,13 @@ local_doDeltaKPk(ginnungagap_t g9p)
 	cosmoPk_t pk;
 
 	if (g9p->setup->dim1D >= G9P_MINGRIDSIZE_FOR_PS) {
-		timing = timer_start("  Calculating P(k) for delta(k)");
+		timing = timer_start_text("  Calculating P(k) for delta(k)... ");
 		pk     = g9pIC_calcPkFromDelta(g9p->gridFFT,
 		                               g9p->setup->dim1D,
 		                               g9p->setup->boxsizeInMpch);
 		cosmoPk_dumpToFile(pk, g9p->setup->namePkDeltak, 1);
 		cosmoPk_del(&pk);
-		timing = timer_stop(timing);
+		timing = timer_stop_text(timing, "took %.5fs\n");
 	}
 }
 
@@ -411,21 +411,21 @@ local_doDeltaX(ginnungagap_t g9p)
 	dataVar_t var;
 #endif
 
-	timing = timer_start("  Going back to real space");
+	timing = timer_start_text("  Going back to real space... ");
 	gridRegularFFT_execute(g9p->gridFFT, GRIDREGULARFFT_BACKWARD);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 
 #ifdef ENABLE_WRITING
 	var = gridRegular_getVarHandle(g9p->grid, g9p->posOfDens);
 	if (g9p->setup->writeDensityField) {
-		timing = timer_start("  Writing delta(x) to file");
+		timing = timer_start_text("  Writing delta(x) to file... ");
 		local_doRenames(var, g9p->finalWriter, "delta");
 		gridWriter_activate(g9p->finalWriter);
 		gridWriter_writeGridRegular(g9p->finalWriter,
 		                            g9p->grid);
 		gridWriter_deactivate(g9p->finalWriter);
 		dataVar_rename(var, "wn");
-		timing = timer_stop(timing);
+		timing = timer_stop_text(timing, "took %.5fs\n");
 	}
 #endif
 }
@@ -440,26 +440,26 @@ local_doVelocities(ginnungagap_t g9p, g9pICMode_t mode)
 #endif
 
 	msg    = xstrmerge("  Generating ", g9pIC_getModeStr(mode));
-	msg2   = xstrmerge(msg, "(k)");
-	timing = timer_start(msg2);
+	msg2   = xstrmerge(msg, "(k)... ");
+	timing = timer_start_text(msg2);
 	g9pIC_calcVelFromDelta(g9p->gridFFT,
 	                       g9p->setup->dim1D,
 	                       g9p->setup->boxsizeInMpch,
 	                       g9p->model,
 	                       cosmo_z2a(g9p->setup->zInit),
 	                       mode);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 	xfree(msg2);
 	xfree(msg);
 
-	timing = timer_start("  Going back to real space");
+	timing = timer_start_text("  Going back to real space... ");
 	gridRegularFFT_execute(g9p->gridFFT, GRIDREGULARFFT_BACKWARD);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 
 #ifdef ENABLE_WRITING
 	msg    = xstrmerge("  Writing ", g9pIC_getModeStr(mode));
-	msg2   = xstrmerge(msg, "(x) to file");
-	timing = timer_start(msg2);
+	msg2   = xstrmerge(msg, "(x) to file... ");
+	timing = timer_start_text(msg2);
 	var    = gridRegular_getVarHandle(g9p->grid,
 	                                  g9p->posOfDens);
 	local_doRenames(var, g9p->finalWriter, g9pIC_getModeStr(mode));
@@ -468,7 +468,7 @@ local_doVelocities(ginnungagap_t g9p, g9pICMode_t mode)
 	                            g9p->grid);
 	gridWriter_deactivate(g9p->finalWriter);
 	dataVar_rename(var, "wn");
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 	xfree(msg2);
 	xfree(msg);
 #endif
@@ -480,11 +480,11 @@ local_doStatistics(ginnungagap_t g9p, int idxOfVar)
 	double           timing;
 	gridStatistics_t stat;
 
-	timing = timer_start("  Calculating statistics");
+	timing = timer_start_text("  Calculating statistics... ");
 	stat   = gridStatistics_new();
 	gridStatistics_calcGridRegularDistrib(stat, g9p->gridDistrib,
 	                                      idxOfVar);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 	if (g9p->rank == 0)
 		gridStatistics_printPretty(stat, stdout, "  ");
 	gridStatistics_del(&stat);
@@ -498,9 +498,9 @@ local_doHistogram(ginnungagap_t         g9p,
 {
 	double timing;
 
-	timing = timer_start("  Calculating histogram");
+	timing = timer_start_text("  Calculating histogram... ");
 	gridHistogram_calcGridRegularDistrib(histo, g9p->gridDistrib, idxOfVar);
-	timing = timer_stop(timing);
+	timing = timer_stop_text(timing, "took %.5fs\n");
 
 	if (g9p->rank == 0) {
 		gridHistogram_printPrettyFile(histo, histoName, false, "");

@@ -191,7 +191,12 @@ gridRegularFFT_execute_test(void)
 	memcpy(dataCpy, dataTmp,
 	       sizeof(fpv_t) * gridPatch_getNumCellsActual(patch, 0));
 #ifdef WITH_SILO
-	writer  = (gridWriter_t)gridWriterSilo_new("fftTest-stage1", DB_HDF5);
+	writer  = (gridWriter_t)gridWriterSilo_new();
+	gridWriter_setFileName(writer,
+	                       filename_newFull(NULL, "fftTest-stage1",
+	                                        NULL, ".silo"));
+	gridWriter_setOverwriteFileIfExists(writer, true);
+	gridWriterSilo_setDbType((gridWriterSilo_t)writer, DB_HDF5);
 #  ifdef WITH_MPI
 	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif
@@ -204,7 +209,12 @@ gridRegularFFT_execute_test(void)
 	gridRegularFFT_execute(fft, 1);
 	gridRegularFFT_execute(fft, -1);
 #ifdef WITH_SILO
-	writer  = (gridWriter_t)gridWriterSilo_new("fftTest-stage2", DB_HDF5);
+	writer  = (gridWriter_t)gridWriterSilo_new();
+	gridWriter_setFileName(writer,
+	                       filename_newFull(NULL, "fftTest-stage2",
+	                                        NULL, ".silo"));
+	gridWriter_setOverwriteFileIfExists(writer, true);
+	gridWriterSilo_setDbType((gridWriterSilo_t)writer, DB_HDF5);
 #  ifdef WITH_MPI
 	gridWriterSilo_initParallel(writer, MPI_COMM_WORLD);
 #  endif

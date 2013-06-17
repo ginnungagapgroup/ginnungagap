@@ -35,7 +35,7 @@
 static inline uint64_t
 lIdx_fromCoord2d(const uint32_t coords[2], const uint32_t dims[2])
 {
-	return coords[0] + coords[1] * dims[0];
+	return coords[0] + coords[1] * (uint64_t)dims[0];
 }
 
 /**
@@ -72,7 +72,9 @@ lIdx_toCoord2d(uint64_t idx, const uint32_t dims[2], uint32_t coords[2])
 static inline uint64_t
 lIdx_fromCoord3d(const uint32_t coords[3], const uint32_t dims[3])
 {
-	return coords[0] + (coords[1] + coords[2] * dims[1]) * dims[0];
+	return coords[0]
+	       + (coords[1] + coords[2]
+	          * (uint64_t)dims[1]) * (uint64_t)dims[0];
 }
 
 /**

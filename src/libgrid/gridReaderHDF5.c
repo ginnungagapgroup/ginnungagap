@@ -184,13 +184,26 @@ gridReaderHDF5_setH5File(gridReaderHDF5_t reader, hid_t file)
 
 
 /*--- Implementations of local functions --------------------------------*/
-extern void
+static void
 local_handleFilenameChange(gridReader_t reader)
 {
 	assert(reader != NULL);
 	assert(reader->type == GRIDIO_TYPE_HDF5);
 
 	const char *fileName = filename_getFullName(reader->fileName);
+
+	int res = H5Fis_hdf5(fileName);
+	if (res <= 0) {
+		if (res == 0) {
+			fprintf(stderr, "ERROR: %s does not seem to be an HDF5 file.\n",
+			        fileName);
+		} else {
+			fprintf(stderr,
+			        "ERROR: Failed to check whether %s is a HDF5 file.\n",
+			        fileName);
+		}
+		diediedie(EXIT_FAILURE);
+	}
 
 	hid_t file = H5Fopen(fileName, H5F_ACC_RDONLY, H5P_DEFAULT);
 	if (file < 0) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Steffen Knollmann
+// Copyright (C) 2010, 2012, Steffen Knollmann
 // Released under the terms of the GNU General Public License version 3.
 // This file is part of `ginnungagap'.
 
@@ -149,6 +149,15 @@ extern bool
 gridPatch_replaceVarData_test(void);
 
 /**
+ * @brief  This will test gridPatch_popVarData().
+ *
+ * @return  Returns @c true if the test succeeded and @c false
+ *          otherwise.
+ */
+extern bool
+gridPatch_popVarData_test(void);
+
+/**
  * @brief  This will test gridPatch_getVarHandle().
  *
  * @return  Returns @c true if the test succeeded and @c false
@@ -211,5 +220,13 @@ gridPatch_getWindowedDataCopy_test(void);
 extern bool
 gridPatch_putWindowedData_test(void);
 
+/**
+ * @brief  This will test gridPatch_calcDistanceVector().
+ *
+ * @return  Returns @c true if the test succeeded and @c false
+ *          otherwise.
+ */
+extern bool
+gridPatch_calcDistanceVector_test(void);
 
 #endif

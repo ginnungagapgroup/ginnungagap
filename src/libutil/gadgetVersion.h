@@ -71,6 +71,19 @@ gadgetVersion_getVersionFromFile(FILE *f);
 extern const char *
 gadgetVersion_getNameFromType(const gadgetVersion_t ver);
 
+/**
+ * @brief  Returns the version enum corresponding to a string.
+ *
+ * @param[in]  name
+ *                The name that should be parsed into a version enum.
+ *
+ * @return  Returns the enum corresponding to the version described by the
+ *          string.  This may be #GADGETVERSION_UNKNOWN if the name didn't
+ *          match.
+ */
+extern gadgetVersion_t
+gadgetVersion_getTypeFromName(const char *name);
+
 
 /*--- Doxygen group definition ------------------------------------------*/
 

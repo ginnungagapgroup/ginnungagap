@@ -43,12 +43,12 @@ gadgetVersion_getVersionFromFile(FILE *f)
 
 	xfread(buffer, 1, 4 + GADGETHEADER_SIZE + 4, f);
 
-	memcpy(&bs1, buffer, sizeof(int));
-	memcpy(&bs2, buffer + 12, sizeof(int));
-	memcpy(&bs3, buffer + 4 + GADGETHEADER_SIZE, sizeof(int));
+	memcpy( &bs1, buffer, sizeof(int) );
+	memcpy( &bs2, buffer + 12, sizeof(int) );
+	memcpy( &bs3, buffer + 4 + GADGETHEADER_SIZE, sizeof(int) );
 
-	if ((bs1 == bs2)
-	    && (strncmp(buffer + 4, "HEAD", 4) == 0)) {
+	if ( (bs1 == bs2)
+	     && (strncmp(buffer + 4, "HEAD", 4) == 0) ) {
 		version = GADGETVERSION_TWO;
 	} else if (bs1 == bs3) {
 		version = GADGETVERSION_ONE;
@@ -59,10 +59,22 @@ gadgetVersion_getVersionFromFile(FILE *f)
 	xfseek(f, restorePos, SEEK_SET);
 
 	return version;
-}
+} // gadgetVersion_getVersionFromFile
 
 extern const char *
 gadgetVersion_getNameFromType(const gadgetVersion_t ver)
 {
 	return local_versionNames[ver];
+}
+
+extern gadgetVersion_t
+gadgetVersion_getTypeFromName(const char *name)
+{
+	for (int i = 0; i < GADGETVERSION_NUM; i++) {
+		const int cmp = strncmp( name, local_versionNames[i],
+		                         strlen(local_versionNames[i]) );
+		if (cmp == 0)
+			return i;
+	}
+	return GADGETVERSION_UNKNOWN;
 }
