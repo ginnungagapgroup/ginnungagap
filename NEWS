@@ -6,6 +6,84 @@ relevant, the entries contain the short hash of the according commits to
 the repository, smaller changes will not be listed individually but
 paraphrased.
 
+
+Version 0.7.0
+-------------
+
+This version brings a new tool to generate particle realisations of
+velocity fields: generateICs, which supports HDF5 and Grafic inputs,
+especially the former is relevant to support large resolutions which are
+inefficient to write in Grafic format.
+
+Changes from 0.6.3:
+ 134 files changed, 9523 insertions(+), 268 deletions(-)
+
+(e7c24eb) [FIX] Missing doGas check
+    The creation of gas particles should only happen, when gas particles are 
+    requested.  There was an if statement missing...
+
+(407c67d) [FIX] Replaces scaling with type generic function
+    The scaling currently calculates in double space and only converts to 
+    the target precision at the very end.  That potentially might lead to 
+    rounding issues.  This change will compute in position in double, 
+    convert to target precision and then apply the modulo operation in the 
+    target precision.
+
+(e0635b8) [FIX] Number of particles is overflowing
+    When calculating the total number of particles from three 32bit 
+    integers, they need to be cast to 64bit integers to prevent overflows. 
+    Well, technically it could still overflow, but that is unlikely to 
+    happen.
+
+(33bf39e) [FIX] Histogram doesn't treat some datatypes
+    The histogram needs to deal with float, int32 and int64.
+
+(f40ca64) [WIP] More clean-up work in generateICs
+    Now using libpart to create a partBunch structure that holds the 
+    particles instead of having naked allocated arrays.  Now also supporting 
+    the creation of gas particles and processing of more than one tile per 
+    file.
+
+(edf0466) [WIP] Starts cleaning up generateICs
+    Generating Gadget ICs from HDF5 velocity fields works now in hand-tuned 
+    circumstances.  Time to enable generateICs in the general makefile 
+    system.
+
+(45afa65) [WIP] Adds HDF5 reading
+    The reader are generated from the ini file.  The ini file reading has 
+    been revamped to leverage of the standard ginnungagap config (i.e. the 
+    boxsize and zInit are read from the [Ginnungagap] section).
+
+    The whole business with the fake mask is a bit fishy, to get the cell 
+    count work out I had to hand-tune the hierarchy to start from 1x1x1 in 
+    factors of 2.
+
+(3841b08) [WIP] Restructures genics code
+    Encapsulates some of the data used in the genics code: mode related 
+    Booleans, resolution independent quantities (e.g. box-size, cosmological 
+    model), and output related things (e.g. Gadget skeleton objects, number 
+    of output files).
+
+    Also fiddles with the mock code to read data from external files, 
+    currently aiming at providing a version that can deal with the single 
+    resolution, full-box situation (not working yet).  Copies code from 
+    grafic2gadget.
+
+(d45d1bd) Changes the way IDs are assigned in grafic2gadget
+    The IDs will now start at 1 instead of 0.  Also, if gas particles are 
+    present, their IDs will now start at 1, the DM particles start at 
+    numGasParticles + 1 (change requested by Gustavo to be compatible with 
+    previous runs).
+
+    This will potentially break lareReaderLOI, which assumes IDs to start at 
+    0. But since this reader isn't actually used that should be of no 
+    consequence.  In any case the resolving of IDs to grid positions needs 
+    to be investigated carefully.
+
+(d078dfe) Merges work-in-progress for zooms into develop for more testing
+    and more organised continued work on the zooms.
+
+
 Version 0.6.3
 -------------
 
