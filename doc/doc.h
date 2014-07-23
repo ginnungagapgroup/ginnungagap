@@ -744,6 +744,16 @@
  * course).
  */
 
+/*--- Page: Using generateICs ---------------------------------------*/
+
+/**
+ * @page pageGenerateICs Using GenerateICs
+ * 
+ * GenerateICs is a tool for converting velocity fields produced by Ginnungagap
+ * into GADGET-2 format. This tool also can combine several velocity fields
+ * of different resolution in order to run zoom-in simulations.
+ * 
+ */
 
 /*--- Page: External Dependencies ---------------------------------------*/
 

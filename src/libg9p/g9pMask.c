@@ -195,6 +195,13 @@ g9pMask_getDim1D(const g9pMask_t mask)
 
 	return g9pHierarchy_getDim1DAtLevel(mask->hierarchy, mask->maskLevel);
 }
+extern uint32_t
+g9pMask_getDim1DLevel(const g9pMask_t mask, uint8_t level)
+{
+	assert(mask != NULL);
+
+	return g9pHierarchy_getDim1DAtLevel(mask->hierarchy, level);
+}
 
 extern uint64_t
 g9pMask_getNumCellsInMask(const g9pMask_t mask)
@@ -277,7 +284,7 @@ g9pMask_getNumCellsInTileForLevel(const g9pMask_t mask,
 	const uint64_t nCTM          = g9pMask_getNumCellsInMaskTile(mask);
 	const uint64_t nCFac         = nCTL < nCTM ? nCTM / nCTL : nCTL / nCTM;
 
-	for (uint64_t i = 0; i < nCTL; i++) {
+	for (uint64_t i = 0; i < nCTM; i++) { // maybe it must be nCTM? // Changed nCTL->nCTM 29.01.2014 SP
 		if (thisTileData[i] == level)
 			numCells++;
 	}
@@ -387,6 +394,17 @@ g9pMask_getEmptyPatchForTile(const g9pMask_t mask, const uint32_t tile)
 	return local_getEmptyPatchForTile_impl(mask, tile, dims);
 }
 
+extern gridPatch_t
+g9pMask_getEmptyPatchForTileLevel(const g9pMask_t mask, const uint32_t tile, uint8_t level)
+{
+	gridPointUint32_t dims;
+	dims[0] = g9pMask_getDim1DLevel(mask,level);
+	for (int i = 1; i < NDIM; i++)
+		dims[i] = dims[0];
+
+	return local_getEmptyPatchForTile_impl(mask, tile, dims);
+}
+
 /*--- Implementations of local functions --------------------------------*/
 
 static g9pMask_t
@@ -397,6 +415,7 @@ local_allocateEmptyMask()
 	refCounter_init( &(mask->refCounter) );
 	mask->totalNumTiles = 0;
 	mask->maskTiles     = NULL;
+	mask->lare = NULL; // !sp
 
 	return mask;
 }

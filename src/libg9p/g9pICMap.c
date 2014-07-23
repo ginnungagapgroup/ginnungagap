@@ -29,7 +29,7 @@
 
 /*--- Prototypes of local functions -------------------------------------*/
 static void
-local_calcIdx(g9pICMap_t map);
+local_calcIdx(g9pICMap_t map, uint32_t zoomlevel);
 
 static void
 local_calcNumCellsPerFile(g9pICMap_t map);
@@ -40,7 +40,8 @@ extern g9pICMap_t
 g9pICMap_new(uint32_t     numFiles,
              uint32_t     numGasLevel,
              const int8_t *gasLevel,
-             g9pMask_t    mask)
+             g9pMask_t    mask,
+             uint32_t zoomlevel)
 {
 	g9pICMap_t map;
 
@@ -67,7 +68,7 @@ g9pICMap_new(uint32_t     numFiles,
 	map->numCells     = xmalloc(sizeof(uint64_t)
 	                            * (map->numFiles * numLevel));
 
-	local_calcIdx(map);
+	local_calcIdx(map,zoomlevel);
 	local_calcNumCellsPerFile(map);
 
 	return map;
@@ -136,20 +137,40 @@ g9pICMap_getNumCellsPerLevelInFile(const g9pICMap_t map,
 
 /*--- Implementations of local functions --------------------------------*/
 static void
-local_calcIdx(g9pICMap_t map)
+local_calcIdx(g9pICMap_t map, uint32_t zoomlevel)
 {
 	uint32_t numTiles     = g9pMask_getTotalNumTiles(map->mask);
-	uint32_t numTilesLeft = numTiles;
-	uint32_t tilePerFile  = numTilesLeft / map->numFiles;
+	//uint32_t numTilesLeft = numTiles;
+	//uint32_t tilePerFile  = numTilesLeft / map->numFiles;
+	uint64_t numCellsTot = 0;
+	for (uint32_t i=0; i<numTiles; i++) {
+		numCellsTot+=g9pMask_getNumCellsInTileForLevel(map->mask, i, zoomlevel);
+	}
+	uint64_t numCellsLeft = numCellsTot;
+	uint32_t cellsPerFile = numCellsLeft / map->numFiles;
 
 	map->firstTileIdx[0] = 0;
-	map->lastTileIdx[0]  = tilePerFile - 1;
-	numTilesLeft        -= tilePerFile;
-	for (uint32_t i = 1; i < map->numFiles; i++) {
-		tilePerFile          = numTilesLeft / (map->numFiles - i);
-		map->firstTileIdx[i] = map->lastTileIdx[i - 1] + 1;
-		map->lastTileIdx[i]  = map->firstTileIdx[i] + tilePerFile - 1;
-		numTilesLeft        -= tilePerFile;
+	//map->lastTileIdx[0]  = 0;
+	//numTilesLeft        -= tilePerFile;
+	uint32_t numCells = 0;
+	uint32_t file = 0;
+	for (uint32_t i = 0; i < numTiles; i++) {
+		numCells += g9pMask_getNumCellsInTileForLevel(map->mask, i, zoomlevel);
+		if (numCells >= cellsPerFile) {
+			map->lastTileIdx[file] = i;
+			numCellsLeft -= numCells;
+			numCells = 0;
+			//cellsPerFile = numCellsLeft / (map->numFiles - file);
+			file++;
+			if(file < map->numFiles) {
+				map->firstTileIdx[file] = i+1;
+			}
+		}
+		
+		//tilePerFile          = numTilesLeft / (map->numFiles - i);
+		//map->firstTileIdx[i] = map->lastTileIdx[i - 1] + 1;
+		//map->lastTileIdx[i]  = map->firstTileIdx[i] + tilePerFile - 1;
+		//numTilesLeft        -= tilePerFile;
 	}
 	map->lastTileIdx[map->numFiles - 1] = numTiles - 1;
 }

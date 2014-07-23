@@ -103,6 +103,9 @@ g9pMask_getNumLevel(const g9pMask_t mask);
 extern uint32_t
 g9pMask_getDim1D(const g9pMask_t mask);
 
+extern uint32_t
+g9pMask_getDim1DLevel(const g9pMask_t mask, uint8_t level);
+
 extern uint64_t
 g9pMask_getNumCellsInMask(const g9pMask_t mask);
 
@@ -159,6 +162,9 @@ g9pMask_getEmptyGridStructure(const g9pMask_t mask);
 
 extern gridPatch_t
 g9pMask_getEmptyPatchForTile(const g9pMask_t mask, const uint32_t tile);
+
+extern gridPatch_t
+g9pMask_getEmptyPatchForTileLevel(const g9pMask_t mask, const uint32_t tile, uint8_t level);
 
 
 /** @} */

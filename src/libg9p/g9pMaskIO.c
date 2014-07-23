@@ -16,11 +16,17 @@
 #include "g9pConfig.h"
 #include "g9pMaskIO.h"
 #include "g9pHierarchyIO.h"
+#include "g9pMaskCreator.h"
 #include <assert.h>
 #include "../libutil/xmem.h"
 #include "../libutil/diediedie.h"
 #include "../libgrid/gridWriter.h"
 #include "../libgrid/gridReader.h"
+#include "../liblare/lare.h"
+#include "../liblare/lareReader.h"
+#include "g9pMask_adt.h"
+#include "../liblare/lare_adt.h"
+
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -56,6 +62,9 @@ local_mvDataMask2Grid(g9pMask_t mask, gridRegular_t grid);
 static void
 local_mvDataGrid2Mask(g9pMask_t mask, gridRegular_t grid);
 
+static lare_t
+local_newLare(parse_ini_t ini, const char *secName);
+
 
 /*--- Implementations of exported functions -----------------------------*/
 extern g9pMask_t
@@ -63,6 +72,10 @@ g9pMaskIO_newFromIni(parse_ini_t    ini,
                      const char     *sectionName,
                      g9pHierarchy_t h)
 {
+	g9pMask_t mask;
+	gridPointUint32_t cells;
+	uint64_t numCells;
+	
 	assert(ini != NULL);
 	assert(sectionName != NULL);
 
@@ -76,9 +89,35 @@ g9pMaskIO_newFromIni(parse_ini_t    ini,
 
 	local_verifyLevels(maskLevel, minLevel, maxLevel, tileLevel, h);
 
-	return g9pMask_newMinMaxTiledMask(h, maskLevel, minLevel, maxLevel,
+	mask = g9pMask_newMinMaxTiledMask(h, maskLevel, minLevel, maxLevel,
 	                                  tileLevel);
+	if (maxLevel > minLevel) {                                 
+		mask->lare = local_newLare(ini, sectionName);
+	
+		numCells = lare_getNumElements(mask->lare);
+		lare_getElement(mask->lare, cells, 0);
+	
+		g9pMaskCreator_fromCells(mask, numCells, mask->lare->elements);
+	}
+	
+	return mask;
 }
+
+static lare_t
+local_newLare(parse_ini_t ini, const char *secName)
+{
+	lare_t       lare;
+	lareReader_t reader;
+
+	reader = lareReader_newFromIni(ini, secName);
+
+	lare = lareReader_read(reader);
+
+	lareReader_del(&reader);
+
+	return lare;
+}
+
 
 extern void
 g9pMaskIO_write(g9pMask_t mask, gridWriter_t writer)
