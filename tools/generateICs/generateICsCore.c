@@ -45,6 +45,9 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 	fpv_t             *velyP = gridPatch_getVarDataHandle(d->patch, 1);
 	fpv_t             *velzP = gridPatch_getVarDataHandle(d->patch, 2);
 	const double      dx     = d->data->boxsizeInMpch / d->fullDims[0];
+	bool			  flg;
+	gridPointUint32_t maxDims3;
+	maxDims3[0]=d->maxDims; maxDims3[1]=d->maxDims; maxDims3[2]=d->maxDims;
 
 	gridPatch_getIdxLo(d->patch, idxLo);
 	gridPatch_getDims(d->patch, dims);
@@ -52,28 +55,43 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 	printf("   Patch idxLo: (%u,%u,%u)\n", idxLo[0], idxLo[1], idxLo[2]);
 	printf("   Patch dims:  (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
 
-	gridPointUint32_t p;
+	gridPointUint32_t p, q;
 	uint64_t          i = 0;
+	uint64_t          iin = 0, idxM;
+	uint64_t		   patchMaskDim = (dims[0]*(d->maskDim1D))/(d->partDim1D);
 	for (p[2] = idxLo[2]; p[2] < idxLo[2] + dims[2]; p[2]++) {
 		for (p[1] = idxLo[1]; p[1] < idxLo[1] + dims[1]; p[1]++) {
 			for (p[0] = idxLo[0]; p[0] < idxLo[0] + dims[0]; p[0]++) {
-				d->vel[i * 3]     = velxP[i];
-				d->vel[i * 3 + 1] = velyP[i];
-				d->vel[i * 3 + 2] = velzP[i];
-				d->pos[i * 3]     = (fpv_t)( (p[0] + .5) * dx );
-				d->pos[i * 3 + 1] = (fpv_t)( (p[1] + .5) * dx );
-				d->pos[i * 3 + 2] = (fpv_t)( (p[2] + .5) * dx );
-				if (d->mode->useLongIDs) {
-					( (uint64_t *)(d->id) )[i] = lIdx_fromCoord3d(p,
-					                                              d->fullDims);
-				} else {
-					( (uint32_t *)(d->id) )[i] = lIdx_fromCoord3d(p,
-					                                              d->fullDims);
+				for(int j=0;j<3;j++) {
+					q[j]=((p[j]-idxLo[j])*(d->maskDim1D))/(d->partDim1D);
 				}
-				i++;
+				idxM = q[0] + (q[1] + q[2]*patchMaskDim)*patchMaskDim;
+				
+				if(d->maskdata == NULL) flg = true;
+				else flg = (d->level == d->maskdata[idxM]);
+				
+				if(flg) {
+					//printf(" %i/%i ",i,idxM);
+					d->vel[i * 3]     = velxP[iin];
+					d->vel[i * 3 + 1] = velyP[iin];
+					d->vel[i * 3 + 2] = velzP[iin];
+					d->pos[i * 3]     = (fpv_t)( (p[0] + .5) * dx );
+					d->pos[i * 3 + 1] = (fpv_t)( (p[1] + .5) * dx );
+					d->pos[i * 3 + 2] = (fpv_t)( (p[2] + .5) * dx );
+					if (d->mode->useLongIDs) {
+						( (uint64_t *)(d->id) )[i] = lIdx_fromCoord3d(p,
+						                                              maxDims3);
+					} else {
+						( (uint32_t *)(d->id) )[i] = lIdx_fromCoord3d(p,
+						                                              maxDims3);
+					}
+					i++;
+				}
+				iin++;
 			}
 		}
 	}
+	//printf(" %i/%i ",i,idxM);
 } // generateICsCore_vel2pos
 
 extern void
@@ -102,7 +120,8 @@ generateICsCore_vel2pos(generateICsCore_const_t d)
 extern void
 generateICsCore_convertVel(generateICsCore_const_t d)
 {
-	const fpv_t fac = d->data->velFactor / sqrt(d->data->aInit);
+	double_t ainit = d->data->aInit;
+	const fpv_t fac = d->data->velFactor / sqrt(ainit);
 #ifdef _OPENMP
 #  pragma omp parallel for
 #endif

@@ -23,6 +23,7 @@
 #  include <omp.h>
 #endif
 #include "../../src/libgrid/gridRegular.h"
+#include "../../src/libgrid/gridRegularDistrib.h"
 #include "../../src/libgrid/gridStatistics.h"
 #include "../../src/libgrid/gridReaderFactory.h"
 #include "../../src/libgrid/gridWriterFactory.h"
@@ -317,6 +318,7 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 {
 	double           timing;
 	gridStatistics_t stat;
+	gridRegularDistrib_t distrib;
 	int              rank = 0;
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -331,7 +333,13 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 	timing = timer_stop_text(timing, "took %.5fs\n");
 
 	timing = timer_start_text("  Calculating statistics on input grid... ");
+#ifdef WITH_MPI	
+	distrib = gridRegularDistrib_new(te->gridIn, NULL);
+	gridRegularDistrib_initMPI(distrib, NULL, MPI_COMM_WORLD);
+	gridStatistics_calcGridRegularDistrib(stat, distrib, 0);
+#else
 	gridStatistics_calcGridRegular(stat, te->gridIn, 0);
+#endif
 	timing = timer_stop_text(timing, "took %.5fs\n");
 	if (rank == 0)
 		gridStatistics_printPretty(stat, stdout, "  ");
@@ -349,7 +357,13 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 	timing = timer_stop_text(timing, "took %.5fs\n");
 
 	timing = timer_start_text("  Calculating statistics on output grid... ");
+#ifdef WITH_MPI 
+        distrib = gridRegularDistrib_new(te->gridOut, NULL);
+        gridRegularDistrib_initMPI(distrib, NULL, MPI_COMM_WORLD);
+        gridStatistics_calcGridRegularDistrib(stat, distrib, 0);
+#else
 	gridStatistics_calcGridRegular(stat, te->gridOut, 0);
+#endif
 	timing = timer_stop_text(timing, "took %.5fs\n");
 	if (rank == 0)
 		gridStatistics_printPretty(stat, stdout, "  ");

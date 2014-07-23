@@ -24,21 +24,30 @@
 
 
 /*--- Prototypes of local functions -------------------------------------*/
-static void
-local_setConst(generateICsOut_t out, int numFiles);
+//static void
+//local_setConst(generateICsOut_t out, int numFiles);
 
 
 /*--- Implementations of exported functions -----------------------------*/
 extern generateICsOut_t
-generateICsOut_new(const char *prefix, int outputFiles, gadgetVersion_t v)
+generateICsOut_new(const char *prefix, uint32_t* outputFiles, gadgetVersion_t v, int s)
 {
 	generateICsOut_t genicsOut;
+	uint32_t nFilesTot=0;
 
 	genicsOut = xmalloc( sizeof(struct generateICsOut_struct) );
 
-	local_setConst(genicsOut, outputFiles);
+	//local_setConst(genicsOut, outputFiles);
+	
+	genicsOut->numFilesForLevel = xmalloc(sizeof(uint32_t)*s);
+	for(int i=0; i<s; i++) {
+		genicsOut->numFilesForLevel[i] = outputFiles[i];
+		nFilesTot+=outputFiles[i];
+		//printf("of %i\n",outputFiles[i]);
+	}
 
-	genicsOut->gadget = gadget_newSimple(prefix, outputFiles);
+
+	genicsOut->gadget = gadget_newSimple(prefix, nFilesTot);
 	gadget_setFileVersion(genicsOut->gadget, v);
 
 	genicsOut->toc = gadgetTOC_new();
@@ -46,6 +55,7 @@ generateICsOut_new(const char *prefix, int outputFiles, gadgetVersion_t v)
 	gadgetTOC_addEntryByType(genicsOut->toc, GADGETBLOCK_POS_);
 	gadgetTOC_addEntryByType(genicsOut->toc, GADGETBLOCK_VEL_);
 	gadgetTOC_addEntryByType(genicsOut->toc, GADGETBLOCK_ID__);
+	gadgetTOC_addEntryByType(genicsOut->toc, GADGETBLOCK_MASS);
 
 	genicsOut->baseHeader = NULL;
 
@@ -66,6 +76,14 @@ generateICsOut_del(generateICsOut_t *genicsOut)
 	xfree(*genicsOut);
 
 	*genicsOut = NULL;
+}
+
+extern double
+generateICsOut_boxMass(const generateICsData_t data)
+{
+	const double   boxsize      = data->boxsizeInMpch;
+	const double   omegaMatter0 = cosmoModel_getOmegaMatter0(data->model);
+	return boxsize * boxsize * boxsize * omegaMatter0 * COSMO_RHO_CRIT0 * 1e-10;
 }
 
 extern void
@@ -119,8 +137,8 @@ generateICsOut_initBaseHeader(generateICsOut_t        genicsOut,
 } // generateICsOut_initBaseHeader
 
 /*--- Implementations of local functions --------------------------------*/
-static void
-local_setConst(generateICsOut_t out, int numFiles)
-{
-	*(int *)&(out->numFiles) = numFiles;
-}
+//static void
+//local_setConst(generateICsOut_t out, int numFiles)
+//{
+//	*(int *)&(out->numFiles) = numFiles;
+//}

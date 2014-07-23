@@ -142,6 +142,26 @@ extern void
 generateICs_setMask(generateICs_t genics,
                     g9pMask_t     mask);
 
+/**
+ * @brief  Sets GADGET types for levels of zoom.
+ *
+ * If types are already set, the execution will fail.
+ *
+ * @param[in,out]  genics
+ *                    The application object to work with.  Passing @c NULL
+ *                    is undefined.
+ * @param[in]      types
+ *                    The array of types.
+ * @param[in]      s
+ *                    The array size.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+generateICs_setTypes(generateICs_t genics, int32_t *types, int s);
+
+extern void
+generateICs_setZoomLevel(generateICs_t genics, int32_t z);
 
 /** @} */
 

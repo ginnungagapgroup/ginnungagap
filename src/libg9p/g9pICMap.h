@@ -49,7 +49,8 @@ extern g9pICMap_t
 g9pICMap_new(uint32_t     numFiles,
              uint32_t     numGasLevel,
              const int8_t *gasLevel,
-             g9pMask_t    mask);
+             g9pMask_t    mask,
+             uint32_t zoomlevel);
 
 extern void
 g9pICMap_del(g9pICMap_t *g9pICMap);

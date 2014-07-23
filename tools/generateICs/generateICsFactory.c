@@ -208,7 +208,8 @@ local_newFromIni_input(parse_ini_t   ini,
 inline static void
 local_newFromIni_output(parse_ini_t   ini,
                         const char    *secName,
-                        generateICs_t genics);
+                        generateICs_t genics,
+                        int32_t minlev, int32_t maxlev);
 
 
 /*--- Implementations of exported functios ------------------------------*/
@@ -217,6 +218,9 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 {
 	generateICs_iniData_t iniData;
 	generateICs_t         genics;
+	int32_t	zlevel;
+	char 		tname[50];
+	int32_t	minlev, maxlev;
 
 	assert(ini != NULL);
 
@@ -249,12 +253,34 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	mask = g9pMaskIO_newFromIni( ini, iniData->maskSection,
 	                             g9pHierarchy_getRef(hierarchy) );
 	generateICs_setMask(genics, mask);
+	
+	minlev = g9pMask_getMinLevel(mask);
+	maxlev = g9pMask_getMaxLevel(mask);
 
 	local_newFromIni_input(ini, iniData->inputSection, genics);
-	local_newFromIni_output(ini, iniData->outputSection, genics);
+	local_newFromIni_output(ini, iniData->outputSection, genics,minlev,maxlev);
 
 	local_iniDataDel(&iniData);
-
+	
+	getFromIni(
+	&(zlevel),
+	parse_ini_get_int32,
+	ini,
+	"zoomLevel",
+		        (sectionName != NULL) ? sectionName :
+	                                  GENERATEICSCONFIG_DEFAULT_SECTIONNAME);
+	generateICs_setZoomLevel(genics,zlevel);
+	
+	int32_t  TypeForLevel [maxlev-minlev+1];
+	
+	for(int i=minlev; i<=maxlev; i++) {
+		sprintf(tname,"typeForLevel%1u",i);
+		getFromIni(TypeForLevel+i-minlev, parse_ini_get_int32, ini, tname,
+		        (sectionName != NULL) ? sectionName :
+	                                  GENERATEICSCONFIG_DEFAULT_SECTIONNAME);
+	}
+	generateICs_setTypes(genics, TypeForLevel, maxlev-minlev+1);
+	
 	return genics;
 } // generateICsFactory_newFromIni
 
@@ -443,14 +469,26 @@ local_newFromIni_input(parse_ini_t   ini,
 inline static void
 local_newFromIni_output(parse_ini_t   ini,
                         const char    *secName,
-                        generateICs_t genics)
+                        generateICs_t genics,
+                        int32_t minlev, int32_t maxlev)
 {
 	uint32_t        numFiles;
 	char            *prefix;
 	char            *version;
+	char 			tname[50];
 	gadgetVersion_t ver;
 
-	getFromIni(&numFiles, parse_ini_get_uint32, ini, "numFiles", secName);
+//	getFromIni(&numFiles, parse_ini_get_uint32, ini, "numFiles", secName);
+	
+	uint32_t  numFilesForLevel [maxlev-minlev+1];
+	
+	for(int i=minlev; i<=maxlev; i++) {
+		sprintf(tname,"numFilesForLevel%1u",i);
+		getFromIni(numFilesForLevel+i-minlev, parse_ini_get_int32, ini, tname,
+		        secName);
+	}
+	//generateICs_setTypes(genics, TypeForLevel, maxlev-minlev+1);
+
 	getFromIni(&prefix, parse_ini_get_string, ini, "prefix", secName);
 	if ( !parse_ini_get_string(ini, "version", secName,
 	                           &version) ) {
@@ -461,7 +499,7 @@ local_newFromIni_output(parse_ini_t   ini,
 	}
 
 	generateICsOut_t out;
-	out = generateICsOut_new(prefix, numFiles, ver);
+	out = generateICsOut_new(prefix, numFilesForLevel, ver, maxlev-minlev+1);
 
 	generateICs_setOut(genics, out);
 

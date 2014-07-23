@@ -185,7 +185,7 @@ local_finalMessage(void)
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Finalize();
+	//MPI_Finalize();
 #endif
 	xfree(localIniFname);
 	if (rank == 0) {

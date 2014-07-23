@@ -58,6 +58,9 @@ struct generateICs_struct {
 	generateICsIn_t in;
 	/** @brief  Stores the output information. */
 	generateICsOut_t out;
+	
+	int32_t zoomlevel;
+	int32_t *typeForLevel;
 };
 
 

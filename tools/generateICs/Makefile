@@ -48,8 +48,9 @@ $(progName): $(sources:.c=.o) \
                      ../../src/libpart/libpart.a \
                      ../../src/libdata/libdata.a \
 	                 ../../src/libcosmo/libcosmo.a \
-	                 ../../src/libutil/libutil.a
-	$(CC) $(LDFLAGS) $(CFLAGS) \
+	                 ../../src/libutil/libutil.a \
+	                 ../../src/liblare/liblare.a
+	$(CC) $(LDFLAGS) $(CFLAGS) -gdwarf-2 \
 	  -o $(progName) $(sources:.c=.o) \
                      ../../src/libg9p/libg9p.a \
 	                 ../../src/libgrid/libgrid.a \
@@ -57,6 +58,7 @@ $(progName): $(sources:.c=.o) \
 	                 ../../src/libdata/libdata.a \
 	                 ../../src/libcosmo/libcosmo.a \
 	                 ../../src/libutil/libutil.a \
+	                 ../../src/liblare/liblare.a \
 	                 $(LIBS)
 
 -include $(sources:.c=.d)

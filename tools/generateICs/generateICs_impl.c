@@ -100,6 +100,22 @@ generateICs_setMask(generateICs_t genics, g9pMask_t mask)
 	genics->mask = mask;
 }
 
+extern void
+generateICs_setTypes(generateICs_t genics, int32_t *types, int s)
+{
+	assert(genics != NULL);
+
+	if (genics->typeForLevel != NULL) {
+		fprintf(stderr, "ERROR: The types-for-levels can only be set once.\n");
+		diediedie(EXIT_FAILURE);
+	}
+
+	genics->typeForLevel = xmalloc(sizeof(int32_t)*s);
+	for(int i=0; i<s; i++) {
+		genics->typeForLevel[i] = types[i];
+	}
+}
+
 /*--- Exported function: Getter -----------------------------------------*/
 extern g9pHierarchy_t
 generateICs_getHierarchy(const generateICs_t genics)
@@ -124,3 +140,22 @@ generateICs_getMask(const generateICs_t genics)
 
 	return genics->mask;
 }
+
+extern void
+generateICs_setZoomLevel(generateICs_t genics, int32_t z)
+{
+	assert(genics != NULL);
+	genics->zoomlevel = z;
+}
+
+extern uint32_t
+generateICs_getMinLevel(generateICs_t genics)
+{
+	return g9pMask_getMinLevel(genics->mask);
+}
+extern uint32_t
+generateICs_getMaxLevel(generateICs_t genics)
+{
+	return g9pMask_getMaxLevel(genics->mask);
+}
+

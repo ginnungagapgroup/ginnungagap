@@ -94,7 +94,8 @@ local_doFile(generateICs_t genics, const g9pICMap_t map, int file);
 static void
 local_writeGadgetFile(generateICs_t     genics,
                       int               file,
-                      const partBunch_t particles);
+                      const partBunch_t particles,
+                      g9pICMap_t map);
 
 
 /*--- Exported functions: Creating and deleting -------------------------*/
@@ -160,9 +161,13 @@ extern void
 generateICs_run(generateICs_t genics)
 {
 	assert(genics != NULL);
+	uint32_t minlev = g9pMask_getMinLevel(genics->mask);
+	uint32_t maxlev = g9pMask_getMaxLevel(genics->mask);
+	uint32_t numFiles = genics->out->numFilesForLevel[genics->zoomlevel-minlev];
 
-	g9pICMap_t map = g9pICMap_new( genics->out->numFiles, 0, NULL,
-	                               g9pMask_getRef(genics->mask) );
+	g9pICMap_t map = g9pICMap_new( numFiles, 0, NULL,
+	                               g9pMask_getRef(genics->mask),
+	                               genics->zoomlevel);
 
 	if (genics->rank == 0)
 		generateICs_printSummary(genics, stdout);
@@ -172,15 +177,52 @@ generateICs_run(generateICs_t genics)
 	generateICsOut_initBaseHeader(genics->out, genics->data, fullDims,
 	                              genics->mode);
 
-	for (uint32_t i = 0; i < genics->out->numFiles; i++) {
-		printf(" * Working on file %i\n", i);
+        uint32_t N1, N2, Nperproc;
+        uint32_t  NDO=0;
+        uint32_t foffset=0;
+        for (uint32_t i = 0; i < genics->zoomlevel-minlev; i++){
+			foffset+=genics->out->numFilesForLevel[i];
+		}
+
+        if (genics->size <=  numFiles ) 
+          {
+            Nperproc= numFiles / genics->size;
+            N1 = Nperproc * genics->rank ;
+            N2= Nperproc  + N1;
+
+            if (genics->rank  ==  genics->size -1 )
+              {
+                N2 = numFiles;
+              } 
+          }
+        else
+          {
+            if ( genics->rank <=  numFiles -1 )
+              {
+                N1 = genics->rank;
+                N2 = N1+1;
+              }
+            else
+              {NDO=1;}
+          }
+
+        printf(" * Comienzo a producir files desde  %i a %i\n", N1, N2);
+
+        if ( NDO == 0 ) 
+          {
+            for (uint32_t i = N1; i < N2; i++) 
+              {
+		
+		//	for (uint32_t i = 0; i < genics->out->numFiles; i++) {
+		printf(" * Working on file %i\n", i+foffset);
 		double timing = timer_start();
-
+		
 		local_doFile(genics, map, i);
-
+		
 		timing = timer_stop(timing);
 		printf("      File processed in in %.2fs\n", timing);
-	}
+	      }
+	  }
 
 	g9pICMap_del(&map);
 } // generateICs_run
@@ -218,6 +260,7 @@ local_init(generateICs_t genics)
 	genics->hierarchy = NULL;
 	genics->datastore = NULL;
 	genics->mask      = NULL;
+	genics->typeForLevel = NULL;
 } // local_init
 
 static uint64_t
@@ -226,7 +269,26 @@ local_computeNumParts(const generateICs_t genics, uint32_t tile)
 	uint64_t np;
 
 	np = g9pMask_getNumCellsInTileForLevel( genics->mask, tile,
-	                                        g9pMask_getMinLevel(genics->mask) );
+											genics->zoomlevel);
+	                                        //g9pMask_getMinLevel(genics->mask) );
+
+	return np;
+}
+
+static uint64_t
+local_computeNumPartsLevel(const generateICs_t genics, 
+														int8_t level)
+{
+	uint64_t np=0;
+	//int			file = level - g9pMask_getMinLevel(genics->mask);
+	uint32_t    firstTile = 0;
+	uint32_t    lastTile  = g9pMask_getTotalNumTiles(genics->mask);
+	
+	
+	for(uint32_t tile=firstTile; tile<lastTile; tile++){
+		np += g9pMask_getNumCellsInTileForLevel( genics->mask, tile,
+	                                        level );
+	}
 
 	return np;
 }
@@ -235,7 +297,7 @@ static void
 local_setupCore(generateICsCore_t   core,
                 const generateICs_t genics)
 {
-	core->fullDims[0] = g9pMask_getDim1D(genics->mask);
+	core->fullDims[0] = g9pMask_getDim1DLevel(genics->mask,genics->zoomlevel);
 	core->fullDims[1] = core->fullDims[0];
 	core->fullDims[2] = core->fullDims[0];
 
@@ -287,27 +349,48 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 	generateICsCore_s core = GENICSCORE_INIT_STRUCT(genics->data,
 	                                                genics->mode);
 	local_setupCore(&core, genics);
-
+	
+	printf("np in level: %i\n",
+				local_computeNumPartsLevel(genics, genics->zoomlevel)); 
+	
 	for (uint32_t i = firstTile; i <= lastTile; i++) {
+		printf("cells in tile: %i\n", g9pMask_getNumCellsInTileForLevel(genics->mask,i,genics->zoomlevel));
 		core.numParticles = local_computeNumParts(genics, i);
+		if(core.numParticles > 0) {
 		core.pos          = partBunch_at(particles, 0, partsRead);
 		core.vel          = partBunch_at(particles, 1, partsRead);
 		core.id           = partBunch_at(particles, 2, partsRead);
-		core.patch        = g9pMask_getEmptyPatchForTile(genics->mask, i);
+		core.patch        = g9pMask_getEmptyPatchForTileLevel(genics->mask, i, genics->zoomlevel);
+		core.level		  = genics->zoomlevel;
+		core.maxDims	  = g9pMask_getDim1DLevel(genics->mask,g9pMask_getMaxLevel(genics->mask));
+		core.maskdata	  = g9pMask_getTileData(genics->mask,i);
+		core.maskDim1D	  = g9pMask_getDim1D(genics->mask);
+		core.partDim1D	  = g9pMask_getDim1DLevel(genics->mask,genics->zoomlevel);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVelx);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVely);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVelz);
 
+//		fpv_t             *velxP = gridPatch_getVarDataHandle(core.patch, 0);
+	//	printf("\n %i \n", i);
+
 		gridReader_readIntoPatchForVar(genics->in->velx, core.patch, 0);
 		gridReader_readIntoPatchForVar(genics->in->vely, core.patch, 1);
 		gridReader_readIntoPatchForVar(genics->in->velz, core.patch, 2);
-
+		
+		//fpv_t             *velx1P = gridPatch_getVarDataHandle(core.patch, 0);
+		//printf(" %i \n", velx1P);
+		
 		generateICsCore_toParticles(&core);
+
+		//fpv_t             *velx2P = gridPatch_getVarDataHandle(core.patch, 0);
+		//printf(" %i \n\n", velx2P);
 
 		gridPatch_del( &(core.patch) );
 		partsRead += core.numParticles;
+	    }
 	}
 	printf("   Particles read: %lu\n", partsRead);
+	//printf("pos: %f", core.pos[1]);
 	if (genics->mode->doGas) {
 		uint64_t npGasTotal = core.fullDims[0];
 		npGasTotal *= core.fullDims[1];
@@ -319,7 +402,7 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 		generateICsCode_dm2Gas(&core, 0.25, npGasTotal);
 	}
 
-	local_writeGadgetFile(genics, file, particles);
+	local_writeGadgetFile(genics, file, particles, map);
 
 	partBunch_del(&particles);
 } // local_doFile
@@ -327,31 +410,75 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 static void
 local_writeGadgetFile(generateICs_t     genics,
                       int               file,
-                      const partBunch_t particles)
+                      const partBunch_t particles,
+                      g9pICMap_t map)
 {
 	uint32_t       npLocal[6] = {0, 0, 0, 0, 0, 0};
+	uint64_t       npAll[6] = {0, 0, 0, 0, 0, 0};
 	double         massArr[6] = {0., 0., 0., 0., 0., 0.};
 	gadgetHeader_t myHeader;
 
 	const uint64_t               np = partBunch_getNumParticles(particles);
+	uint32_t minlev = g9pMask_getMinLevel(genics->mask);
+	uint32_t maxlev = g9pMask_getMaxLevel(genics->mask);
+	uint32_t   numLevels = maxlev - minlev + 1;
+	uint32_t   arrIdx = (genics->typeForLevel)[genics->zoomlevel-minlev];
+	uint32_t nlevfortype[6] = {0, 0, 0, 0, 0, 0};
+	uint64_t npFull;
+	
+	uint32_t foffset=0;
+        for (uint32_t i = 0; i < genics->zoomlevel-minlev; i++){
+			foffset+=genics->out->numFilesForLevel[i];
+		}
+	
+    for(int lev=minlev; lev<=maxlev; lev++) {
+		for(int type=0; type<=6; type++) {
+			if((genics->typeForLevel)[lev-minlev]==type) nlevfortype[type]++;
+		}
+	}
+    
 	if (genics->mode->doGas) {
 		assert(np % 2 == 0);
 		npLocal[0] = np / 2;
 		npLocal[1] = npLocal[0];
 	} else {
-		npLocal[1] = (uint32_t)np;
+		npLocal[arrIdx] = (uint32_t)np;
 	}
-
+	
 	myHeader   = gadgetHeader_clone(genics->out->baseHeader);
+	
+	// set global header for zoom:
+	uint32_t idx;
+	for(int level = minlev; level<= maxlev; level++) {
+		idx = (genics->typeForLevel)[level-minlev];
+		npAll[idx] += (uint64_t)local_computeNumPartsLevel(genics, level);
+		if(nlevfortype[idx]==1) {
+			npFull = POW_NDIM(g9pMask_getDim1DLevel(genics->mask,level));
+			massArr[idx] = generateICsOut_boxMass(genics->data) / npFull;
+		} else {
+			massArr[idx] = 0;
+		}
+		
+		//idx = 1 + maxlev - level;
+		//npAll[idx] = (uint64_t)local_computeNumPartsFileLevel(genics, map, level);
+		//npFull = POW_NDIM(g9pMask_getDim1DLevel(genics->mask,level));
+		//massArr[idx] = generateICsOut_boxMass(genics->data) / npFull;
+	}
+	printf("\n mass: %lf\n",generateICsOut_boxMass(genics->data));
+	gadgetHeader_setNall(myHeader,npAll);
+	gadgetHeader_setMassArr(myHeader, massArr);
+	//gadgetHeader_setNumFiles(myHeader,numLevels);
+	//
+	
 	gadgetHeader_getMassArr(myHeader, massArr);
 	gadgetHeader_setNp(myHeader, npLocal);
 	gadgetTOC_calcSizes(genics->out->toc, npLocal, massArr, false,
 	                    genics->mode->useLongIDs);
 	gadgetTOC_calcOffset(genics->out->toc);
-	gadget_setHeaderOfFile(genics->out->gadget, file, myHeader);
-	gadget_setTOCOfFile( genics->out->gadget, file,
+	gadget_setHeaderOfFile(genics->out->gadget, file+foffset, myHeader);
+	gadget_setTOCOfFile( genics->out->gadget, file+foffset,
 	                     gadgetTOC_clone(genics->out->toc) );
-	gadget_open(genics->out->gadget, GADGET_MODE_WRITE_CREATE, file);
+	gadget_open(genics->out->gadget, GADGET_MODE_WRITE_CREATE, file+foffset);
 	gadget_writeHeaderToCurrentFile(genics->out->gadget);
 	{
 		stai_t stai;
@@ -375,6 +502,20 @@ local_writeGadgetFile(generateICs_t     genics,
 		gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_ID__,
 		                               0, np, stai);
 		stai_del(&stai);
+		
+		
+		if(nlevfortype[arrIdx]>1) {
+			fpv_t masses[np];
+			npFull = POW_NDIM(g9pMask_getDim1DLevel(genics->mask,genics->zoomlevel));
+			fpv_t mass1 = generateICsOut_boxMass(genics->data) / npFull;
+			for(int i=0; i<=np; i++) {
+				masses[i] = mass1;
+			}
+			stai = stai_new( masses, sizeof(fpv_t), sizeof(fpv_t) );
+			gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_MASS,
+		                               0, np, stai);
+		    stai_del(&stai);
+		}
 	}
 	gadget_close(genics->out->gadget);
 } // local_writeGadgetFile
