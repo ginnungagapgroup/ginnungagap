@@ -758,7 +758,26 @@
  * into GADGET-2 format. This tool also can combine several velocity fields
  * of different resolution in order to run zoom-in simulations.
  * 
- * @section inifile .ini file sections
+ * The ingredients for producing a multi-level ICs are the velocity fields for each
+ * level (prepared by Ginnungagap), a mask, covering the high resolution Lagrangian
+ * volume, and the .ini file(s).
+ * The velocity files should be prepared in advance from a properly scaled white noise (see @ref pageQuickstart_Scale). 
+ * 
+ * <ul>
+ *   <li>@ref pageGenerateICs_inifile</li>
+ *   <ul>
+ *     <li>@ref pageGenerateICs_subHierarchy</li>
+ *     <li>@ref pageGenerateICs_subMask</li>
+ *     <li>@ref pageGenerateICs_subLare</li>
+ *     <li>@ref pageGenerateICs_subGenerateICs</li>
+ *     <li>@ref pageGenerateICs_subOutput</li>
+ *   </ul>
+ *   <li>@ref pageGenerateICs_singlelevel</li>
+ *   <li>@ref pageGenerateICs_LareFormat</li>
+ *   <li>@ref pageGenerateICs_Utility</li>
+ * </ul>
+ *
+ * @section pageGenerateICs_inifile .ini file
  * For each zoom level there should be a separate .ini file.
  * The .ini file requires to have sections:
  * @code
@@ -776,10 +795,11 @@
  * [GenicsOutput]
  * @endcode
  * 
- * The velocity files should be prepared in advance from a properly scaled white noise. For each zoom level the GenicsInput_vel sections must point to the corresponding velocity files.
+ * So these files can be made from the Ginnungagap .ini files used to prepare 
+ * velocity fields by adding sections to them.
  * 
  * 
- * @subsection subHierarchy The numbering of levels is defined from the [Hierarchy]
+ * @subsection pageGenerateICs_subHierarchy The numbering of levels is defined from the [Hierarchy]
  * @code
  * [Hierarchy]
  * numLevels = 7
@@ -790,7 +810,7 @@
  * This means that level 0 is 4, level 1 is 8, ..., level 6 is 256.
  * 
  * 
- * @subsection subMask The levels which are used for different purposes are defined in [Mask]
+ * @subsection pageGenerateICs_subMask The levels which are used for different purposes are defined in [Mask]
  * @code
  * [Mask]
  * maskLevel = 4
@@ -805,7 +825,7 @@
  * - maskLevel is the level for which we have the mask which will be read in [Lare] section.
  * - tileLevel defines the size of tiles used for the distribution of the output into several files. Each file contains at least one tile. Also we must have tileLevel <= minLevel.
  * 
- * @subsection subLare The initial mask is read in [Lare]
+ * @subsection pageGenerateICs_subLare The initial mask is read in [Lare]
  * @code
  * [Lare]
  * hasHeader = false
@@ -817,7 +837,7 @@
  * 
  * The lare.dat can be prepared by the LareWrite.f90 utility, see below.
  * 
- * @subsection subGenerateICs The level of current .ini file and the Gadget types for each level are assigned in [GenerateICs]
+ * @subsection pageGenerateICs_subGenerateICs The level of current .ini file and the Gadget types for each level are assigned in [GenerateICs]
  * @code
  * [GenerateICs]
  * ginnungagapSection = Ginnungagap
@@ -839,7 +859,7 @@
  * the lines with typeForLevelX must exist for each level between minLevel and maxLevel. If two or more levels have the same type, they will be assigned particle masses for each particle. Otherwise massArr is used. Type 0 is gas, type 1 is halo, ...
  * 
  * 
- * @subsection subOutput The number of files for each level is set in [GenicsOutput]
+ * @subsection pageGenerateICs_subOutput The number of files for each level is set in [GenicsOutput]
  * @code
  * [GenicsOutput]
  * numFilesForLevel3 = 1
@@ -856,8 +876,13 @@
  * pz.3 and pz.4 for level 6, Gadget type 1
  * 
  * When having several files for one level, the code tries to distribute the particles equally between them. But remember that it is done with tiles. If the tile size is too big, the whole zoom region may be fit into just one tile. In this case one file will include all high resolution particles, and others will be empty. To avoid this, increase tileLevel. But increasing it too much can slow things down.
- *
- * @subsection subUtility Utility to prepare initial mask: LareWrite.f90
+ * 
+ * @section pageGenerateICs_singlelevel Producing single level ICs
+ * In order to produce ordinary ICs without zoom (for the whole box), minLevel = maxLevel must be set. In this case, [Lare] will not be read, and empty mask will be used. However, zoomlevel and typeForLevel still must be present (this can be changed in the next version).
+ * 
+ * @section pageGenerateICs_LareFormat Format of the Lagrangian region mask
+ * 
+ * to prepare mask there is an utility in tools/zoomTools: LareWrite.f90
  * 
  * Compile with gfortran LareWrite.f90 -o LareWrite.x
  * The parameters are given in LareWrite.tbl file:
@@ -867,15 +892,14 @@
  * 4th line -- how many cells the zoom region will be expanded in each direction
  * 
  * The output of LareWrite contains some usefull information: the position of the centre of the minimal parallelepiped covering the zoom region(s) and its size. This can be used to move the ICs to center the zoom region in the simulation box. This is needed when using OPT += -DPLACEHIGHRESREGION in GADGET.
+ 
+ * @section pageGenerateICs_Utility Utility in zoomTools
  * 
  * The ICs can be moved to center the zoom region with the move.f90 utility.
  * 
  * The parameters to this utility are passed in move.tbl file:
  * 1st line -- center position of the zoom region
  * all rest lines -- names of GADGET files.
- *  
- * @section singlelevel Producing single level ICs
- * In order to produce ordinary ICs without zoom (for the whole box), minLevel = maxLevel must be set. In this case, [Lare] will not be read, and empty mask will be used. However, zoomlevel and typeForLevel still must be present (this can be changed in the next version).
  * 
  */
 
