@@ -453,7 +453,7 @@ local_writeGadgetFile(generateICs_t     genics,
 		idx = (genics->typeForLevel)[level-minlev];
 		npAll[idx] += (uint64_t)local_computeNumPartsLevel(genics, level);
 		if(nlevfortype[idx]==1) {
-			npFull = POW_NDIM(g9pMask_getDim1DLevel(genics->mask,level));
+			npFull = POW_NDIM((uint64_t)g9pMask_getDim1DLevel(genics->mask,level));
 			massArr[idx] = generateICsOut_boxMass(genics->data) / npFull;
 		} else {
 			massArr[idx] = 0;

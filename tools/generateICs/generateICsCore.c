@@ -55,7 +55,7 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 	printf("   Patch idxLo: (%u,%u,%u)\n", idxLo[0], idxLo[1], idxLo[2]);
 	printf("   Patch dims:  (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
 
-	gridPointUint32_t p, q;
+	gridPointUint32_t p, q, pm;
 	uint64_t          i = 0;
 	uint64_t          iin = 0, idxM;
 	uint64_t		   patchMaskDim = (dims[0]*(d->maskDim1D))/(d->partDim1D);
@@ -78,11 +78,15 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 					d->pos[i * 3]     = (fpv_t)( (p[0] + .5) * dx );
 					d->pos[i * 3 + 1] = (fpv_t)( (p[1] + .5) * dx );
 					d->pos[i * 3 + 2] = (fpv_t)( (p[2] + .5) * dx );
+					for(int k=0;k<3;k++) {
+						pm[k] = p[k]*((d->maxDims)/(d->partDim1D));
+					}
 					if (d->mode->useLongIDs) {
-						( (uint64_t *)(d->id) )[i] = lIdx_fromCoord3d(p,
+						( (uint64_t *)(d->id) )[i] = lIdx_fromCoord3d(pm,
 						                                              maxDims3);
+						//printf("%lu\n",( (uint64_t *)(d->id))[i]);
 					} else {
-						( (uint32_t *)(d->id) )[i] = lIdx_fromCoord3d(p,
+						( (uint32_t *)(d->id) )[i] = lIdx_fromCoord3d(pm,
 						                                              maxDims3);
 					}
 					i++;

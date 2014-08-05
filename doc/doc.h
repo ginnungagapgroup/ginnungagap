@@ -672,6 +672,10 @@
  * size = 384, 384, 384
  * iseed = 1235135
  * @endcode
+ * Then run
+ * @code
+ * $ mpiexec -n 1 ../../bin/realSpaceConstraints scale.ini
+ * @endcode
  * This will produce the file @c wn_384_delta which contains the properly
  * enhanced white noise field for the higher resolution box.
  *
@@ -741,9 +745,139 @@
  *
  * Now it is just a question of generating the velocity fields and from
  * those the Gadget ICs just as we did before (with adjusted file names, of
- * course).
+ * course). To produce a zoomed ICs which will combine particles from different
+ * resolution level, see @ref pageGenerateICs .
  */
 
+/*--- Page: Using generateICs ---------------------------------------*/
+
+/**
+ * @page pageGenerateICs Using GenerateICs
+ * 
+ * GenerateICs is a tool for converting velocity fields produced by Ginnungagap
+ * into GADGET-2 format. This tool also can combine several velocity fields
+ * of different resolution in order to run zoom-in simulations.
+ * 
+ * @section inifile .ini file sections
+ * For each zoom level there should be a separate .ini file.
+ * The .ini file requires to have sections:
+ * @code
+ * [Ginnungagap]
+ * [Cosmology]
+ * 
+ * [GenerateICs]
+ * [Mask]
+ * [Hierarchy]
+ * [Lare]
+ * [GenicsInput]
+ * [GenicsInput_velx]
+ * [GenicsInput_vely]
+ * [GenicsInput_velz]
+ * [GenicsOutput]
+ * @endcode
+ * 
+ * The velocity files should be prepared in advance from a properly scaled white noise. For each zoom level the GenicsInput_vel sections must point to the corresponding velocity files.
+ * 
+ * 
+ * @subsection subHierarchy The numbering of levels is defined from the [Hierarchy]
+ * @code
+ * [Hierarchy]
+ * numLevels = 7
+ * minDim1D = 4
+ * factor = 2
+ * @endcode
+ * 
+ * This means that level 0 is 4, level 1 is 8, ..., level 6 is 256.
+ * 
+ * 
+ * @subsection subMask The levels which are used for different purposes are defined in [Mask]
+ * @code
+ * [Mask]
+ * maskLevel = 4
+ * minLevel = 3
+ * maxLevel = 6
+ * tileLevel = 0
+ * readerType = legacy
+ * readerSection = Lare
+ * @endcode
+ * 
+ * - minLevel to maxLevel are the levels that we are going to simulate.
+ * - maskLevel is the level for which we have the mask which will be read in [Lare] section.
+ * - tileLevel defines the size of tiles used for the distribution of the output into several files. Each file contains at least one tile. Also we must have tileLevel <= minLevel.
+ * 
+ * @subsection subLare The initial mask is read in [Lare]
+ * @code
+ * [Lare]
+ * hasHeader = false
+ * fileName = lare.dat
+ * ngrid = 64 64 64
+ * @endcode
+ * 
+ * this should be clear...
+ * 
+ * The lare.dat can be prepared by the LareWrite.f90 utility, see below.
+ * 
+ * @subsection subGenerateICs The level of current .ini file and the Gadget types for each level are assigned in [GenerateICs]
+ * @code
+ * [GenerateICs]
+ * ginnungagapSection = Ginnungagap
+ * doGas = false
+ * doLongIDs = false
+ * bufferSection = Buffer
+ * inputSection = GenicsInput
+ * outputSection = GenicsOutput
+ * cosmologySection = Cosmology
+ * maskSection = Mask
+ * hierarchySection = Hierarchy
+ * zoomLevel = 3
+ * typeForLevel3 = 3
+ * typeForLevel4 = 3
+ * typeForLevel5 = 2
+ * typeForLevel6 = 1
+ * @endcode
+ * 
+ * the lines with typeForLevelX must exist for each level between minLevel and maxLevel. If two or more levels have the same type, they will be assigned particle masses for each particle. Otherwise massArr is used. Type 0 is gas, type 1 is halo, ...
+ * 
+ * 
+ * @subsection subOutput The number of files for each level is set in [GenicsOutput]
+ * @code
+ * [GenicsOutput]
+ * numFilesForLevel3 = 1
+ * numFilesForLevel4 = 1
+ * numFilesForLevel5 = 1
+ * numFilesForLevel6 = 2
+ * prefix = pz
+ * @endcode
+ * 
+ * in this example we will have:
+ * pz.0 for level 3, Gadget type 3
+ * pz.1 for level 4, Gadget type 3
+ * pz.2 for level 5, Gadget type 2
+ * pz.3 and pz.4 for level 6, Gadget type 1
+ * 
+ * When having several files for one level, the code tries to distribute the particles equally between them. But remember that it is done with tiles. If the tile size is too big, the whole zoom region may be fit into just one tile. In this case one file will include all high resolution particles, and others will be empty. To avoid this, increase tileLevel. But increasing it too much can slow things down.
+ *
+ * @subsection subUtility Utility to prepare initial mask: LareWrite.f90
+ * 
+ * Compile with gfortran LareWrite.f90 -o LareWrite.x
+ * The parameters are given in LareWrite.tbl file:
+ * 1st line -- file path with halos in AHF output
+ * 2nd line -- simulation snapshot file path
+ * 3rd line -- output file name
+ * 4th line -- how many cells the zoom region will be expanded in each direction
+ * 
+ * The output of LareWrite contains some usefull information: the position of the centre of the minimal parallelepiped covering the zoom region(s) and its size. This can be used to move the ICs to center the zoom region in the simulation box. This is needed when using OPT += -DPLACEHIGHRESREGION in GADGET.
+ * 
+ * The ICs can be moved to center the zoom region with the move.f90 utility.
+ * 
+ * The parameters to this utility are passed in move.tbl file:
+ * 1st line -- center position of the zoom region
+ * all rest lines -- names of GADGET files.
+ *  
+ * @section singlelevel Producing single level ICs
+ * In order to produce ordinary ICs without zoom (for the whole box), minLevel = maxLevel must be set. In this case, [Lare] will not be read, and empty mask will be used. However, zoomlevel and typeForLevel still must be present (this can be changed in the next version).
+ * 
+ */
 
 /*--- Page: External Dependencies ---------------------------------------*/
 
