@@ -15,6 +15,7 @@ read(1,'(A)')f_halos
 read(1,'(A)')f_low_snap
 read(1,'(A)')f_out
 read(1,*) dx
+read(1,*) factor_ic
 close(1)
 
 open(2,file=trim(f_halos))

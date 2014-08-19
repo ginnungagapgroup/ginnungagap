@@ -772,6 +772,7 @@
  *     <li>@ref pageGenerateICs_subGenerateICs</li>
  *     <li>@ref pageGenerateICs_subOutput</li>
  *   </ul>
+ *   <li>@ref pageGenerateICs_MPI</li>
  *   <li>@ref pageGenerateICs_singlelevel</li>
  *   <li>@ref pageGenerateICs_LareFormat</li>
  *   <li>@ref pageGenerateICs_Utility</li>
@@ -794,7 +795,8 @@
  * [GenicsInput_velz]
  * [GenicsOutput]
  * @endcode
- * 
+ *
+ * The first two sections are just the ones used by Ginnungagap to produce velocity fields.  
  * So these files can be made from the Ginnungagap .ini files used to prepare 
  * velocity fields by adding sections to them.
  * 
@@ -807,7 +809,8 @@
  * factor = 2
  * @endcode
  * 
- * This means that level 0 is 4, level 1 is 8, ..., level 6 is 256.
+ * The levels are numbered from 0 to numLevels-1. The 1D dimension of i-th level grid is minDim1D*factor^i.
+ * This means that level 0 is 4, level 1 is 8, ..., level 6 is 256 in the example above.
  * 
  * 
  * @subsection pageGenerateICs_subMask The levels which are used for different purposes are defined in [Mask]
@@ -824,6 +827,7 @@
  * - minLevel to maxLevel are the levels that we are going to simulate.
  * - maskLevel is the level for which we have the mask which will be read in [Lare] section.
  * - tileLevel defines the size of tiles used for the distribution of the output into several files. Each file contains at least one tile. Also we must have tileLevel <= minLevel.
+ * - readerType now should be set to legacy, which means ascii reader.
  * 
  * @subsection pageGenerateICs_subLare The initial mask is read in [Lare]
  * @code
@@ -833,7 +837,7 @@
  * ngrid = 64 64 64
  * @endcode
  * 
- * this should be clear...
+ * - ngrid in each dimension should be equal to the mask level dimension
  * 
  * The lare.dat can be prepared by the LareWrite.f90 utility, see below.
  * 
@@ -856,7 +860,9 @@
  * typeForLevel6 = 1
  * @endcode
  * 
- * the lines with typeForLevelX must exist for each level between minLevel and maxLevel. If two or more levels have the same type, they will be assigned particle masses for each particle. Otherwise massArr is used. Type 0 is gas, type 1 is halo, ...
+ * zoomlevel is the level of the current .ini file. The lines with typeForLevelX must exist for each level between minLevel and maxLevel. If two or more levels have the same type, they will be assigned particle masses for each particle. Otherwise massArr is used. Type 0 is gas, type 1 is halo, ...
+ *
+ * The particle IDs are assigned according to their Lagrangian coordinates at the highest resolution level. The transform is done with ::lIdx_fromCoord3d function.
  * 
  * 
  * @subsection pageGenerateICs_subOutput The number of files for each level is set in [GenicsOutput]
@@ -870,37 +876,60 @@
  * @endcode
  * 
  * in this example we will have:
+ *
  * pz.0 for level 3, Gadget type 3
+ *
  * pz.1 for level 4, Gadget type 3
+ *
  * pz.2 for level 5, Gadget type 2
+ *
  * pz.3 and pz.4 for level 6, Gadget type 1
  * 
- * When having several files for one level, the code tries to distribute the particles equally between them. But remember that it is done with tiles. If the tile size is too big, the whole zoom region may be fit into just one tile. In this case one file will include all high resolution particles, and others will be empty. To avoid this, increase tileLevel. But increasing it too much can slow things down.
+ * When having several files for one level, the code tries to distribute the particles equally between them. But remember that it is done with tiles. If the tile size is too big, the whole zoom region may be fit into just one tile. In this case one file will include all high resolution particles, and others will be empty. To avoid this, increase tileLevel. But increasing it too much requires more disk operations and can slow things down.
  * 
+ * @section pageGenerateICs_MPI MPI-parallelization
+ *
+ * generateICs can be run in parallel. In this case the number of output files for the current level must be greater or equal than the number of MPI-processes.
+ *
  * @section pageGenerateICs_singlelevel Producing single level ICs
- * In order to produce ordinary ICs without zoom (for the whole box), minLevel = maxLevel must be set. In this case, [Lare] will not be read, and empty mask will be used. However, zoomlevel and typeForLevel still must be present (this can be changed in the next version).
+ * In order to produce ordinary ICs without zoom (for the whole box), minLevel = maxLevel must be set. In this case, [Lare] will not be read, and empty mask will be used. However, zoomlevel and typeForLevel still must be present. This can be changed in the next version to make generateICs compatible with previous version of .ini files.
  * 
  * @section pageGenerateICs_LareFormat Format of the Lagrangian region mask
  * 
- * to prepare mask there is an utility in tools/zoomTools: LareWrite.f90
+ * The Lagrangian Region (LaRe) file contains rows with the following information:
+ * @code
+ * id, pos[3], vel[3], i, j, k
+ * @endcode
+ * only the last three numbers are read by generateICs. These numbers i, j, k are the x, y and z indices of the cells which are labelled as high resolution.
+ *
+ * To prepare the mask there is an utility in tools/zoomTools: LareWrite.f90
  * 
  * Compile with gfortran LareWrite.f90 -o LareWrite.x
+ *
  * The parameters are given in LareWrite.tbl file:
- * 1st line -- file path with halos in AHF output
+ *
+ * 1st line -- file path with halos in AHF output format
+ *
  * 2nd line -- simulation snapshot file path
+ *
  * 3rd line -- output file name
+ *
  * 4th line -- how many cells the zoom region will be expanded in each direction
+ *
+ * 5th line -- the multiplication factor for the halo radius
  * 
- * The output of LareWrite contains some usefull information: the position of the centre of the minimal parallelepiped covering the zoom region(s) and its size. This can be used to move the ICs to center the zoom region in the simulation box. This is needed when using OPT += -DPLACEHIGHRESREGION in GADGET.
+ * The output of LareWrite contains also some usefull information: the position of the centre of the minimal parallelepiped covering the zoom region(s) and its size. This can be used to move the ICs to center the zoom region in the simulation box. This is needed when using OPT += -DPLACEHIGHRESREGION in GADGET.
  
  * @section pageGenerateICs_Utility Utility in zoomTools
  * 
- * The ICs can be moved to center the zoom region with the move.f90 utility.
- * 
- * The parameters to this utility are passed in move.tbl file:
- * 1st line -- center position of the zoom region
- * all rest lines -- names of GADGET files.
- * 
+ * The gadgetMaxMem.sh script computes the memory requirements of GADGET-2 when using the -DPLACEHIGHRESREGION option.
+ * The command line parameters are: PM box extnt Ncpu
+ * - PM is the PMGRID size 1D
+ * - box is boxsize
+ * - extent is the HIGHRESREGION size (in the same units as the box)
+ * - Ncpu is the number of CPUs to use.
+ *
+ * The outputs are the total memory required and memory per CPU estimates.
  */
 
 /*--- Page: External Dependencies ---------------------------------------*/
