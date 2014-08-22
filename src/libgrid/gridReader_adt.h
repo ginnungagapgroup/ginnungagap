@@ -82,6 +82,12 @@ struct gridReader_struct {
 	gridReader_handleFilenameChangeFunc_t handleFilenameChange;
 	/** @brief  Holds the file name object for the file. */
 	filename_t                            fileName;
+	/** @brief	Toggles region to write patch. */
+	bool		 doPatch;
+	/** @brief	Gives region to write idxLo. */
+	gridPointUint32_t	 rtwLo;
+	/** @brief	Gives region to write dims. */
+	gridPointUint32_t	 rtwDims;
 };
 
 

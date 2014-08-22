@@ -201,6 +201,36 @@ gridWriterHDF5_setDoCompression(gridWriterHDF5_t w, bool doCompression);
 extern void
 gridWriterHDF5_setCompressionFilter(gridWriterHDF5_t w,
                                     const char       *filterName);
+                                    
+
+/**
+ * @brief  This will activate writing only a specified patch to the ouput.
+ *
+ * @param[in]  w
+ *                The writer for which to work with.
+ * @param[in]  doPatch
+ *                Toggles between patch and whole grid.
+ *
+ * *@return  Returns nothing.
+ */
+extern void
+gridWriterHDF5_setDoPatch(gridWriterHDF5_t w, bool doPatch);
+
+
+/**
+ * @brief  This will set the patch for the output instead of the whole grid.
+ *
+ * @param[in]  w
+ *                The writer for which to work with.
+ * @param[in]  Lo
+ *                Patch lower corner.
+ * @param[in]  d
+ *                Patch dimensions.
+ *
+ * *@return  Returns nothing.
+ */
+extern void
+gridWriterHDF5_setRtw(gridWriterHDF5_t w, gridPointUint32_t Lo, gridPointUint32_t d);
 
 
 /** @} */

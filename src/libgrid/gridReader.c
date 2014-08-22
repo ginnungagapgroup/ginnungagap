@@ -104,6 +104,23 @@ gridReader_getFileName(const gridReader_t reader)
 	return reader->fileName;
 }
 
+extern void
+gridReaderHDF5_setDoPatch(gridReader_t reader, bool doPatch)
+{
+	assert(reader != NULL);
+	reader->doPatch = doPatch;
+}
+
+extern void
+gridReaderHDF5_setRtw(gridReader_t reader, gridPointUint32_t Lo, gridPointUint32_t d)
+{
+	assert(reader != NULL);
+	for(int i=0;i<NDIM; i++) {
+		reader->rtwLo[i] = Lo[i];
+		reader->rtwDims[i] = d[i];
+	}
+}
+
 /*--- Implementations of protected functions ----------------------------*/
 extern void
 gridReader_init(gridReader_t                          reader,

@@ -35,7 +35,8 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
-
+ #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+ #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
 /*--- Local variables ---------------------------------------------------*/
 
@@ -65,6 +66,13 @@ static const char *local_defaultFileNameSuffix = ".h5";
 
 
 /*--- Prototypes of local functions -------------------------------------*/
+
+static void
+local_writeGridRegular(gridWriter_t  writer,
+                                gridRegular_t grid);
+static void
+local_writeGridRtw(gridWriter_t  writer,
+                                gridRegular_t grid);
 
 /**
  * @brief  Get the HDF5 file handle for the required file.
@@ -147,6 +155,9 @@ local_writeVariableAtPatch(dataVar_t   var,
  */
 static bool
 local_checkIfPatchIsCompleteGrid(hid_t space, gridPointUint32_t patchDims);
+
+inline static void
+local_writeNull();
 
 
 /*--- Implementations of abstract functions -----------------------------*/
@@ -233,38 +244,11 @@ gridWriterHDF5_writeGridRegular(gridWriter_t  writer,
                                 gridRegular_t grid)
 {
 	gridWriterHDF5_t w = (gridWriterHDF5_t)writer;
-
 	assert(w != NULL);
-	assert(w->base.type == GRIDIO_TYPE_HDF5);
-	assert(grid != NULL);
-	assert(w->base.isActive);
-
-	int               numVars, numPatches;
-	gridPointUint32_t dims;
-	hid_t             gridSize, dsCreationPropList;
-
-	numVars    = gridRegular_getNumVars(grid);
-	numPatches = gridRegular_getNumPatches(grid);
-
-	gridRegular_getDims(grid, dims);
-	gridSize           = gridUtilHDF5_getDataSpaceFromDims(dims);
-	dsCreationPropList = local_getDSCreationPropList(w);
-
-	for (int i = 0; i < numVars; i++) {
-		dataVar_t var     = gridRegular_getVarHandle(grid, i);
-		hid_t     dt      = dataVar_getHDF5Datatype(var);
-		hid_t     dataSet = H5Dcreate(w->fileHandle, dataVar_getName(var),
-		                              dt, gridSize, H5P_DEFAULT,
-		                              dsCreationPropList,
-		                              H5P_DEFAULT);
-		for (int j = 0; j < numPatches; j++) {
-			gridPatch_t patch = gridRegular_getPatchHandle(grid, j);
-			assert(w->fileHandle != H5I_INVALID_HID);
-			local_writeVariableAtPatch(var, patch, dataSet, dt, gridSize);
-		}
-		H5Dclose(dataSet);
-	}
-	H5Sclose(gridSize);
+	if(w->doPatch)
+		local_writeGridRtw(writer, grid);
+	else
+		local_writeGridRegular(writer, grid);
 }
 
 #ifdef WITH_MPI
@@ -377,6 +361,24 @@ gridWriterHDF5_setCompressionFilter(gridWriterHDF5_t w,
 	}
 }
 
+extern void
+gridWriterHDF5_setDoPatch(gridWriterHDF5_t w, bool doPatch)
+{
+	assert(w != NULL);
+	w->doPatch = doPatch;
+}
+
+extern void
+gridWriterHDF5_setRtw(gridWriterHDF5_t w, gridPointUint32_t Lo, gridPointUint32_t d)
+{
+	assert(w != NULL);
+	for(int i=0;i<NDIM; i++) {
+		w->rtwLo[i] = Lo[i];
+		w->rtwDims[i] = d[i];
+	}
+}
+
+
 /*--- Implementations of protected functions ----------------------------*/
 extern gridWriterHDF5_t
 gridWriterHDF5_alloc(void)
@@ -402,11 +404,15 @@ gridWriterHDF5_init(gridWriterHDF5_t writer)
 	writer->mpiComm    = MPI_COMM_NULL;
 #endif
 	writer->doChunking = false;
-	for (int i = 0; i < NDIM; i++)
+	for (int i = 0; i < NDIM; i++) {
 		writer->chunkSize[i] = 0;
+		writer->rtwLo[i]=0;
+		writer->rtwDims[i]=0;
+	}
 	writer->doChecksum        = false;
 	writer->doCompression     = false;
 	writer->compressionFilter = H5I_INVALID_HID;
+	writer->doPatch			  = false;
 }
 
 extern void
@@ -416,6 +422,148 @@ gridWriterHDF5_free(gridWriterHDF5_t writer)
 }
 
 /*--- Implementations of local functions --------------------------------*/
+static void
+local_writeGridRtw(gridWriter_t  writer,
+                                gridRegular_t grid)
+{
+	gridWriterHDF5_t w = (gridWriterHDF5_t)writer;
+
+	assert(w != NULL);
+	assert(w->base.type == GRIDIO_TYPE_HDF5);
+	assert(grid != NULL);
+	assert(w->base.isActive);
+
+	int               numVars, numPatches;
+	gridPointUint32_t dims;
+	hid_t             gridSize, dsCreationPropList;
+	
+	gridPointUint32_t rtwHi, idxLo, idxHi, dimsPatch;
+	uint32_t	oldLo;
+	bool		doWrite, doWriteGlob;
+	for(int k = 0; k<NDIM; k++) 
+		rtwHi[k] = w->rtwLo[k]+w->rtwDims[k]-1;
+
+	numVars    = gridRegular_getNumVars(grid);
+	numPatches = gridRegular_getNumPatches(grid);
+
+	//gridRegular_getDims(grid, dims);
+	gridSize           = gridUtilHDF5_getDataSpaceFromDims(w->rtwDims);
+	dsCreationPropList = local_getDSCreationPropList(w);
+	for (int i = 0; i < numVars; i++) {
+		dataVar_t var     = gridRegular_getVarHandle(grid, i);
+		hid_t     dt      = dataVar_getHDF5Datatype(var);
+		hid_t     dataSet = H5Dcreate(w->fileHandle, dataVar_getName(var),
+	                              dt, gridSize, H5P_DEFAULT,
+	                              dsCreationPropList,
+	                              H5P_DEFAULT);
+		for (int j = 0; j < numPatches; j++) {
+			gridPatch_t patch = gridRegular_getPatchHandle(grid, j);
+			assert(w->fileHandle != H5I_INVALID_HID);
+			
+			gridPatch_getDims(patch, dimsPatch);
+			gridPatch_getIdxLo(patch, idxLo);
+			doWrite = true;
+			
+			for(int k=0; k<NDIM; k++) {
+				oldLo = idxLo[k];
+				idxLo[k] = MAX(idxLo[k], w->rtwLo[k]);
+				idxHi[k] = MIN(oldLo+dimsPatch[k]-1, rtwHi[k]);
+				if(idxLo[k]>idxHi[k]) doWrite = false;
+			}
+			
+			hid_t             transProps = H5P_DEFAULT;
+			gridPointUint32_t dimsPatch = {0,0,0};
+			hid_t             dataSpacePatch, dataSpaceFile;
+			
+			void *data = NULL;
+			if(doWrite) {
+				data = gridPatch_getWindowedDataCopy(patch, i, idxLo, idxHi, NULL);
+				for(int k=0; k<NDIM; k++) {
+					dimsPatch[k]=idxHi[k]-idxLo[k]+1;
+					idxLo[k]=idxLo[k]-w->rtwLo[k];
+				}
+			} else {
+				for(int k=0; k<NDIM; k++)
+					idxLo[k]=0;
+			}
+			
+			#ifdef WITH_MPI
+				transProps = H5Pcreate(H5P_DATASET_XFER);
+				assert(transProps >= 0);
+				H5Pset_dxpl_mpio(transProps, H5FD_MPIO_COLLECTIVE);
+			#endif
+		
+			dataSpaceFile = H5Dget_space(dataSet);
+			assert(dataSpaceFile >= 0);
+			if (local_checkIfPatchIsCompleteGrid(gridSize, dimsPatch))
+				gridUtilHDF5_selectHyperslab(dataSpaceFile, NULL, dimsPatch);
+			else {
+				gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLo, dimsPatch);
+			}
+			dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsPatch);
+			
+			//if(doWrite) {
+				H5Dwrite(dataSet, dt, dataSpacePatch, dataSpaceFile,
+			         transProps, data);
+			//}
+		
+			H5Sclose(dataSpacePatch);
+			H5Sclose(dataSpaceFile);
+			if (transProps != H5P_DEFAULT)
+				H5Pclose(transProps);
+
+				
+				
+				//local_writeVariableAtPatch(var, patchToWrite, dataSet, dt, gridSize);
+		}
+		H5Dclose(dataSet);
+	}
+	H5Sclose(gridSize);
+	
+	printf("done");
+}
+
+
+static void
+local_writeGridRegular(gridWriter_t  writer,
+                                gridRegular_t grid)
+{
+	gridWriterHDF5_t w = (gridWriterHDF5_t)writer;
+
+	assert(w != NULL);
+	assert(w->base.type == GRIDIO_TYPE_HDF5);
+	assert(grid != NULL);
+	assert(w->base.isActive);
+
+	int               numVars, numPatches;
+	gridPointUint32_t dims;
+	hid_t             gridSize, dsCreationPropList;
+
+	numVars    = gridRegular_getNumVars(grid);
+	numPatches = gridRegular_getNumPatches(grid);
+
+	gridRegular_getDims(grid, dims);
+	gridSize           = gridUtilHDF5_getDataSpaceFromDims(dims);
+	dsCreationPropList = local_getDSCreationPropList(w);
+
+	for (int i = 0; i < numVars; i++) {
+		dataVar_t var     = gridRegular_getVarHandle(grid, i);
+		hid_t     dt      = dataVar_getHDF5Datatype(var);
+		hid_t     dataSet = H5Dcreate(w->fileHandle, dataVar_getName(var),
+		                              dt, gridSize, H5P_DEFAULT,
+		                              dsCreationPropList,
+		                              H5P_DEFAULT);
+		for (int j = 0; j < numPatches; j++) {
+			gridPatch_t patch = gridRegular_getPatchHandle(grid, j);
+			assert(w->fileHandle != H5I_INVALID_HID);
+			local_writeVariableAtPatch(var, patch, dataSet, dt, gridSize);
+		}
+		H5Dclose(dataSet);
+	}
+	H5Sclose(gridSize);
+}
+
+
 #ifdef WITH_MPI
 static hid_t
 local_getAccessPropsFileAccessMPI(MPI_Comm comm)
@@ -480,6 +628,9 @@ local_getDSCreationPropList(const gridWriterHDF5_t writer)
 		err = H5Pset_chunk(rtn, NDIM, writer->chunkSize);
 		if (err < 0)
 			diediedie(EXIT_FAILURE);
+		err = H5Pset_alloc_time(rtn,H5D_ALLOC_TIME_INCR);
+		if (err < 0)
+			diediedie(EXIT_FAILURE);
 
 		if (writer->doChecksum) {
 			err = H5Pset_filter(rtn, H5Z_FILTER_FLETCHER32,
@@ -536,6 +687,18 @@ local_writeVariableAtPatch(dataVar_t   var,
 	if (transProps != H5P_DEFAULT)
 		H5Pclose(transProps);
 } /* local_writeVariableAtPatch */
+
+inline static void
+local_writeNull() {
+	hid_t             transProps = H5P_DEFAULT;
+#ifdef WITH_MPI
+	transProps = H5Pcreate(H5P_DATASET_XFER);
+	assert(transProps >= 0);
+	H5Pset_dxpl_mpio(transProps, H5FD_MPIO_COLLECTIVE);
+#endif
+	if (transProps != H5P_DEFAULT)
+		H5Pclose(transProps);
+}
 
 static bool
 local_checkIfPatchIsCompleteGrid(hid_t space, gridPointUint32_t patchDims)

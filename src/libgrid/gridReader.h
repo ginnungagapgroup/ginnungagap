@@ -167,6 +167,12 @@ gridReader_overlayFileName(gridReader_t reader,
 extern const filename_t
 gridReader_getFileName(const gridReader_t reader);
 
+extern void
+gridReaderHDF5_setDoPatch(gridReader_t reader, bool doPatch);
+
+extern void
+gridReaderHDF5_setRtw(gridReader_t reader, gridPointUint32_t Lo, gridPointUint32_t d);
+
 /** @} */
 
 

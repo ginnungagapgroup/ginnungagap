@@ -47,6 +47,13 @@ struct gridWriterHDF5_struct {
 	bool         doCompression;
 	/** @brief  Selects the compression filter. */
 	H5Z_filter_t compressionFilter;
+	/** @brief	Toggles region to write patch. */
+	bool		 doPatch;
+	/** @brief	Gives region to write idxLo. */
+	gridPointUint32_t	 rtwLo;
+	/** @brief	Gives region to write dims. */
+	gridPointUint32_t	 rtwDims;
+	 
 };
 
 

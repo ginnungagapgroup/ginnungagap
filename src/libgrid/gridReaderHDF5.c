@@ -26,7 +26,8 @@
 
 
 /*--- Local defines -----------------------------------------------------*/
-
+ #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+ #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
 /*--- Local variables ---------------------------------------------------*/
 
@@ -94,12 +95,41 @@ gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
 	hid_t             dataSet;
 	hid_t             dataSpaceFile, dataTypeFile;
 	hid_t             dataSpacePatch, dataTypePatch;
-	gridPointUint32_t idxLoPatch, dimsPatch;
+	gridPointUint32_t idxLoPatch, dimsPatch, idxLoRead, dimsRead, idxHiRead, idxLoReadRtw;
 	dataVar_t         var   = gridPatch_getVarHandle(patch, idxOfVar);
-	void              *data = gridPatch_getVarDataHandle(patch, idxOfVar);
+	void             *data;
+	bool              doRead;
+	//void             *dataPatch = gridPatch_getVarDataHandle(patch, idxOfVar);
+	uint64_t  numCellsToAllocate = 1;
+	numCellsToAllocate = gridPatch_getNumCellsActual(patch,
+	                                                 idxOfVar);
+	data               = dataVar_getMemory(var, numCellsToAllocate);
+
 
 	gridPatch_getIdxLo(patch, idxLoPatch);
 	gridPatch_getDims(patch, dimsPatch);
+	
+	doRead=true;
+	for(int k=0; k<NDIM; k++) {
+		if(reader->doPatch) {
+			idxLoRead[k]=MAX(reader->rtwLo[k], idxLoPatch[k]);
+			idxLoReadRtw[k]=idxLoRead[k]-reader->rtwLo[k];
+			idxHiRead[k]=MIN(idxLoPatch[k]+dimsPatch[k]-1, reader->rtwLo[k]+reader->rtwDims[k]-1);
+			//dimsRead[k]=MIN(reader->rtwDims[k], idxLoPatch[k]+dimsPatch[k]-idxLoRead[k]);
+			if(idxHiRead[k]<idxLoRead[k]) doRead=false;
+		} else {
+			idxLoRead[k]=idxLoPatch[k];
+			idxLoReadRtw[k]=idxLoPatch[k];
+			idxHiRead[k]=idxLoRead[k]+dimsPatch[k]-1;
+		}
+		dimsRead[k]=idxHiRead[k]-idxLoRead[k]+1;
+	}
+	if(!doRead) {
+		for(int k=0; k<NDIM; k++) {
+			dimsRead[k]=0;
+			idxHiRead[k]=idxLoRead[k]+dimsRead[k]-1;
+		}
+	}
 
 	dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file,
 	                         dataVar_getName(var), H5P_DEFAULT);
@@ -107,9 +137,9 @@ gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
 	dataSpaceFile  = H5Dget_space(dataSet);
 
 	dataTypePatch  = dataVar_getHDF5Datatype(var);
-	dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsPatch);
+	dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsRead);
 
-	gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLoPatch, dimsPatch);
+	gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLoReadRtw, dimsRead);
 
 	if (H5Tequal(dataTypeFile, dataTypePatch)) {
 		H5Dread(dataSet, dataTypeFile, dataSpacePatch,
@@ -124,6 +154,10 @@ gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
 	H5Sclose(dataSpaceFile);
 	H5Tclose(dataTypeFile);
 	H5Dclose(dataSet);
+	
+	gridPatch_allocateVarData(patch,idxOfVar);
+	gridPatch_putWindowedData(patch, idxOfVar, idxLoRead, idxHiRead, data);
+	
 } /* gridReaderHDF5_readIntoPatchForVar */
 
 /*--- Implementations of final functions --------------------------------*/

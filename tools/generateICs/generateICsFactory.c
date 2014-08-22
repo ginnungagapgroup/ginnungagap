@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <math.h>
+#include <string.h>
 #ifdef WITH_MPI
 #  include <mpi.h>
 #endif
@@ -28,6 +29,7 @@
 #endif
 #include "generateICs.h"
 #include "../../src/libgrid/gridReaderFactory.h"
+#include "../../src/libgrid/gridReader.h"
 #include "../../src/libgrid/gridRegular.h"
 #include "../../src/libdata/dataVar.h"
 #include "../../src/libcosmo/cosmo.h"
@@ -211,6 +213,8 @@ local_newFromIni_output(parse_ini_t   ini,
                         generateICs_t genics,
                         int32_t minlev, int32_t maxlev);
 
+void
+local_doPatch(parse_ini_t ini, const char *sectionName, gridReader_t reader);
 
 /*--- Implementations of exported functios ------------------------------*/
 extern generateICs_t
@@ -449,6 +453,7 @@ local_newFromIni_input(parse_ini_t   ini,
 {
 	char         *name;
 	gridReader_t reader[3];
+	bool		 tmp, doPatch;
 
 	getFromIni(&name, parse_ini_get_string, ini, "velxSection", secName);
 	reader[0] = gridReaderFactory_newReaderFromIni(ini, name);
@@ -462,8 +467,107 @@ local_newFromIni_input(parse_ini_t   ini,
 	reader[2] = gridReaderFactory_newReaderFromIni(ini, name);
 	xfree(name);
 
+	tmp = parse_ini_get_bool(ini, "doPatch", secName,
+							 &doPatch);
+	if (tmp && doPatch) {
+		local_doPatch(ini, secName, reader[0]);
+		local_doPatch(ini, secName, reader[1]);
+		local_doPatch(ini, secName, reader[2]);
+	}
+
 	generateICs_setIn( genics,
 	                   generateICsIn_new(reader[0], reader[1], reader[2]) );
+}
+
+void
+local_doPatch(parse_ini_t ini, const char *sectionName, gridReader_t reader)
+{
+	char*		patchSection;
+	char*		unit;
+	bool		tmp;
+	
+	
+	gridPointUint32_t patchLo, patchDims;
+	gridReaderHDF5_setDoPatch(reader, true);
+	
+	tmp = parse_ini_get_string(ini, "patchSection", sectionName,
+			&patchSection);
+	if(!tmp) {
+		fprintf(stderr, "Could not get patchSection from section %s.\n",
+		        sectionName);
+		diediedie(EXIT_FAILURE);
+	}
+			
+	tmp = parse_ini_get_string(ini, "unit", patchSection,
+			&unit);
+	if(!tmp) {
+		fprintf(stderr, "Could not get unit from section %s.\n",
+		        patchSection);
+		diediedie(EXIT_FAILURE);
+	}
+	
+	if(strcmp(unit,"cells")==0) {
+		int32_t           *dataFile;
+		if (!parse_ini_get_int32list(ini, "patchLo", patchSection,
+		                             NDIM, (int32_t **)&dataFile)) {
+			fprintf(stderr, "Could not get patchLo from section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+		}
+		for (int i = 0; i < NDIM; i++)
+			patchLo[i] = dataFile[i];
+		
+		if (!parse_ini_get_int32list(ini, "patchDims", patchSection,
+		                             NDIM, (int32_t **)&dataFile)) {
+			fprintf(stderr, "Could not get patchDims from section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+		}
+		for (int i = 0; i < NDIM; i++)
+			patchDims[i] = dataFile[i];
+			
+		xfree(dataFile);
+	}
+	
+	if(strcmp(unit,"Mpch")==0) {
+		double   	box;
+		int32_t  	dim1D;
+		double*		dataFile;
+		
+		parse_ini_get_double(ini, "boxsizeInMpch", "Ginnungagap",
+						&box);
+		parse_ini_get_int32(ini, "dim1D", "Ginnungagap",
+						&dim1D);
+						
+		if (!parse_ini_get_doublelist(ini, "patchLo", patchSection,
+		                             NDIM, (double **)&dataFile)) {
+			fprintf(stderr, "Could not get patchLo from section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+		}
+		
+		for (int i = 0; i < NDIM; i++)
+			patchLo[i] = (int32_t) (dataFile[i]/box*dim1D);
+		
+		if (!parse_ini_get_doublelist(ini, "patchDims", patchSection,
+		                             NDIM, (double **)&dataFile)) {
+			fprintf(stderr, "Could not get patchDims from section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+		}
+		for (int i = 0; i < NDIM; i++)
+			patchDims[i] = (int32_t) (dataFile[i]/box*dim1D);
+		
+		xfree(dataFile);
+	}
+	
+	if(strcmp(unit,"cells")!=0 && strcmp(unit,"Mpch")!=0) {
+		fprintf(stderr, "Unit can be only cells or Mpch in section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+	}
+	
+	gridReaderHDF5_setRtw(reader, patchLo, patchDims);
 }
 
 inline static void

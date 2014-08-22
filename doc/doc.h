@@ -500,6 +500,7 @@
  *  <li>@ref pageQuickstart_Base</li>
  *  <li>@ref pageQuickstart_Scale</li>
  *  <li>@ref pageQuickstart_HighRes</li>
+ *  <li>@ref pageQuickstart_RTW</li>
  * </ul>
  *
  * @section pageQuickstart_Build  Configuring and Compiling the Code
@@ -747,6 +748,32 @@
  * those the Gadget ICs just as we did before (with adjusted file names, of
  * course). To produce a zoomed ICs which will combine particles from different
  * resolution level, see @ref pageGenerateICs .
+ *
+ * @section pageQuickstart_RTW Writing a specified region of the mesh 
+ * Sometimes it is needed to write not the full output wite noise and velocity fields, but only some part. For example, this is needed to save disk space when producing high resolution zoomed simulations.
+ * This can be done only with the HDF5 writer. To set up the patch to be written, there is an optional key in the writer section:
+ * @code
+ * [OutputHDF5]
+ * ...
+ * doPatch = true
+ * patchSection = Patch
+ * @endcode
+ * 
+ * @code
+ * [Patch]
+ * unit = cells
+ * patchLo = 384 300 186
+ * patchDims = 256 256 190
+ * @endcode
+ *
+ * If the doPatch keyword is ommitted, the feature is disabled. The patch section should contain three keywords:
+ * <dl>
+ *     <dt>unit</dt><dd>Unit of patch coordinates, either "cells" (numbered from 0), or "Mpch"</dd>
+ *     <dt>patchLo</dt><dd>Lower patch vertix coordinates</dd>
+ *     <dt>patchDims</dt><dd>Patch dimensions. If you are using chunks, at least one dimension must be greater than the chunk size.</dd>
+ * </dl>
+ * 
+ * The patch section can also be used in GenerateICs tool to tell it that the input data is only a part of the full mesh. See @ref pageGenerateICs_RTW
  */
 
 /*--- Page: Using generateICs ---------------------------------------*/
@@ -758,10 +785,13 @@
  * into GADGET-2 format. This tool also can combine several velocity fields
  * of different resolution in order to run zoom-in simulations.
  * 
- * The ingredients for producing a multi-level ICs are the velocity fields for each
- * level (prepared by Ginnungagap), a mask, covering the high resolution Lagrangian
- * volume, and the .ini file(s).
- * The velocity files should be prepared in advance from a properly scaled white noise (see @ref pageQuickstart_Scale). 
+ * The workflow for producing a multi-level ICs:
+ *
+ * 1) Suppose you have a white noise field.<br>
+ * 2) Use realSpaceConstraints to produce white noise fields with all steps in resolution you need (see @ref pageQuickstart_Scale).<br>
+ * 3) Run ginnungagap for each white noise field to make velocity fields.<br>
+ * 4) Produce a mask, e.g. by running and analysing a low resolution simulation.<br>
+ * 5) Run generateICs for each level of resolution. 
  * 
  * <ul>
  *   <li>@ref pageGenerateICs_inifile</li>
@@ -775,6 +805,7 @@
  *   <li>@ref pageGenerateICs_MPI</li>
  *   <li>@ref pageGenerateICs_singlelevel</li>
  *   <li>@ref pageGenerateICs_LareFormat</li>
+ *   <li>@ref pageGenerateICs_RTW</li>
  *   <li>@ref pageGenerateICs_Utility</li>
  * </ul>
  *
@@ -876,17 +907,16 @@
  * @endcode
  * 
  * in this example we will have:
- *
- * pz.0 for level 3, Gadget type 3
- *
- * pz.1 for level 4, Gadget type 3
- *
- * pz.2 for level 5, Gadget type 2
- *
- * pz.3 and pz.4 for level 6, Gadget type 1
+ * 
+ * pz.0 for level 3, Gadget type 3<br>
+ * pz.1 for level 4, Gadget type 3<br>
+ * pz.2 for level 5, Gadget type 2<br>
+ * pz.3 and pz.4 for level 6, Gadget type 1<br>
  * 
  * When having several files for one level, the code tries to distribute the particles equally between them. But remember that it is done with tiles. If the tile size is too big, the whole zoom region may be fit into just one tile. In this case one file will include all high resolution particles, and others will be empty. To avoid this, increase tileLevel. But increasing it too much requires more disk operations and can slow things down.
  * 
+ * This section also can contain keywords for @ref pageGenerateICs_RTW .
+ *
  * @section pageGenerateICs_MPI MPI-parallelization
  *
  * generateICs can be run in parallel. In this case the number of output files for the current level must be greater or equal than the number of MPI-processes.
@@ -908,18 +938,30 @@
  *
  * The parameters are given in LareWrite.tbl file:
  *
- * 1st line -- file path with halos in AHF output format
- *
- * 2nd line -- simulation snapshot file path
- *
- * 3rd line -- output file name
- *
- * 4th line -- how many cells the zoom region will be expanded in each direction
- *
+ * 1st line -- file path with halos in AHF output format<br>
+ * 2nd line -- simulation snapshot file path<br>
+ * 3rd line -- output file name<br>
+ * 4th line -- how many cells the zoom region will be expanded in each direction<br>
  * 5th line -- the multiplication factor for the halo radius
  * 
  * The output of LareWrite contains also some usefull information: the position of the centre of the minimal parallelepiped covering the zoom region(s) and its size. This can be used to move the ICs to center the zoom region in the simulation box. This is needed when using OPT += -DPLACEHIGHRESREGION in GADGET.
- 
+ *
+ * @section pageGenerateICs_RTW Using a partial input mesh
+ * When using the partial mesh prepared as described in @ref pageQuickstart_RTW you must tell generateICs that the input is not a full mesh, since this information is not stored in the HDF5 files. To do this, you should add two keywords to the generateICs input section:
+ * @code
+ * [GenicsInput]
+ * ...
+ * doPatch = true
+ * patchSection = Patch
+ * @endcode 
+ * and also use the same Patch section that was used to write velocity fields by ginnungagap:
+ * @code
+ * [Patch]
+ * unit = cells
+ * patchLo = 384 300 186
+ * patchDims = 256 256 190
+ * @endcode
+ *
  * @section pageGenerateICs_Utility Utility in zoomTools
  * 
  * The gadgetMaxMem.sh script computes the memory requirements of GADGET-2 when using the -DPLACEHIGHRESREGION option.
