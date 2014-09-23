@@ -20,6 +20,7 @@
 #include "g9pHierarchy.h"
 #include "../libutil/refCounter.h"
 #include "../libgrid/gridPoint.h"
+#include "../liblare/lare.h"
 
 
 /*--- ADT implementation ------------------------------------------------*/
@@ -36,6 +37,7 @@ struct g9pMask_struct {
 	gridPointUint32_t numTiles;
 	int8_t            **maskTiles;
 	bool              isEmpty;
+	lare_t			  lare; // !sp
 };
 
 
