@@ -82,6 +82,7 @@ gridReaderHDF5_readIntoPatch(gridReader_t reader, gridPatch_t patch)
 #endif
 }
 
+
 extern void
 gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
                                    gridPatch_t  patch,
@@ -158,7 +159,55 @@ gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
 	gridPatch_allocateVarData(patch,idxOfVar);
 	gridPatch_putWindowedData(patch, idxOfVar, idxLoRead, idxHiRead, data);
 	
-} /* gridReaderHDF5_readIntoPatchForVar */
+	dataVar_freeMemory(var, data);
+	
+} 
+/* gridReaderHDF5_readIntoPatchForVar */
+/*
+extern void
+gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
+                                   gridPatch_t  patch,
+                                   int          idxOfVar)
+{
+	assert(reader != NULL);
+	assert(reader->type = GRIDIO_TYPE_HDF5);
+	assert(patch != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < gridPatch_getNumVars(patch));
+
+	hid_t             dataSet;
+	hid_t             dataSpaceFile, dataTypeFile;
+	hid_t             dataSpacePatch, dataTypePatch;
+	gridPointUint32_t idxLoPatch, dimsPatch;
+	dataVar_t         var   = gridPatch_getVarHandle(patch, idxOfVar);
+	void              *data = gridPatch_getVarDataHandle(patch, idxOfVar);
+
+	gridPatch_getIdxLo(patch, idxLoPatch);
+	gridPatch_getDims(patch, dimsPatch);
+
+	dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file,
+	                         dataVar_getName(var), H5P_DEFAULT);
+	dataTypeFile   = H5Dget_type(dataSet);
+	dataSpaceFile  = H5Dget_space(dataSet);
+
+	dataTypePatch  = dataVar_getHDF5Datatype(var);
+	dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsPatch);
+
+	gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLoPatch, dimsPatch);
+
+	if (H5Tequal(dataTypeFile, dataTypePatch)) {
+		H5Dread(dataSet, dataTypeFile, dataSpacePatch,
+		        dataSpaceFile, H5P_DEFAULT, data);
+	} else {
+		fprintf(stderr, "ERROR: Datatype in memory differs from file.\n");
+		diediedie(EXIT_FAILURE);
+	}
+
+	H5Sclose(dataSpacePatch);
+	H5Tclose(dataTypePatch);
+	H5Sclose(dataSpaceFile);
+	H5Tclose(dataTypeFile);
+	H5Dclose(dataSet);
+}*/
 
 /*--- Implementations of final functions --------------------------------*/
 extern gridReaderHDF5_t
@@ -194,6 +243,7 @@ extern void
 gridReaderHDF5_init(gridReaderHDF5_t reader)
 {
 	reader->file = H5I_INVALID_HID;
+	gridReaderHDF5_setDoPatch((gridReader_t)reader,false);
 }
 
 extern void
