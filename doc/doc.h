@@ -1027,7 +1027,9 @@
  * @endcode
  *
  * @section pageDeps_FFTW3  Building FFTW3
- *
+ * 
+ * To compile ginnungagap you currently need both the single and double precision versions of FFTW.
+ * 
  * This is single precision version compiled with the standard compiler
  * (must likely gcc):
  *
@@ -1036,7 +1038,8 @@
  *             --enable-sse \
  *             --enable-float \
  *             --disable-fortran \
- *             --enable-openmp
+ *             --enable-openmp \
+ * 			   --enable-threads
  * make -j && make install
  * @endcode
  *
@@ -1047,7 +1050,8 @@
  * ./configure --prefix=/opt/fftw/fftw-3.2.2-gcc \
  *             --enable-sse2 \
  *             --disable-fortran \
- *             --enable-openmp
+ *             --enable-openmp \
+ *             --enable-threads
  * make -j && make install
  * @endcode
  *
@@ -1058,7 +1062,8 @@
  *                    --enable-sse \
  *                    --enable-float \
  *                    --disable-fortran \
- *                    --enable-openmp
+ *                    --enable-openmp \
+ *                    --enable-threads
  * make -j && make install
  * @endcode
  *
@@ -1068,7 +1073,8 @@
  * CC=icc ./configure --prefix=/opt/fftw/fftw-3.2.2-intel \
  *                 --enable-sse2 \
  *                    --disable-fortran \
- *                    --enable-openmp
+ *                    --enable-openmp \
+ *                 --enable-threads
  * make -j && make install
  * @endcode
  *
@@ -1088,6 +1094,7 @@
  * Of course, you can use whatever --prefix you like when configuring
  * FFTW.
  *
+ * When building with MPI, add --enable-mpi to each of the ./configure examples above.
  *
  * @section pageDeps_HDF5  Building HDF5
  *
