@@ -5,6 +5,13 @@
 #ifndef LARE_H
 #define LARE_H
 
+/*--- Doxygen file description ------------------------------------------*/
+
+/**
+ * @file src/liblare/lare.h
+ * @ingroup  liblare
+ * @brief  Provides the inteface to lare library.
+ */
 
 /*--- Includes ----------------------------------------------------------*/
 #include "lareConfig.h"
@@ -43,4 +50,31 @@ extern void
 lare_addElement(lare_t                  lare,
                 const gridPointUint32_t element);
 
+/**
+ * @brief  implements 1d periodical clustering analysis to find the 
+ * maximal region which is not covered by the mask. The output
+ * is the center of the inverted empty region.
+ *
+ * @param[in,out]   lare
+ * 						the lare structure
+ * 					center
+ * 						3-element array of center coordinates
+ * 						in dimensionless units (Boxsize = 1.0)
+ *                     
+ *
+ * @return  Returns nothing.
+ */                
+extern void
+lare_getCenter(lare_t lare, float *center);
+
+
 #endif
+
+/*--- Doxygen group definitions -----------------------------------------*/
+
+/**
+ * @defgroup liblare liblare
+ * @brief  Provides the Lagrangian Region library.
+ *
+ * Write documentation here.
+ */

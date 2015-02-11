@@ -187,6 +187,14 @@ g9pMask_getNumLevel(const g9pMask_t mask)
 	return mask->maxLevel - mask->minLevel + 1;
 }
 
+extern void
+g9pMask_getCenter(g9pMask_t mask, float* center) {
+	assert(mask != NULL);
+	center[0] = mask->center[0];
+	center[1] = mask->center[1];
+	center[2] = mask->center[2];
+}
+
 /*--- Implementations: Getter, Mask Level Specific ----------------------*/
 extern uint32_t
 g9pMask_getDim1D(const g9pMask_t mask)
@@ -405,6 +413,7 @@ g9pMask_getEmptyPatchForTileLevel(const g9pMask_t mask, const uint32_t tile, uin
 	return local_getEmptyPatchForTile_impl(mask, tile, dims);
 }
 
+
 /*--- Implementations of local functions --------------------------------*/
 
 static g9pMask_t
@@ -415,7 +424,7 @@ local_allocateEmptyMask()
 	refCounter_init( &(mask->refCounter) );
 	mask->totalNumTiles = 0;
 	mask->maskTiles     = NULL;
-	mask->lare = NULL; // !sp
+	//mask->lare = NULL; // !sp
 
 	return mask;
 }

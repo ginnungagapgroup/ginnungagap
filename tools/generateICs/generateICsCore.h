@@ -78,6 +78,9 @@ extern void
 generateICsCode_dm2Gas(generateICsCore_const_t d,
                        const double            gasOffset,
                        const uint64_t          npGasTotal);
+                       
+extern void
+generateICsCore_recenter(generateICsCore_const_t d, float* newCenter);
 
 
 /*--- Doxygen group definitions -----------------------------------------*/

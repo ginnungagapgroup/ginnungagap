@@ -93,6 +93,9 @@ g9pMask_getHierarchyRef(g9pMask_t mask);
 extern int8_t
 g9pMask_getNumLevel(const g9pMask_t mask);
 
+extern void
+g9pMask_getCenter(g9pMask_t mask, float* center);
+
 /** @} */
 
 /**

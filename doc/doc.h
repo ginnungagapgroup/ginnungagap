@@ -776,6 +776,92 @@
  * The patch section can also be used in GenerateICs tool to tell it that the input data is only a part of the full mesh. See @ref pageGenerateICs_RTW
  */
 
+/*--- Page: Example of ICs with zoom ---------------------------------------*/
+/**
+ * @page pageZoomExample Zoom example
+ * 
+ * Zoomed initial conditions can be imagined as a set of particles which are extracted from 
+ * several homogeneous initial conditions with different resolutions and combined together.
+ * These homogeneous initial conditions should 
+ * contain the same large-scale phases and hereafter they are called 'levels'.
+ * 
+ * The workflow for producing a multi-level ICs:
+ *
+ * 1) Suppose you have a white noise field for one level.<br>
+ * 2) Use realSpaceConstraints to produce white noise fields with 
+ * all steps in resolution you need (see @ref pageQuickstart_Scale). This will provide the same 
+ * large-scale phases.<br>
+ * 3) Run ginnungagap for each white noise field to make velocity fields for each level.<br>
+ * 4) Produce a mask, e.g. by running and analysing a low resolution simulation.<br>
+ * 5) Run generateICs for each level of resolution to extract the corresponding part using the mask
+ * and write the result as GADGET-2 files.
+ * 
+ * As a result, a set of GADGET-2 files will be produced. GenerateICs uses
+ * multiple-file format for storing such ICs, each level is represented by at least one file.
+ * 
+ * In order to produce ICs with N levels, (N-1) .ini files for rescaling the white noise
+ * fields are needed. These .ini files are used only by realSpaceConstraints tool.
+ * Besides this, N .ini files are needed to generate velocity fields and GADGET files.
+ * So, for each level one .ini file is needed which will be used by both ginnungagap
+ * and generateICs.
+ * Additionaly, one .ini file may be used to produce ICs and run a non-zoom simulation
+ * which is needed to construct the mask.
+ * 
+ * Here is a basic example of 3-level initial conditions. The 1D resolutions of the levels are
+ * 32, 64 and 128 particles. The box size is 100 Mpc/h and the zoom region is a sphere of radius 15 Mpc/h
+ * located at coordinates x=21, y=40, z=58 Mpc/h.
+ * The files for the example can be found in the doc/examples/zoom directory.
+ * 
+ * To run the example, please, copy the executables of ginnungagap, generateICs, realSpaceConstraints,
+ * LareWriter and Gadget-2 to the example directory. For this example ginnungagap and generateICs must
+ * be compilled with the HDF5 support enabled (@ref pageDeps_HDF5).
+ * 
+ * First, file base32.ini is used to produce a white noise field and also the non-zoom simulation.
+ * @code
+ * ./ginnungagap base32.ini
+ * ./generateICs base32.ini
+ * @endcode
+ * 
+ * Run the simulation:
+ * @code
+ * ./Gadget nozoom.param
+ * @endcode
+ * 
+ * While the simulation is running, you can scale the white noise fields:
+ * @code
+ * ./realSpaceConstraints scale64.ini
+ * ./realSpaceConstraints scale128.ini
+ * @endcode
+ * 
+ * When the file snapshot_000 is created in out_nozoom32, the mask can be produced:
+ * @code
+ * ./LareWriter
+ * @endcode
+ * 
+ * Finally, the zoomed ICs are created:
+ * @code
+ * ./generateICs zoom32.ini
+ * 
+ * ./ginnungagap zoom64.ini
+ * ./generateICs zoom64.ini
+ * 
+ * ./ginnungagap zoom128.ini
+ * ./generateICs zoom128.ini
+ * @endcode
+ * Note that the lines which should change between the levels and the .ini files are preceded by a comment line
+ * @code
+ * # this is different for each level:
+ * @endcode
+ * 
+ * To run the simulation:
+ * @code
+ * ./Gadget zoom.param
+ * @endcode
+ * 
+ * Note that the box has been shifted to be centered on the zoom region. This
+ * is enabled by setting autoCenter = true in the .ini files.
+*/
+
 /*--- Page: Using generateICs ---------------------------------------*/
 
 /**
@@ -785,14 +871,6 @@
  * into GADGET-2 format. This tool also can combine several velocity fields
  * of different resolution in order to run zoom-in simulations.
  * 
- * The workflow for producing a multi-level ICs:
- *
- * 1) Suppose you have a white noise field.<br>
- * 2) Use realSpaceConstraints to produce white noise fields with all steps in resolution you need (see @ref pageQuickstart_Scale).<br>
- * 3) Run ginnungagap for each white noise field to make velocity fields.<br>
- * 4) Produce a mask, e.g. by running and analysing a low resolution simulation.<br>
- * 5) Run generateICs for each level of resolution. 
- * 
  * <ul>
  *   <li>@ref pageGenerateICs_inifile</li>
  *   <ul>
@@ -800,13 +878,14 @@
  *     <li>@ref pageGenerateICs_subMask</li>
  *     <li>@ref pageGenerateICs_subLare</li>
  *     <li>@ref pageGenerateICs_subGenerateICs</li>
+ *     <li>@ref pageGenerateICs_subInput</li>
  *     <li>@ref pageGenerateICs_subOutput</li>
  *   </ul>
  *   <li>@ref pageGenerateICs_MPI</li>
+ *   <li>@ref pageGenerateICs_Mem</li>
  *   <li>@ref pageGenerateICs_singlelevel</li>
  *   <li>@ref pageGenerateICs_LareFormat</li>
  *   <li>@ref pageGenerateICs_RTW</li>
- *   <li>@ref pageGenerateICs_Utility</li>
  * </ul>
  *
  * @section pageGenerateICs_inifile .ini file
@@ -835,30 +914,36 @@
  * @subsection pageGenerateICs_subHierarchy The numbering of levels is defined from the [Hierarchy]
  * @code
  * [Hierarchy]
- * numLevels = 7
- * minDim1D = 4
+ * numLevels = 9
+ * minDim1D = 1
  * factor = 2
  * @endcode
  * 
  * The levels are numbered from 0 to numLevels-1. The 1D dimension of i-th level grid is minDim1D*factor^i.
- * This means that level 0 is 4, level 1 is 8, ..., level 6 is 256 in the example above.
+ * In the example above i-th level has dimension 2^i, so level 0 has dimension 1x1x1 and level 8 (the highest level) has 256x256x256.
  * 
  * 
  * @subsection pageGenerateICs_subMask The levels which are used for different purposes are defined in [Mask]
  * @code
  * [Mask]
- * maskLevel = 4
- * minLevel = 3
- * maxLevel = 6
- * tileLevel = 0
+ * maskLevel = 6
+ * minLevel = 5
+ * maxLevel = 8
+ * tileLevel = 4
  * readerType = legacy
  * readerSection = Lare
  * @endcode
  * 
- * - minLevel to maxLevel are the levels that we are going to simulate.
+ * - minLevel to maxLevel are the levels that we are going to combine in the current set of ICs.
  * - maskLevel is the level for which we have the mask which will be read in [Lare] section.
- * - tileLevel defines the size of tiles used for the distribution of the output into several files. Each file contains at least one tile. Also we must have tileLevel <= minLevel.
- * - readerType now should be set to legacy, which means ascii reader.
+ * - tileLevel defines the size of tiles used for memory optimization and the distribution of the output into several files. 
+ * Each file contains at least one tile.
+ * Also one must have tileLevel <= minLevel. The rule-of-tumb is to have 1D tile dimension equal to sqrt(1D particle mesh dimension).
+ * If minDim1D = 1 in the [Hierarchy] section, then tileLevel = zoomlevel / 2 should be optimal. See @ref pageGenerateICs_Mem for
+ * more details.
+ * - readerType in the current version should be set to legacy, which means ascii reader.
+ * - readerSection points to a section where mask is actually read.
+ * 
  * 
  * @subsection pageGenerateICs_subLare The initial mask is read in [Lare]
  * @code
@@ -878,51 +963,109 @@
  * ginnungagapSection = Ginnungagap
  * doGas = false
  * doLongIDs = false
- * bufferSection = Buffer
+ * autoCenter = true
  * inputSection = GenicsInput
  * outputSection = GenicsOutput
  * cosmologySection = Cosmology
  * maskSection = Mask
  * hierarchySection = Hierarchy
  * zoomLevel = 3
- * typeForLevel3 = 3
- * typeForLevel4 = 3
- * typeForLevel5 = 2
- * typeForLevel6 = 1
+ * typeForLevel5 = 3
+ * typeForLevel6 = 3
+ * typeForLevel7 = 2
+ * typeForLevel8 = 1
  * @endcode
  * 
- * zoomlevel is the level of the current .ini file. The lines with typeForLevelX must exist for each level between minLevel and maxLevel. If two or more levels have the same type, they will be assigned particle masses for each particle. Otherwise massArr is used. Type 0 is gas, type 1 is halo, ...
+ * zoomlevel is the level of the current .ini file. The lines with typeForLevelX 
+ * must exist for each level between minLevel and maxLevel. They govern the assignement
+ * of GADGET particle types to different levels. If two or more levels 
+ * have the same type, they will be assigned particle masses for each particle. 
+ * Otherwise massArr is used. Type 0 is gas, type 1 is halo, ...
  *
- * The particle IDs are assigned according to their Lagrangian coordinates at the highest resolution level. The transform is done with ::lIdx_fromCoord3d function.
+ * The particle IDs are assigned according to their Lagrangian coordinates 
+ * at the highest resolution level. The transform is done with ::lIdx_fromCoord3d function.
  * 
+ * The option doGas will enable the production of the gas particles. In zoom simulations,
+ * this should be enabled only for the highest resolution level. The gas particles are produced
+ * as a copy of DM particles with and offset of 1/2 interparticle separation.
+ * 
+ * The option doLongIDs controls whether the 32-bit or 64-bit IDs are used.
+ * 
+ * autoCenter enables the automatic search for the center of the zoomed
+ * region(s) and shifting the box periodically. This is especially needed
+ * when using GADGET-2 options '-DPLACEHIGHRESREGION', see GADGET manual for
+ * more details.
+ * 
+ * @subsection pageGenerateICs_subInput Input velocity fields are specified in [GenicsInput]
+ * This section contains the names of sections for reading x, y and z components of
+ * the velocity field:
+ * @code
+ * [GenicsInput]
+ * velxSection = GenicsInput_velx
+ * velySection = GenicsInput_vely
+ * velzSection = GenicsInput_velz
+ * @endcode
+ * 
+ * An example of GenicsInput_velx:
+ * @code
+ * [GenicsInput_velx]
+ * type = hdf5
+ * path = ./
+ * prefix = level5
+ * qualifier = _velx
+ * suffix = .h5
+ * @endcode
  * 
  * @subsection pageGenerateICs_subOutput The number of files for each level is set in [GenicsOutput]
  * @code
  * [GenicsOutput]
- * numFilesForLevel3 = 1
- * numFilesForLevel4 = 1
  * numFilesForLevel5 = 1
- * numFilesForLevel6 = 2
- * prefix = pz
+ * numFilesForLevel6 = 1
+ * numFilesForLevel7 = 1
+ * numFilesForLevel8 = 2
+ * prefix = gadget_ic
  * @endcode
  * 
  * in this example we will have:
  * 
- * pz.0 for level 3, Gadget type 3<br>
- * pz.1 for level 4, Gadget type 3<br>
- * pz.2 for level 5, Gadget type 2<br>
- * pz.3 and pz.4 for level 6, Gadget type 1<br>
+ * gadget_ic.0 for level 5, Gadget type 3<br>
+ * gadget_ic.1 for level 6, Gadget type 3<br>
+ * gadget_ic.2 for level 7, Gadget type 2<br>
+ * gadget_ic.3 and gadget_ic.4 for level 8, Gadget type 1<br>
  * 
- * When having several files for one level, the code tries to distribute the particles equally between them. But remember that it is done with tiles. If the tile size is too big, the whole zoom region may be fit into just one tile. In this case one file will include all high resolution particles, and others will be empty. To avoid this, increase tileLevel. But increasing it too much requires more disk operations and can slow things down.
+ * When having several files for one level, the code tries to distribute the particles equally between them.
+ * But remember that it is done with tiles. If the tile size is too big,
+ * the whole zoom region may be fit into just one tile. In this case one
+ * file will include all high resolution particles, and others will be empty.
+ * To avoid this, increase tileLevel. But increasing it too much require
+ *  more disk operations and can slow things down.
  * 
  * This section also can contain keywords for @ref pageGenerateICs_RTW .
  *
  * @section pageGenerateICs_MPI MPI-parallelization
  *
- * generateICs can be run in parallel. In this case the number of output files for the current level must be greater or equal than the number of MPI-processes.
+ * generateICs can be run in parallel. In this case the number of output
+ * files for the current level must be greater or equal than the number of MPI-processes.
  *
+ * @section pageGenerateICs_Mem Memory consumption
+ * Each MPI-process of generateICs allocates memory for one GADGET file plus a patch for the input data which is called a tile,
+ * plus the structure which holds the pointers to individual tiles. If the mask is used
+ * for zoom ICs, then the mask structure is also allocated for each process.
+ * 
+ * The sizes of tiles and the number of pointers are determined by the tileLevel keyword in section [Mask]. The tileLevel defines the 1D
+ * dimension of the grid of tiles. The number of particles in a tile is the total number of particles in the mesh,
+ * devided by the number of tiles.
+ * Hence the optimal choice of the tile dimension would be sqrt(mesh dimension).
+ * Smaller value of tileLevel will result in larger tile size, larger tileLevel will result in larger pointer structure size.
+ * 
+ * At the same time, one should remember that tileLevel <= minLevel, and number of tiles >= number of output files.
+ * 
+ * 
  * @section pageGenerateICs_singlelevel Producing single level ICs
- * In order to produce ordinary ICs without zoom (for the whole box), minLevel = maxLevel must be set. In this case, [Lare] will not be read, and empty mask will be used. However, zoomlevel and typeForLevel still must be present. This can be changed in the next version to make generateICs compatible with previous version of .ini files.
+ * In order to produce ordinary ICs without zoom (for the whole box), minLevel = maxLevel must be set.
+ * In this case, [Lare] will not be read, and empty mask will be used. However, 
+ * zoomlevel and typeForLevel still must be present. This can be changed in 
+ * the next version to make generateICs compatible with previous version of .ini files.
  * 
  * @section pageGenerateICs_LareFormat Format of the Lagrangian region mask
  * 
@@ -934,20 +1077,26 @@
  *
  * To prepare the mask there is an utility in tools/zoomTools: LareWrite.f90
  * 
- * Compile with gfortran LareWrite.f90 -o LareWrite.x
+ * To compile it with gfortran, cd to tools/zoomTools and type make.
  *
  * The parameters are given in LareWrite.tbl file:
  *
  * 1st line -- file path with halos in AHF output format<br>
  * 2nd line -- simulation snapshot file path<br>
  * 3rd line -- output file name<br>
- * 4th line -- how many cells the zoom region will be expanded in each direction<br>
- * 5th line -- the multiplication factor for the halo radius
+ * 4th line -- how many adjacent cells to each initially selected cell will be also marked<br>
+ * 5th line -- the multiplication factor for the halo virial radius
  * 
- * The output of LareWrite contains also some usefull information: the position of the centre of the minimal parallelepiped covering the zoom region(s) and its size. This can be used to move the ICs to center the zoom region in the simulation box. This is needed when using OPT += -DPLACEHIGHRESREGION in GADGET.
- *
+ * The parameter on the 4th line is used to avoid multiconnected zoom region, or holes of low resolution inside the
+ * high resolution region.
+ * 
+ * Important note: it is assumed that the snapshot has distance units of Mpc/h while the AHF output is in kpc/h!
+ * 
  * @section pageGenerateICs_RTW Using a partial input mesh
- * When using the partial mesh prepared as described in @ref pageQuickstart_RTW you must tell generateICs that the input is not a full mesh, since this information is not stored in the HDF5 files. To do this, you should add two keywords to the generateICs input section:
+ * When using the partial mesh prepared as described in @ref pageQuickstart_RTW
+ * one must tell generateICs that the input is not a full mesh, since 
+ * this information is not stored in the HDF5 files. To do this, one 
+ * should add two keywords to the generateICs input section:
  * @code
  * [GenicsInput]
  * ...
@@ -962,16 +1111,6 @@
  * patchDims = 256 256 190
  * @endcode
  *
- * @section pageGenerateICs_Utility Utility in zoomTools
- * 
- * The gadgetMaxMem.sh script computes the memory requirements of GADGET-2 when using the -DPLACEHIGHRESREGION option.
- * The command line parameters are: PM box extnt Ncpu
- * - PM is the PMGRID size 1D
- * - box is boxsize
- * - extent is the HIGHRESREGION size (in the same units as the box)
- * - Ncpu is the number of CPUs to use.
- *
- * The outputs are the total memory required and memory per CPU estimates.
  */
 
 /*--- Page: External Dependencies ---------------------------------------*/

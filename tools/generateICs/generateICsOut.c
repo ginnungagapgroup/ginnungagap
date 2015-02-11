@@ -55,7 +55,7 @@ generateICsOut_new(const char *prefix, uint32_t* outputFiles, gadgetVersion_t v,
 	gadgetTOC_addEntryByType(genicsOut->toc, GADGETBLOCK_POS_);
 	gadgetTOC_addEntryByType(genicsOut->toc, GADGETBLOCK_VEL_);
 	gadgetTOC_addEntryByType(genicsOut->toc, GADGETBLOCK_ID__);
-	gadgetTOC_addEntryByType(genicsOut->toc, GADGETBLOCK_MASS);
+	//gadgetTOC_addEntryByType(genicsOut->toc, GADGETBLOCK_MASS);
 
 	genicsOut->baseHeader = NULL;
 

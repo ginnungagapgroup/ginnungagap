@@ -179,4 +179,20 @@ generateICsCode_dm2Gas(generateICsCore_const_t d,
 	}
 } // generateICsCode_dm2Gas
 
+extern void
+generateICsCore_recenter(generateICsCore_const_t d, float* newCenter) {
+	fpv_t box = (fpv_t)(d->data->boxsizeInMpch);
+#ifdef _OPENMP
+#  pragma omp parallel for
+#endif
+	for (uint64_t i = 0; i < d->numParticles; i++) {
+		for(int k = 0; k<3; k++) {
+			d->pos[i*3 + k] += box/2 - (newCenter[k]*box);
+			if(d->pos[i*3 + k] > box) d->pos[i*3 + k] -= box;
+			if(d->pos[i*3 + k] < 0) d->pos[i*3 + k] += box;
+		}
+	}
+}
+
+
 /*--- Implementations of local functions --------------------------------*/

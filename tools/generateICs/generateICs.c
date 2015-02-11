@@ -40,6 +40,7 @@
 #include "../../src/libg9p/g9pICMap.h"
 #include "../../src/libgrid/gridPatch.h"
 #include "../../src/libpart/partBunch.h"
+#include "../../src/liblare/lare.h"
 
 
 /*--- Implemention of main structure ------------------------------------*/
@@ -392,14 +393,25 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 	printf("   Particles read: %lu\n", partsRead);
 	//printf("pos: %f", core.pos[1]);
 	if (genics->mode->doGas) {
-		uint64_t npGasTotal = core.fullDims[0];
-		npGasTotal *= core.fullDims[1];
-		npGasTotal *= core.fullDims[2];
+		uint64_t npGasTotal = local_computeNumPartsLevel(genics, genics->zoomlevel);
+		//npGasTotal = core.fullDims[0];
+		//npGasTotal *= core.fullDims[1];
+		//npGasTotal *= core.fullDims[2];
 		core.numParticles = partBunch_getNumParticles(particles);
 		core.pos          = partBunch_at(particles, 0, 0);
 		core.vel          = partBunch_at(particles, 1, 0);
 		core.id           = partBunch_at(particles, 2, 0);
 		generateICsCode_dm2Gas(&core, 0.25, npGasTotal);
+	}
+	
+	if (genics->mode->autoCenter) {
+		float newCenter[3];
+		g9pMask_getCenter(genics->mask, newCenter);
+		core.numParticles = partBunch_getNumParticles(particles);
+		core.pos          = partBunch_at(particles, 0, 0);
+		core.vel          = partBunch_at(particles, 1, 0);
+		core.id           = partBunch_at(particles, 2, 0);
+		generateICsCore_recenter(&core, newCenter);
 	}
 
 	local_writeGadgetFile(genics, file, particles, map);
@@ -440,7 +452,7 @@ local_writeGadgetFile(generateICs_t     genics,
 	if (genics->mode->doGas) {
 		assert(np % 2 == 0);
 		npLocal[0] = np / 2;
-		npLocal[1] = npLocal[0];
+		npLocal[arrIdx] = npLocal[0];
 	} else {
 		npLocal[arrIdx] = (uint32_t)np;
 	}
@@ -465,6 +477,18 @@ local_writeGadgetFile(generateICs_t     genics,
 		//massArr[idx] = generateICsOut_boxMass(genics->data) / npFull;
 	}
 	printf("\n mass: %lf\n",generateICsOut_boxMass(genics->data));
+	
+	if(nlevfortype[arrIdx]>1) {
+		gadgetTOC_addEntryByType(genics->out->toc, GADGETBLOCK_MASS);
+	}
+	if (genics->mode->doGas) {
+		const double omegaBaryon0 = cosmoModel_getOmegaBaryon0(genics->data->model);
+		const double omegaMatter0 = cosmoModel_getOmegaMatter0(genics->data->model);
+		npAll[0]    = npAll[arrIdx];
+		massArr[0]  = massArr[arrIdx] * omegaBaryon0 / omegaMatter0;
+		massArr[arrIdx] -= massArr[0];
+		gadgetTOC_addEntryByType(genics->out->toc, GADGETBLOCK_U___);
+	}
 	gadgetHeader_setNall(myHeader,npAll);
 	gadgetHeader_setMassArr(myHeader, massArr);
 	//gadgetHeader_setNumFiles(myHeader,numLevels);
@@ -508,12 +532,24 @@ local_writeGadgetFile(generateICs_t     genics,
 			fpv_t masses[np];
 			npFull = POW_NDIM(g9pMask_getDim1DLevel(genics->mask,genics->zoomlevel));
 			fpv_t mass1 = generateICsOut_boxMass(genics->data) / npFull;
-			for(int i=0; i<=np; i++) {
+			for(int i=0; i<np; i++) {
 				masses[i] = mass1;
 			}
 			stai = stai_new( masses, sizeof(fpv_t), sizeof(fpv_t) );
 			gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_MASS,
 		                               0, np, stai);
+		    stai_del(&stai);
+		}
+		
+		if(genics->mode->doGas) {
+			uint64_t npl = npLocal[0];
+			fpv_t energies[npl];
+			for(int i=0;i<npl;i++) {
+				energies[i]=0;
+			}
+			stai = stai_new(energies, sizeof(fpv_t), sizeof(fpv_t) );
+			gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_U___,
+		                               0, npl, stai);
 		    stai_del(&stai);
 		}
 	}

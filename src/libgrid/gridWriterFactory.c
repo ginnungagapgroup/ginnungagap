@@ -74,8 +74,10 @@ local_newFromIniWrapper(parse_ini_t ini,
 static gridWriter_t
 local_getWriter(parse_ini_t ini, const char *secName, gridIO_type_t type);
 
+#ifdef WITH_HDF5
 void
 local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer);
+#endif
 
 /*--- Implementations of exported functions -----------------------------*/
 extern gridWriter_t

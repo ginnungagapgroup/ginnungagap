@@ -37,7 +37,8 @@ struct g9pMask_struct {
 	gridPointUint32_t numTiles;
 	int8_t            **maskTiles;
 	bool              isEmpty;
-	lare_t			  lare; // !sp
+	//lare_t			  lare; // !sp
+	float_t			  center[3];
 };
 
 

@@ -92,12 +92,14 @@ g9pMaskIO_newFromIni(parse_ini_t    ini,
 	mask = g9pMask_newMinMaxTiledMask(h, maskLevel, minLevel, maxLevel,
 	                                  tileLevel);
 	if (maxLevel > minLevel) {                                 
-		mask->lare = local_newLare(ini, sectionName);
+		lare_t lare = local_newLare(ini, sectionName);
 	
-		numCells = lare_getNumElements(mask->lare);
-		lare_getElement(mask->lare, cells, 0);
+		numCells = lare_getNumElements(lare);
+		lare_getElement(lare, cells, 0);
 	
-		g9pMaskCreator_fromCells(mask, numCells, mask->lare->elements);
+		g9pMaskCreator_fromCells(mask, numCells, lare->elements);
+		
+		lare_getCenter(lare, mask->center);
 	}
 	
 	return mask;

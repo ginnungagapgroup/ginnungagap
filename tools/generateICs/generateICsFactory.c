@@ -57,6 +57,8 @@ struct generateICs_IniData_struct {
 	bool   doGas;
 	/** @brief  Stores key @c doLongIDs. */
 	bool   doLongIDs;
+	/** @brief  Stores key @c autoCenter. */
+	bool   autoCenter;
 	/** @brief  Stores key @c ginnungagapSection. */
 	char   *g9pSection;
 	/** @brief  Stores key @c inputSection. */
@@ -165,6 +167,11 @@ local_iniDataNewFromIni_doLongIDs(generateICs_iniData_t iniData,
                                   parse_ini_t           ini,
                                   const char            *secName);
 
+/** @copydoc local_iniDataNewFromIni_boxsize() */
+inline static void
+local_iniDataNewFromIni_autoCenter(generateICs_iniData_t iniData,
+                                  parse_ini_t           ini,
+                                  const char            *secName);
 
 /** @copydoc local_iniDataNewFromIni_boxsize() */
 inline static void
@@ -235,7 +242,7 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	genics = generateICs_new();
 
 	generateICsMode_t mode;
-	mode = generateICsMode_new(iniData->doGas, iniData->doLongIDs);
+	mode = generateICsMode_new(iniData->doGas, iniData->doLongIDs, iniData->autoCenter);
 	generateICs_setMode(genics, mode);
 
 	generateICsData_t data;
@@ -300,6 +307,7 @@ local_iniDataNewFromIni(parse_ini_t ini, const char *sectionName)
 
 	local_iniDataNewFromIni_doGas(iniData, ini, sectionName);
 	local_iniDataNewFromIni_doLongIDs(iniData, ini, sectionName);
+	local_iniDataNewFromIni_autoCenter(iniData, ini, sectionName);
 	local_iniDataNewFromIni_section(iniData, ini, sectionName);
 
 	local_iniDataNewFromIni_boxsize(iniData, ini, iniData->g9pSection);
@@ -402,6 +410,21 @@ local_iniDataNewFromIni_doLongIDs(generateICs_iniData_t iniData,
 	if ( !parse_ini_get_bool( ini, "doLongIDs", secName,
 	                          &(iniData->doLongIDs) ) ) {
 		iniData->doLongIDs = GENERATEICSCONFIG_DEFAULT_DOLONGIDS;
+	}
+}
+
+inline static void
+local_iniDataNewFromIni_autoCenter(generateICs_iniData_t iniData,
+                                  parse_ini_t           ini,
+                                  const char            *secName)
+{
+	assert(iniData != NULL);
+	assert(ini != NULL);
+	assert(secName != NULL);
+
+	if ( !parse_ini_get_bool( ini, "autoCenter", secName,
+	                          &(iniData->autoCenter) ) ) {
+		iniData->autoCenter = GENERATEICSCONFIG_DEFAULT_AUTOCENTER;
 	}
 }
 

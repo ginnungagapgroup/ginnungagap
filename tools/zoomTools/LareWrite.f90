@@ -2,9 +2,10 @@ program zoom
 integer, parameter:: Nhalo_max=10000
 real:: hpos(3,Nhalo_max), hR(Nhalo_max)
  character (len=600):: f_halos, f_low_snap, f_out
+ character(len=4):: secname
 real, allocatable:: pos(:,:), vel(:,:)
 integer, allocatable:: id(:), mask(:,:,:), mask1d(:)
-integer:: Ntot, dx
+integer:: Ntot, dx, gformat
 real:: Box, pmass, tsnap, move(3), msize(3)
 
 factor_ic=3.0
@@ -18,11 +19,11 @@ read(1,*) dx
 read(1,*) factor_ic
 close(1)
 
-open(2,file=trim(f_halos))
+open(2,file=trim(f_halos),status='old')
 read(2,*)
 nh=1
 do while(.true.)
-  read(2,*,end=10) a1,hostid,a3,a4,a5,(hpos(k,nh),k=1,3), a9,a10,a11, hR(nh)
+  read(2,*,end=10,err=10) a1,hostid,a3,a4,a5,(hpos(k,nh),k=1,3), a9,a10,a11, hR(nh)
   nh=nh+1
   if(hostid.ge.0) nh=nh-1      ! we don't want subhalos here
 enddo
@@ -38,8 +39,11 @@ print*,'Halos read: ',nh
  allocate(pos(3,Ntot))
  allocate(vel(3,Ntot))
  allocate(id(Ntot))
+ if(gformat.eq.2) read(22) secname
  read(22) pos
+ if(gformat.eq.2) read(22) secname
  read(22) vel
+ if(gformat.eq.2) read(22) secname
  read(22) id
  close(22)
  
@@ -195,8 +199,16 @@ subroutine read_header(fname)
 integer:: npart(6), bytes0(9), bytesleft((256-6*4-8*8-48)/4)
 real*8:: massarr(6), time, redshift, boxsize
  character(len=300):: fname
+character(len=4):: secname
 
 open(22,file=trim(fname),form='unformatted',status='old')
+
+gformat=1
+read(22,err=20) secname
+if(secname(1:1).eq.'H')gformat=2
+20 continue
+if(gformat.eq.1) rewind(22)
+
 read(22) npart, massarr, time, redshift, bytes0, numfiles, boxsize, bytesleft
 
 Ntot=npart(2)

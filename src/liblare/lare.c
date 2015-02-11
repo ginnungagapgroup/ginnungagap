@@ -132,6 +132,54 @@ lare_addElement(lare_t                  lare,
 	lare_setElement(lare, element, lare->numElements - 1);
 }
 
+extern void
+lare_getCenter(lare_t lare, float *center) {
+	gridPointUint32_t point;
+	int m0, m0addr, m0end, m0curr, m0curraddr, m0currend, idim, iter, ik, i;
+	lare_getDims(lare, point);
+	uint32_t nline = point[0];
+	int8_t	*mask1d = xmalloc(sizeof(int8_t) * nline);
+	uint32_t numLare = lare_getNumElements(lare);
+	double Box = 1.0;
+	
+	for(idim=0;idim<3;idim++) {
+		for(ik=0;ik<nline;ik++) mask1d[ik]=0;
+		for(i=0;i<numLare;i++) {
+			lare_getElement(lare, point, i);
+			mask1d[point[idim]]=1;
+		}
+		
+		m0=-1;
+	    m0addr=-1;
+	    m0end=-1;
+	    m0curr=-1;
+	    m0curraddr=0;
+	    m0currend=0;
+	    for(iter=1;iter<=2;iter++){
+			for(ik=0;ik<nline;ik++) {
+				if(mask1d[ik]==0 && ik!=m0currend+1) {
+			       m0currend=ik-1;
+			       m0curraddr=ik;
+			       m0curr=0;
+			     }
+			     if(mask1d[ik]==0 && ik==m0currend+1) {
+			       m0currend=m0currend+1;
+			       m0curr=m0curr+1;
+			     }
+			     if(mask1d[ik]==1 && ik==m0currend+1 && m0curr>m0) {
+			       m0=m0curr;
+			       m0addr=m0curraddr;
+			       m0end=m0currend;
+			     }
+			}
+			if(m0currend==nline-1) m0currend=-1;
+		}
+		if(m0end>m0addr) m0addr=m0addr+nline;
+ 	    center[idim] = (m0addr+m0end+2)*Box/2/nline;
+	    if(center[idim]>Box) center[idim]=center[idim]-Box;
+	}
+}
+
 /*--- Implementations of local functions --------------------------------*/
 static inline void
 local_setInvalidElement(lare_t lare, uint32_t idxOfElement)
