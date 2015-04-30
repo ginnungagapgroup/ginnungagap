@@ -40,7 +40,14 @@ static struct gridReader_func_struct local_func
 /*--- Prototypes of local functions -------------------------------------*/
 static void
 local_handleFilenameChange(gridReader_t reader);
-
+static void
+local_readIntoPatchForVar_old(gridReader_t reader,
+                                   gridPatch_t  patch,
+                                   int          idxOfVar);
+static void
+local_readIntoPatchForVar_doPatch(gridReader_t reader,
+                                   gridPatch_t  patch,
+                                   int          idxOfVar);
 
 /*--- Implementations of exported functions -----------------------------*/
 extern void
@@ -90,124 +97,13 @@ gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
 {
 	assert(reader != NULL);
 	assert(reader->type = GRIDIO_TYPE_HDF5);
-	assert(patch != NULL);
-	assert(idxOfVar >= 0 && idxOfVar < gridPatch_getNumVars(patch));
-
-	hid_t             dataSet;
-	hid_t             dataSpaceFile, dataTypeFile;
-	hid_t             dataSpacePatch, dataTypePatch;
-	gridPointUint32_t idxLoPatch, dimsPatch, idxLoRead, dimsRead, idxHiRead, idxLoReadRtw;
-	dataVar_t         var   = gridPatch_getVarHandle(patch, idxOfVar);
-	void             *data;
-	bool              doRead;
-	//void             *dataPatch = gridPatch_getVarDataHandle(patch, idxOfVar);
-	uint64_t  numCellsToAllocate = 1;
-	numCellsToAllocate = gridPatch_getNumCellsActual(patch,
-	                                                 idxOfVar);
-	data               = dataVar_getMemory(var, numCellsToAllocate);
-
-
-	gridPatch_getIdxLo(patch, idxLoPatch);
-	gridPatch_getDims(patch, dimsPatch);
-	
-	doRead=true;
-	for(int k=0; k<NDIM; k++) {
-		if(reader->doPatch) {
-			idxLoRead[k]=MAX(reader->rtwLo[k], idxLoPatch[k]);
-			idxLoReadRtw[k]=idxLoRead[k]-reader->rtwLo[k];
-			idxHiRead[k]=MIN(idxLoPatch[k]+dimsPatch[k]-1, reader->rtwLo[k]+reader->rtwDims[k]-1);
-			//dimsRead[k]=MIN(reader->rtwDims[k], idxLoPatch[k]+dimsPatch[k]-idxLoRead[k]);
-			if(idxHiRead[k]<idxLoRead[k]) doRead=false;
-		} else {
-			idxLoRead[k]=idxLoPatch[k];
-			idxLoReadRtw[k]=idxLoPatch[k];
-			idxHiRead[k]=idxLoRead[k]+dimsPatch[k]-1;
-		}
-		dimsRead[k]=idxHiRead[k]-idxLoRead[k]+1;
-	}
-	if(!doRead) {
-		for(int k=0; k<NDIM; k++) {
-			dimsRead[k]=0;
-			idxHiRead[k]=idxLoRead[k]+dimsRead[k]-1;
-		}
-	}
-
-	dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file,
-	                         dataVar_getName(var), H5P_DEFAULT);
-	dataTypeFile   = H5Dget_type(dataSet);
-	dataSpaceFile  = H5Dget_space(dataSet);
-
-	dataTypePatch  = dataVar_getHDF5Datatype(var);
-	dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsRead);
-
-	gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLoReadRtw, dimsRead);
-
-	if (H5Tequal(dataTypeFile, dataTypePatch)) {
-		H5Dread(dataSet, dataTypeFile, dataSpacePatch,
-		        dataSpaceFile, H5P_DEFAULT, data);
+	if(reader->doPatch) {
+		local_readIntoPatchForVar_doPatch(reader, patch, idxOfVar);
 	} else {
-		fprintf(stderr, "ERROR: Datatype in memory differs from file.\n");
-		diediedie(EXIT_FAILURE);
+		local_readIntoPatchForVar_old(reader, patch, idxOfVar);
 	}
-
-	H5Sclose(dataSpacePatch);
-	H5Tclose(dataTypePatch);
-	H5Sclose(dataSpaceFile);
-	H5Tclose(dataTypeFile);
-	H5Dclose(dataSet);
-	
-	gridPatch_allocateVarData(patch,idxOfVar);
-	gridPatch_putWindowedData(patch, idxOfVar, idxLoRead, idxHiRead, data);
-	
-	dataVar_freeMemory(var, data);
 	
 } 
-/* gridReaderHDF5_readIntoPatchForVar */
-/*
-extern void
-gridReaderHDF5_readIntoPatchForVar(gridReader_t reader,
-                                   gridPatch_t  patch,
-                                   int          idxOfVar)
-{
-	assert(reader != NULL);
-	assert(reader->type = GRIDIO_TYPE_HDF5);
-	assert(patch != NULL);
-	assert(idxOfVar >= 0 && idxOfVar < gridPatch_getNumVars(patch));
-
-	hid_t             dataSet;
-	hid_t             dataSpaceFile, dataTypeFile;
-	hid_t             dataSpacePatch, dataTypePatch;
-	gridPointUint32_t idxLoPatch, dimsPatch;
-	dataVar_t         var   = gridPatch_getVarHandle(patch, idxOfVar);
-	void              *data = gridPatch_getVarDataHandle(patch, idxOfVar);
-
-	gridPatch_getIdxLo(patch, idxLoPatch);
-	gridPatch_getDims(patch, dimsPatch);
-
-	dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file,
-	                         dataVar_getName(var), H5P_DEFAULT);
-	dataTypeFile   = H5Dget_type(dataSet);
-	dataSpaceFile  = H5Dget_space(dataSet);
-
-	dataTypePatch  = dataVar_getHDF5Datatype(var);
-	dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsPatch);
-
-	gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLoPatch, dimsPatch);
-
-	if (H5Tequal(dataTypeFile, dataTypePatch)) {
-		H5Dread(dataSet, dataTypeFile, dataSpacePatch,
-		        dataSpaceFile, H5P_DEFAULT, data);
-	} else {
-		fprintf(stderr, "ERROR: Datatype in memory differs from file.\n");
-		diediedie(EXIT_FAILURE);
-	}
-
-	H5Sclose(dataSpacePatch);
-	H5Tclose(dataTypePatch);
-	H5Sclose(dataSpaceFile);
-	H5Tclose(dataTypeFile);
-	H5Dclose(dataSet);
-}*/
 
 /*--- Implementations of final functions --------------------------------*/
 extern gridReaderHDF5_t
@@ -298,3 +194,151 @@ local_handleFilenameChange(gridReader_t reader)
 	gridReaderHDF5_setH5File((gridReaderHDF5_t)reader, file);
 }
 
+/* gridReaderHDF5_readIntoPatchForVar */
+
+static void
+local_memUsage() {
+  unsigned long used;
+  char s[80];
+  FILE *f = fopen("/proc/self/statm","r");
+  fscanf(f,"%ld",&used);
+  printf("Used: %ld\n",used);
+  fclose(f);
+  
+  f = fopen("/proc/meminfo","r");
+  fgets(s,80,f);
+  printf("%s\n",s);
+  fgets(s,80,f);
+  printf("%s\n",s);
+  fclose(f);
+}
+
+static void
+local_readIntoPatchForVar_old(gridReader_t reader,
+                                   gridPatch_t  patch,
+                                   int          idxOfVar)
+{
+	assert(reader != NULL);
+	assert(reader->type = GRIDIO_TYPE_HDF5);
+	assert(patch != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < gridPatch_getNumVars(patch));
+
+	hid_t             dataSet;
+	hid_t             dataSpaceFile, dataTypeFile;
+	hid_t             dataSpacePatch, dataTypePatch;
+	gridPointUint32_t idxLoPatch, dimsPatch;
+	//local_memUsage();
+	dataVar_t         var   = gridPatch_getVarHandle(patch, idxOfVar);
+	void              *data = gridPatch_getVarDataHandle(patch, idxOfVar);
+
+	gridPatch_getIdxLo(patch, idxLoPatch);
+	gridPatch_getDims(patch, dimsPatch);
+
+	dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file,
+	                         dataVar_getName(var), H5P_DEFAULT);
+	dataTypeFile   = H5Dget_type(dataSet);
+	dataSpaceFile  = H5Dget_space(dataSet);
+
+	dataTypePatch  = dataVar_getHDF5Datatype(var);
+	dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsPatch);
+
+	gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLoPatch, dimsPatch);
+	
+	//local_memUsage();
+	
+	if (H5Tequal(dataTypeFile, dataTypePatch)) {
+		H5Dread(dataSet, dataTypeFile, dataSpacePatch,
+		        dataSpaceFile, H5P_DEFAULT, data);
+	} else {
+		fprintf(stderr, "ERROR: Datatype in memory differs from file.\n");
+		diediedie(EXIT_FAILURE);
+	}
+	local_memUsage();
+
+	H5Sclose(dataSpacePatch);
+	H5Tclose(dataTypePatch);
+	H5Sclose(dataSpaceFile);
+	H5Tclose(dataTypeFile);
+	H5Dclose(dataSet);
+}
+
+
+static void
+local_readIntoPatchForVar_doPatch(gridReader_t reader,
+                                   gridPatch_t  patch,
+                                   int          idxOfVar)
+{
+	assert(reader != NULL);
+	assert(reader->type = GRIDIO_TYPE_HDF5);
+	assert(patch != NULL);
+	assert(idxOfVar >= 0 && idxOfVar < gridPatch_getNumVars(patch));
+
+	hid_t             dataSet;
+	hid_t             dataSpaceFile, dataTypeFile;
+	hid_t             dataSpacePatch, dataTypePatch;
+	gridPointUint32_t idxLoPatch, dimsPatch, idxLoRead, dimsRead, idxHiRead, idxLoReadRtw;
+	dataVar_t         var   = gridPatch_getVarHandle(patch, idxOfVar);
+	void             *data;
+	bool              doRead;
+	//void             *dataPatch = gridPatch_getVarDataHandle(patch, idxOfVar);
+	uint64_t  numCellsToAllocate = 1;
+	numCellsToAllocate = gridPatch_getNumCellsActual(patch,
+	                                                 idxOfVar);
+	data               = dataVar_getMemory(var, numCellsToAllocate);
+
+
+	gridPatch_getIdxLo(patch, idxLoPatch);
+	gridPatch_getDims(patch, dimsPatch);
+	
+	doRead=true;
+	for(int k=0; k<NDIM; k++) {
+		if(reader->doPatch) {
+			idxLoRead[k]=MAX(reader->rtwLo[k], idxLoPatch[k]);
+			idxLoReadRtw[k]=idxLoRead[k]-reader->rtwLo[k];
+			idxHiRead[k]=MIN(idxLoPatch[k]+dimsPatch[k]-1, reader->rtwLo[k]+reader->rtwDims[k]-1);
+			//dimsRead[k]=MIN(reader->rtwDims[k], idxLoPatch[k]+dimsPatch[k]-idxLoRead[k]);
+			if(idxHiRead[k]<idxLoRead[k]) doRead=false;
+		} else {
+			idxLoRead[k]=idxLoPatch[k];
+			idxLoReadRtw[k]=idxLoPatch[k];
+			idxHiRead[k]=idxLoRead[k]+dimsPatch[k]-1;
+		}
+		dimsRead[k]=idxHiRead[k]-idxLoRead[k]+1;
+	}
+	if(!doRead) {
+		for(int k=0; k<NDIM; k++) {
+			dimsRead[k]=0;
+			idxHiRead[k]=idxLoRead[k]+dimsRead[k]-1;
+		}
+	}
+
+	dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file,
+	                         dataVar_getName(var), H5P_DEFAULT);
+	dataTypeFile   = H5Dget_type(dataSet);
+	dataSpaceFile  = H5Dget_space(dataSet);
+
+	dataTypePatch  = dataVar_getHDF5Datatype(var);
+	dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsRead);
+
+	gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLoReadRtw, dimsRead);
+
+	if (H5Tequal(dataTypeFile, dataTypePatch)) {
+		H5Dread(dataSet, dataTypeFile, dataSpacePatch,
+		        dataSpaceFile, H5P_DEFAULT, data);
+	} else {
+		fprintf(stderr, "ERROR: Datatype in memory differs from file.\n");
+		diediedie(EXIT_FAILURE);
+	}
+
+	H5Sclose(dataSpacePatch);
+	H5Tclose(dataTypePatch);
+	H5Sclose(dataSpaceFile);
+	H5Tclose(dataTypeFile);
+	H5Dclose(dataSet);
+	
+	gridPatch_allocateVarData(patch,idxOfVar);
+	gridPatch_putWindowedData(patch, idxOfVar, idxLoRead, idxHiRead, data);
+	
+	dataVar_freeMemory(var, data);
+	
+} 
