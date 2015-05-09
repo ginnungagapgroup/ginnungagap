@@ -253,7 +253,7 @@ local_readIntoPatchForVar_old(gridReader_t reader,
 		fprintf(stderr, "ERROR: Datatype in memory differs from file.\n");
 		diediedie(EXIT_FAILURE);
 	}
-	local_memUsage();
+//	local_memUsage();
 
 	H5Sclose(dataSpacePatch);
 	H5Tclose(dataTypePatch);

@@ -315,7 +315,7 @@ local_getParticleStorage(const generateICs_t genics,
 	for (uint32_t i = firstTile; i <= lastTile; i++) {
 		numParticles += local_computeNumParts(genics, i);
 	}
-	if (genics->mode->doGas)
+	if (genics->mode->doGas && (genics->typeForLevel)[genics->zoomlevel-g9pMask_getMinLevel(genics->mask)]==1)
 		numParticles *= 2;
 
 	dataVar_t      var;
@@ -392,7 +392,8 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 	}
 	printf("   Particles read: %lu\n", partsRead);
 	//printf("pos: %f", core.pos[1]);
-	if (genics->mode->doGas) {
+	if (genics->mode->doGas && (genics->typeForLevel)[genics->zoomlevel-g9pMask_getMinLevel(genics->mask)]==1) {
+		printf("   Making gas particles\n");
 		uint64_t npGasTotal = local_computeNumPartsLevel(genics, genics->zoomlevel);
 		//npGasTotal = core.fullDims[0];
 		//npGasTotal *= core.fullDims[1];
@@ -449,7 +450,7 @@ local_writeGadgetFile(generateICs_t     genics,
 		}
 	}
     
-	if (genics->mode->doGas) {
+	if (genics->mode->doGas && arrIdx==1) {
 		assert(np % 2 == 0);
 		npLocal[0] = np / 2;
 		npLocal[arrIdx] = npLocal[0];
@@ -484,10 +485,11 @@ local_writeGadgetFile(generateICs_t     genics,
 	if (genics->mode->doGas) {
 		const double omegaBaryon0 = cosmoModel_getOmegaBaryon0(genics->data->model);
 		const double omegaMatter0 = cosmoModel_getOmegaMatter0(genics->data->model);
-		npAll[0]    = npAll[arrIdx];
-		massArr[0]  = massArr[arrIdx] * omegaBaryon0 / omegaMatter0;
-		massArr[arrIdx] -= massArr[0];
-		gadgetTOC_addEntryByType(genics->out->toc, GADGETBLOCK_U___);
+		npAll[0]    = npAll[1];
+		massArr[0]  = massArr[1] * omegaBaryon0 / omegaMatter0;
+		massArr[1] -= massArr[0];
+		if(arrIdx==1)
+			gadgetTOC_addEntryByType(genics->out->toc, GADGETBLOCK_U___);
 	}
 	gadgetHeader_setNall(myHeader,npAll);
 	gadgetHeader_setMassArr(myHeader, massArr);
@@ -530,7 +532,7 @@ local_writeGadgetFile(generateICs_t     genics,
 		
 		if(nlevfortype[arrIdx]>1) {
 			fpv_t masses[np];
-			npFull = POW_NDIM(g9pMask_getDim1DLevel(genics->mask,genics->zoomlevel));
+			npFull = POW_NDIM((uint64_t)g9pMask_getDim1DLevel(genics->mask,genics->zoomlevel));
 			fpv_t mass1 = generateICsOut_boxMass(genics->data) / npFull;
 			for(int i=0; i<np; i++) {
 				masses[i] = mass1;
@@ -541,7 +543,7 @@ local_writeGadgetFile(generateICs_t     genics,
 		    stai_del(&stai);
 		}
 		
-		if(genics->mode->doGas) {
+		if(genics->mode->doGas && arrIdx==1) {
 			uint64_t npl = npLocal[0];
 			fpv_t energies[npl];
 			for(int i=0;i<npl;i++) {

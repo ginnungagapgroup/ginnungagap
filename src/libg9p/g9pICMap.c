@@ -160,11 +160,11 @@ local_calcIdx(g9pICMap_t map, uint32_t zoomlevel)
 			map->lastTileIdx[file] = i;
 			numCellsLeft -= numCells;
 			numCells = 0;
-			//cellsPerFile = numCellsLeft / (map->numFiles - file);
 			file++;
-			if(file < map->numFiles) {
+			if(file < map->numFiles) 
+				cellsPerFile = numCellsLeft / (map->numFiles - file);
+			if(file < map->numFiles)
 				map->firstTileIdx[file] = i+1;
-			}
 		}
 		
 		//tilePerFile          = numTilesLeft / (map->numFiles - i);
