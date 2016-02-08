@@ -61,6 +61,7 @@ struct generateICs_struct {
 	
 	int32_t zoomlevel;
 	int32_t *typeForLevel;
+	double *shift;
 };
 
 

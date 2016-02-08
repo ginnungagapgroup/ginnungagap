@@ -116,6 +116,15 @@ generateICs_setTypes(generateICs_t genics, int32_t *types, int s)
 	}
 }
 
+extern void
+generateICs_setShift(generateICs_t genics, double* shift)
+{
+	assert(genics != NULL);
+	for (int i=0; i<NDIM; i++) {
+		genics->shift[i] = shift[i];
+	}
+}
+
 /*--- Exported function: Getter -----------------------------------------*/
 extern g9pHierarchy_t
 generateICs_getHierarchy(const generateICs_t genics)

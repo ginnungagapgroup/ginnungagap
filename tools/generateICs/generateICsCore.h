@@ -82,6 +82,8 @@ generateICsCode_dm2Gas(generateICsCore_const_t d,
 extern void
 generateICsCore_recenter(generateICsCore_const_t d, float* newCenter);
 
+extern void
+generateICsCore_kpc(generateICsCore_const_t d);
 
 /*--- Doxygen group definitions -----------------------------------------*/
 

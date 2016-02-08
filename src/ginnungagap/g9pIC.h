@@ -32,7 +32,19 @@ typedef enum {
 	/** @brief  Do the y-component of the velocity. */
 	G9PIC_MODE_VY,
 	/** @brief  Do the z-component of the velocity. */
-	G9PIC_MODE_VZ
+	G9PIC_MODE_VZ,
+	/** @brief  Do the x-component of the large scale velocity. */
+	G9PIC_MODE_LVX,
+	/** @brief  Do the y-component of the large scale velocity. */
+	G9PIC_MODE_LVY,
+	/** @brief  Do the z-component of the large scale velocity. */
+	G9PIC_MODE_LVZ,
+	/** @brief  Do the x-component of the small scale velocity. */
+	G9PIC_MODE_SVX,
+	/** @brief  Do the y-component of the small scale velocity. */
+	G9PIC_MODE_SVY,
+	/** @brief  Do the z-component of the small scale velocity. */
+	G9PIC_MODE_SVZ
 } g9pICMode_t;
 
 
@@ -136,6 +148,9 @@ g9pIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
  * @param[in]      aInit
  *                    The expansion factor at which to generate the
  *                    velocity.
+ * @param[in]      cutoffScale
+ *                    The scale of large or small scale cutoff. Which cutoff
+ *                    is done is determined by @c mode parameter.
  * @param[in]      mode
  *                    Selects which velocity component should be
  *                    calculated.
@@ -148,6 +163,7 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
                        double           boxsizeInMpch,
                        cosmoModel_t     model,
                        double           aInit,
+                       double 			cutoffScale,
                        g9pICMode_t      mode);
 
 

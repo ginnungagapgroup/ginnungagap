@@ -33,6 +33,9 @@
 /** @brief  Gives the default for re-centering to zoom region or not. */
 #define GENERATEICSCONFIG_DEFAULT_AUTOCENTER false
 
+/** @brief  Gives the default for using kpc or Mpc output units. */
+#define GENERATEICSCONFIG_DEFAULT_KPC false
+
 /** @brief  Gives the default prefix for the ginnungagap section name. */
 #define GENERATEICSCONFIG_DEFAULT_GINNUNGAGAPSECTION "Ginnungagap"
 

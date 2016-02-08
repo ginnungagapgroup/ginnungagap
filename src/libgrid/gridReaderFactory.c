@@ -24,6 +24,10 @@
 #include "gridReaderBov.h"
 #ifdef WITH_HDF5
 #  include "gridReaderHDF5.h"
+#  include <string.h>
+#endif
+#ifdef WITH_MPI
+#  include <mpi.h>
 #endif
 
 
@@ -48,6 +52,9 @@ static gridReader_t
 local_newFromIniWrapper(parse_ini_t ini,
                         const char  *base,
                         const char  *extended);
+                        
+static void
+local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader);
 
 
 /*--- Implementations of exported functions -----------------------------*/
@@ -124,6 +131,7 @@ gridReaderFactory_newFromIniHDF5(parse_ini_t ini,
                                  filename_t  fn)
 {
 	gridReaderHDF5_t reader;
+	bool tmp, doPatch;
 
 	reader = gridReaderHDF5_new();
 
@@ -137,9 +145,115 @@ gridReaderFactory_newFromIniHDF5(parse_ini_t ini,
 	}
 
 	gridReader_setFileName((gridReader_t)reader, fn);
+	
+	tmp = parse_ini_get_bool(ini, "doPatch", sectionName,
+							 &doPatch);
+	if (tmp && doPatch) {
+		local_doPatch(ini, sectionName, reader);
+	}
 
 	return reader;
 }
+
+static void
+local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader)
+{
+	char*		patchSection;
+	char*		unit;
+	bool		tmp;
+	
+	
+	gridPointUint32_t patchLo, patchDims;
+	gridReaderHDF5_setDoPatch(reader, true);
+	
+	tmp = parse_ini_get_string(ini, "patchSection", sectionName,
+			&patchSection);
+	if(!tmp) {
+		fprintf(stderr, "Could not get patchSection from section %s.\n",
+		        sectionName);
+		diediedie(EXIT_FAILURE);
+	}
+			
+	tmp = parse_ini_get_string(ini, "unit", patchSection,
+			&unit);
+	if(!tmp) {
+		fprintf(stderr, "Could not get unit from section %s.\n",
+		        patchSection);
+		diediedie(EXIT_FAILURE);
+	}
+	
+	if(strcmp(unit,"cells")==0) {
+		int32_t           *dataFile;
+		if (!parse_ini_get_int32list(ini, "patchLo", patchSection,
+		                             NDIM, (int32_t **)&dataFile)) {
+			fprintf(stderr, "Could not get patchLo from section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+		}
+		for (int i = 0; i < NDIM; i++)
+			patchLo[i] = dataFile[i];
+		
+		if (!parse_ini_get_int32list(ini, "patchDims", patchSection,
+		                             NDIM, (int32_t **)&dataFile)) {
+			fprintf(stderr, "Could not get patchDims from section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+		}
+		for (int i = 0; i < NDIM; i++)
+			patchDims[i] = dataFile[i];
+			
+		xfree(dataFile);
+	}
+	
+	if(strcmp(unit,"Mpch")==0) {
+		double   	box;
+		int32_t  	dim1D;
+		double*		dataFile;
+		
+		parse_ini_get_double(ini, "boxsizeInMpch", patchSection,
+						&box);
+		parse_ini_get_int32(ini, "dim1D", patchSection,
+						&dim1D);
+						
+		if (!parse_ini_get_doublelist(ini, "patchLo", patchSection,
+		                             NDIM, (double **)&dataFile)) {
+			fprintf(stderr, "Could not get patchLo from section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+		}
+		for (int i = 0; i < NDIM; i++)
+			patchLo[i] = (int32_t) (dataFile[i]/box*dim1D);
+		
+		if (!parse_ini_get_doublelist(ini, "patchDims", patchSection,
+		                             NDIM, (double **)&dataFile)) {
+			fprintf(stderr, "Could not get patchDims from section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+		}
+		for (int i = 0; i < NDIM; i++)
+			patchDims[i] = (int32_t) (dataFile[i]/box*dim1D);
+		
+		xfree(dataFile);
+	}
+	
+	if(strcmp(unit,"cells")!=0 && strcmp(unit,"Mpch")!=0) {
+		fprintf(stderr, "Unit can be only cells or Mpch in section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+	}
+	
+	int rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+	if (rank == 0) {
+		printf("\nPatch will be read.\n");
+		printf("Patch Lo, cells: %i %i %i\n", patchLo[0], patchLo[1], patchLo[2]);
+		printf("Patch Dims, cells: %i %i %i\n\n", patchDims[0], patchDims[1], patchDims[2]);
+	}
+	gridReaderHDF5_setRtw(reader, patchLo, patchDims);
+}
+
 #endif
 
 /*--- Implementations of local functions --------------------------------*/

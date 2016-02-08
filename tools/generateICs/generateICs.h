@@ -161,6 +161,9 @@ extern void
 generateICs_setTypes(generateICs_t genics, int32_t *types, int s);
 
 extern void
+generateICs_setShift(generateICs_t genics, gridPointDbl_t shift);
+
+extern void
 generateICs_setZoomLevel(generateICs_t genics, int32_t z);
 
 /** @} */

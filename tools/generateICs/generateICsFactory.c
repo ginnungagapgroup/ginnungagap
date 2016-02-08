@@ -59,6 +59,8 @@ struct generateICs_IniData_struct {
 	bool   doLongIDs;
 	/** @brief  Stores key @c autoCenter. */
 	bool   autoCenter;
+	/** @brief  Stores key @c kpc. */
+	bool   kpc;
 	/** @brief  Stores key @c ginnungagapSection. */
 	char   *g9pSection;
 	/** @brief  Stores key @c inputSection. */
@@ -172,6 +174,12 @@ inline static void
 local_iniDataNewFromIni_autoCenter(generateICs_iniData_t iniData,
                                   parse_ini_t           ini,
                                   const char            *secName);
+                                  
+/** @copydoc local_iniDataNewFromIni_boxsize() */
+inline static void
+local_iniDataNewFromIni_kpc(generateICs_iniData_t iniData,
+                                  parse_ini_t           ini,
+                                  const char            *secName);                                  
 
 /** @copydoc local_iniDataNewFromIni_boxsize() */
 inline static void
@@ -232,6 +240,7 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	int32_t	zlevel;
 	char 		tname[50];
 	int32_t	minlev, maxlev;
+	double* shift;
 
 	assert(ini != NULL);
 
@@ -242,7 +251,7 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	genics = generateICs_new();
 
 	generateICsMode_t mode;
-	mode = generateICsMode_new(iniData->doGas, iniData->doLongIDs, iniData->autoCenter);
+	mode = generateICsMode_new(iniData->doGas, iniData->doLongIDs, iniData->autoCenter, iniData->kpc);
 	generateICs_setMode(genics, mode);
 
 	generateICsData_t data;
@@ -292,6 +301,16 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	}
 	generateICs_setTypes(genics, TypeForLevel, maxlev-minlev+1);
 	
+	if (!parse_ini_get_doublelist(ini, "shift", (sectionName != NULL) ? sectionName :
+	                                  GENERATEICSCONFIG_DEFAULT_SECTIONNAME,
+	                                  NDIM, (double_t **)&shift) ) {
+                shift = xmalloc(NDIM*sizeof(double));
+		for (int i=0; i<NDIM; i++) {
+			shift[i]=0.0;
+		}
+	}
+	generateICs_setShift(genics, shift);
+	
 	return genics;
 } // generateICsFactory_newFromIni
 
@@ -308,6 +327,7 @@ local_iniDataNewFromIni(parse_ini_t ini, const char *sectionName)
 	local_iniDataNewFromIni_doGas(iniData, ini, sectionName);
 	local_iniDataNewFromIni_doLongIDs(iniData, ini, sectionName);
 	local_iniDataNewFromIni_autoCenter(iniData, ini, sectionName);
+	local_iniDataNewFromIni_kpc(iniData, ini, sectionName);
 	local_iniDataNewFromIni_section(iniData, ini, sectionName);
 
 	local_iniDataNewFromIni_boxsize(iniData, ini, iniData->g9pSection);
@@ -425,6 +445,21 @@ local_iniDataNewFromIni_autoCenter(generateICs_iniData_t iniData,
 	if ( !parse_ini_get_bool( ini, "autoCenter", secName,
 	                          &(iniData->autoCenter) ) ) {
 		iniData->autoCenter = GENERATEICSCONFIG_DEFAULT_AUTOCENTER;
+	}
+}
+
+inline static void
+local_iniDataNewFromIni_kpc(generateICs_iniData_t iniData,
+                                  parse_ini_t           ini,
+                                  const char            *secName)
+{
+	assert(iniData != NULL);
+	assert(ini != NULL);
+	assert(secName != NULL);
+
+	if ( !parse_ini_get_bool( ini, "useKpc", secName,
+	                          &(iniData->kpc) ) ) {
+		iniData->kpc = GENERATEICSCONFIG_DEFAULT_KPC;
 	}
 }
 

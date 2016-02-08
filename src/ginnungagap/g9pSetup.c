@@ -210,6 +210,16 @@ local_parseOptional(g9pSetup_t s, parse_ini_t ini)
 	if (!(parse_ini_get_bool(ini, "writeDensityField", "Ginnungagap",
 	                         &(s->writeDensityField))))
 		s->writeDensityField = true;
+	
+	if (!(parse_ini_get_bool(ini, "doSmallScale", "Ginnungagap",
+	                         &(s->doSmallScale))))
+		s->doSmallScale = false;
+	if (!(parse_ini_get_bool(ini, "doLargeScale", "Ginnungagap",
+	                         &(s->doLargeScale))))
+		s->doLargeScale = false;
+	if (s->doSmallScale || s->doLargeScale)
+		parse_ini_get_double(ini, "cutoffScale", "Ginnungagap",
+							&(s->cutoffScale));
 
 	local_parseOptionalPk(s, ini);
 	local_parseOptionalHistogram(s, ini);

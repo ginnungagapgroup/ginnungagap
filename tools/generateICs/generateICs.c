@@ -40,6 +40,7 @@
 #include "../../src/libg9p/g9pICMap.h"
 #include "../../src/libgrid/gridPatch.h"
 #include "../../src/libpart/partBunch.h"
+#include "../../src/libgrid/gridPoint.h"
 #include "../../src/liblare/lare.h"
 
 
@@ -262,6 +263,7 @@ local_init(generateICs_t genics)
 	genics->datastore = NULL;
 	genics->mask      = NULL;
 	genics->typeForLevel = NULL;
+	genics->shift = xmalloc(sizeof(double)*3);
 } // local_init
 
 static uint64_t
@@ -414,6 +416,27 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 		core.id           = partBunch_at(particles, 2, 0);
 		generateICsCore_recenter(&core, newCenter);
 	}
+	
+	if (genics->shift[0]!=0 || genics->shift[1]!=0 || genics->shift[2]!=0) {
+		float newCenter[3];
+		for (int i=0;i<3;i++) {
+			newCenter[i] = (genics->data->boxsizeInMpch/2 - genics->shift[i])/genics->data->boxsizeInMpch;
+		}
+		core.numParticles = partBunch_getNumParticles(particles);
+		core.pos          = partBunch_at(particles, 0, 0);
+		core.vel          = partBunch_at(particles, 1, 0);
+		core.id           = partBunch_at(particles, 2, 0);
+		generateICsCore_recenter(&core, newCenter);
+	}
+	
+	if (genics->mode->kpc) {
+        core.numParticles = partBunch_getNumParticles(particles);
+        core.pos          = partBunch_at(particles, 0, 0);
+        core.vel          = partBunch_at(particles, 1, 0);
+        core.id           = partBunch_at(particles, 2, 0);
+		generateICsCore_kpc(&core);
+	}
+
 
 	local_writeGadgetFile(genics, file, particles, map);
 
@@ -460,6 +483,10 @@ local_writeGadgetFile(generateICs_t     genics,
 	
 	myHeader   = gadgetHeader_clone(genics->out->baseHeader);
 	
+	if (genics->mode->kpc) {
+		gadgetHeader_setBoxsize(myHeader, gadgetHeader_getBoxsize(myHeader)*1000);
+	}
+
 	// set global header for zoom:
 	uint32_t idx;
 	for(int level = minlev; level<= maxlev; level++) {
@@ -487,7 +514,7 @@ local_writeGadgetFile(generateICs_t     genics,
 		const double omegaMatter0 = cosmoModel_getOmegaMatter0(genics->data->model);
 		npAll[0]    = npAll[1];
 		massArr[0]  = massArr[1] * omegaBaryon0 / omegaMatter0;
-		massArr[1] -= massArr[0];
+		massArr[1]  -= massArr[0];
 		if(arrIdx==1)
 			gadgetTOC_addEntryByType(genics->out->toc, GADGETBLOCK_U___);
 	}

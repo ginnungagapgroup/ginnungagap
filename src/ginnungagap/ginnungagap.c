@@ -179,6 +179,8 @@ ginnungagap_run(ginnungagap_t g9p)
 	if (g9p->rank == 0)
 		printf("\n");
 
+	if (!g9p->setup->doSmallScale) {
+
 	g9pWN_reset(g9p->whiteNoise);
 	local_doWhiteNoise(g9p, false);
 	local_doDeltaK(g9p);
@@ -211,7 +213,61 @@ ginnungagap_run(ginnungagap_t g9p)
 		                  g9p->setup->nameHistogramVelz);
 	if (g9p->rank == 0)
 		printf("\n");
-
+	}
+	
+	if (g9p->setup->doLargeScale) {
+		g9pWN_reset(g9p->whiteNoise);
+		local_doWhiteNoise(g9p, false);
+		local_doDeltaK(g9p);
+		local_doVelocities(g9p, G9PIC_MODE_LVX);
+		local_doStatistics(g9p, 0);
+		if (g9p->rank == 0)
+			printf("\n");
+	
+		g9pWN_reset(g9p->whiteNoise);
+		local_doWhiteNoise(g9p, false);
+		local_doDeltaK(g9p);
+		local_doVelocities(g9p, G9PIC_MODE_LVY);
+		local_doStatistics(g9p, 0);
+		if (g9p->rank == 0)
+			printf("\n");
+	
+		g9pWN_reset(g9p->whiteNoise);
+		local_doWhiteNoise(g9p, false);
+		local_doDeltaK(g9p);
+		local_doVelocities(g9p, G9PIC_MODE_LVZ);
+		local_doStatistics(g9p, 0);
+		if (g9p->rank == 0)
+			printf("\n");
+	}
+	
+	if (g9p->setup->doSmallScale) {
+		g9pWN_reset(g9p->whiteNoise);
+		local_doWhiteNoise(g9p, false);
+		local_doDeltaK(g9p);
+		local_doVelocities(g9p, G9PIC_MODE_SVX);
+		local_doStatistics(g9p, 0);
+		if (g9p->rank == 0)
+			printf("\n");
+	
+		g9pWN_reset(g9p->whiteNoise);
+		local_doWhiteNoise(g9p, false);
+		local_doDeltaK(g9p);
+		local_doVelocities(g9p, G9PIC_MODE_SVY);
+		local_doStatistics(g9p, 0);
+		if (g9p->rank == 0)
+			printf("\n");
+	
+		g9pWN_reset(g9p->whiteNoise);
+		local_doWhiteNoise(g9p, false);
+		local_doDeltaK(g9p);
+		local_doVelocities(g9p, G9PIC_MODE_SVZ);
+		local_doStatistics(g9p, 0);
+		if (g9p->rank == 0)
+			printf("\n");
+	}
+	
+	
 	if (g9p->setup->do2LPTCorrections)
 		local_do2LPTCorrections(g9p);
 } /* ginnungagap_run */
@@ -447,6 +503,7 @@ local_doVelocities(ginnungagap_t g9p, g9pICMode_t mode)
 	                       g9p->setup->boxsizeInMpch,
 	                       g9p->model,
 	                       cosmo_z2a(g9p->setup->zInit),
+	                       g9p->setup->cutoffScale,
 	                       mode);
 	timing = timer_stop_text(timing, "took %.5fs\n");
 	xfree(msg2);
@@ -463,6 +520,7 @@ local_doVelocities(ginnungagap_t g9p, g9pICMode_t mode)
 	var    = gridRegular_getVarHandle(g9p->grid,
 	                                  g9p->posOfDens);
 	local_doRenames(var, g9p->finalWriter, g9pIC_getModeStr(mode));
+	dataVar_rename(var, g9pIC_getModeStr(mode%3));
 	gridWriter_activate(g9p->finalWriter);
 	gridWriter_writeGridRegular(g9p->finalWriter,
 	                            g9p->grid);
@@ -522,6 +580,7 @@ local_doRenames(dataVar_t var, gridWriter_t writer, const char *newName)
 	xfree(qualifier);
 	filename_del(&fn);
 }
+
 
 static void
 local_do2LPTCorrections(ginnungagap_t g9p)

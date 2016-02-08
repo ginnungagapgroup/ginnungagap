@@ -43,6 +43,24 @@ static const char *local_modeVyStr = "vely";
 /** @brief  The name for the mode corresponding to vz. */
 static const char *local_modeVzStr = "velz";
 
+/** @brief  The name for the mode corresponding to large scale vx. */
+static const char *local_modeLVxStr = "large_velx";
+
+/** @brief  The name for the mode corresponding to large scale vy. */
+static const char *local_modeLVyStr = "large_vely";
+
+/** @brief  The name for the mode corresponding to large scale vz. */
+static const char *local_modeLVzStr = "large_velz";
+
+/** @brief  The name for the mode corresponding to small scale vx. */
+static const char *local_modeSVxStr = "small_velx";
+
+/** @brief  The name for the mode corresponding to small scale vy. */
+static const char *local_modeSVyStr = "small_vely";
+
+/** @brief  The name for the mode corresponding to small scale vz. */
+static const char *local_modeSVzStr = "small_velz";
+
 
 /*--- Prototypes of local functions -------------------------------------*/
 
@@ -149,6 +167,20 @@ local_calcVelFromDeltaActual(const int               direction,
                              const double            waveNumToFreq,
                              fpvComplex_t *restrict  data);
 
+static double
+local_kernel1D(double x);
+
+static void
+local_calcVelFromDeltaCutoff(const int               direction,
+                             const gridPointUint32_t idxLo,
+                             const gridPointUint32_t dimsPatch,
+                             const gridPointUint32_t kMaxGrid,
+                             const gridPointUint32_t dimsGrid,
+                             const double            norm,
+                             const double            wavenumToFreq,
+                             const bool              doCutSmall,
+                             const double            cutoffScale,
+                             fpvComplex_t *restrict  data);
 
 /*--- Implementations of exported functios ------------------------------*/
 extern void
@@ -213,6 +245,7 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
                        double           boxsizeInMpch,
                        cosmoModel_t     model,
                        double           aInit,
+                       double           cutoffScale,
                        g9pICMode_t      mode)
 {
 	gridRegular_t     grid;
@@ -229,19 +262,56 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
 	wavenumToFreq = 2. * M_PI / (boxsizeInMpch);
 	norm          = local_getDisplacementToVelocityFactor(model, aInit);
 
-	if (mode == G9PIC_MODE_VX) {
-		local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 0),
+	switch(mode) {
+		case G9PIC_MODE_VX:
+			local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 0),
 		                             idxLo, dimsPatch, kMaxGrid,
 		                             dimsGrid, norm, wavenumToFreq, data);
-	} else if (mode == G9PIC_MODE_VY) {
-		local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 1),
+			break;
+		case G9PIC_MODE_VY:
+			local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 1),
 		                             idxLo, dimsPatch, kMaxGrid,
 		                             dimsGrid, norm, wavenumToFreq, data);
-	} else {
-		local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 2),
+			break;
+		case G9PIC_MODE_VZ:
+			local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 2),
 		                             idxLo, dimsPatch, kMaxGrid,
 		                             dimsGrid, norm, wavenumToFreq, data);
+			break;
+		case G9PIC_MODE_LVX:
+			local_calcVelFromDeltaCutoff(gridRegular_getCurrentDim(grid, 0),
+		                             idxLo, dimsPatch, kMaxGrid,
+		                             dimsGrid, norm, wavenumToFreq, true, cutoffScale, data);
+			break;
+		case G9PIC_MODE_LVY:
+			local_calcVelFromDeltaCutoff(gridRegular_getCurrentDim(grid, 1),
+		                             idxLo, dimsPatch, kMaxGrid,
+		                             dimsGrid, norm, wavenumToFreq, true, cutoffScale, data);
+			break;
+		case G9PIC_MODE_LVZ:
+			local_calcVelFromDeltaCutoff(gridRegular_getCurrentDim(grid, 2),
+		                             idxLo, dimsPatch, kMaxGrid,
+		                             dimsGrid, norm, wavenumToFreq, true, cutoffScale, data);
+			break;
+		case G9PIC_MODE_SVX:
+			local_calcVelFromDeltaCutoff(gridRegular_getCurrentDim(grid, 0),
+		                             idxLo, dimsPatch, kMaxGrid,
+		                             dimsGrid, norm, wavenumToFreq, false, cutoffScale, data);
+			break;
+		case G9PIC_MODE_SVY:
+			local_calcVelFromDeltaCutoff(gridRegular_getCurrentDim(grid, 1),
+		                             idxLo, dimsPatch, kMaxGrid,
+		                             dimsGrid, norm, wavenumToFreq, false, cutoffScale, data);
+			break;
+		case G9PIC_MODE_SVZ:
+			local_calcVelFromDeltaCutoff(gridRegular_getCurrentDim(grid, 2),
+		                             idxLo, dimsPatch, kMaxGrid,
+		                             dimsGrid, norm, wavenumToFreq, false, cutoffScale, data);
+			break;
+		default:
+			diediedie(EXIT_FAILURE);
 	}
+
 }
 
 extern void
@@ -376,16 +446,39 @@ extern const char *
 g9pIC_getModeStr(g9pICMode_t mode)
 {
 	const char *s;
-
-	if (mode == G9PIC_MODE_VX)
-		s = local_modeVxStr;
-	else if (mode == G9PIC_MODE_VY)
-		s = local_modeVyStr;
-	else if (mode == G9PIC_MODE_VZ)
-		s = local_modeVzStr;
-	else
-		diediedie(EXIT_FAILURE);
-
+	
+	switch(mode) {
+		case G9PIC_MODE_VX:
+			s = local_modeVxStr;
+			break;
+		case G9PIC_MODE_VY:
+			s = local_modeVyStr;
+			break;
+		case G9PIC_MODE_VZ:
+			s = local_modeVzStr;
+			break;
+		case G9PIC_MODE_LVX:
+			s = local_modeLVxStr;
+			break;
+		case G9PIC_MODE_LVY:
+			s = local_modeLVyStr;
+			break;
+		case G9PIC_MODE_LVZ:
+			s = local_modeLVzStr;
+			break;
+		case G9PIC_MODE_SVX:
+			s = local_modeSVxStr;
+			break;
+		case G9PIC_MODE_SVY:
+			s = local_modeSVyStr;
+			break;
+		case G9PIC_MODE_SVZ:
+			s = local_modeSVzStr;
+			break;
+		default:
+			diediedie(EXIT_FAILURE);
+	}
+	
 	return s;
 }
 
@@ -514,6 +607,82 @@ local_calcVelFromDeltaActual(const int               direction,
 		}
 	}
 } /* local_calcVelFromDeltaActual */
+
+static double
+local_kernel1D(double x)
+{
+	double t;
+	if (x==0)
+		t = 1.0;
+	else
+		t = sin(x)/x;
+	return t*t;
+} /* local_kernel1D */
+
+static void
+local_calcVelFromDeltaCutoff(const int               direction,
+                             const gridPointUint32_t idxLo,
+                             const gridPointUint32_t dimsPatch,
+                             const gridPointUint32_t kMaxGrid,
+                             const gridPointUint32_t dimsGrid,
+                             const double            norm,
+                             const double            wavenumToFreq,
+                             const bool              doCutSmall,
+                             const double            cutoffScale,
+                             fpvComplex_t *restrict  data)
+{
+	const double wavenumToFreqSqr = wavenumToFreq * wavenumToFreq;
+	const double rsSqr = cutoffScale * cutoffScale;
+	const uint32_t realGrid = dimsGrid[0]>dimsGrid[1] ? dimsGrid[0] : dimsGrid[1]; // because one of them is r2c dimension
+	//printf("\n%i %i %i\n", kMaxGrid[0], kMaxGrid[1], kMaxGrid[2]);
+	//printf("\n%i %i %i\n", dimsPatch[0], dimsPatch[1], dimsPatch[2]);
+	//printf("\n%i %i %i\n", dimsGrid[0], dimsGrid[1], dimsGrid[2]);
+#ifdef _OPENMP
+#  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
+	dimsGrid, data)
+#endif
+	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
+		int64_t kReal[3];
+		kReal[2] = k + idxLo[2];
+		WRAP_WAVENUM(kReal[2], kMaxGrid[2], dimsGrid[2]);
+		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
+			kReal[1] = j + idxLo[1];
+			WRAP_WAVENUM(kReal[1], kMaxGrid[1], dimsGrid[1]);
+			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
+				double   kCellSqr;
+				uint64_t idx;
+
+				kReal[0] = i + idxLo[0];
+				WRAP_WAVENUM(kReal[0], kMaxGrid[0], dimsGrid[0]);
+
+				idx      = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCellSqr = ((double)(WAVE_SQR(kReal))) * wavenumToFreqSqr;
+				
+
+				if ((kReal[0] == 0) && (kReal[1] == 0)
+				    && (kReal[2] == 0)) {
+					data[idx] = 0.0;
+				} else {
+					data[idx] *= (fpv_t)(norm * kReal[direction]
+					                     * wavenumToFreq / kCellSqr) * I;
+					if (doCutSmall) {
+						data[idx] *= exp(-kCellSqr * rsSqr/2);
+						if(kReal[0]!=0)
+							data[idx] /= (fpv_t)local_kernel1D(((double)kReal[0])*M_PI/realGrid);
+						if(kReal[1]!=0)
+							data[idx] /= (fpv_t)local_kernel1D(((double)kReal[1])*M_PI/realGrid);
+						if(kReal[2]!=0)
+							data[idx] /= (fpv_t)local_kernel1D(((double)kReal[2])*M_PI/realGrid);
+					} else
+						data[idx] *= 1 - exp(-kCellSqr * rsSqr/2);
+						
+					data[idx]  = (kReal[direction] == kMaxGrid[direction]) ?
+					             FPV_C(0.0) : data[idx];
+				}
+			}
+		}
+	}
+} /* local_calcVelFromDeltaCutoff */
 
 #undef WRAP_WAVENUM
 #undef WAVE_SQR

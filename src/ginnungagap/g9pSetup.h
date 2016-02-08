@@ -45,6 +45,12 @@ struct g9pSetup_struct {
 	g9pNorm_mode_t normalisationMode;
 	/** @brief  Selects if 2nd order corrections should be calculated. */
 	bool           do2LPTCorrections;
+	/** @brief  Selects whether to cut small scales from the power spectrum. */
+	bool		   doLargeScale;
+	/** @brief  Selects whether to cut large scales from the power spectrum. */
+	bool		   doSmallScale;
+	/** @brief  Gives the cutoff scale. */
+	double		   cutoffScale;
 #ifdef WITH_MPI
 	/** @brief  The process grid. */
 	int nProcs[NDIM];

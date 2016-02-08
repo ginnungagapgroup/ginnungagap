@@ -29,12 +29,13 @@ struct generateICsMode_struct {
 	const bool doGas;
 	const bool useLongIDs;
 	const bool autoCenter;
+	const bool kpc;
 };
 
 
 /*--- Prototypes of exported functions ----------------------------------*/
 extern generateICsMode_t
-generateICsMode_new(const bool doGas, const bool useLongIDs, const bool autoCenter);
+generateICsMode_new(const bool doGas, const bool useLongIDs, const bool autoCenter, const bool kpc);
 
 extern void
 generateICsMode_del(generateICsMode_t *mode);

@@ -194,5 +194,17 @@ generateICsCore_recenter(generateICsCore_const_t d, float* newCenter) {
 	}
 }
 
+extern void
+generateICsCore_kpc(generateICsCore_const_t d) {
+#ifdef _OPENMP
+#  pragma omp parallel for
+#endif
+        for (uint64_t i = 0; i < d->numParticles; i++) {
+                for(int k = 0; k<3; k++) {
+                        d->pos[i*3 + k] *= 1000;
+                }
+        }
+
+}
 
 /*--- Implementations of local functions --------------------------------*/

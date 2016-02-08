@@ -29,6 +29,9 @@
 #  include "gridWriterHDF5.h"
 #  include <string.h>
 #endif
+#ifdef WITH_MPI
+#  include <mpi.h>
+#endif
 
 
 /*--- Local defines -----------------------------------------------------*/
@@ -75,7 +78,7 @@ static gridWriter_t
 local_getWriter(parse_ini_t ini, const char *secName, gridIO_type_t type);
 
 #ifdef WITH_HDF5
-void
+static void
 local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer);
 #endif
 
@@ -200,7 +203,7 @@ gridWriterFactory_newFromIniHDF5(parse_ini_t ini, const char *sectionName)
 	return (gridWriter_t)writer;
 } /* gridWriterFactory_newFromIniHDF5 */
 
-void
+static void
 local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer)
 {
 	char*		patchSection;
@@ -266,7 +269,6 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer)
 			        patchSection);
 			diediedie(EXIT_FAILURE);
 		}
-		printf("%lf\n",box);
 		for (int i = 0; i < NDIM; i++)
 			patchLo[i] = (int32_t) (dataFile[i]/box*dim1D);
 		
@@ -287,9 +289,15 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer)
 			        patchSection);
 			diediedie(EXIT_FAILURE);
 	}
-	printf("\nPatch will be written for all files.\n");
-	printf("Patch Lo, cells: %i %i %i\n", patchLo[0], patchLo[1], patchLo[2]);
-	printf("Patch Dims, cells: %i %i %i\n\n", patchDims[0], patchDims[1], patchDims[2]);
+	int rank = 0;
+#ifdef WITH_MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+	if (rank == 0) {
+		printf("\nPatch will be written for all files.\n");
+		printf("Patch Lo, cells: %i %i %i\n", patchLo[0], patchLo[1], patchLo[2]);
+		printf("Patch Dims, cells: %i %i %i\n\n", patchDims[0], patchDims[1], patchDims[2]);
+	}
 	
 	gridWriterHDF5_setRtw(writer, patchLo, patchDims);
 }
