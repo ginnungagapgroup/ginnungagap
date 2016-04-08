@@ -626,11 +626,11 @@ local_enforceConstraints(fpv_t             *dataOut,
 #  ifdef WITH_OPENMP
 #    pragma omp parallel for
 #  endif
-	for (uint64_t k = 0; k < dimsIn[2]; k++)
+	for (uint64_t k = 0; k < dimsIn[2]; k+=2)
 #endif
 	{
-		for (uint64_t j = 0; j < dimsIn[1]; j++) {
-			for (uint64_t i = 0; i < dimsIn[0]; i++) {
+		for (uint64_t j = 0; j < dimsIn[1]; j+=2) {
+			for (uint64_t i = 0; i < dimsIn[0]; i+=2) {
 				long double mean;
 				uint64_t    idxIn  = i + (j + k * dimsIn[1]) * dimsIn[0];
 				uint64_t    idxOut = i * dimsSV[0]
