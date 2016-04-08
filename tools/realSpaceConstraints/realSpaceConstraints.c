@@ -225,6 +225,18 @@ local_enforceConstraints(fpv_t             *dataOut,
                          gridPointUint32_t dimsIn);
 
 
+inline static void
+local_fillCoeff(const fpv_t       *dataIn,
+		const fpv_t       *dataOut,
+		gridPointUint32_t dimsIn,
+		gridPointUint32_t dimsOut,
+		double		*a);
+
+inline static void
+local_refine(fpv_t       *data,
+		gridPointUint32_t dims,
+		double		*a);
+
 /**
  * @brief  This will sum over a subvolume.
  *
@@ -611,16 +623,12 @@ local_enforceConstraints(fpv_t             *dataOut,
                          gridPointUint32_t dimsIn)
 {
 	gridPointUint32_t dimsSV;
-	double            numCellsSVInv      = 1.;
-	double            varianceAdjustment = 1;
 
 	for (int i = 0; i < NDIM; i++) {
 		assert(dimsOut[i] % dimsIn[i] == 0);
 		dimsSV[i]           = dimsOut[i] / dimsIn[i];
-		numCellsSVInv      /= (double)(dimsSV[i]);
-		varianceAdjustment *= dimsIn[i] / ((double)(dimsOut[i]));
+		assert(dimsSV[i]==2);
 	}
-	varianceAdjustment = sqrt(varianceAdjustment);
 
 #if (NDIM > 2)
 #  ifdef WITH_OPENMP
@@ -637,16 +645,61 @@ local_enforceConstraints(fpv_t             *dataOut,
 				                     + (j * dimsSV[1]
 				                        + k * dimsSV[2]
 				                        * dimsOut[1]) * dimsOut[0];
-				mean  = local_sumSV(dataOut + idxOut, dimsOut, dimsSV);
-				mean *= numCellsSVInv;
-				local_addToSV(dataOut + idxOut, dimsOut, dimsSV,
-				              (double)(-mean));
-				local_addToSV(dataOut + idxOut, dimsOut, dimsSV,
-				              dataIn[idxIn] * varianceAdjustment);
+				double			  a[64]; // expansion coefficients
+
+				local_fillCoeff(dataIn+idxIn,dataOut+idxOut,dimsIn,dimsOut,a);
+
+				local_refine(dataOut+idxOut,dimsOut,a);
+
 			}
 		}
 	}
 } /* local_enforceConstraints */
+
+inline static void
+local_fillCoeff(const fpv_t       *dataIn,
+		const fpv_t       *dataOut,
+		gridPointUint32_t dimsIn,
+		gridPointUint32_t dimsOut,
+		double		*a)
+{
+	int i,j,k,ii,jj,kk;
+	double mat[8][8] = {{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0},{-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0},{-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0,1.0},{1.0,-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0},{-1.0,-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0},{1.0,-1.0,1.0,-1.0,-1.0,1.0,-1.0,1.0},{1.0,1.0,-1.0,-1.0,-1.0,-1.0,1.0,1.0},{-1.0,1.0,1.0,-1.0,1.0,-1.0,-1.0,1.0}};
+	// initially fill a[][][] with random numbers from dataOut:
+	for (k=0; k<4; k++)
+		for (j=0; j<4; j++)
+			for (i=0; i<4; i++) {
+				a[i+(j+k*4)*4] = dataOut[i + (j + k * dimsOut[1]) * dimsOut[0]];
+			}
+	// put constraints on a[0..1][0..1][0..1]:
+	for (k=0; k<2; k++)
+		for (j=0; j<2; j++)
+			for (i=0; i<2; i++) {
+				a[i+(j+k*4)*4] = 0;
+				for (kk=0; kk<2; kk++)
+					for (jj=0; jj<2; jj++)
+						for (ii=0; ii<2; ii++)
+							a[i+(j+k*4)*4] += dataIn[ii+(jj+kk*dimsIn[1])*dimsIn[0]] * mat[2*(2*k+j)+i][2*(2*kk+jj)+ii]/sqrt(8.0);
+			}
+}
+
+inline static void
+local_refine(fpv_t       *data,
+		gridPointUint32_t dims,
+		double		*a)
+{
+	int i,j,k,ii,jj,kk;
+	double e[4][4]={{0.5,-0.661437827766,-0.5,0.25},{0.5,-0.25,0.5,-0.661437827766},{0.5,0.25,0.5,0.661437827766},{0.5,0.661437827766,-0.5,-0.25}};
+	for (k=0; k<4; k++)
+			for (j=0; j<4; j++)
+				for (i=0; i<4; i++) {
+					data[i+(j+k*dims[1])*dims[0]] = 0;
+					for (kk=0; kk<4; kk++)
+						for (jj=0; jj<4; jj++)
+							for (ii=0; ii<4; ii++)
+								data[i+(j+k*dims[1])*dims[0]] += a[ii+(jj+kk*4)*4] * e[k][kk] * e[j][jj] * e[i][ii];
+				}
+}
 
 inline static long double
 local_sumSV(const fpv_t       *data,
