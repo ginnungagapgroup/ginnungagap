@@ -545,6 +545,7 @@ local_fillPatchWithWhiteNoise(gridPatch_t patch, int seed)
 	uint64_t numCells;
 	rng_t    rng;
 	int      size       = 1;
+	int      rank       = 0;
 	int      numThreads = 1;
 	int      numStreams = 1;
 #ifdef WITH_OPENMP
@@ -552,6 +553,7 @@ local_fillPatchWithWhiteNoise(gridPatch_t patch, int seed)
 #endif
 #ifdef WITH_MPI
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 	numStreams = numThreads * size;
 
@@ -559,15 +561,18 @@ local_fillPatchWithWhiteNoise(gridPatch_t patch, int seed)
 	numCells   = gridPatch_getNumCells(patch);
 	rng        = rng_new(4, numStreams, seed);
 
-#ifdef WITH_OPENMP
-#  pragma omp parallel shared(numCells, rng) num_threads(numThreads)
+#ifdef _OPENMP
+#  pragma omp parallel for shared(data, numThreads, numCells)
 #endif
-	for (uint64_t i = 0; i < numCells; i++) {
-		int threadID = 0;
-#ifdef WITH_OPENMP
-		threadID = omp_get_thread_num();
-#endif
-		data[i]  = (fpv_t)rng_getGaussUnit(rng, threadID);
+	for (int i = 0; i < numThreads; i++) {
+		uint64_t cps   = numCells / numThreads;
+		uint64_t start = i * cps;
+		uint64_t stop  = (i == numStreams - 1) ? numCells : (start
+		                                                     + cps);
+		for (uint64_t j = start; j < stop; j++) {
+			assert(j < numCells);
+			data[j] = (fpv_t)rng_getGaussUnit(rng, i);
+		}
 	}
 
 	rng_del(&rng);
@@ -690,7 +695,6 @@ local_refine(fpv_t       *data,
 {
 	int i,j,k,ii,jj,kk;
 	double e[4][4]={{0.5,-0.661437827766,-0.5,0.25},{0.5,-0.25,0.5,-0.661437827766},{0.5,0.25,0.5,0.661437827766},{0.5,0.661437827766,-0.5,-0.25}};
-	//const double e[4][4]={{0.481543412343,-0.625543242171,-0.417028828114,0.170251306152},{0.481543412343,-0.208514414057,0.417028828114,-0.851256530759},{0.481543412343,0.208514414057,0.417028828114,0.851256530759},{0.481543412343,0.625543242171,-0.417028828114,-0.170251306152}};
 	for (k=0; k<4; k++)
 			for (j=0; j<4; j++)
 				for (i=0; i<4; i++) {
