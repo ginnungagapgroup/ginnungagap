@@ -235,7 +235,7 @@ local_fillCoeff(const fpv_t       *dataIn,
 inline static void
 local_refine(fpv_t       *data,
 		gridPointUint32_t dims,
-		double		*a);
+		const double		*a);
 
 /**
  * @brief  This will sum over a subvolume.
@@ -582,6 +582,7 @@ local_degrade(fpv_t             *dataOut,
 	gridPointUint32_t dimsSV;
 	double            numCellsSVInv      = 1.;
 	double            varianceAdjustment = 1;
+	//TODO rewrite degrading using Jetkins algorithm
 
 	for (int i = 0; i < NDIM; i++) {
 		assert(dimsIn[i] % dimsOut[i] == 0);
@@ -639,7 +640,6 @@ local_enforceConstraints(fpv_t             *dataOut,
 	{
 		for (uint64_t j = 0; j < dimsIn[1]; j+=2) {
 			for (uint64_t i = 0; i < dimsIn[0]; i+=2) {
-				long double mean;
 				uint64_t    idxIn  = i + (j + k * dimsIn[1]) * dimsIn[0];
 				uint64_t    idxOut = i * dimsSV[0]
 				                     + (j * dimsSV[1]
@@ -664,7 +664,7 @@ local_fillCoeff(const fpv_t       *dataIn,
 		double		*a)
 {
 	int i,j,k,ii,jj,kk;
-	double mat[8][8] = {{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0},{-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0},{-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0,1.0},{1.0,-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0},{-1.0,-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0},{1.0,-1.0,1.0,-1.0,-1.0,1.0,-1.0,1.0},{1.0,1.0,-1.0,-1.0,-1.0,-1.0,1.0,1.0},{-1.0,1.0,1.0,-1.0,1.0,-1.0,-1.0,1.0}};
+	const double mat[8][8] = {{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0},{-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0},{-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0,1.0},{1.0,-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0},{-1.0,-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0},{1.0,-1.0,1.0,-1.0,-1.0,1.0,-1.0,1.0},{1.0,1.0,-1.0,-1.0,-1.0,-1.0,1.0,1.0},{-1.0,1.0,1.0,-1.0,1.0,-1.0,-1.0,1.0}};
 	// initially fill a[][][] with random numbers from dataOut:
 	for (k=0; k<4; k++)
 		for (j=0; j<4; j++)
@@ -686,10 +686,11 @@ local_fillCoeff(const fpv_t       *dataIn,
 inline static void
 local_refine(fpv_t       *data,
 		gridPointUint32_t dims,
-		double		*a)
+		const double		*a)
 {
 	int i,j,k,ii,jj,kk;
 	double e[4][4]={{0.5,-0.661437827766,-0.5,0.25},{0.5,-0.25,0.5,-0.661437827766},{0.5,0.25,0.5,0.661437827766},{0.5,0.661437827766,-0.5,-0.25}};
+	//const double e[4][4]={{0.481543412343,-0.625543242171,-0.417028828114,0.170251306152},{0.481543412343,-0.208514414057,0.417028828114,-0.851256530759},{0.481543412343,0.208514414057,0.417028828114,0.851256530759},{0.481543412343,0.625543242171,-0.417028828114,-0.170251306152}};
 	for (k=0; k<4; k++)
 			for (j=0; j<4; j++)
 				for (i=0; i<4; i++) {

@@ -170,6 +170,9 @@ local_calcVelFromDeltaActual(const int               direction,
 static double
 local_kernel1D(double x);
 
+static double
+local_cutoff(double f, double rs);
+
 static void
 local_calcVelFromDeltaCutoff(const int               direction,
                              const gridPointUint32_t idxLo,
@@ -619,6 +622,12 @@ local_kernel1D(double x)
 	return t*t;
 } /* local_kernel1D */
 
+static double
+local_cutoff(double f, double rs)
+{
+	return (f*rs>1)? 0.0 : 1.0;
+}
+
 static void
 local_calcVelFromDeltaCutoff(const int               direction,
                              const gridPointUint32_t idxLo,
@@ -666,7 +675,7 @@ local_calcVelFromDeltaCutoff(const int               direction,
 					data[idx] *= (fpv_t)(norm * kReal[direction]
 					                     * wavenumToFreq / kCellSqr) * I;
 					if (doCutSmall) {
-						data[idx] *= exp(-kCellSqr * rsSqr/2);
+						data[idx] *= local_cutoff(kCellSqr, rsSqr);
 						if(kReal[0]!=0)
 							data[idx] /= (fpv_t)local_kernel1D(((double)kReal[0])*M_PI/realGrid);
 						if(kReal[1]!=0)
@@ -674,7 +683,7 @@ local_calcVelFromDeltaCutoff(const int               direction,
 						if(kReal[2]!=0)
 							data[idx] /= (fpv_t)local_kernel1D(((double)kReal[2])*M_PI/realGrid);
 					} else
-						data[idx] *= 1 - exp(-kCellSqr * rsSqr/2);
+						data[idx] *= 1 - local_cutoff(kCellSqr, rsSqr);
 						
 					data[idx]  = (kReal[direction] == kMaxGrid[direction]) ?
 					             FPV_C(0.0) : data[idx];
