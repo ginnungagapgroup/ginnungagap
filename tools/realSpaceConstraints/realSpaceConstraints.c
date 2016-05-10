@@ -332,11 +332,16 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 	gridStatistics_t stat;
 	gridRegularDistrib_t distrib;
 	int              rank = 0;
+	gridPointInt_t nProc;
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
 	assert(te != NULL);
+
+	nProc[0] = 1;
+	nProc[1] = 1;
+	nProc[2] = 0;
 
 	stat   = gridStatistics_new();
 
@@ -347,7 +352,7 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 	timing = timer_start_text("  Calculating statistics on input grid... ");
 #ifdef WITH_MPI	
 	distrib = gridRegularDistrib_new(te->gridIn, NULL);
-	gridRegularDistrib_initMPI(distrib, NULL, MPI_COMM_WORLD);
+	gridRegularDistrib_initMPI(distrib, nProc, MPI_COMM_WORLD);
 	gridStatistics_calcGridRegularDistrib(stat, distrib, 0);
 #else
 	gridStatistics_calcGridRegular(stat, te->gridIn, 0);
@@ -371,7 +376,7 @@ realSpaceConstraints_run(realSpaceConstraints_t te)
 	timing = timer_start_text("  Calculating statistics on output grid... ");
 #ifdef WITH_MPI 
         distrib = gridRegularDistrib_new(te->gridOut, NULL);
-        gridRegularDistrib_initMPI(distrib, NULL, MPI_COMM_WORLD);
+        gridRegularDistrib_initMPI(distrib, nProc, MPI_COMM_WORLD);
         gridStatistics_calcGridRegularDistrib(stat, distrib, 0);
 #else
 	gridStatistics_calcGridRegular(stat, te->gridOut, 0);

@@ -5,7 +5,7 @@ real:: hpos(3,Nhalo_max), hR(Nhalo_max)
  character(len=4):: secname
 real, allocatable:: pos(:,:), vel(:,:)
 integer, allocatable:: id(:), mask(:,:,:), mask1d(:)
-integer:: Ntot, dx, gformat
+integer:: Ntot, thr, gformat
 real:: Box, pmass, tsnap, move(3), msize(3)
 
 factor_ic=3.0
@@ -15,7 +15,7 @@ open(1,file='LareWrite.tbl')
 read(1,'(A)')f_halos
 read(1,'(A)')f_low_snap
 read(1,'(A)')f_out
-read(1,*) dx
+read(1,*) thr
 read(1,*) factor_ic
 close(1)
 
@@ -25,14 +25,14 @@ nh=1
 do while(.true.)
   read(2,*,end=10,err=10) a1,hostid,a3,a4,a5,(hpos(k,nh),k=1,3), a9,a10,a11, hR(nh)
   nh=nh+1
-  if(hostid.ge.0) nh=nh-1      ! we don't want subhalos here
+!  if(hostid.ge.0) nh=nh-1      ! we don't want subhalos here
 enddo
 10 close(2)
 nh=nh-1
 print*,'Halos read: ',nh
 
- hpos = hpos/1e3
- hR = hR/1e3
+ hpos = hpos
+ hR = hR
 
  call read_header(f_low_snap)
  pmass_low=pmass
@@ -72,28 +72,42 @@ print*,'Halos read: ',nh
       endif
     enddo
   enddo
+ 
+!mask = mask*1000
 
-do it=1,dx
-  mask(1:nline-1,1:nline,1:nline)=mask(1:nline-1,1:nline,1:nline)+mask(2:nline,1:nline,1:nline)
-  mask(nline,1:nline,1:nline)=mask(nline,1:nline,1:nline)+mask(1,1:nline,1:nline)
+!do it=1,dx
+!  mask(1:nline-1,1:nline,1:nline)=mask(1:nline-1,1:nline,1:nline)+mask(2:nline,1:nline,1:nline)/1000
+!  mask(nline,1:nline,1:nline)=mask(nline,1:nline,1:nline)+mask(1,1:nline,1:nline)/1000
 
-  mask(1:nline,1:nline-1,1:nline)=mask(1:nline,1:nline-1,1:nline)+mask(1:nline,2:nline,1:nline)
-  mask(1:nline,nline,1:nline)=mask(1:nline,nline,1:nline)+mask(1:nline,1,1:nline)
+!  mask(1:nline,1:nline-1,1:nline)=mask(1:nline,1:nline-1,1:nline)+mask(1:nline,2:nline,1:nline)/1000
+!  mask(1:nline,nline,1:nline)=mask(1:nline,nline,1:nline)+mask(1:nline,1,1:nline)/1000
 
-  mask(1:nline,1:nline,1:nline-1)=mask(1:nline,1:nline,1:nline-1)+mask(1:nline,1:nline,2:nline)
-  mask(1:nline,1:nline,nline)=mask(1:nline,1:nline,nline)+mask(1:nline,1:nline,1)
-enddo
+!  mask(1:nline,1:nline,1:nline-1)=mask(1:nline,1:nline,1:nline-1)+mask(1:nline,1:nline,2:nline)/1000
+!  mask(1:nline,1:nline,nline)=mask(1:nline,1:nline,nline)+mask(1:nline,1:nline,1)/1000
+!enddo
 
 
-!  do i=1,nline
-!    do j=1,nline
-!      do k=1,nline
-!        if(mask(i,j,k).eq.1) then
-!          mask(i-dx:i+dx,j-dx:j+dx,k-dx:k+dx)=1
-!        endif
-!      enddo
-!    enddo
-!  enddo
+  do i=1,nline
+    do j=1,nline
+      do k=1,nline
+		nneib = 0
+		if (mask(i,j,k).eq.0) then
+	        do i1 = -1,1
+	        do j1 = -1,1
+	        do k1 = -1,1
+				msk = mask(plus(i,i1),plus(j,j1),plus(k,k1))
+				if (msk.eq.1) then
+					nneib = nneib + 1
+				endif
+			enddo
+			enddo
+			enddo
+			if(nneib.ge.thr) mask(i,j,k) = -1
+		endif
+      enddo
+    enddo
+  enddo
+  mask = abs(mask)
 
   nwrite=0
     do ip=1,Ntot
@@ -104,7 +118,7 @@ enddo
       i1 = jj - (j1-1)*nline
       if(mask(i1,j1,k1).ge.1) then
         nwrite=nwrite+1
-        write (17,250) jp,pos(1:3,ip),vel(1:3,ip),i1,j1,k1
+        write (17,250) jp,pos(1:3,ip)/1e3,vel(1:3,ip),i1,j1,k1
       endif
     enddo
 
@@ -165,6 +179,12 @@ enddo
  
  
  contains
+
+integer function plus(i,ip)
+	plus = i+ip
+	if(plus.lt.1) plus = plus+nline
+	if(plus.gt.nline) plus = plus-nline
+end function plus
 
 logical function check1d(kdim,i)
   check1d = .false.
