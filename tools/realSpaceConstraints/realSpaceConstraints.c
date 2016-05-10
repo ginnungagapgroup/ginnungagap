@@ -233,7 +233,12 @@ local_fillCoeff(const fpv_t       *dataIn,
 		double		*a);
 
 inline static void
-local_refine(fpv_t       *data,
+local_refine4(fpv_t       *data,
+		gridPointUint32_t dims,
+		const double		*a);
+
+inline static void
+local_refine3(fpv_t       *data,
 		gridPointUint32_t dims,
 		const double		*a);
 
@@ -633,13 +638,13 @@ local_enforceConstraints(fpv_t             *dataOut,
                          gridPointUint32_t dimsOut,
                          gridPointUint32_t dimsIn)
 {
-	gridPointUint32_t dimsSV;
 
 	for (int i = 0; i < NDIM; i++) {
-		assert(dimsOut[i] % dimsIn[i] == 0);
-		dimsSV[i]           = dimsOut[i] / dimsIn[i];
-		assert(dimsSV[i]==2);
+		assert(dimsOut[i] % dimsIn[i] == 0 || (dimsOut[i]*2) % (dimsIn[i]*3) == 0);
 	}
+
+	int ncoef = 64;
+	if ((dimsOut[0]*2) % (dimsIn[0]*3) == 0) ncoef = 27;
 
 #if (NDIM > 2)
 #  ifdef WITH_OPENMP
@@ -651,15 +656,18 @@ local_enforceConstraints(fpv_t             *dataOut,
 		for (uint64_t j = 0; j < dimsIn[1]; j+=2) {
 			for (uint64_t i = 0; i < dimsIn[0]; i+=2) {
 				uint64_t    idxIn  = i + (j + k * dimsIn[1]) * dimsIn[0];
-				uint64_t    idxOut = i * dimsSV[0]
-				                     + (j * dimsSV[1]
-				                        + k * dimsSV[2]
+				uint64_t    idxOut = i * dimsOut[i] / dimsIn[i]
+				                     + (j * dimsOut[i] / dimsIn[i]
+				                        + k * dimsOut[i] / dimsIn[i]
 				                        * dimsOut[1]) * dimsOut[0];
-				double			  a[64]; // expansion coefficients
+				double			  a[ncoef]; // expansion coefficients
 
 				local_fillCoeff(dataIn+idxIn,dataOut+idxOut,dimsIn,dimsOut,a);
 
-				local_refine(dataOut+idxOut,dimsOut,a);
+				if(ncoef == 64)
+					local_refine4(dataOut+idxOut,dimsOut,a);
+				else
+					local_refine3(dataOut+idxOut,dimsOut,a);
 
 			}
 		}
@@ -674,27 +682,30 @@ local_fillCoeff(const fpv_t       *dataIn,
 		double		*a)
 {
 	int i,j,k,ii,jj,kk;
+	int len = 4;
+	if ((dimsOut[0]*2) % (dimsIn[0]*3) == 0) len = 3;
+
 	const double mat[8][8] = {{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0},{-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0},{-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0,1.0},{1.0,-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0},{-1.0,-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0},{1.0,-1.0,1.0,-1.0,-1.0,1.0,-1.0,1.0},{1.0,1.0,-1.0,-1.0,-1.0,-1.0,1.0,1.0},{-1.0,1.0,1.0,-1.0,1.0,-1.0,-1.0,1.0}};
 	// initially fill a[][][] with random numbers from dataOut:
-	for (k=0; k<4; k++)
-		for (j=0; j<4; j++)
-			for (i=0; i<4; i++) {
-				a[i+(j+k*4)*4] = dataOut[i + (j + k * dimsOut[1]) * dimsOut[0]];
+	for (k=0; k<len; k++)
+		for (j=0; j<len; j++)
+			for (i=0; i<len; i++) {
+				a[i+(j+k*len)*len] = dataOut[i + (j + k * dimsOut[1]) * dimsOut[0]];
 			}
 	// put constraints on a[0..1][0..1][0..1]:
 	for (k=0; k<2; k++)
 		for (j=0; j<2; j++)
 			for (i=0; i<2; i++) {
-				a[i+(j+k*4)*4] = 0;
+				a[i+(j+k*len)*len] = 0;
 				for (kk=0; kk<2; kk++)
 					for (jj=0; jj<2; jj++)
 						for (ii=0; ii<2; ii++)
-							a[i+(j+k*4)*4] += dataIn[ii+(jj+kk*dimsIn[1])*dimsIn[0]] * mat[2*(2*k+j)+i][2*(2*kk+jj)+ii]/sqrt(8.0);
+							a[i+(j+k*len)*len] += dataIn[ii+(jj+kk*dimsIn[1])*dimsIn[0]] * mat[2*(2*k+j)+i][2*(2*kk+jj)+ii]/sqrt(8.0);
 			}
 }
 
 inline static void
-local_refine(fpv_t       *data,
+local_refine4(fpv_t       *data,
 		gridPointUint32_t dims,
 		const double		*a)
 {
@@ -708,6 +719,24 @@ local_refine(fpv_t       *data,
 						for (jj=0; jj<4; jj++)
 							for (ii=0; ii<4; ii++)
 								data[i+(j+k*dims[1])*dims[0]] += a[ii+(jj+kk*4)*4] * e[k][kk] * e[j][jj] * e[i][ii];
+				}
+}
+
+inline static void
+local_refine3(fpv_t       *data,
+		gridPointUint32_t dims,
+		const double		*a)
+{
+	int i,j,k,ii,jj,kk;
+	double e[3][3]={{0.57735026918962584,-0.70710678118654746,-0.40824829046386307},{0.57735026918962584,0.0,0.81649658092772615},{0.57735026918962584,0.70710678118654746,-0.40824829046386307}};
+	for (k=0; k<3; k++)
+			for (j=0; j<3; j++)
+				for (i=0; i<3; i++) {
+					data[i+(j+k*dims[1])*dims[0]] = 0;
+					for (kk=0; kk<3; kk++)
+						for (jj=0; jj<3; jj++)
+							for (ii=0; ii<3; ii++)
+								data[i+(j+k*dims[1])*dims[0]] += a[ii+(jj+kk*3)*3] * e[k][kk] * e[j][jj] * e[i][ii];
 				}
 }
 
