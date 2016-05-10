@@ -640,12 +640,12 @@ local_enforceConstraints(fpv_t             *dataOut,
 {
 
 	for (int i = 0; i < NDIM; i++) {
-		assert(dimsOut[i] % dimsIn[i] == 0 || (dimsOut[i]*2) % (dimsIn[i]*3) == 0);
+		assert(dimsOut[i] % dimsIn[i] == 0 || (dimsOut[i]*2) == (dimsIn[i]*3));
 	}
 
-	int ncoef = 64;
-	if ((dimsOut[0]*2) % (dimsIn[0]*3) == 0) ncoef = 27;
-
+	int ncoef = 4;
+	if ((dimsOut[0]*2) == (dimsIn[0]*3)) ncoef = 3;
+	printf("%i %i\n",ncoef,dimsOut[0]);
 #if (NDIM > 2)
 #  ifdef WITH_OPENMP
 #    pragma omp parallel for
@@ -656,18 +656,23 @@ local_enforceConstraints(fpv_t             *dataOut,
 		for (uint64_t j = 0; j < dimsIn[1]; j+=2) {
 			for (uint64_t i = 0; i < dimsIn[0]; i+=2) {
 				uint64_t    idxIn  = i + (j + k * dimsIn[1]) * dimsIn[0];
-				uint64_t    idxOut = i * dimsOut[i] / dimsIn[i]
-				                     + (j * dimsOut[i] / dimsIn[i]
-				                        + k * dimsOut[i] / dimsIn[i]
+				uint64_t    idxOut = i * dimsOut[0] / dimsIn[0]
+				                     + (j * dimsOut[1] / dimsIn[1]
+				                        + k * dimsOut[2] / dimsIn[2]
 				                        * dimsOut[1]) * dimsOut[0];
-				double			  a[ncoef]; // expansion coefficients
+				double			  a[64], b[27]; // expansion coefficients
 
-				local_fillCoeff(dataIn+idxIn,dataOut+idxOut,dimsIn,dimsOut,a);
 
-				if(ncoef == 64)
+
+				if(ncoef == 4){
+					local_fillCoeff(dataIn+idxIn,dataOut+idxOut,dimsIn,dimsOut,a);
 					local_refine4(dataOut+idxOut,dimsOut,a);
-				else
-					local_refine3(dataOut+idxOut,dimsOut,a);
+				}
+				else {
+					local_fillCoeff(dataIn+idxIn,dataOut+idxOut,dimsIn,dimsOut,b);
+					local_refine3(dataOut+idxOut,dimsOut,b);
+				}
+
 
 			}
 		}
@@ -683,7 +688,7 @@ local_fillCoeff(const fpv_t       *dataIn,
 {
 	int i,j,k,ii,jj,kk;
 	int len = 4;
-	if ((dimsOut[0]*2) % (dimsIn[0]*3) == 0) len = 3;
+	if ((dimsOut[0]*2) == (dimsIn[0]*3)) len = 3;
 
 	const double mat[8][8] = {{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0},{-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0},{-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0,1.0},{1.0,-1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0},{-1.0,-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0},{1.0,-1.0,1.0,-1.0,-1.0,1.0,-1.0,1.0},{1.0,1.0,-1.0,-1.0,-1.0,-1.0,1.0,1.0},{-1.0,1.0,1.0,-1.0,1.0,-1.0,-1.0,1.0}};
 	// initially fill a[][][] with random numbers from dataOut:
