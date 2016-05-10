@@ -460,12 +460,12 @@ local_getLastDimLimitsOutput(uint32_t inputDim1D,
 		tile_calcIdxsELAE(outputDim1D, numTiles, tile,
 		                  lastDimLimits, lastDimLimits + 1);
 	} else {
-		assert(outputDim1D % inputDim1D == 0);
-		int factor = outputDim1D / inputDim1D;
+		assert(outputDim1D % inputDim1D == 0 || outputDim1D*2 == inputDim1D*3);
+		//int factor = outputDim1D / inputDim1D;
 		tile_calcIdxsELAE(inputDim1D, numTiles, tile,
 		                  lastDimLimits, lastDimLimits + 1);
-		lastDimLimits[0] *= factor;
-		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * factor) - 1;
+		lastDimLimits[0] = lastDimLimits[0] * outputDim1D / inputDim1D;
+		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * outputDim1D / inputDim1D) - 1;
 	}
 }
 
