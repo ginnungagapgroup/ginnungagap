@@ -162,7 +162,8 @@ local_dataCopy(fpv_t            *dataOut,
               const fpv_t       *dataIn,
               gridPointUint32_t dimsOut,
               gridPointUint32_t dimsIn,
-              gridPointUint32_t factors);
+              gridPointUint32_t gridInDims,
+			  gridPointUint32_t gridOutDims);
 
 /**
  * @brief  Will add input2 grid to output grid.
@@ -568,11 +569,11 @@ local_getLastDimLimitsInput(uint32_t inputDim1D,
 		                  lastDimLimits, lastDimLimits + 1);
 	} else {
 		assert(inputDim1D % outputDim1D == 0);
-		int factor = inputDim1D / outputDim1D;
+		//int factor = inputDim1D / outputDim1D;
 		tile_calcIdxsELAE(outputDim1D, numTiles, tile,
 		                  lastDimLimits, lastDimLimits + 1);
-		lastDimLimits[0] *= factor;
-		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * factor) - 1;
+		lastDimLimits[0] = lastDimLimits[0] * inputDim1D / outputDim1D;
+		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * inputDim1D / outputDim1D) - 1;
 	}
 }
 
@@ -593,11 +594,11 @@ local_getLastDimLimitsOutput(uint32_t inputDim1D,
 		                  lastDimLimits, lastDimLimits + 1);
 	} else {
 		assert(outputDim1D % inputDim1D == 0);
-		int factor = outputDim1D / inputDim1D;
+		//int factor = outputDim1D / inputDim1D;
 		tile_calcIdxsELAE(inputDim1D, numTiles, tile,
-		                  lastDimLimits, lastDimLimits + 1);
-		lastDimLimits[0] *= factor;
-		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * factor) - 1;
+						  lastDimLimits, lastDimLimits + 1);
+		lastDimLimits[0] = lastDimLimits[0] * outputDim1D / inputDim1D;
+		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * outputDim1D / inputDim1D) - 1;
 	}
 }
 
@@ -675,15 +676,15 @@ local_fillOutputGrid(gridRegular_t       gridOut,
 
 	gridRegular_getDims(gridIn, gridInDims);
 	gridRegular_getDims(gridOut, gridOutDims);
-	for (int k = 0; k<NDIM; k++) 
-			factors[k] = gridInDims[k]/gridOutDims[k];
+	//for (int k = 0; k<NDIM; k++)
+	//		factors[k] = gridInDims[k]/gridOutDims[k];
 
 	if ((dimsIn[0] < dimsOut[0]) && (dimsIn[1] < dimsOut[1])
 	    && (dimsIn[2] < dimsOut[2])) {
 		local_enforceConstraints(dataOut, dataIn, dimsOut, dimsIn, gridIn);
 	} else {
 		fprintf(stdout, " (Interpolation: doing NGP)\n");
-		local_dataCopy(dataOut, dataIn, dimsOut, dimsIn, factors);
+		local_dataCopy(dataOut, dataIn, dimsOut, dimsIn, gridInDims,gridOutDims);
 	}
 	
 	if (gridIn2 != NULL) {
@@ -699,7 +700,8 @@ local_dataCopy(fpv_t            *dataOut,
               const fpv_t       *dataIn,
               gridPointUint32_t dimsOut,
               gridPointUint32_t dimsIn,
-              gridPointUint32_t factors)
+              gridPointUint32_t gridInDims,
+			  gridPointUint32_t gridOutDims)
 {
 #if (NDIM > 2)
 #  ifdef WITH_OPENMP
@@ -711,7 +713,7 @@ local_dataCopy(fpv_t            *dataOut,
 		for (uint64_t j = 0; j < dimsOut[1]; j++) {
 			for (uint64_t i = 0; i < dimsOut[0]; i++) {
 				uint64_t    idxOut = i + (j + k * dimsOut[1]) * dimsOut[0];
-				uint64_t    idxIn = i*factors[0] + (j*factors[1] + k*factors[2] * dimsIn[1]) * dimsIn[0];
+				uint64_t    idxIn = i*gridInDims[0]/gridOutDims[0] + (j*gridInDims[1]/gridOutDims[1] + k*gridInDims[2]/gridOutDims[2] * dimsIn[1]) * dimsIn[0];
 				dataOut[idxOut] = dataIn[idxIn];
 			}
 		}

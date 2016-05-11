@@ -645,7 +645,7 @@ local_enforceConstraints(fpv_t             *dataOut,
 
 	int ncoef = 4;
 	if ((dimsOut[0]*2) == (dimsIn[0]*3)) ncoef = 3;
-	printf("%i %i\n",ncoef,dimsOut[0]);
+
 #if (NDIM > 2)
 #  ifdef WITH_OPENMP
 #    pragma omp parallel for

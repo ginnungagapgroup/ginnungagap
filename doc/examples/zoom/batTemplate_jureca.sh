@@ -1,6 +1,6 @@
 # for JURECA using SLURM
 
-let coresPerNode=24
+let coresPerNode=16
 let memPerCore=108000/$coresPerNode
 let OMPtasks=2
 
