@@ -2,7 +2,7 @@
 
 shopt -s extglob
 
-version=19.03.2016
+version=11.05.2016
 
 ###########################################
 
@@ -587,12 +587,21 @@ doZoom=true
 if [ $minLevel -eq $maxLevel -a $minMesh -ne $startMesh ]; then
    doZoom=false
    if [ $startMesh -lt $minMesh ]; then
-      meshes="$startMesh $meshes"
+      mesh=$startMesh
+      meshes=$mesh
+      while [ $mesh -lt $minMesh ]; do
+         if [ $(( mesh*3 )) -eq $minMesh ]; then
+            let mesh=$mesh*3
+         else
+            let mesh=$mesh*2
+         fi
+         meshes="$meshes $mesh"
+      done
       i=-1
    else
       meshes="$meshes $startMesh"
    fi
-   seeds="$seeds $seeds"
+   #seeds="$seeds $seeds"
    seedArr=( ${seeds} )
    meshArr=( ${meshes} )
 fi
@@ -771,11 +780,39 @@ for m in ${meshes}; do
       refIni="" 
       rscIni=""
    elif [ $m -gt $startMesh ]; then
-      let actualMeshWN=actualMeshPrev*m/mprev
-      echo "$wn : $rscIni $rscBat $wnprev" >> Makefile
-      rule "$submitCommand" ./$rscBat      
-      rscCreator $rscIni
-      rscBatCreator $rscBat
+      if [ $(( m/mprev )) -eq 3 ]; then
+         let mint=$mprev*2
+         wnint=$wnPrefix$mint$wnSuffix
+         let actualMeshWN=actualMeshPrev*mint/mprev
+         echo "$wnint : scale_wn$mint.ini bat_scale_wn$mint $wnprev" >> Makefile
+         rule "$submitCommand" ./bat_scale_wn$mint
+         tmp1=$wnPure
+         wnPure=$wnPrefix$mint
+         rscCreator scale_wn$mint.ini
+         wnPure=$tmp1
+         tmp1=$rscIni
+         rscIni=scale_wn$mint.ini
+         rscBatCreator bat_scale_wn$mint
+         rscIni=$tmp1
+         
+         let actualMeshWN=actualMeshPrev*m/mprev
+         tmp1=$actualMeshPrev
+         let actualMeshPrev=$actualMeshPrev*2
+         tmp2=$wnprev
+         wnprev=$wnint
+         echo "$wn : $rscIni $rscBat $wnprev" >> Makefile
+         rule "$submitCommand" ./$rscBat      
+         rscCreator $rscIni
+         rscBatCreator $rscBat
+         actualMeshPrev=$tmp1
+         wnprev=$tmp2
+      else
+         let actualMeshWN=actualMeshPrev*m/mprev
+         echo "$wn : $rscIni $rscBat $wnprev" >> Makefile
+         rule "$submitCommand" ./$rscBat      
+         rscCreator $rscIni
+         rscBatCreator $rscBat
+      fi
    fi
    
    # choose how we make the velocity fields
