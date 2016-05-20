@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <math.h>
+#include <string.h>
 #ifdef WITH_OPENMP
 #  include <omp.h>
 #endif
@@ -36,6 +37,8 @@
 #include "../../src/libutil/rng.h"
 #include "../../src/libutil/tile.h"
 #include "../../src/libutil/utilMath.h"
+#include "../../src/libcosmo/cosmoPk.h"
+#include "../../src/libcosmo/cosmoModel.h"
 #ifdef WITH_FFT_FFTW3
 #  include <complex.h>
 #  include <fftw3.h>
@@ -249,6 +252,14 @@ local_CICToSV(fpv_t             *data,
 static void
 local_doFilter(gridRegularFFT_t fft, int cut_kind, uint32_t dim1D);
 
+static cosmoPk_t
+local_calcPk(gridRegularFFT_t gridFFT,
+                      uint32_t         dim1D,
+                      double           boxsizeInMpch);
+
+static void
+local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kMaxGrid);
+
 static void
 local_getGridStuff(gridRegularFFT_t  gridFFT,
                    uint32_t          dim1D,
@@ -419,6 +430,19 @@ refineGrid_run(refineGrid_t te)
 	gridWriter_deactivate(te->writer);
 	timing = timer_stop_text(timing, "took %.5fs\n");
 
+	if(te->setup->doPk) {
+		gridRegularFFT_t fft = gridRegularFFT_new(te->gridOut,distrib,0);
+		cosmoPk_t pk;
+		timing = timer_start_text("  Calculating P(k)...");
+		gridRegularFFT_execute(fft, GRIDREGULARFFT_FORWARD);
+		pk     = local_calcPk(fft,
+				                 te->setup->outputDim1D,
+				                               te->setup->boxsizeInMpch);
+				cosmoPk_dumpToFile(pk, "Pk_ref.dat", 1);
+				cosmoPk_del(&pk);
+		timing = timer_stop_text(timing, "took %.5fs\n");
+	}
+
 	gridStatistics_del(&stat);
 } /* refineGrid_run */
 
@@ -551,6 +575,104 @@ local_doFilter(gridRegularFFT_t fft, int cut_kind, uint32_t          dim1D)
 		}
 	}
 }
+
+static cosmoPk_t
+local_calcPk(gridRegularFFT_t gridFFT,
+                      uint32_t         dim1D,
+                      double           boxsizeInMpch)
+{
+	cosmoPk_t         pk;
+	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
+	fpvComplex_t      *data;
+	double            wavenumToFreq, *P, *freq, volume;
+	uint32_t          *numFreqHits;
+
+	assert(gridFFT != NULL);
+
+	double norm          = (gridRegularFFT_getNorm(gridFFT));
+
+	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch,
+	                   idxLo, kMaxGrid);
+	wavenumToFreq = 2. * M_PI * 1. / boxsizeInMpch;
+	volume        = boxsizeInMpch * boxsizeInMpch * boxsizeInMpch;
+	P             = xmalloc(sizeof(double) * kMaxGrid[0]);
+	freq          = xmalloc(sizeof(double) * kMaxGrid[0]);
+	numFreqHits   = xmalloc(sizeof(uint32_t) * kMaxGrid[0]);
+	for (int i = 0; i < kMaxGrid[0]; i++) {
+		P[i]           = 0.0;
+		freq[i]        = -1.0;
+		numFreqHits[i] = 0;
+	}
+
+	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
+		int64_t k2 = k + idxLo[2];
+		k2 = (k2 > kMaxGrid[2]) ? k2 - dimsGrid[2] : k2;
+		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
+			int64_t k1 = j + idxLo[1];
+			k1 = (k1 > kMaxGrid[1]) ? k1 - dimsGrid[1] : k1;
+			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
+				int64_t  k0 = i + idxLo[0];
+				uint64_t idx;
+				int      kCell;
+
+				k0    = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
+				idx   = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCell = (int)floor(sqrt((double)(k0 * k0 + k1 * k1
+				                                 + k2 * k2)));
+				data[idx] *= norm;
+
+				if ((kCell <= kMaxGrid[0]) && (kCell > 0)) {
+					P[kCell - 1]   += creal(data[idx]) * creal(data[idx])
+					                  + cimag(data[idx]) * cimag(data[idx]);
+					freq[kCell - 1] = kCell * wavenumToFreq;
+					numFreqHits[kCell - 1]++;
+				}
+			}
+		}
+	}
+#ifdef WITH_MPI
+	local_reducePk(P, freq, numFreqHits, kMaxGrid[0]);
+#endif
+	for (uint32_t i = 0; i < kMaxGrid[0]; i++)
+		P[i] *= (volume / numFreqHits[i]);
+
+	pk = cosmoPk_newFromArrays(kMaxGrid[0], freq, P,
+	                           (P[5] - P[0]) / (freq[5] - freq[0]),
+	                           (P[kMaxGrid[0] - 1] - P[kMaxGrid[0] - 6])
+	                           / (freq[kMaxGrid[0] - 1]
+	                              - freq[kMaxGrid[0] - 6]));
+
+	xfree(numFreqHits);
+	xfree(freq);
+	xfree(P);
+
+	return pk;
+} /* ginnungagapIC_calcPowerSpectrum */
+
+#ifdef WITH_MPI
+static void
+local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kMaxGrid)
+{
+	double   *tmp;
+	uint32_t *tmpInt;
+
+	tmp = xmalloc(sizeof(double) * kMaxGrid);
+	memcpy(tmp, pK, kMaxGrid * sizeof(double));
+	MPI_Allreduce(tmp, pK, (int)kMaxGrid, MPI_DOUBLE, MPI_SUM,
+	              MPI_COMM_WORLD);
+	memcpy(tmp, k, kMaxGrid * sizeof(double));
+	MPI_Allreduce(tmp, k, (int)kMaxGrid, MPI_DOUBLE, MPI_MAX,
+	              MPI_COMM_WORLD);
+	xfree(tmp);
+
+	tmpInt = xmalloc(sizeof(uint32_t) * kMaxGrid);
+	memcpy(tmpInt, nums, kMaxGrid * sizeof(uint32_t));
+	MPI_Allreduce(tmpInt, nums, (int)kMaxGrid, MPI_UNSIGNED,
+	              MPI_SUM, MPI_COMM_WORLD);
+	xfree(tmpInt);
+}
+
+#endif
 
 static void
 local_getLastDimLimitsInput(uint32_t inputDim1D,

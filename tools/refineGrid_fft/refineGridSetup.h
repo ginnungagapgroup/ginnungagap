@@ -38,6 +38,7 @@ struct refineGridSetup_struct {
 	char	 *varName;
 	bool	 addFields;
 	char     *reader2SecName;
+	bool	 doPk;
 };
 
 
