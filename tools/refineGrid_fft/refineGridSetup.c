@@ -52,6 +52,8 @@ refineGridSetup_newFromIni(parse_ini_t ini,
 	           ini, "varName", sectionName);
     getFromIni(&(setup->addFields), parse_ini_get_bool,
 	           ini, "addFields", sectionName);
+    getFromIni(&(setup->doPk), parse_ini_get_bool,
+    	           ini, "doPk", sectionName);
 	if(setup->addFields) {
 	      getFromIni(&(setup->reader2SecName), parse_ini_get_string,
 		           ini, "readerAddSecName", sectionName);           
