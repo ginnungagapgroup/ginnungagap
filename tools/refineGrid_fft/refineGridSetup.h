@@ -39,6 +39,7 @@ struct refineGridSetup_struct {
 	bool	 addFields;
 	char     *reader2SecName;
 	bool	 doPk;
+	char	 *PkFile;
 };
 
 
