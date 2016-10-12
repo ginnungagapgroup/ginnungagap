@@ -6,7 +6,24 @@ let OMPtasks=2
 
 maxNodes=0
 
-coresFromMem ()
+function pow2 {
+    local x=1
+    for (( y=$1 ; $y > 0; y=y-1 )) ; do
+        let x=$x*2
+    done
+    echo $x
+}
+# log2 for computing levels
+function log2l {
+    local x=0
+    local inval=$1
+    for (( y=$inval-1 ; $y > 0; y >>= 1 )) ; do
+        let x=$x+1
+    done
+    echo $x
+}
+
+coresFromMem1 ()
 {
 echo $1 | awk 'function ceil(valor)
    {
@@ -14,6 +31,15 @@ echo $1 | awk 'function ceil(valor)
    }
    {print ceil($1/'$memPerCore')}'
 }
+
+coresFromMem ()
+{
+nc=$(coresFromMem1 $1)
+ncl=$(log2l nc)
+(>&2 echo $nc $ncl $(pow2 $ncl))
+echo $(pow2 $ncl)
+}
+
 
 nodesFromCores ()
 {

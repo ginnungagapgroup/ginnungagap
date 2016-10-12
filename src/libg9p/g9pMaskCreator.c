@@ -257,7 +257,7 @@ local_fixTaintedLowLevelCells(gridPatch_t patch, const g9pMask_t mask)
 		curLevel++;
 	}
 
-	g9pHierarchy_del(&h);
+	//g9pHierarchy_del(&h);
 } /* local_fixTaintedLowLevelCells */
 
 static bool
