@@ -2,7 +2,7 @@
 
 shopt -s extglob
 
-version=06.02.2016
+version=25.10.2016
 
 ###########################################
 
@@ -18,9 +18,9 @@ if [ $wnprev == $wnStartFile ]; then
 fi
 template="
 [Setup]
-boxsizeInMpch = $Box
-inputDim1D = $mprev
-outputDim1D = $m
+boxsizeInMpch = $subbox
+inputDim1D = $actualMeshPrev
+outputDim1D = $actualMeshWN
 useFileForInput = true
 readerSecName = inputReader
 writerSecName = outputWriter
@@ -40,6 +40,13 @@ writerSection = writeHDF
 [writeHDF]
 doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
+doPatch = $doPatchWN
+patchSection = patchSubbox
+
+[patchSubbox]
+unit = cells
+patchLo = $patchLoWN
+patchDims = $patchDimsWN
 "
 iniwriter $1
 }
@@ -49,13 +56,14 @@ refineCreatorDowngrade ()
 {
 template="
 [Setup]
-boxsizeInMpch = $Box
+boxsizeInMpch = $subbox
 inputDim1D = $mnext
 outputDim1D = $m
 readerSecName = inputReader
 writerSecName = outputWriter
 varName = velx
 addFields = false
+doPk = false
 
 [inputReader]
 type = hdf5
@@ -74,19 +82,58 @@ chunkSize = $chunk $chunk $chunk
 iniwriter_multi $1
 }
 
+### .ini creator for refineGrid - cutting a patch from a field!
+refineCreatorCut ()
+{
+template="
+[Setup]
+boxsizeInMpch = $subbox
+inputDim1D = $actualMeshPrev
+outputDim1D = $actualMeshPrev
+readerSecName = inputReader
+writerSecName = outputWriter
+varName = velx
+addFields = false
+doPk = false
+
+[inputReader]
+type = hdf5
+prefix = $velprev
+
+[outputWriter]
+type = hdf5
+prefix = "$velPrefix$mprev''_cut_velx"
+overwriteFileIfExists = true
+writerSection = writeHDF
+
+[writeHDF]
+doChunking = $doChunking
+chunkSize = $chunk $chunk $chunk
+doPatch = true
+patchSection = Patch
+
+[Patch]
+unit = cells
+patchLo = $patchLoCut
+patchDims = $patchDimsCut
+"
+iniwriter_multi $1
+}
+
 ### .ini creator for refineGrid - add large scale and small scale fields
 refineCreatorAdd ()
 {
 template="
 [Setup]
-boxsizeInMpch = $Box
-inputDim1D = $startMesh
-outputDim1D = $m
+boxsizeInMpch = $subbox
+inputDim1D = $actualMeshPrevRefine
+outputDim1D = $actualMesh
 readerSecName = inputReader
 readerAddSecName = reader2
 writerSecName = outputWriter
 varName = velx
 addFields = true
+doPk = false
 
 [inputReader]
 type = hdf5
@@ -99,7 +146,7 @@ prefix = $velSmall
 readerSection = readSmall
 
 [outputWriter]
-type = hdf5
+type = $outFieldFormat
 prefix = $velPure
 overwriteFileIfExists = true
 writerSection = write
@@ -117,6 +164,7 @@ doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
 doPatch = $doPatchThis
 patchSection = PatchSmall
+$graficStuff
 
 [PatchLarge]
 unit = cells
@@ -152,9 +200,9 @@ fi
 template="
 [Ginnungagap]
 # this is different for each level:
-dim1D = $m
+dim1D = $actualMesh
 
-boxsizeInMpch = $Box
+boxsizeInMpch = $subbox
 zInit = $zInit
 gridName = testGrid
 normalisationMode = sigma8
@@ -167,7 +215,7 @@ cutoffScale = $cutoffScale
 type = hdf5
 path = ./
 # this is different for each level:
-prefix = $velPrefix$m
+prefix = $2
 
 overwriteFileIfExists = true
 writerSection = OutputHDF5
@@ -205,7 +253,7 @@ chunkSize = $chunk $chunk $chunk
 
 [rng]
 generator = 4
-numStreamsTotal = 16
+numStreamsTotal = 256
 randomSeed = ${seedArr[$i]}
 
 [MPI]
@@ -256,8 +304,8 @@ normalisationMode = sigma8
 
 [Patch]
 unit = cells
-patchLo = $patchLoThis
-patchDims = $patchDimsThis
+patchLo = $patchLoGen
+patchDims = $patchDimsGen
 
 [Cosmology]
 modelOmegaRad0 = $modelOmegaRad0
@@ -317,7 +365,7 @@ ngrid = $maskMesh $maskMesh $maskMesh
 velxSection = GenicsInput_velx
 velySection = GenicsInput_vely
 velzSection = GenicsInput_velz
-doPatch = $doPatchThis
+doPatch = $doPatchGen
 patchSection = Patch
 
 [GenicsInput_velx]
@@ -435,11 +483,15 @@ iniwriter_multi ()
    sed 's|velx|velz|' $1 > ${1/x/z}.tmp
    update ${1/x/y}
    update ${1/x/z}
+   if [ $doDelta == 'true' ]; then
+     sed 's|velx|delta|' $1 > ${1/x/d}.tmp
+     update ${1/x/d}
+   fi
 }
 
 compute_mem ()
 {
-   echo $1 | awk '{print int($1^3*4*2/1e6)}'
+   echo $1 | awk '{print int($1^3*4*2/1e6*2)}'
 }
 
 compute_patch ()
@@ -451,9 +503,11 @@ compute_patch ()
    END {dx=x2-x1+1; dy=y2-y1+1; dz=z2-z1+1
    if(dx>dy) d=dx; else d=dy
    if(d<dz) d=dz
-   ds=('$maxLevel'-'$maskLevel')
-   print "patchLo=\"",x1-ds,y1-ds,z1-ds,"\""
-   print "patchDims=\"",d+2*ds,d+2*ds,d+2*ds,"\""}' $maskFile
+   print "maskNCells=\"",NR,"\""
+   print "maskCenter1=\"",int(x1+d/2),"\""
+   print "maskCenter2=\"",int(y1+d/2),"\""
+   print "maskCenter3=\"",int(z1+d/2),"\""
+   print "maskSize=\"",d,"\""}' $maskFile
 }
 
 writeRecommendations ()
@@ -469,6 +523,9 @@ echo "Ginnungagap prepare_ini.sh script version $version"
 echo
 
 # set defaults
+grafic=false
+doDelta=false
+
 
 # read .ini into variables
 
@@ -478,10 +535,15 @@ IFS=$' '
 # make arrays just in case
 meshArr=( ${meshes} )
 seedArr=( ${seeds} )
+subArr=( ${subboxes} )
+actualMeshes=''
 
 # some standard choice
 velSuffix=.h5
 wnSuffix=.h5
+
+outFieldFormat=hdf5
+graficStuff=''
 
 echo "# Makefile for running GINNUNGAGAP
 # prepare_ini version $version" > Makefile
@@ -501,6 +563,10 @@ source $batTemplate
 
 velStart=$velPath$velPrefix$startMesh''_velx$velSuffix
 velLarge=$velPrefix$startMesh''_large_velx$velSuffix
+
+if [ $grafic == 'true' ]; then
+   doDelta=true
+fi
 
 minMesh=${meshArr[0]}
 maxMesh=${meshArr[${#meshArr[@]}-1]}
@@ -531,30 +597,68 @@ numFilesForLevel$j = ${gadgetNFiles[$j-$minLevel]}"
 done
 allFiles=""
 
-if [ $doPatch == 'true' ]; then
-   eval "$(compute_patch)"
-fi
-
 i=0
+subfactorPrev=1
+mprev=$minMesh
+subbox=$Box
 doZoom=true
 if [ $minLevel -eq $maxLevel -a $minMesh -ne $startMesh ]; then
    doZoom=false
    if [ $startMesh -lt $minMesh ]; then
-      meshes="$startMesh $meshes"
+      mesh=$startMesh
+      meshes=$mesh
+      while [ $mesh -lt $minMesh ]; do
+         if [ $(( mesh*3 )) -eq $minMesh ]; then
+            let mesh=$mesh*3
+         else
+            let mesh=$mesh*2
+         fi
+         meshes="$meshes $mesh"
+      done
       i=-1
    else
       meshes="$meshes $startMesh"
    fi
+   #seeds="$seeds $seeds"
+   seedArr=( ${seeds} )
+   meshArr=( ${meshes} )
 fi
 
-# tests of user input
-if [ $doZoom == 'false' -a $doPatch != 'false' ]; then
-   echo "ERROR: please, set doPatch = false for a non-zoom simulation"
-   exit
+if [ $doZoom == 'true' ]; then
+   eval "$(compute_patch)"
+   let patchCenter1=maskCenter1
+   let patchCenter2=maskCenter2
+   let patchCenter3=maskCenter3
 fi
+
+
+# tests of user input
 
 if [ $maskMesh -ne $minMesh ]; then
    echo "WARNING: maskMesh = $maskMesh != minimal mesh $minMesh. Please, double check if this is what you want."
+fi
+
+nmeshes=${#meshArr[@]}
+if [ ${#seedArr[@]} -lt $nmeshes ]; then
+   echo "ERROR: not enough seeds."
+   exit
+fi
+
+if [ $doZoom == True -a ${#gadgetTypes[@]} -lt $nmeshes ]; then
+   echo "ERROR: not enough gadgetTypes."
+   exit
+fi
+
+if [ $doZoom == True -a  ${#gadgetNFiles[@]} -lt $nmeshes ]; then
+   echo "ERROR: not enough gadgetNFiles."
+   exit
+fi
+
+if [ -n "$subboxes" ]; then
+   if [ ${#subArr[@]} -lt $nmeshes ]; then
+      echo "ERROR: not enough subboxes."
+      exit
+   fi
 fi
 
 # main loop
@@ -589,53 +693,105 @@ for m in ${meshes}; do
    fi
    
    # subbox
-   actualMesh=$m # in future will be calculated...
+   actualMesh=$m
+   actualMeshPrevRefine=$mprev
+   doPatchGen=false
+   patchLoGen="0 0 0"
+   patchDimsGen="0 0 0"
+   doPatchWN=false
+   patchLoWN="0 0 0"
+   patchDimsWN="0 0 0"
+   if [ -n "$subboxes" ]; then
+    subbox=${subArr[$i]}
+    subfactor=`echo $subbox $Box|awk '{print int($2/$1)}'`
+    sub2power=$(log2 subfactor)
+    subcheck=`echo $subfactor $sub2power|awk '{if($1==2^$2) print "true"; else print "false"}'`
+    if [ $subcheck != 'true' ]; then
+        echo "ERROR: box/subbox must be a power of 2."
+        exit
+    fi
+    let actualMesh=m/subfactor
+    let actualMeshPrevRefine=mprev/subfactor
+    let actualMaskSize=maskSize*m/maskMesh
+    if [ $actualMaskSize -gt $actualMesh ]; then
+        echo "ERROR: mask size > subbox for mesh $m"
+        exit
+    fi
+    if [ $m -gt $maskMesh ]; then
+        let patchCenter1=patchCenter1*m/mprev
+        let patchCenter2=patchCenter2*m/mprev
+        let patchCenter3=patchCenter3*m/mprev
+    fi
+    if [ $subfactor -gt $subfactorPrev ]; then
+        if [ $m -lt $maskMesh ]; then
+            echo "ERROR: cutting subbox at mesh $m < maskMesh is not allowed."
+            exit
+        fi
+        doPatchWN='true'
+        patchDimsWN="$actualMesh $actualMesh $actualMesh"
+        let patchLo1=patchCenter1-actualMesh/2
+        let patchLo2=patchCenter2-actualMesh/2
+        let patchLo3=patchCenter3-actualMesh/2
+        patchLoWN="$patchLo1 $patchLo2 $patchLo3"
+        doPatchLarge='true'
+        patchDimsCut="$actualMeshPrevRefine $actualMeshPrevRefine $actualMeshPrevRefine"
+        let patchLo1=patchCenter1*mprev/m-actualMeshPrevRefine/2
+        let patchLo2=patchCenter2*mprev/m-actualMeshPrevRefine/2
+        let patchLo3=patchCenter3*mprev/m-actualMeshPrevRefine/2
+        patchLoCut="$patchLo1 $patchLo2 $patchLo3"
+        velCut=$velPrefix$mprev''_cut_velx$velSuffix
+        refCutBat=bat_ref_cut_$mprev
+        refCutIni=ref_x_cut_$mprev.ini
+        echo "$velCut : $velPrefix$mprev""_velx$velSuffix $refCutIni $refCutBat" >> Makefile
+        rule "$submitCommand" ./$refCutBat
+        refineCreatorCut $refCutIni
+        tmpm=$m
+        m=cut_$mprev
+        refBatCreator $refCutBat
+        m=$tmpm
+        velLarge=$velCut
+        let patchCenter1=patchCenter1-patchLo1
+        let patchCenter2=patchCenter2-patchLo2
+        let patchCenter3=patchCenter3-patchLo3
+    else
+        doPatchWN='false'
+        patchDimsWN="0 0 0"
+        patchLoWN="0 0 0"
+    fi
+    if [ $subfactor -gt 1 ]; then
+        doPatchGen='true'
+        patchDimsGen="$actualMesh $actualMesh $actualMesh"
+        let patchLo1=maskCenter1*m/maskMesh-actualMesh/2
+        let patchLo2=maskCenter2*m/maskMesh-actualMesh/2
+        let patchLo3=maskCenter3*m/maskMesh-actualMesh/2
+        patchLoGen="$patchLo1 $patchLo2 $patchLo3"
+    else
+        doPatchGen='false'
+        patchDimsGen="0 0 0"
+        patchLoGen="0 0 0"
+    fi
+    subfactorPrev=$subfactor
+   fi
    
    mem=$(compute_mem $actualMesh)
+   if [ $m -lt $startMesh ]; then
+        mnext=${meshArr[$i+1]}
+        mem=$(compute_mem $mnext)
+   fi
    if [ $mem -gt $maxMem ]; then
    	maxMem=$mem
    fi
    
-   # do we write only a patch?
-   if [ $doPatch == 'true' ]; then
-      if [ $m -ge $patchStartMesh ]; then
-         doPatchThis='true'
-      else
-         doPatchThis='false'
-      fi
-      patchLoThis=''
-      patchDimsThis=''
-      
-      if [ $m -ge $patchStartMesh ]; then
-      for p in $patchLo; do
-         pThis=`echo $p | awk '{print int($1*'$m'/'$maskMesh')}'`
-         patchLoThis="$patchLoThis $pThis"
-      done
-      for p in $patchDims; do
-         pThis=`echo $p | awk '{print int($1*'$m'/'$maskMesh')}'`
-         patchDimsThis="$patchDimsThis $pThis"
-      done
-      # starting mesh will be used for the large scale part of the velocity fields
-      if [ $m -eq $startMesh ]; then
-         doPatchLarge=$doPatchThis
-         patchLoLarge=$patchLoThis
-         patchDimsLarge=$patchDimsThis
-      fi
-      else
-      patchLoThis="0 0 0"
-      patchDimsThis="0 0 0"
-      patchLoLarge="0 0 0"
-      patchDimsLarge="0 0 0"
-      doPatchLarge=false
-      fi
-   else
-      patchLoThis="0 0 0"
-      patchDimsThis="0 0 0"
-      patchLoLarge="0 0 0"
-      patchDimsLarge="0 0 0"
-      doPatchLarge=false
-      doPatchThis=false
-   fi
+   actualMeshes="$actualMeshes $actualMesh"
+   
+
+       patchLoThis="0 0 0"
+       patchDimsThis="0 0 0"
+       patchLoLarge="0 0 0"
+       patchDimsLarge="0 0 0"
+       doPatchLarge=false
+       doPatchThis=false
+
    
    
 
@@ -646,15 +802,44 @@ for m in ${meshes}; do
       refIni="" 
       rscIni=""
    elif [ $m -gt $startMesh ]; then
-      echo "$wn : $rscIni $rscBat $wnprev" >> Makefile
-      rule "$submitCommand" ./$rscBat      
-      rscCreator $rscIni
-      rscBatCreator $rscBat
+      if [ $(( m/mprev )) -eq 3 ]; then
+         let mint=$mprev*2
+         wnint=$wnPrefix$mint$wnSuffix
+         let actualMeshWN=actualMeshPrev*mint/mprev
+         echo "$wnint : scale_wn$mint.ini bat_scale_wn$mint $wnprev" >> Makefile
+         rule "$submitCommand" ./bat_scale_wn$mint
+         tmp1=$wnPure
+         wnPure=$wnPrefix$mint
+         rscCreator scale_wn$mint.ini
+         wnPure=$tmp1
+         tmp1=$rscIni
+         rscIni=scale_wn$mint.ini
+         rscBatCreator bat_scale_wn$mint
+         rscIni=$tmp1
+         
+         let actualMeshWN=actualMeshPrev*m/mprev
+         tmp1=$actualMeshPrev
+         let actualMeshPrev=$actualMeshPrev*2
+         tmp2=$wnprev
+         wnprev=$wnint
+         echo "$wn : $rscIni $rscBat $wnprev" >> Makefile
+         rule "$submitCommand" ./$rscBat      
+         rscCreator $rscIni
+         rscBatCreator $rscBat
+         actualMeshPrev=$tmp1
+         wnprev=$tmp2
+      else
+         let actualMeshWN=actualMeshPrev*m/mprev
+         echo "$wn : $rscIni $rscBat $wnprev" >> Makefile
+         rule "$submitCommand" ./$rscBat      
+         rscCreator $rscIni
+         rscBatCreator $rscBat
+      fi
    fi
    
    # choose how we make the velocity fields
    
-   cutoffScale=`echo $startMesh | awk '{print '$Box'/$1*2}'`
+   cutoffScale=`echo $startMesh | awk '{print '$Box'/$1*1.1/3.14}'`
    
    if [ $m -eq $startMesh ]; then
      
@@ -663,17 +848,17 @@ for m in ${meshes}; do
         dumpWhiteNoise='true'
         useFileForWn='false'
      else
-        echo "$vel $velLarge : $wn $ggpIni $ggpBat" >> Makefile
+        echo "$vel : $wn $ggpIni $ggpBat" >> Makefile
         dumpWhiteNoise='false'
         useFileForWn='true'
      fi
      
      rule "$submitCommand" ./$ggpBat
      
-     doLargeScale='true'
+     doLargeScale='false'
      doSmallScale='false'
      
-     ggpCreator $ggpIni
+     ggpCreator $ggpIni $velPrefix$m
      ggpBatCreator $ggpBat
      
    elif [ $m -gt $startMesh ]; then
@@ -683,15 +868,31 @@ for m in ${meshes}; do
      
      echo "$vel : $velSmall $velLarge $refIni $refBat" >> Makefile
      rule "$submitCommand" ./$refBat
+
+     if [ $m -eq $maxMesh -a $grafic == 'true' ]; then
+        outFieldFormat=grafic
+        dx=`echo $Box $m $modelHubble | awk '{print 1.*$1/$2/$3}'`
+        hubble=`echo $modelHubble | awk '{print $1*100.}'`
+        ainit=`echo $zInit | awk '{print 1./($1+1.)}'`
+        graficStuff="isWhiteNoise = false
+size = $m, $m, $m
+dx = $dx
+astart = $ainit
+omegam = $modelOmegaMatter0
+omegav = $modelOmegaLambda0
+h0 = $hubble
+"
+     fi
      
      refineCreatorAdd $refIni
      refBatCreator $refBat
      
      doLargeScale='false'
-     doSmallScale='true'
+     doSmallScale='false'
      dumpWhiteNoise='false'
      useFileForWn='true'
-     ggpCreator $ggpIni
+     
+     ggpCreator $ggpIni $velPrefix$m''_small
      ggpBatCreator $ggpBat
      
    else
@@ -699,7 +900,7 @@ for m in ${meshes}; do
      mnext=${meshArr[$i+1]}
      velnext=$velPrefix$mnext''_velx$velSuffix
      
-     echo "$vel : $velStart $refIni" >> Makefile
+     echo "$vel : $velnext $refIni" >> Makefile
      rule "$submitCommand" ./$refBat
      
      refineCreatorDowngrade $refIni
@@ -726,7 +927,9 @@ for m in ${meshes}; do
       gadgetFile=$gadgetPrefix.${gadgetNum[$i]}
    fi
    
-   boxShift="0.0 0.0 0.0"
+   if [ -z "$boxShift" ]; then
+      boxShift="0.0 0.0 0.0"
+   fi
    #if [ $m -lt $startMesh ]; then
    #   bshift=`echo $m | awk '{print (0.5-'$startMesh'/$1/2)*'$Box'/'$startMesh'}'`
    #   boxShift="$bshift $bshift $bshift"
@@ -744,7 +947,9 @@ for m in ${meshes}; do
    
    wnprev=$wn
    velprev=$vel
+   velLarge=$vel
    mprev=$m
+   actualMeshPrev=$actualMesh
    
    i=$((i + 1))
    
@@ -777,10 +982,15 @@ echo "You can now generate initial conditions by typing 'make gadget'."
 echo "Before doing this, please check again the following parameters: "
 echo
 echo "meshes = $meshes"
+echo "actual meshes = $actualMeshes"
 echo "seeds = $seeds"
 echo "zoom simulation = $doZoom"
 if [ $doZoom == 'true' ]; then
-   echo "  mask at resolution = $maskMesh"
+   echo "  mask at mesh $maskMesh"
+   echo "  mask max extension 1D: $maskSize cells"
+   echo "  mask center: $maskCenter1 $maskCenter2 $maskCenter3"
+   let nhigh=maskNCells*(maxMesh/maskMesh)*(maxMesh/maskMesh)*(maxMesh/maskMesh)
+   echo "  high resolution particles: $nhigh"
 fi
 echo "gadget file types = ${gadgetTypes[@]}"
 echo "number of output files = ${gadgetNFiles[@]}"
