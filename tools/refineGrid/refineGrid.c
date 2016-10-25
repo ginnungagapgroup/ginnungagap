@@ -438,7 +438,7 @@ refineGrid_run(refineGrid_t te)
 		pk     = local_calcPk(fft,
 				                 te->setup->outputDim1D,
 				                               te->setup->boxsizeInMpch);
-				cosmoPk_dumpToFile(pk, "Pk_ref.dat", 1);
+				cosmoPk_dumpToFile(pk, te->setup->PkFile, 1);
 				cosmoPk_del(&pk);
 		timing = timer_stop_text(timing, "took %.5fs\n");
 	}

@@ -13,7 +13,7 @@ sources = main.c \
           realSpaceConstraintsSetup.c
 
 ifeq ($(WITH_MPI), "true")
-CC=$(MPICC)
+CC=$(MPICC) -g
 endif
 
 include ../../Makefile.rules
