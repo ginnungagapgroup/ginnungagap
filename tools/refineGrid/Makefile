@@ -40,11 +40,13 @@ install: $(progName)
 $(progName): $(sources:.c=.o) \
                      ../../src/libgrid/libgrid.a \
                      ../../src/libdata/libdata.a \
+                     ../../src/libcosmo/libcosmo.a \
 	                 ../../src/libutil/libutil.a
 	$(CC) $(LDFLAGS) $(CFLAGS) \
 	  -o $(progName) $(sources:.c=.o) \
 	                 ../../src/libgrid/libgrid.a \
 	                 ../../src/libdata/libdata.a \
+	                 ../../src/libcosmo/libcosmo.a \
 	                 ../../src/libutil/libutil.a \
 	                 $(LIBS)
 

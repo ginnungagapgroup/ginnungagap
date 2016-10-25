@@ -52,6 +52,14 @@ refineGridSetup_newFromIni(parse_ini_t ini,
 	           ini, "varName", sectionName);
     getFromIni(&(setup->addFields), parse_ini_get_bool,
 	           ini, "addFields", sectionName);
+    if (!parse_ini_get_bool(ini, "doPk", sectionName, &(setup->doPk))) {              \
+    		setup->doPk = false;                                    \
+    	}
+    if(setup->doPk) {
+    	if (!parse_ini_get_string(ini, "PkFile", sectionName, &(setup->PkFile))) {              \
+    			setup->PkFile = "Pk_ref.dat";                                    \
+    		}
+    }
 	if(setup->addFields) {
 	      getFromIni(&(setup->reader2SecName), parse_ini_get_string,
 		           ini, "readerAddSecName", sectionName);           

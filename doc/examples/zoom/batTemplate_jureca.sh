@@ -68,6 +68,11 @@ srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_
 srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_z_$m.ini
 srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_y_$m.ini
 "
+if [ $doDelta == 'true' ]; then
+    template="$template
+srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_d_$m.ini
+"
+fi
 batwriter $1
 getMax
 }

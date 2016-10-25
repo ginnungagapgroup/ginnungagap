@@ -2,7 +2,7 @@
 
 shopt -s extglob
 
-version=11.05.2016
+version=25.10.2016
 
 ###########################################
 
@@ -63,6 +63,7 @@ readerSecName = inputReader
 writerSecName = outputWriter
 varName = velx
 addFields = false
+doPk = false
 
 [inputReader]
 type = hdf5
@@ -93,6 +94,7 @@ readerSecName = inputReader
 writerSecName = outputWriter
 varName = velx
 addFields = false
+doPk = false
 
 [inputReader]
 type = hdf5
@@ -131,6 +133,7 @@ readerAddSecName = reader2
 writerSecName = outputWriter
 varName = velx
 addFields = true
+doPk = false
 
 [inputReader]
 type = hdf5
@@ -143,7 +146,7 @@ prefix = $velSmall
 readerSection = readSmall
 
 [outputWriter]
-type = hdf5
+type = $outFieldFormat
 prefix = $velPure
 overwriteFileIfExists = true
 writerSection = write
@@ -161,6 +164,7 @@ doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
 doPatch = $doPatchThis
 patchSection = PatchSmall
+$graficStuff
 
 [PatchLarge]
 unit = cells
@@ -479,6 +483,10 @@ iniwriter_multi ()
    sed 's|velx|velz|' $1 > ${1/x/z}.tmp
    update ${1/x/y}
    update ${1/x/z}
+   if [ $doDelta == 'true' ]; then
+     sed 's|velx|delta|' $1 > ${1/x/d}.tmp
+     update ${1/x/d}
+   fi
 }
 
 compute_mem ()
@@ -515,6 +523,9 @@ echo "Ginnungagap prepare_ini.sh script version $version"
 echo
 
 # set defaults
+grafic=false
+doDelta=false
+
 
 # read .ini into variables
 
@@ -530,6 +541,9 @@ actualMeshes=''
 # some standard choice
 velSuffix=.h5
 wnSuffix=.h5
+
+outFieldFormat=hdf5
+graficStuff=''
 
 echo "# Makefile for running GINNUNGAGAP
 # prepare_ini version $version" > Makefile
@@ -549,6 +563,10 @@ source $batTemplate
 
 velStart=$velPath$velPrefix$startMesh''_velx$velSuffix
 velLarge=$velPrefix$startMesh''_large_velx$velSuffix
+
+if [ $grafic == 'true' ]; then
+   doDelta=true
+fi
 
 minMesh=${meshArr[0]}
 maxMesh=${meshArr[${#meshArr[@]}-1]}
@@ -756,6 +774,10 @@ for m in ${meshes}; do
    fi
    
    mem=$(compute_mem $actualMesh)
+   if [ $m -lt $startMesh ]; then
+        mnext=${meshArr[$i+1]}
+        mem=$(compute_mem $mnext)
+   fi
    if [ $mem -gt $maxMem ]; then
    	maxMem=$mem
    fi
@@ -846,6 +868,21 @@ for m in ${meshes}; do
      
      echo "$vel : $velSmall $velLarge $refIni $refBat" >> Makefile
      rule "$submitCommand" ./$refBat
+
+     if [ $m -eq $maxMesh -a $grafic == 'true' ]; then
+        outFieldFormat=grafic
+        dx=`echo $Box $m $modelHubble | awk '{print 1.*$1/$2/$3}'`
+        hubble=`echo $modelHubble | awk '{print $1*100.}'`
+        ainit=`echo $zInit | awk '{print 1./($1+1.)}'`
+        graficStuff="isWhiteNoise = false
+size = $m, $m, $m
+dx = $dx
+astart = $ainit
+omegam = $modelOmegaMatter0
+omegav = $modelOmegaLambda0
+h0 = $hubble
+"
+     fi
      
      refineCreatorAdd $refIni
      refBatCreator $refBat
