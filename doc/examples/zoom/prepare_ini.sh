@@ -2,7 +2,7 @@
 
 shopt -s extglob
 
-version=25.10.2016
+version=07.11.2016
 
 ###########################################
 
@@ -806,7 +806,7 @@ for m in ${meshes}; do
          let mint=$mprev*2
          wnint=$wnPrefix$mint$wnSuffix
          let actualMeshWN=actualMeshPrev*mint/mprev
-         echo "$wnint : scale_wn$mint.ini bat_scale_wn$mint $wnprev" >> Makefile
+         echo "$wnint : scale_wn$mint.ini $wnprev" >> Makefile
          rule "$submitCommand" ./bat_scale_wn$mint
          tmp1=$wnPure
          wnPure=$wnPrefix$mint
@@ -822,7 +822,7 @@ for m in ${meshes}; do
          let actualMeshPrev=$actualMeshPrev*2
          tmp2=$wnprev
          wnprev=$wnint
-         echo "$wn : $rscIni $rscBat $wnprev" >> Makefile
+         echo "$wn : $rscIni $wnprev" >> Makefile
          rule "$submitCommand" ./$rscBat      
          rscCreator $rscIni
          rscBatCreator $rscBat
@@ -830,7 +830,7 @@ for m in ${meshes}; do
          wnprev=$tmp2
       else
          let actualMeshWN=actualMeshPrev*m/mprev
-         echo "$wn : $rscIni $rscBat $wnprev" >> Makefile
+         echo "$wn : $rscIni $wnprev" >> Makefile
          rule "$submitCommand" ./$rscBat      
          rscCreator $rscIni
          rscBatCreator $rscBat
@@ -844,11 +844,11 @@ for m in ${meshes}; do
    if [ $m -eq $startMesh ]; then
      
      if [ $wnStartFile == none -o -z "$wnStartFile" ]; then
-        echo "$vel $velLarge $wn : $ggpIni $ggpBat" >> Makefile
+        echo "$vel $velLarge $wn : $ggpIni" >> Makefile
         dumpWhiteNoise='true'
         useFileForWn='false'
      else
-        echo "$vel : $wn $ggpIni $ggpBat" >> Makefile
+        echo "$vel : $wn $ggpIni" >> Makefile
         dumpWhiteNoise='false'
         useFileForWn='true'
      fi
@@ -863,10 +863,10 @@ for m in ${meshes}; do
      
    elif [ $m -gt $startMesh ]; then
    
-     echo "$velSmall : $wn $ggpIni $ggpBat" >> Makefile
+     echo "$velSmall : $wn $ggpIni" >> Makefile
      rule "$submitCommand" ./$ggpBat
      
-     echo "$vel : $velSmall $velLarge $refIni $refBat" >> Makefile
+     echo "$vel : $velSmall $velLarge $refIni" >> Makefile
      rule "$submitCommand" ./$refBat
 
      if [ $m -eq $maxMesh -a $grafic == 'true' ]; then
@@ -938,7 +938,7 @@ h0 = $hubble
    if [ $doZoom == true -o $m -eq $minMesh ]; then
     allFiles="$allFiles $gadgetFile"
     
-    echo "$gadgetFile : $vel $genIni $genBat" >> Makefile
+    echo "$gadgetFile : $vel $genIni" >> Makefile
     rule "$submitCommand" ./$genBat
     
     genicsCreator $genIni
@@ -971,6 +971,8 @@ clean-gadget :
 	rm -rf $gadgetPrefix*
 
 clean : clean-vel clean-wn clean-gadget
+
+
 " >> Makefile
 
 # write recommendations
