@@ -1,9 +1,9 @@
-# for SUPERMUC using LOADLEVELER
+# for JURECA using SLURM
 
 variant=hw
 
 if [ $variant == 'hw' ]; then
-  let coresPerNode=28
+  let coresPerNode=16
   let memPerCore=58000/$coresPerNode
   let OMPtasks=2
   LIBS=/gpfs/work/pr87yi/di29xaz/lib_hw
@@ -30,13 +30,38 @@ firstRule="$firstRule
 	@rm -rf *.seq
 	@echo To submit all the tasks, run llsubmit 1.seq"
 
-coresFromMem ()
+function pow2 {
+    local x=1
+    for (( y=$1 ; $y > 0; y=y-1 )) ; do
+        let x=$x*2
+    done
+    echo $x
+}
+# log2 for computing levels
+function log2l {
+    local x=0
+    local inval=$1
+    for (( y=$inval-1 ; $y > 0; y >>= 1 )) ; do
+        let x=$x+1
+    done
+    echo $x
+}
+
+coresFromMem1 ()
 {
 echo $1 | awk 'function ceil(valor)
    {
       return (valor == int(valor)) ? valor : int(valor)+1
    }
    {print ceil($1/'$memPerCore')}'
+}
+
+coresFromMem ()
+{
+nc=$(coresFromMem1 $1)
+ncl=$(log2l nc)
+(>&2 echo $nc $ncl $(pow2 $ncl))
+echo $(pow2 $ncl)
 }
 
 nodesFromCores ()
