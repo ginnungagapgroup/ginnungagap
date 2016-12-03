@@ -275,7 +275,7 @@ isSubVolumeCorrect(const int8_t *d,
 		for (uint32_t y = 0; y < dimSub; y++) {
 			for (uint32_t x = 0; x < dimSub; x++) {
 				uint64_t idx = x + (y + z * dim) * dim;
-				if (d[idx] != expected)
+				if (d[idx] > expected)
 					return false;
 			}
 		}
