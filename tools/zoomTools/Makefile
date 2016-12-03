@@ -1,2 +1,2 @@
 all:
-	gfortran LareWrite.f90 -o LareWrite
+	gfortran larewrite.f90 -o larewrite
