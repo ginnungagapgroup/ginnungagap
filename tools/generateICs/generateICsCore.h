@@ -32,6 +32,7 @@ struct generateICsCore_struct {
 	void                    *id;
 	const generateICsData_t data;
 	const generateICsMode_t mode;
+	uint64_t				startID;
 	uint32_t				maskDim1D;
 	uint32_t				partDim1D;
 	int8_t					level;
@@ -55,6 +56,7 @@ typedef struct generateICsCore_struct *const generateICsCore_const_t;
 		.mode  = (m),                \
 		.level = 0,					 \
 		.maskdata =	NULL,			 \
+		.startID = 0,				 \
 		.maskDim1D = 0,				 \
 		.partDim1D = 0,				 \
 		.maxDims = 0,				 \

@@ -28,14 +28,16 @@
 
 /*--- Implementations of exported functions -----------------------------*/
 extern generateICsMode_t
-generateICsMode_new(const bool doGas, const bool useLongIDs, const bool autoCenter, const bool kpc)
+generateICsMode_new(const bool doGas, const bool useLongIDs, const bool autoCenter, const bool kpc,
+                    const bool sequentialIDs)
 {
 	generateICsMode_t             mode;
 	struct generateICsMode_struct tmp = {
 		.doGas      = doGas,
 		.useLongIDs = useLongIDs,
 		.autoCenter = autoCenter,
-		.kpc = kpc
+		.kpc = kpc,
+		.sequentialIDs = sequentialIDs
 	};
 
 	mode = xmalloc( sizeof(struct generateICsMode_struct) );

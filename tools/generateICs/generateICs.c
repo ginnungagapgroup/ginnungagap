@@ -76,6 +76,9 @@ static void
 local_setupCore(generateICsCore_t   core,
                 const generateICs_t genics);
 
+static uint64_t
+local_computeNumPartsLevel(const generateICs_t genics, 
+														int8_t level);
 
 /**
  * @brief  Helper function for generateICs_run().
@@ -91,7 +94,7 @@ local_setupCore(generateICsCore_t   core,
  * @return  Returns nothing.
  */
 static void
-local_doFile(generateICs_t genics, const g9pICMap_t map, int file);
+local_doFile(generateICs_t genics, const g9pICMap_t map, int file, uint64_t *startID);
 
 static void
 local_writeGadgetFile(generateICs_t     genics,
@@ -166,6 +169,7 @@ generateICs_run(generateICs_t genics)
 	uint32_t minlev = g9pMask_getMinLevel(genics->mask);
 	uint32_t maxlev = g9pMask_getMaxLevel(genics->mask);
 	uint32_t numFiles = genics->out->numFilesForLevel[genics->zoomlevel-minlev];
+	uint64_t startID = 0;
 
 	g9pICMap_t map = g9pICMap_new( numFiles, 0, NULL,
 	                               g9pMask_getRef(genics->mask),
@@ -178,7 +182,16 @@ generateICs_run(generateICs_t genics)
 	gridPointUint32_t fullDims = {tmp, tmp, tmp};
 	generateICsOut_initBaseHeader(genics->out, genics->data, fullDims,
 	                              genics->mode);
-
+	                            
+	                              
+	if (genics->rank != 0 && genics->mode->sequentialIDs) {
+		fprintf(stderr, "Sorry, sequentialIDs are supported only for single CPU runs.\n");
+		diediedie(EXIT_FAILURE);
+	}
+	for (uint8_t lev=minlev; lev < genics->zoomlevel;lev++) {
+		startID += local_computeNumPartsLevel(genics,lev);
+	}
+	
         uint32_t N1, N2, Nperproc;
         uint32_t  NDO=0;
         uint32_t foffset=0;
@@ -219,7 +232,7 @@ generateICs_run(generateICs_t genics)
 		printf(" * Working on file %i\n", i+foffset);
 		double timing = timer_start();
 		
-		local_doFile(genics, map, i);
+		local_doFile(genics, map, i, &startID);
 		
 		timing = timer_stop(timing);
 		printf("      File processed in in %.2fs\n", timing);
@@ -340,7 +353,7 @@ local_getParticleStorage(const generateICs_t genics,
 } // local_getParticleStorage
 
 static void
-local_doFile(generateICs_t genics, g9pICMap_t map, int file)
+local_doFile(generateICs_t genics, g9pICMap_t map, int file, uint64_t *startID)
 {
 	uint32_t    firstTile = g9pICMap_getFirstTileInFile(map, file);
 	uint32_t    lastTile  = g9pICMap_getLastTileInFile(map, file);
@@ -369,6 +382,7 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 		core.maskdata	  = g9pMask_getTileData(genics->mask,i);
 		core.maskDim1D	  = g9pMask_getDim1D(genics->mask);
 		core.partDim1D	  = g9pMask_getDim1DLevel(genics->mask,genics->zoomlevel);
+		core.startID	  = *startID;
 		(void)gridPatch_attachVar(core.patch, genics->in->varVelx);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVely);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVelz);
@@ -384,6 +398,9 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file)
 		//printf(" %i \n", velx1P);
 		
 		generateICsCore_toParticles(&core);
+		
+		*startID = core.startID;
+		printf("StartID: %i\n",*startID);
 
 		//fpv_t             *velx2P = gridPatch_getVarDataHandle(core.patch, 0);
 		//printf(" %i \n\n", velx2P);

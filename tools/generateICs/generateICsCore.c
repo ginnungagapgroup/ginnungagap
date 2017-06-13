@@ -86,8 +86,12 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 						                                              maxDims3);
 						//printf("%lu\n",( (uint64_t *)(d->id))[i]);
 					} else {
-						( (uint32_t *)(d->id) )[i] = lIdx_fromCoord3d(pm,
+						if (d->mode->sequentialIDs) {
+							( (uint32_t *)(d->id) )[i] = d->startID + i;
+						} else {
+							( (uint32_t *)(d->id) )[i] = lIdx_fromCoord3d(pm,
 						                                              maxDims3);
+						}
 					}
 					i++;
 				}
@@ -95,6 +99,7 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 			}
 		}
 	}
+	d->startID += i;
 	//printf(" %i/%i ",i,idxM);
 } // generateICsCore_vel2pos
 
