@@ -140,6 +140,7 @@ gridReaderHDF5_init(gridReaderHDF5_t reader)
 {
 	reader->file = H5I_INVALID_HID;
 	gridReaderHDF5_setDoPatch((gridReader_t)reader,false);
+	gridReaderHDF5_setDims((gridReader_t)reader, 100000000);
 }
 
 extern void
@@ -263,6 +264,59 @@ local_readIntoPatchForVar_old(gridReader_t reader,
 }
 
 
+
+#define read() \
+{ \
+	doRead=true; \
+	for(int k=0; k<NDIM; k++) { \
+		if(reader->doPatch) { \
+			idxLoRead[k]=MAX(idxLoW[k], idxLoPatch[k]); \
+			idxLoReadRtw[k]=idxLoRead[k]-reader->rtwLo[k]; \
+			idxLoReadRtw[k] = idxLoReadRtw[k]<0 ? idxLoReadRtw[k]+period[k] : idxLoReadRtw[k]; \
+			idxLoReadRtw[k] = idxLoReadRtw[k]>=period[k] ? idxLoReadRtw[k]-period[k] : idxLoReadRtw[k]; \
+			idxHiRead[k]=MIN(idxLoPatch[k]+dimsPatch[k]-1, idxHiW[k]); \
+			if(idxHiRead[k]<idxLoRead[k]) doRead=false; \
+		} else { \
+			idxLoRead[k]=idxLoPatch[k]; \
+			idxLoReadRtw[k]=idxLoPatch[k]; \
+			idxHiRead[k]=idxLoRead[k]+dimsPatch[k]-1; \
+		} \
+		dimsRead[k]=idxHiRead[k]-idxLoRead[k]+1; \
+	} \
+	if (doRead) { \
+		if(!doRead) { \
+			for(int k=0; k<NDIM; k++) { \
+				dimsRead[k]=0; \
+				idxHiRead[k]=idxLoRead[k]+dimsRead[k]-1; \
+			} \
+		} \
+		dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file, \
+								 dataVar_getName(var), H5P_DEFAULT); \
+		dataTypeFile   = H5Dget_type(dataSet); \
+		dataSpaceFile  = H5Dget_space(dataSet); \
+		dataTypePatch  = dataVar_getHDF5Datatype(var); \
+		dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsRead); \
+		gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLoReadRtw, dimsRead); \
+		if (H5Tequal(dataTypeFile, dataTypePatch)) { \
+			H5Dread(dataSet, dataTypeFile, dataSpacePatch, \
+					dataSpaceFile, H5P_DEFAULT, data); \
+		} else { \
+			fprintf(stderr, "ERROR: Datatype in memory differs from file.\n"); \
+			diediedie(EXIT_FAILURE); \
+		} \
+		H5Sclose(dataSpacePatch); \
+		H5Tclose(dataTypePatch); \
+		H5Sclose(dataSpaceFile); \
+		H5Tclose(dataTypeFile); \
+		H5Dclose(dataSet); \
+		gridPatch_allocateVarData(patch,idxOfVar); \
+		gridPatch_putWindowedData(patch, idxOfVar, idxLoRead, idxHiRead, data); \
+	} \
+}
+	
+	
+	
+
 static void
 local_readIntoPatchForVar_doPatch(gridReader_t reader,
                                    gridPatch_t  patch,
@@ -277,6 +331,8 @@ local_readIntoPatchForVar_doPatch(gridReader_t reader,
 	hid_t             dataSpaceFile, dataTypeFile;
 	hid_t             dataSpacePatch, dataTypePatch;
 	gridPointUint32_t idxLoPatch, dimsPatch, idxLoRead, dimsRead, idxHiRead, idxLoReadRtw;
+	gridPointUint32_t period, rtwHi;
+	int32_t 		  idxLo1[3], idxLo2[3], idxHi1[3], idxHi2[3], idxLoW[2], idxHiW[3];
 	dataVar_t         var   = gridPatch_getVarHandle(patch, idxOfVar);
 	void             *data;
 	bool              doRead;
@@ -285,60 +341,91 @@ local_readIntoPatchForVar_doPatch(gridReader_t reader,
 	numCellsToAllocate = gridPatch_getNumCellsActual(patch,
 	                                                 idxOfVar);
 	data               = dataVar_getMemory(var, numCellsToAllocate);
-
-
+	
+	for(int k=0; k<NDIM; k++) {
+		period[k] = reader->gridDims[k];
+		rtwHi[k] = reader->rtwLo[k] + reader->rtwDims[k]-1;
+	}
+	
 	gridPatch_getIdxLo(patch, idxLoPatch);
 	gridPatch_getDims(patch, dimsPatch);
 	
-	doRead=true;
 	for(int k=0; k<NDIM; k++) {
-		if(reader->doPatch) {
-			idxLoRead[k]=MAX(reader->rtwLo[k], idxLoPatch[k]);
-			idxLoReadRtw[k]=idxLoRead[k]-reader->rtwLo[k];
-			idxHiRead[k]=MIN(idxLoPatch[k]+dimsPatch[k]-1, reader->rtwLo[k]+reader->rtwDims[k]-1);
-			//dimsRead[k]=MIN(reader->rtwDims[k], idxLoPatch[k]+dimsPatch[k]-idxLoRead[k]);
-			if(idxHiRead[k]<idxLoRead[k]) doRead=false;
-		} else {
-			idxLoRead[k]=idxLoPatch[k];
-			idxLoReadRtw[k]=idxLoPatch[k];
-			idxHiRead[k]=idxLoRead[k]+dimsPatch[k]-1;
-		}
-		dimsRead[k]=idxHiRead[k]-idxLoRead[k]+1;
+		idxLo1[k] = reader->rtwLo[k]<0 ? reader->rtwLo[k]+period[k] : reader->rtwLo[k];
+		idxHi1[k] = MIN(rtwHi[k], period[k]-1);
+		idxHi1[k] = reader->rtwLo[k]<0 ? period[k]-1 : idxHi1[k];
+		idxLo2[k] = rtwHi[k]>=period[k] ? 0 : rtwHi[k];
+		idxLo2[k] = reader->rtwLo[k]<0 ? 0 : idxLo2[k];
+		idxHi2[k] = rtwHi[k]>=period[k] ? rtwHi[k]-period[k] : rtwHi[k];
+		if (idxHi2[k] == idxLo2[k]) idxHi2[k] -= 1;
 	}
-	if(!doRead) {
-		for(int k=0; k<NDIM; k++) {
-			dimsRead[k]=0;
-			idxHiRead[k]=idxLoRead[k]+dimsRead[k]-1;
-		}
-	}
-
-	dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file,
-	                         dataVar_getName(var), H5P_DEFAULT);
-	dataTypeFile   = H5Dget_type(dataSet);
-	dataSpaceFile  = H5Dget_space(dataSet);
-
-	dataTypePatch  = dataVar_getHDF5Datatype(var);
-	dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsRead);
-
-	gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLoReadRtw, dimsRead);
-
-	if (H5Tequal(dataTypeFile, dataTypePatch)) {
-		H5Dread(dataSet, dataTypeFile, dataSpacePatch,
-		        dataSpaceFile, H5P_DEFAULT, data);
-	} else {
-		fprintf(stderr, "ERROR: Datatype in memory differs from file.\n");
-		diediedie(EXIT_FAILURE);
-	}
-
-	H5Sclose(dataSpacePatch);
-	H5Tclose(dataTypePatch);
-	H5Sclose(dataSpaceFile);
-	H5Tclose(dataTypeFile);
-	H5Dclose(dataSet);
 	
-	gridPatch_allocateVarData(patch,idxOfVar);
-	gridPatch_putWindowedData(patch, idxOfVar, idxLoRead, idxHiRead, data);
+	idxLoW[0] = idxLo1[0];
+	idxLoW[1] = idxLo1[1];
+	idxLoW[2] = idxLo1[2];
+	idxHiW[0] = idxHi1[0];
+	idxHiW[1] = idxHi1[1];
+	idxHiW[2] = idxHi1[2];
+	read();
+	
+	idxLoW[0] = idxLo2[0];
+	idxLoW[1] = idxLo1[1];
+	idxLoW[2] = idxLo1[2];
+	idxHiW[0] = idxHi2[0];
+	idxHiW[1] = idxHi1[1];
+	idxHiW[2] = idxHi1[2];
+	read();
+	
+	idxLoW[0] = idxLo1[0];
+	idxLoW[1] = idxLo2[1];
+	idxLoW[2] = idxLo1[2];
+	idxHiW[0] = idxHi1[0];
+	idxHiW[1] = idxHi2[1];
+	idxHiW[2] = idxHi1[2];
+	read();
+	
+	idxLoW[0] = idxLo1[0];
+	idxLoW[1] = idxLo1[1];
+	idxLoW[2] = idxLo2[2];
+	idxHiW[0] = idxHi1[0];
+	idxHiW[1] = idxHi1[1];
+	idxHiW[2] = idxHi2[2];
+	read();
+	
+	idxLoW[0] = idxLo2[0];
+	idxLoW[1] = idxLo2[1];
+	idxLoW[2] = idxLo1[2];
+	idxHiW[0] = idxHi2[0];
+	idxHiW[1] = idxHi2[1];
+	idxHiW[2] = idxHi1[2];
+	read();
+	
+	idxLoW[0] = idxLo1[0];
+	idxLoW[1] = idxLo2[1];
+	idxLoW[2] = idxLo2[2];
+	idxHiW[0] = idxHi1[0];
+	idxHiW[1] = idxHi2[1];
+	idxHiW[2] = idxHi2[2];
+	read();
+	
+	idxLoW[0] = idxLo2[0];
+	idxLoW[1] = idxLo1[1];
+	idxLoW[2] = idxLo2[2];
+	idxHiW[0] = idxHi2[0];
+	idxHiW[1] = idxHi1[1];
+	idxHiW[2] = idxHi2[2];
+	read();
+	
+	idxLoW[0] = idxLo2[0];
+	idxLoW[1] = idxLo2[1];
+	idxLoW[2] = idxLo2[2];
+	idxHiW[0] = idxHi2[0];
+	idxHiW[1] = idxHi2[1];
+	idxHiW[2] = idxHi2[2];
+	read();
 	
 	dataVar_freeMemory(var, data);
 	
 } 
+
+#undef read

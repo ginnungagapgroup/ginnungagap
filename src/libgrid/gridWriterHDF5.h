@@ -230,7 +230,7 @@ gridWriterHDF5_setDoPatch(gridWriterHDF5_t w, bool doPatch);
  * *@return  Returns nothing.
  */
 extern void
-gridWriterHDF5_setRtw(gridWriterHDF5_t w, gridPointUint32_t Lo, gridPointUint32_t d);
+gridWriterHDF5_setRtw(gridWriterHDF5_t w, int32_t *Lo, gridPointUint32_t d);
 
 
 /** @} */

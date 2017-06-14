@@ -369,7 +369,7 @@ gridWriterHDF5_setDoPatch(gridWriterHDF5_t w, bool doPatch)
 }
 
 extern void
-gridWriterHDF5_setRtw(gridWriterHDF5_t w, gridPointUint32_t Lo, gridPointUint32_t d)
+gridWriterHDF5_setRtw(gridWriterHDF5_t w, int32_t* Lo, gridPointUint32_t d)
 {
 	assert(w != NULL);
 	for(int i=0;i<NDIM; i++) {
@@ -422,6 +422,101 @@ gridWriterHDF5_free(gridWriterHDF5_t writer)
 }
 
 /*--- Implementations of local functions --------------------------------*/
+#ifdef WITH_MPI
+#define write() \
+	{ \
+		doWrite = true; \
+		gridPatch_getIdxLo(patch, idxLo); \
+		for(int k=0; k<NDIM; k++) { \
+			oldLo = idxLo[k]; \
+			idxLo[k] = MAX(idxLo[k], idxLoW[k]); \
+			idxHi[k] = MIN(oldLo+dimsPatch[k]-1, idxHiW[k]); \
+			if(idxLo[k]>idxHi[k]) doWrite = false; \
+		} \
+		hid_t             transProps = H5P_DEFAULT; \
+		gridPointUint32_t dimsPatch = {0,0,0}; \
+		hid_t             dataSpacePatch, dataSpaceFile; \
+		void *data = NULL; \
+		if(doWrite) { \
+			data = gridPatch_getWindowedDataCopy(patch, i, idxLo, idxHi, NULL); \
+			for(int k=0; k<NDIM; k++) { \
+				dimsPatch[k]=idxHi[k]-idxLo[k]+1; \
+				idxLo[k]=idxLo[k]-w->rtwLo[k]; \
+				idxLo[k] = idxLo[k]<0 ? idxLo[k]+period[k] : idxLo[k]; \
+				idxLo[k] = idxLo[k]>=period[k] ? (idxLo[k]-period[k]) : idxLo[k]; \
+			} \
+		} else { \
+			for(int k=0; k<NDIM; k++) \
+				idxLo[k]=0; \
+		} \
+			transProps = H5Pcreate(H5P_DATASET_XFER); \
+			assert(transProps >= 0); \
+			H5Pset_dxpl_mpio(transProps, H5FD_MPIO_COLLECTIVE); \
+		dataSpaceFile = H5Dget_space(dataSet); \
+		assert(dataSpaceFile >= 0); \
+		if (local_checkIfPatchIsCompleteGrid(gridSize, dimsPatch)) \
+			gridUtilHDF5_selectHyperslab(dataSpaceFile, NULL, dimsPatch); \
+		else { \
+			gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLo, dimsPatch); \
+		} \
+		dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsPatch); \
+			H5Dwrite(dataSet, dt, dataSpacePatch, dataSpaceFile, \
+				 transProps, data); \
+		H5Sclose(dataSpacePatch); \
+		H5Sclose(dataSpaceFile); \
+		if (transProps != H5P_DEFAULT) \
+			H5Pclose(transProps); \
+		if (data != NULL) { \
+			dataVar_freeMemory(var, data); \
+		} \
+	}
+#else
+#define write() \
+	{ \
+		doWrite = true; \
+		gridPatch_getIdxLo(patch, idxLo); \
+		for(int k=0; k<NDIM; k++) { \
+			oldLo = idxLo[k]; \
+			idxLo[k] = MAX(idxLo[k], idxLoW[k]); \
+			idxHi[k] = MIN(oldLo+dimsPatch[k]-1, idxHiW[k]); \
+			if(idxLo[k]>idxHi[k]) doWrite = false; \
+		} \
+		hid_t             transProps = H5P_DEFAULT; \
+		gridPointUint32_t dimsPatch = {0,0,0}; \
+		hid_t             dataSpacePatch, dataSpaceFile; \
+		void *data = NULL; \
+		if(doWrite) { \
+			data = gridPatch_getWindowedDataCopy(patch, i, idxLo, idxHi, NULL); \
+			for(int k=0; k<NDIM; k++) { \
+				dimsPatch[k]=idxHi[k]-idxLo[k]+1; \
+				idxLo[k]=idxLo[k]-w->rtwLo[k]; \
+				idxLo[k] = idxLo[k]<0 ? idxLo[k]+period[k] : idxLo[k]; \
+				idxLo[k] = idxLo[k]>=period[k] ? (idxLo[k]-period[k]) : idxLo[k]; \
+			} \
+		} else { \
+			for(int k=0; k<NDIM; k++) \
+				idxLo[k]=0; \
+		} \
+		dataSpaceFile = H5Dget_space(dataSet); \
+		assert(dataSpaceFile >= 0); \
+		if (local_checkIfPatchIsCompleteGrid(gridSize, dimsPatch)) \
+			gridUtilHDF5_selectHyperslab(dataSpaceFile, NULL, dimsPatch); \
+		else { \
+			gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLo, dimsPatch); \
+		} \
+		dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsPatch); \
+			H5Dwrite(dataSet, dt, dataSpacePatch, dataSpaceFile, \
+				 transProps, data); \
+		H5Sclose(dataSpacePatch); \
+		H5Sclose(dataSpaceFile); \
+		if (transProps != H5P_DEFAULT) \
+			H5Pclose(transProps); \
+		if (data != NULL) { \
+			dataVar_freeMemory(var, data); \
+		} \
+	}
+#endif
+
 static void
 local_writeGridRtw(gridWriter_t  writer,
                                 gridRegular_t grid)
@@ -434,10 +529,11 @@ local_writeGridRtw(gridWriter_t  writer,
 	assert(w->base.isActive);
 
 	int               numVars, numPatches;
-	gridPointUint32_t dims;
+	gridPointUint32_t dims, period;
+	int32_t idxLo1[3], idxLo2[3], idxHi1[3], idxHi2[3], idxLoW[3], idxHiW[3], idxLo[3], idxHi[3];
 	hid_t             gridSize, dsCreationPropList;
 	
-	gridPointUint32_t rtwHi, idxLo, idxHi, dimsPatch;
+	gridPointUint32_t rtwHi, dimsPatch;
 	uint32_t	oldLo;
 	bool		doWrite, doWriteGlob;
 	for(int k = 0; k<NDIM; k++) 
@@ -446,7 +542,8 @@ local_writeGridRtw(gridWriter_t  writer,
 	numVars    = gridRegular_getNumVars(grid);
 	numPatches = gridRegular_getNumPatches(grid);
 
-	//gridRegular_getDims(grid, dims);
+	gridRegular_getDims(grid, period);
+	
 	gridSize           = gridUtilHDF5_getDataSpaceFromDims(w->rtwDims);
 	dsCreationPropList = local_getDSCreationPropList(w);
 	for (int i = 0; i < numVars; i++) {
@@ -461,60 +558,83 @@ local_writeGridRtw(gridWriter_t  writer,
 			assert(w->fileHandle != H5I_INVALID_HID);
 			
 			gridPatch_getDims(patch, dimsPatch);
-			gridPatch_getIdxLo(patch, idxLo);
 			doWrite = true;
 			
 			for(int k=0; k<NDIM; k++) {
-				oldLo = idxLo[k];
-				idxLo[k] = MAX(idxLo[k], w->rtwLo[k]);
-				idxHi[k] = MIN(oldLo+dimsPatch[k]-1, rtwHi[k]);
-				if(idxLo[k]>idxHi[k]) doWrite = false;
+				idxLo1[k] = w->rtwLo[k]<0 ? w->rtwLo[k]+period[k] : w->rtwLo[k];
+				idxHi1[k] = MIN(rtwHi[k], period[k]-1);
+				idxHi1[k] = w->rtwLo[k]<0 ? period[k]-1 : idxHi1[k];
+				idxLo2[k] = rtwHi[k]>=period[k] ? 0 : rtwHi[k];
+				idxLo2[k] = w->rtwLo[k]<0 ? 0 : idxLo2[k];
+				idxHi2[k] = rtwHi[k]>=period[k] ? rtwHi[k]-period[k] : rtwHi[k];
+				if (idxHi2[k] == idxLo2[k]) idxHi2[k] -= 1;
+				//printf("%i %i %i %i\n",idxLo1[k],idxLo2[k],idxHi1[k],idxHi2[k]);
 			}
 			
-			hid_t             transProps = H5P_DEFAULT;
-			gridPointUint32_t dimsPatch = {0,0,0};
-			hid_t             dataSpacePatch, dataSpaceFile;
 			
-			void *data = NULL;
-			if(doWrite) {
-				data = gridPatch_getWindowedDataCopy(patch, i, idxLo, idxHi, NULL);
-				for(int k=0; k<NDIM; k++) {
-					dimsPatch[k]=idxHi[k]-idxLo[k]+1;
-					idxLo[k]=idxLo[k]-w->rtwLo[k];
-				}
-			} else {
-				for(int k=0; k<NDIM; k++)
-					idxLo[k]=0;
-			}
+			idxLoW[0] = idxLo1[0];
+			idxLoW[1] = idxLo1[1];
+			idxLoW[2] = idxLo1[2];
+			idxHiW[0] = idxHi1[0];
+			idxHiW[1] = idxHi1[1];
+			idxHiW[2] = idxHi1[2];
+			write();
 			
-			#ifdef WITH_MPI
-				transProps = H5Pcreate(H5P_DATASET_XFER);
-				assert(transProps >= 0);
-				H5Pset_dxpl_mpio(transProps, H5FD_MPIO_COLLECTIVE);
-			#endif
-		
-			dataSpaceFile = H5Dget_space(dataSet);
-			assert(dataSpaceFile >= 0);
-			if (local_checkIfPatchIsCompleteGrid(gridSize, dimsPatch))
-				gridUtilHDF5_selectHyperslab(dataSpaceFile, NULL, dimsPatch);
-			else {
-				gridUtilHDF5_selectHyperslab(dataSpaceFile, idxLo, dimsPatch);
-			}
-			dataSpacePatch = gridUtilHDF5_getDataSpaceFromDims(dimsPatch);
+			idxLoW[0] = idxLo2[0];
+			idxLoW[1] = idxLo1[1];
+			idxLoW[2] = idxLo1[2];
+			idxHiW[0] = idxHi2[0];
+			idxHiW[1] = idxHi1[1];
+			idxHiW[2] = idxHi1[2];
+			write();
 			
-			//if(doWrite) {
-				H5Dwrite(dataSet, dt, dataSpacePatch, dataSpaceFile,
-			         transProps, data);
-			//}
-		
-			H5Sclose(dataSpacePatch);
-			H5Sclose(dataSpaceFile);
-			if (transProps != H5P_DEFAULT)
-				H5Pclose(transProps);
-
-				
-				
-				//local_writeVariableAtPatch(var, patchToWrite, dataSet, dt, gridSize);
+			idxLoW[0] = idxLo1[0];
+			idxLoW[1] = idxLo2[1];
+			idxLoW[2] = idxLo1[2];
+			idxHiW[0] = idxHi1[0];
+			idxHiW[1] = idxHi2[1];
+			idxHiW[2] = idxHi1[2];
+			write();
+			
+			idxLoW[0] = idxLo1[0];
+			idxLoW[1] = idxLo1[1];
+			idxLoW[2] = idxLo2[2];
+			idxHiW[0] = idxHi1[0];
+			idxHiW[1] = idxHi1[1];
+			idxHiW[2] = idxHi2[2];
+			write();
+			
+			idxLoW[0] = idxLo2[0];
+			idxLoW[1] = idxLo2[1];
+			idxLoW[2] = idxLo1[2];
+			idxHiW[0] = idxHi2[0];
+			idxHiW[1] = idxHi2[1];
+			idxHiW[2] = idxHi1[2];
+			write();
+			
+			idxLoW[0] = idxLo1[0];
+			idxLoW[1] = idxLo2[1];
+			idxLoW[2] = idxLo2[2];
+			idxHiW[0] = idxHi1[0];
+			idxHiW[1] = idxHi2[1];
+			idxHiW[2] = idxHi2[2];
+			write();
+			
+			idxLoW[0] = idxLo2[0];
+			idxLoW[1] = idxLo1[1];
+			idxLoW[2] = idxLo2[2];
+			idxHiW[0] = idxHi2[0];
+			idxHiW[1] = idxHi1[1];
+			idxHiW[2] = idxHi2[2];
+			write();
+			
+			idxLoW[0] = idxLo2[0];
+			idxLoW[1] = idxLo2[1];
+			idxLoW[2] = idxLo2[2];
+			idxHiW[0] = idxHi2[0];
+			idxHiW[1] = idxHi2[1];
+			idxHiW[2] = idxHi2[2];
+			write();
 		}
 		H5Dclose(dataSet);
 	}

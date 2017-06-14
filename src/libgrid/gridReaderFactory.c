@@ -162,8 +162,8 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader)
 	char*		unit;
 	bool		tmp;
 	
-	
-	gridPointUint32_t patchLo, patchDims;
+	int32_t  patchLo[3];
+	gridPointUint32_t patchDims;
 	gridReaderHDF5_setDoPatch(reader, true);
 	
 	tmp = parse_ini_get_string(ini, "patchSection", sectionName,
@@ -241,6 +241,11 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader)
 			        patchSection);
 			diediedie(EXIT_FAILURE);
 	}
+	
+	int32_t  	dim1D;
+	if(!parse_ini_get_int32(ini, "dim1D", patchSection,
+						&dim1D))     dim1D = 10000000;
+	gridReaderHDF5_setDims(reader,dim1D);
 	
 	int rank = 0;
 #ifdef WITH_MPI

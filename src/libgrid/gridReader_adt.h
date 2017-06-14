@@ -85,9 +85,11 @@ struct gridReader_struct {
 	/** @brief	Toggles region to write patch. */
 	bool		 doPatch;
 	/** @brief	Gives region to write idxLo. */
-	gridPointUint32_t	 rtwLo;
+	int32_t	 rtwLo[3];
 	/** @brief	Gives region to write dims. */
 	gridPointUint32_t	 rtwDims;
+	/** @brief	Gives whole grid dims. */
+	gridPointUint32_t	 gridDims;
 };
 
 

@@ -211,7 +211,8 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer)
 	bool		tmp;
 	
 	
-	gridPointUint32_t patchLo, patchDims;
+	int32_t patchLo[3];
+	gridPointUint32_t patchDims;
 	gridWriterHDF5_setDoPatch(writer, true);
 	
 	tmp = parse_ini_get_string(ini, "patchSection", sectionName,

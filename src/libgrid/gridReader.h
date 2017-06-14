@@ -171,7 +171,10 @@ extern void
 gridReaderHDF5_setDoPatch(gridReader_t reader, bool doPatch);
 
 extern void
-gridReaderHDF5_setRtw(gridReader_t reader, gridPointUint32_t Lo, gridPointUint32_t d);
+gridReaderHDF5_setRtw(gridReader_t reader, int32_t *Lo, gridPointUint32_t d);
+
+extern void
+gridReaderHDF5_setDims(gridReader_t reader, int32_t dim1D);
 
 /** @} */
 
