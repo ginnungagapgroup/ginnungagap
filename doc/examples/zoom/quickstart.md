@@ -1,14 +1,56 @@
 # Quickstart
 
-Ginnungagap uses a set of tools to prepare the initial conditions:
+Ginnungagap consists of a set of separate tools to prepare cosmological initial conditions:
 
 * `ginnungagap` to prepare velocity fields starting from a white noise field (or just a random seed), and a set of cosmological parameters
 * `generateICs` to convert velocity fields into GADGET-files
 
 For a simple (non-zoom) simulations these two programs are sufficient, but for a multi-level zoom-in simulation other tools are needed:
 
-* `realSpaceConstraints` to rescale the white noise fields using a simplified Hoffman-Ribak (HR) algorithm
-* `refineGrid` to increase or decrease the resolution of the velocity fields.
+* `realSpaceConstraints` to rescale the white noise fields,
+* `refineGrid` to increase or decrease the resolution of the velocity fields,
+* `prepare_ini.sh` script to make preparation of complex multi-scale initial conditions easy.
+
+## Ginnungagap basics
+
+Initial conditions are started from a white noise field that is a 3D array of random numbers. This array is convolved with the Transfer function to make velocity fields, which are then transformed to particle offsets using Zel'dovich approximation.
+
+Ginnungagap can be used for the following purposes:
+
+* Making full box initial conditions. Note that Ginnungagap is fully MPI-parallel.
+* Rescaling a full box initial conditions (increasing or decreasing resolution)
+* Rescaling a white noise field.
+* Gas support (by simply duplicating DM particle parameters).
+* Making multi-scale (zoom) initial conditions. The zoom can be done on the basis of any full box simulation by adding more scales with increased/decreased resolution. The zoom region may be placed anywhere, including the boundaries of the full box. Afterwards it can be shifted to the box center.
+* Output can be written in GADGET-2 (full support) or GRAFIC (only full grid currently) formats. In GADGET-2 format, particles of different mass can be assigned to different GADGET-2 particle types to optimize memory usage.
+* Updating the initial conditions already made with Ginnungagap, without re-making everything from scratch. Only the parts that change will be updated. E.g. making gas/no-gas versions requires only running the conversion tool (`generateICs`). 
+
+For multi-scale initial conditions, a set of velocity fields with different resolutions are needed. If the zoom region is small, the high resolution velocity fields do not need to cover the whole volume, so these velocity fields differ not only by resolution, but also by their size.
+
+The velocity fields of different resolution can be prepared in different ways:
+
+1. by rescaling a white noise with `realSpaceConstraints` and making new velocity fields with `ginnungagap` just from it,
+2. by using an additional information from the lower resolution velocity fields to improve the accuracy of the previous method with `refineGrid`,
+3. by downgrading a high-resolution velocity field using nearest-grid-point interpolation with `refineGrid`.
+
+Method 2 is recommended over method 1 when possible. Method 2 also allows to make high resolution white noise and velocity fields only in a small cubic box surrounding the zoom region.
+
+## Installing Ginnungagap
+
+The main requirements of Ginnungagap are:
+
+* FFTW-3
+* Gnu Scientific Library
+* SPRNG-2
+* MPI and HDF5 are highly recommended.
+
+The simplest way to download and build them is to use the following installer script:
+
+Otherwise, you can use it as an example of what build flags are required.
+
+It is usually *NOT* recommended to use a version of HDF5 provided by your system.
+
+## Example
 
 For a three-level zoom-in simulation the example workflow looks like this:
 
