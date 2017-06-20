@@ -1,5 +1,10 @@
 # Quickstart
 
+## Table of contents
+
+1. [Ginnungagap basics](#basics)
+1. [Installing Ginnungagap](#installing)
+
 Ginnungagap consists of a set of separate tools to prepare cosmological initial conditions:
 
 * `ginnungagap` to prepare velocity fields starting from a white noise field (or just a random seed), and a set of cosmological parameters
@@ -46,19 +51,34 @@ The main requirements of Ginnungagap are:
 
 The simplest way to download and build them is to use the following installer script:
 
+[scripts/g9p_installer.sh](https://github.com/ginnungagapgroup/ginnungagap/blob/master/scripts/g9p_installer.sh)
+
 Otherwise, you can use it as an example of what build flags are required.
 
-It is usually *NOT* recommended to use a version of HDF5 provided by your system.
+It is usually *NOT* recommended to use a version of HDF5 provided by your system. After the installation you need to update your LD_LIBRARY_PATH with the path to the newely installed libraries.
 
 ## Example
 
-For a three-level zoom-in simulation the example workflow looks like this:
+For a three-level zoom-in simulation with scales of 256^3, 512^3 and 1024^3, the example workflow looks like this:
 
-![Three level of zoom workflow](ggp_zoom.png)
+1. Make a 256^3 white noise (`ginnungagap`)
+2. Make 256^3 full grid velocity fields (`ginnungagap`)
+3. Make GADGET-2 files (`generateICs`)
+4. Run the low resolution full grid simulation
+5. Identify the zoom region and make the mask using e.g. `tools/zoomTools/LareWriter`
+6. Rescale the white noise from step 1 to 512^3 (`realSpaceConstraints`)
+7. Make 512^3 velocity fields with only the small scale information (`ginnungagap`)
+8. Interpolate 256^3 velocity fields from step 2 and add to them small scale information from step 7  to produce the 'final' 512^3 velocity fields (`refineGrid`)
+10. Rescale the white noise from step 6 to 1024^3 (`realSpaceConstraints`)
+11. Make 1024^3 velocity fields with only the small scale information (`ginnungagap`)
+12. Interpolate 1024^3 velocity fields from step 8 and add to them small scale information from step 11 (`refineGrid`)
+13. Make GADGET-2 files for the zoom simulation (`generateICs`)
 
-This workflow becomes more complicated if you need more levels of zoom. So in order to avoid writing the `.ini` files for every operation manually it is suggested to ue a script called `prepare_ini.sh`. It takes only one 'master' `.ini` file as an input and produces all the required 'child' ini files from it, as well as prepares tasks and a Makefile that allows you to submit all the required tasks to your computer within one single command `make gadget`.
+This workflow becomes more complicated if you need more levels of zoom. Each tool is controlled by a separate `.ini` file with parameters, such as the input/output filenames, grid sizes, etc.
 
-In the `doc/examples/zoom` you can find two example ini files: `example_64.ini` for a single level simulation and `example_zoom.ini` for a zoom. To start a project for a zoom simulation, do the following:
+In order to avoid writing the `.ini` files for every operation manually it is suggested to ue a script called `prepare_ini.sh`. It takes only one 'master' `.ini` file as an input and produces all the required 'child' ini files from it, as well as prepares tasks and a Makefile that allows you to submit all the required tasks to your computer within one single command `make gadget`.
+
+In the `doc/examples/zoom` you can find two example ini files: `example_64.ini` for a single level simulation and `example_zoom.ini` for a multi scale one. To start a project for a zoom simulation, do the following:
 
 1. Create a directory for non-zoom simulation, e.g. 'my_project_nozoom'.
 
@@ -249,3 +269,15 @@ Each `bat_\*` file contains `srun` command. In order to submit all the scripts t
         #SBATCH --partition=devel
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/libs
         make gadget
+
+
+
+
+
+
+Copyright (C) 2010, 2011, 2012, Steffen Knollmann, 
+                2013, 2014, 2015, 2016, 2017 Sergey Pilipenko
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
