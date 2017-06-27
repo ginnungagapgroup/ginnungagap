@@ -96,6 +96,30 @@ batwriter $1
 getMax
 }
 
+refCutWNBatCreator ()
+{
+ncores=$(coresFromMem $mem)
+nodes=$(nodesFromCores $ncores)
+let ncores=nodes*coresPerNode
+getQueue
+template="
+#!/bin/bash
+#BSUB -n $ncores
+#BSUB -J ginnungagap
+#BSUB -W 01:00
+#BSUB -q $queue
+#BSUB -x
+#BSUB -eo output_%J.err
+#BSUB -oo output_%J.out
+
+export OMP_NUM_THREADS=$OMPtasks
+mpirun ./refineGrid ref_wn_cut_$mprev.ini
+"
+batwriter $1
+getMax
+}
+
+
 rscBatCreator ()
 {
 ncores=$(coresFromMem $mem)

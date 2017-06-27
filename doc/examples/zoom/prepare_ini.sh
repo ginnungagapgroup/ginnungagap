@@ -2,7 +2,7 @@
 
 shopt -s extglob
 
-version=07.11.2016
+version=27.06.2017
 
 ###########################################
 
@@ -19,8 +19,8 @@ fi
 template="
 [Setup]
 boxsizeInMpch = $subbox
-inputDim1D = $actualMeshPrev
-outputDim1D = $actualMeshWN
+inputDim1D = $actualMeshPrevRefine
+outputDim1D = $actualMesh
 useFileForInput = true
 readerSecName = inputReader
 writerSecName = outputWriter
@@ -40,13 +40,8 @@ writerSection = writeHDF
 [writeHDF]
 doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
-doPatch = $doPatchWN
-patchSection = patchSubbox
+doPatch = false
 
-[patchSubbox]
-unit = cells
-patchLo = $patchLoWN
-patchDims = $patchDimsWN
 "
 iniwriter $1
 }
@@ -118,6 +113,44 @@ patchLo = $patchLoCut
 patchDims = $patchDimsCut
 "
 iniwriter_multi $1
+}
+
+### .ini creator for refineGrid - cutting a patch from a WN field!
+refineCreatorCutWN ()
+{
+template="
+[Setup]
+boxsizeInMpch = $Box
+inputDim1D = $actualMeshPrev
+outputDim1D = $actualMeshPrev
+readerSecName = inputReader
+writerSecName = outputWriter
+varName = wn
+addFields = false
+doPk = false
+
+[inputReader]
+type = hdf5
+prefix = $wnprev
+
+[outputWriter]
+type = hdf5
+prefix = "$wnPrefix$mprev''_cut"
+overwriteFileIfExists = true
+writerSection = writeHDF
+
+[writeHDF]
+doChunking = $doChunking
+chunkSize = $chunk $chunk $chunk
+doPatch = true
+patchSection = Patch
+
+[Patch]
+unit = cells
+patchLo = $patchLoCut
+patchDims = $patchDimsCut
+"
+iniwriter $1
 }
 
 ### .ini creator for refineGrid - add large scale and small scale fields
@@ -328,6 +361,7 @@ ginnungagapSection = Ginnungagap
 doGas = $doGas
 doLongIDs = $doLongIDs
 autoCenter = $autoCenter
+sequentialIDs = $sequentialIDs
 useKpc = $useKpc
 shift = $boxShift
 inputSection = GenicsInput
@@ -525,7 +559,7 @@ echo
 # set defaults
 grafic=false
 doDelta=false
-
+sequentialIDs=true
 
 # read .ini into variables
 
@@ -745,6 +779,13 @@ for m in ${meshes}; do
         echo "$velCut : $velPrefix$mprev""_velx$velSuffix $refCutIni $refCutBat" >> Makefile
         rule "$submitCommand" ./$refCutBat
         refineCreatorCut $refCutIni
+        refineCreatorCutWN ref_wn_cut_$mprev.ini
+        wnCut=$wnPrefix$mprev''_cut$wnSuffix
+        refCutWNBat=bat_ref_WN_cut_$mprev
+        refCutWNBatCreator $refCutWNBat
+        echo "$wnCut : $wnPrefix$mprev$wnSuffix ref_wn_cut_$mprev.ini $refCutWNBat" >> Makefile
+        rule "$submitCommand" ./$refCutWNBat
+        wnprev=$wnCut
         tmpm=$m
         m=cut_$mprev
         refBatCreator $refCutBat

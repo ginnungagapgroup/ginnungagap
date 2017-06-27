@@ -77,6 +77,19 @@ batwriter $1
 getMax
 }
 
+refCutWNBatCreator ()
+{
+ncores=$(coresFromMem $mem)
+nodes=$(nodesFromCores $ncores)
+let ncores=nodes*coresPerNode
+template="
+export OMP_NUM_THREADS=$OMPtasks
+srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_wn_cut_$mprev.ini
+"
+batwriter $1
+getMax
+}
+
 rscBatCreator ()
 {
 ncores=$(coresFromMem $mem)

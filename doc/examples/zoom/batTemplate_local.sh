@@ -8,6 +8,14 @@ template="
 batwriter $1
 }
 
+refCutWNBatCreator ()
+{
+template="
+./refineGrid ref_wn_cut_$mprev.ini
+"
+batwriter $1	
+}
+
 rscBatCreator ()
 {
 template="

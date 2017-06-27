@@ -127,6 +127,41 @@ batwriter $1
 getMax
 }
 
+refCutWNBatCreator ()
+{
+ncores=$(coresFromMem $mem)
+nodes=$(nodesFromCores $ncores)
+let ncores=nodes*coresPerNode
+class_setup
+template="
+#!/bin/bash
+#@ job_name = ginnungagap
+#@ job_type = parallel
+#@ class = $class
+#@ node = $nodes
+#@ total_tasks = $ncores
+#@ wall_clock_limit = $limit
+#@ network.MPI = sn_all,not_shared,us
+#@ initialdir = $PWD
+#@ notification = never
+#@ output = run\$(jobid).out
+#@ error = run\$(jobid).err
+#@ queue
+
+. /etc/profile
+. /etc/profile.d/modules.sh
+module add gsl
+export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LIBS
+
+export MP_DEBUG_TIMEOUT_SECONDS=1200 
+
+export OMP_NUM_THREADS=$OMPtasks
+poe ./refineGrid ref_wn_cut_$mprev.ini
+"
+batwriter $1
+getMax
+}
+
 rscBatCreator ()
 {
 ncores=$(coresFromMem $mem)
