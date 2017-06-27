@@ -5,7 +5,7 @@ set -e   # stop whenever we got an error...
 pth=$PWD
 
 # true = compile, false = do not compile
-gsl=false
+gsl=true
 fftw=true
 hdf5=true
 sprng=true
@@ -44,7 +44,7 @@ file_fftw=fftw-3.3.4.tar.gz
 
 fi
 
-folder_fftw="${file_fftw%%.*}"
+folder_fftw="${file_fftw%.*}"
 if [ ! -d $folder_fftw ] && [ $fftw = true ]
 then
 tar -xzf $file_fftw
@@ -61,8 +61,9 @@ echo
 
 wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.17.tar.gz
 file_hdf5=hdf5-1.8.17.tar.gz
+fi
 
-folder_hdf5="${file_hdf5%%.*}"
+folder_hdf5="${file_hdf5%.*}"
 if [ ! -d $folder_hdf5 ] && [ $hdf5 = true ]
 then
 tar -xzf $file_hdf5
