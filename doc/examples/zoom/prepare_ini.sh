@@ -362,6 +362,7 @@ doGas = $doGas
 doLongIDs = $doLongIDs
 autoCenter = $autoCenter
 sequentialIDs = $sequentialIDs
+doMassBlock = $doMassBlock
 useKpc = $useKpc
 shift = $boxShift
 inputSection = GenicsInput

@@ -194,7 +194,10 @@ local_iniDataNewFromIni_section(generateICs_iniData_t iniData,
                                 parse_ini_t           ini,
                                 const char            *secName);
 
-
+inline static void
+local_iniDataNewFromIni_doMassBlock(generateICs_iniData_t iniData,
+                                  parse_ini_t           ini,
+                                  const char            *secName);
 /**
  * @brief  Helper function for generateICsFactory_newFromIni() dealing with
  *         the input.
@@ -259,7 +262,7 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 
 	generateICsMode_t mode;
 	mode = generateICsMode_new(iniData->doGas, iniData->doLongIDs, iniData->autoCenter, 
-	                           iniData->kpc,iniData->sequentialIDs);
+	                           iniData->kpc,iniData->sequentialIDs, iniData->doMassBlock);
 	generateICs_setMode(genics, mode);
 
 	generateICsData_t data;
@@ -337,6 +340,7 @@ local_iniDataNewFromIni(parse_ini_t ini, const char *sectionName)
 	local_iniDataNewFromIni_autoCenter(iniData, ini, sectionName);
 	local_iniDataNewFromIni_kpc(iniData, ini, sectionName);
 	local_iniDataNewFromIni_sequentialIDs(iniData, ini, sectionName);
+	local_iniDataNewFromIni_doMassBlock(iniData, ini, sectionName);
 	local_iniDataNewFromIni_section(iniData, ini, sectionName);
 
 	local_iniDataNewFromIni_boxsize(iniData, ini, iniData->g9pSection);
@@ -353,6 +357,8 @@ local_iniDataInit(generateICs_iniData_t iniData)
 	iniData->zInit            = 0.0;
 	iniData->doGas            = false;
 	iniData->doLongIDs        = false;
+	iniData->sequentialIDs    = true;
+	iniData->doMassBlock      = false;
 	iniData->g9pSection       = NULL;
 	iniData->inputSection     = NULL;
 	iniData->outputSection    = NULL;
@@ -457,6 +463,20 @@ local_iniDataNewFromIni_sequentialIDs(generateICs_iniData_t iniData,
 	}
 }
 
+inline static void
+local_iniDataNewFromIni_doMassBlock(generateICs_iniData_t iniData,
+                                  parse_ini_t           ini,
+                                  const char            *secName)
+{
+	assert(iniData != NULL);
+	assert(ini != NULL);
+	assert(secName != NULL);
+
+	if ( !parse_ini_get_bool( ini, "doMassBlock", secName,
+	                          &(iniData->doMassBlock) ) ) {
+		iniData->doMassBlock = GENERATEICSCONFIG_DEFAULT_DOMASSBLOCK;
+	}
+}
 
 inline static void
 local_iniDataNewFromIni_autoCenter(generateICs_iniData_t iniData,

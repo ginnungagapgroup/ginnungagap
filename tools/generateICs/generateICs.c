@@ -509,11 +509,11 @@ local_writeGadgetFile(generateICs_t     genics,
 	for(int level = minlev; level<= maxlev; level++) {
 		idx = (genics->typeForLevel)[level-minlev];
 		npAll[idx] += (uint64_t)local_computeNumPartsLevel(genics, level);
-		if(nlevfortype[idx]==1) {
+		if(nlevfortype[idx]>1 || genics->mode->doMassBlock) {
+			massArr[idx] = 0;
+		} else {
 			npFull = POW_NDIM((uint64_t)g9pMask_getDim1DLevel(genics->mask,level));
 			massArr[idx] = generateICsOut_boxMass(genics->data) / npFull;
-		} else {
-			massArr[idx] = 0;
 		}
 		
 		//idx = 1 + maxlev - level;
@@ -523,7 +523,7 @@ local_writeGadgetFile(generateICs_t     genics,
 	}
 	printf("\n mass: %lf\n",generateICsOut_boxMass(genics->data));
 	
-	if(nlevfortype[arrIdx]>1) {
+	if(nlevfortype[arrIdx]>1 || genics->mode->doMassBlock) {
 		gadgetTOC_addEntryByType(genics->out->toc, GADGETBLOCK_MASS);
 	}
 	if (genics->mode->doGas) {
@@ -574,7 +574,7 @@ local_writeGadgetFile(generateICs_t     genics,
 		stai_del(&stai);
 		
 		
-		if(nlevfortype[arrIdx]>1) {
+		if(nlevfortype[arrIdx]>1 || genics->mode->doMassBlock) {
 			fpv_t masses[np];
 			npFull = POW_NDIM((uint64_t)g9pMask_getDim1DLevel(genics->mask,genics->zoomlevel));
 			fpv_t mass1 = generateICsOut_boxMass(genics->data) / npFull;

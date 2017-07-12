@@ -29,7 +29,7 @@
 /*--- Implementations of exported functions -----------------------------*/
 extern generateICsMode_t
 generateICsMode_new(const bool doGas, const bool useLongIDs, const bool autoCenter, const bool kpc,
-                    const bool sequentialIDs)
+                    const bool sequentialIDs, const bool doMassBlock)
 {
 	generateICsMode_t             mode;
 	struct generateICsMode_struct tmp = {
@@ -37,7 +37,8 @@ generateICsMode_new(const bool doGas, const bool useLongIDs, const bool autoCent
 		.useLongIDs = useLongIDs,
 		.autoCenter = autoCenter,
 		.kpc = kpc,
-		.sequentialIDs = sequentialIDs
+		.sequentialIDs = sequentialIDs,
+		.doMassBlock = doMassBlock
 	};
 
 	mode = xmalloc( sizeof(struct generateICsMode_struct) );
