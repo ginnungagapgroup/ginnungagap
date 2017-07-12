@@ -63,6 +63,8 @@ struct generateICs_IniData_struct {
 	bool   kpc;
 	/** @brief  Stores key @c sequentialIDs. */
 	bool   sequentialIDs;
+	/** @brief  Stores key @c doMassBlock. */
+	bool   doMassBlock;
 	/** @brief  Stores key @c ginnungagapSection. */
 	char   *g9pSection;
 	/** @brief  Stores key @c inputSection. */

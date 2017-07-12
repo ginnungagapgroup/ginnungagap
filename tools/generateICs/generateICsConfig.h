@@ -33,6 +33,8 @@
 /** @brief  Gives the default for producing sequential IDs or not. */
 #define GENERATEICSCONFIG_DEFAULT_SEQUENTIALIDS false
 
+#define GENERATEICSCONFIG_DEFAULT_DOMASSBLOCK false
+
 /** @brief  Gives the default for re-centering to zoom region or not. */
 #define GENERATEICSCONFIG_DEFAULT_AUTOCENTER false
 
