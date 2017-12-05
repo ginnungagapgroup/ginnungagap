@@ -54,13 +54,13 @@ fi
 if [ -z $file_hdf5 ] && [ $hdf5 = true ]
 then
 echo
-echo Trying to get http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.17.tar.gz...
+echo Trying to get https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz...
 echo If it fails, please, download the latest version yourself!
 echo
 
 
-wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.17.tar.gz
-file_hdf5=hdf5-1.8.17.tar.gz
+wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz
+file_hdf5=hdf5-1.8.20.tar.gz
 fi
 
 folder_hdf5="${file_hdf5%.*}"
