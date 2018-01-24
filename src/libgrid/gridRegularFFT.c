@@ -167,6 +167,10 @@ local_getFFTedThings(gridRegularFFT_t fft)
 	fft->gridFFTed    = gridRegular_new(name, origin, extent, dims);
 	fft->distribFFTed = gridRegularDistrib_new(fft->gridFFTed,
 	                                           fft->nProcs);
+	
+	int fn, fd;
+	gridRegularDistrib_getFactor(fft->distrib, &fn, &fd);
+	gridRegularDistrib_setFactorFromDim(fft->distribFFTed, fd, fn);
 #if (defined WITH_MPI)
 	gridRegularDistrib_initMPI(fft->distribFFTed, fft->nProcs,
 	                           MPI_COMM_WORLD);
@@ -185,7 +189,9 @@ local_getFFTedThings(gridRegularFFT_t fft)
 static void
 local_initMPIStuff(gridRegularFFT_t fft)
 {
+	int fn, fd;
 	gridPointInt_t procCoords;
+	gridRegularDistrib_getFactor(fft->distrib, &fn, &fd);
 
 	gridRegularDistrib_getProcCoords(fft->distrib, procCoords);
 	gridRegular_getDims(fft->grid, fft->globalDims[0]);
@@ -205,11 +211,23 @@ local_initMPIStuff(gridRegularFFT_t fft)
 
 	for (int i = 0; i < NDIM; i++) {
 		for (int j = 0; j < NDIM; j++) {
-			gridRegularDistrib_calcIdxsForRank1D(fft->globalDims[i][j],
-			                                     fft->nProcs[j],
-			                                     procCoords[j],
-			                                     fft->localIdxLo[i] + j,
-			                                     fft->localIdxHi[i] + j);
+			//printf("%i %i",i,j);
+			if(fft->globalDims[i][j] == fft->globalDims[0][0])
+				gridRegularDistrib_calcIdxsForRank1D(fft->globalDims[i][j],
+													 fft->nProcs[j],
+													 procCoords[j],
+													 fft->localIdxLo[i] + j,
+													 fft->localIdxHi[i] + j,
+													 1,
+													 1);
+			else
+				gridRegularDistrib_calcIdxsForRank1D(fft->globalDims[i][j],
+													 fft->nProcs[j],
+													 procCoords[j],
+													 fft->localIdxLo[i] + j,
+													 fft->localIdxHi[i] + j,
+													 fn,
+													 fd);
 			fft->localDims[i][j] = fft->localIdxHi[i][j]
 			                       - fft->localIdxLo[i][j] + 1;
 		}

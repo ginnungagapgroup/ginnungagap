@@ -66,7 +66,7 @@ static const char *local_defaultFileNamePrefix = "ic";
 static const char *local_defaultFileNameSuffix = NULL;
 
 /** @brief  Gives the default qualifier of the output file. */
-static const char *local_defaultFileNameQualifier = "_delta";
+static const char *local_defaultFileNameQualifier = "";
 
 
 /*--- Prototypes of local functions -------------------------------------*/

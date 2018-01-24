@@ -43,6 +43,10 @@ struct refineGrid_struct {
 	gridReader_t                reader2;
 	/** @brief  The writer for the output grid. */
 	gridWriter_t                writer;
+	
+	gridRegularDistrib_t        distribIn;
+	gridRegularDistrib_t        distribIn2;
+	gridRegularDistrib_t        distribOut;
 };
 
 

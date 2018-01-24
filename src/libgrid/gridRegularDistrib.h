@@ -166,7 +166,19 @@ gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
                                      int      nProcs,
                                      int      rank,
                                      uint32_t *idxLo,
-                                     uint32_t *idxHi);
+                                     uint32_t *idxHi,
+                                     int      factor_numerator,
+                                     int      factor_denominator);
+
+extern void
+gridRegularDistrib_setFactorFromDim(gridRegularDistrib_t distrib,
+                                    int                  dim1D_current,
+                                    int                  dim1D_proto);
+
+extern void
+gridRegularDistrib_getFactor(gridRegularDistrib_t distrib,
+                             int                  *factor_numerator,
+                             int                  *factor_denominator);
 
 /**
  * @brief  Performs a transposition of the distributed grid.

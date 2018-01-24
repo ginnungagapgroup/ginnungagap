@@ -72,21 +72,27 @@ local_transposeGetPatchT(gridPointUint32_t dimsT,
                          gridPointInt_t    nProcs,
                          gridPointInt_t    pPos,
                          int               dimA,
-                         int               dimB);
+                         int               dimB,
+                         int               fact_n,
+                         int               fact_d);
 
 static varArr_t
 local_transposeGetSendLayout(gridPointUint32_t dims,
                              gridPointInt_t    nProcs,
                              gridPointInt_t    pPos,
                              int               dimA,
-                             int               dimB);
+                             int               dimB,
+                             int               fn,
+                             int               fd);
 
 static varArr_t
 local_transposeGetRecvLayout(gridPointUint32_t dims,
                              gridPointInt_t    nProcs,
                              gridPointInt_t    pPos,
                              int               dimA,
-                             int               dimB);
+                             int               dimB,
+                             int               fn,
+                             int               fd);
 
 static void
 local_transposeAllVarsAtPatch(gridPatch_t    patch,
@@ -149,6 +155,9 @@ gridRegularDistrib_new(gridRegular_t grid, const gridPointInt_t nProcs)
 #endif
 
 	refCounter_init(&(distrib->refCounter));
+	
+	distrib->factor_numerator = 1;
+	distrib->factor_denominator = 1;
 
 	return gridRegularDistrib_getRef(distrib);
 }
@@ -269,7 +278,9 @@ gridRegularDistrib_getPatchForRank(gridRegularDistrib_t distrib, int rank)
 		                                     distrib->nProcs[i],
 		                                     procCoords[i],
 		                                     idxLo + i,
-		                                     idxHi + i);
+		                                     idxHi + i,
+		                                     distrib->factor_numerator,
+		                                     distrib->factor_denominator);
 	}
 
 	return gridPatch_new(idxLo, idxHi);
@@ -299,19 +310,28 @@ gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
                                      int      nProcs,
                                      int      rank,
                                      uint32_t *idxLo,
-                                     uint32_t *idxHi)
+                                     uint32_t *idxHi,
+                                     int      factor_numerator,
+                                     int      factor_denominator)
 {
 	int cellsPerProc;
 	int cellsUnbalance;
+	int fn = factor_numerator;
+	int fd = factor_denominator;
 
 	assert(nCells > 0);
 	assert(nProcs > 0 && nProcs <= nCells);
 	assert(rank >= 0 && rank < nProcs);
 	assert(idxLo != NULL);
 	assert(idxHi != NULL);
+	
+	if(nCells%fd != 0) {
+		fn = 1;
+		fd = 1;
+	}
 
-	cellsPerProc   = nCells / nProcs;
-	cellsUnbalance = nCells % nProcs;
+	cellsPerProc   = (nCells * fn / fd) / nProcs;
+	cellsUnbalance = (nCells * fn / fd) % nProcs;
 
 	*idxLo         = rank * cellsPerProc;
 	if (rank < cellsUnbalance)
@@ -321,6 +341,36 @@ gridRegularDistrib_calcIdxsForRank1D(uint32_t nCells,
 	*idxHi = *idxLo + cellsPerProc - 1;
 	if (rank < cellsUnbalance)
 		(*idxHi)++;
+	*idxLo = *idxLo * fd / fn;
+	*idxHi = (*idxHi + 1) * fd / fn - 1;
+	//printf("#%i %i#%i %i, %i %i\n", fn, fd, nCells, nProcs, *idxLo, *idxHi);
+}
+
+extern void
+gridRegularDistrib_setFactorFromDim(gridRegularDistrib_t distrib,
+                                    int                  dim1D_current,
+                                    int                  dim1D_proto)
+{
+	assert(dim1D_current > dim1D_proto);
+	int a = dim1D_current;
+	int b = dim1D_proto;
+	while(a && b) {
+		if(a>=b)
+			a %= b;
+		else
+			b %= a;
+	}
+	distrib->factor_denominator = dim1D_current / (a | b);
+	distrib->factor_numerator = dim1D_proto / (a | b);
+}
+
+extern void
+gridRegularDistrib_getFactor(gridRegularDistrib_t distrib,
+                             int                  *factor_numerator,
+                             int                  *factor_denominator)
+{
+	*factor_numerator = distrib->factor_numerator;
+	*factor_denominator = distrib->factor_denominator;
 }
 
 extern void
@@ -416,13 +466,19 @@ local_transposeMPIInit(gridRegularDistrib_t distrib,
 	gridRegular_getDims(distrib->grid, dims);
 
 	*sendLayout = local_transposeGetSendLayout(dims, distrib->nProcs, pPos,
-	                                           dimA, dimB);
+	                                           dimA, dimB,
+	                                           distrib->factor_numerator,
+	                                           distrib->factor_denominator);
 	*recvLayout = local_transposeGetRecvLayout(dims, distrib->nProcs, pPos,
-	                                           dimA, dimB);
+	                                           dimA, dimB,
+	                                           distrib->factor_numerator,
+	                                           distrib->factor_denominator);
 
 	*patch  = gridRegular_getPatchHandle(distrib->grid, 0);
 	*patchT = local_transposeGetPatchT(dims, distrib->nProcs,
-	                                   pPos, dimA, dimB);
+	                                   pPos, dimA, dimB,
+	                                   distrib->factor_numerator,
+	                                   distrib->factor_denominator);
 #  ifdef WITH_MPITRACE
 	MPItrace_event(LOCAL_MPITRACE_EVENT, 0);
 #  endif
@@ -444,7 +500,9 @@ local_transposeGetPatchT(gridPointUint32_t dims,
                          gridPointInt_t    nProcs,
                          gridPointInt_t    pPos,
                          int               dimA,
-                         int               dimB)
+                         int               dimB,
+                         int               fact_n,
+                         int               fact_d)
 {
 	gridPointUint32_t idxLo;
 	gridPointUint32_t idxHi;
@@ -456,7 +514,7 @@ local_transposeGetPatchT(gridPointUint32_t dims,
 
 	for (int i = 0; i < NDIM; i++)
 		gridRegularDistrib_calcIdxsForRank1D(dims[i], nProcs[i], pPos[i],
-		                                     idxLo + i, idxHi + i);
+		                                     idxLo + i, idxHi + i, fact_n, fact_d);
 
 	tmp         = idxLo[dimA];
 	idxLo[dimA] = idxLo[dimB];
@@ -477,24 +535,26 @@ local_transposeGetSendLayout(gridPointUint32_t dims,
                              gridPointInt_t    nProcs,
                              gridPointInt_t    pPos,
                              int               t0,
-                             int               t1)
+                             int               t1,
+                             int               fn,
+                             int               fd)
 {
 	gridPointUint32_t loMine, hiMine, lo, hi, loS, hiS;
 	gridPointInt_t    p;
 	varArr_t          layout = varArr_new(nProcs[t0] * nProcs[t1] / 20);
 
 	for (int i = 0; i < NDIM; i++) {
-		getIdx(dims[i], nProcs[i], pPos[i], loMine + i, hiMine + i);
+		getIdx(dims[i], nProcs[i], pPos[i], loMine + i, hiMine + i, fn, fd);
 		loS[i] = loMine[i];
 		hiS[i] = hiMine[i];
 		p[i]   = pPos[i];
 	}
 
 	for (p[t1] = 0; p[t1] < nProcs[t1]; p[t1]++) {
-		getIdx(dims[t0], nProcs[t1], p[t1], lo + t1, hi + t1);
+		getIdx(dims[t0], nProcs[t1], p[t1], lo + t1, hi + t1, fn, fd);
 		if (is(loMine[t0], hiMine[t0], lo[t1], hi[t1], loS, hiS)) {
 			for (p[t0] = 0; p[t0] < nProcs[t0]; p[t0]++) {
-				getIdx(dims[t1], nProcs[t0], p[t0], lo + t0, hi + t0);
+				getIdx(dims[t1], nProcs[t0], p[t0], lo + t0, hi + t0, fn, fd);
 				if (is(loMine[t1], hiMine[t1], lo[t0], hi[t0], loS + t1,
 				       hiS + t1)) {
 					// i, j is the process we need to send loS,hiS to
@@ -511,27 +571,29 @@ local_transposeGetRecvLayout(gridPointUint32_t dims,
                              gridPointInt_t    nProcs,
                              gridPointInt_t    pPos,
                              int               t0,
-                             int               t1)
+                             int               t1,
+                             int               fn,
+                             int               fd)
 {
 	gridPointUint32_t loMine, hiMine, lo, hi, loS, hiS;
 	gridPointInt_t    p;
 	varArr_t          layout = varArr_new(nProcs[t0] * nProcs[t1] / 20);
 
 	for (int i = 0; i < NDIM; i++) {
-		getIdx(dims[i], nProcs[i], pPos[i], loMine + i, hiMine + i);
+		getIdx(dims[i], nProcs[i], pPos[i], loMine + i, hiMine + i, fn, fd);
 		loS[i] = loMine[i];
 		hiS[i] = hiMine[i];
 		p[i]   = pPos[i];
 	}
 
-	getIdx(dims[t0], nProcs[t1], pPos[t1], loMine + t0, hiMine + t0);
-	getIdx(dims[t1], nProcs[t0], pPos[t0], loMine + t1, hiMine + t1);
+	getIdx(dims[t0], nProcs[t1], pPos[t1], loMine + t0, hiMine + t0, fn, fd);
+	getIdx(dims[t1], nProcs[t0], pPos[t0], loMine + t1, hiMine + t1, fn, fd);
 	for (p[t1] = 0; p[t1] < nProcs[t1]; p[t1]++) {
-		getIdx(dims[t1], nProcs[t1], p[t1], lo + t1, hi + t1);
+		getIdx(dims[t1], nProcs[t1], p[t1], lo + t1, hi + t1, fn, fd);
 		if (is(loMine[t1], hiMine[t1], lo[t1], hi[t1], loS + t1, hiS
 		       + t1)) {
 			for (p[t0] = 0; p[t0] < nProcs[t0]; p[t0]++) {
-				getIdx(dims[t0], nProcs[t0], p[t0], lo + t0, hi + t0);
+				getIdx(dims[t0], nProcs[t0], p[t0], lo + t0, hi + t0, fn, fd);
 				if (is(loMine[t0], hiMine[t0], lo[t0], hi[t0], loS, hiS)) {
 					// i, j is the process we will receive loS,hiS from
 					vAi(layout, local_layoutElement_new(loS, hiS, p));

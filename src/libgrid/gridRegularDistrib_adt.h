@@ -17,6 +17,8 @@ struct gridRegularDistrib_struct {
 	gridRegular_t  grid;
 	gridPointInt_t nProcs;
 	int            numProcs;
+	int			   factor_numerator;
+	int            factor_denominator;
 #ifdef WITH_MPI
 	MPI_Comm       commGlobal;
 	MPI_Comm       commCart;

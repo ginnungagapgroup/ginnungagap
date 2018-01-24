@@ -58,46 +58,6 @@
 /*--- Prototypes of local functions -------------------------------------*/
 
 /**
- * @brief  Gets the extent of the grid the process holds of the input grid.
- *
- * @param[in]   inputDim1D
- *                 The dimensions of the input grid.
- * @param[in]   outputDim1D
- *                 The dimensions of the output grid.
- * @param[out]  lastDimLimits
- *                 An array of @c 2 elements that will receive the first and
- *                 the last index of the last dimension (z-Dimension for 3D
- *                 cases).
- *
- * @return  Returns nothing.
- */
-static void
-local_getLastDimLimitsInput(uint32_t inputDim1D,
-                            uint32_t outputDim1D,
-                            uint32_t lastDimLimits[2]);
-
-
-/**
- * @brief  Gets the extent of the grid the process holds of the output grid.
- *
- * @param[in]   inputDim1D
- *                 The dimensions of the input grid.
- * @param[in]   outputDim1D
- *                 The dimensions of the output grid.
- * @param[out]  lastDimLimits
- *                 An array of @c 2 elements that will receive the first and
- *                 the last index of the last dimension (z-Dimension for 3D
- *                 cases).
- *
- * @return  Returns nothing.
- */
-static void
-local_getLastDimLimitsOutput(uint32_t inputDim1D,
-                             uint32_t outputDim1D,
-                             uint32_t lastDimLimits[2]);
-
-
-/**
  * @brief  Gets a simple grid.
  *
  * @param[in]  boxsizeInMpch
@@ -117,9 +77,10 @@ local_getLastDimLimitsOutput(uint32_t inputDim1D,
 static gridRegular_t
 local_getGrid(double         boxsizeInMpch,
               uint32_t       dim1D,
-              const uint32_t lastDimLimits[2],
               const char     *name,
-              const char	 *varName);
+              const char	 *varName,
+              int            dim1D_proto,
+              gridRegularDistrib_t *distrib);
 
 
 /**
@@ -252,6 +213,9 @@ local_CICToSV(fpv_t             *data,
 static void
 local_doFilter(gridRegularFFT_t fft, int cut_kind, uint32_t dim1D);
 
+static void
+local_doShiftFFT(gridRegularFFT_t fft, uint32_t          dim1D);
+
 static cosmoPk_t
 local_calcPk(gridRegularFFT_t gridFFT,
                       uint32_t         dim1D,
@@ -284,30 +248,31 @@ extern refineGrid_t
 refineGrid_newFromIni(parse_ini_t ini)
 {
 	refineGrid_t te;
-	uint32_t               lastDimLimits[2];
-
 	assert(ini != NULL);
+	int  dim1D_proto;
 
 	te        = xmalloc(sizeof(struct refineGrid_struct));
 
 	te->setup = refineGridSetup_newFromIni(ini,
 	                                                 "Setup");
-	local_getLastDimLimitsInput(te->setup->inputDim1D,
-	                            te->setup->outputDim1D,
-	                            lastDimLimits);
+	if(te->setup->outputDim1D > te->setup->inputDim1D) {
+		dim1D_proto = te->setup->inputDim1D;
+	} else {
+		dim1D_proto = te->setup->outputDim1D;
+	}
+	
 	te->gridIn = local_getGrid(te->setup->boxsizeInMpch,
 	                           te->setup->inputDim1D,
-	                           lastDimLimits,
 	                           "Input",
-	                           te->setup->varName);
-	local_getLastDimLimitsOutput(te->setup->inputDim1D,
-	                             te->setup->outputDim1D,
-	                             lastDimLimits);
+	                           te->setup->varName,
+	                           dim1D_proto,
+	                           &te->distribIn);
 	te->gridOut = local_getGrid(te->setup->boxsizeInMpch,
 	                            te->setup->outputDim1D,
-	                            lastDimLimits,
 	                            "Output",
-	                            te->setup->varName);
+	                            te->setup->varName,
+	                            dim1D_proto,
+	                            &te->distribOut);
 	te->reader   = gridReaderFactory_newReaderFromIni(
 		    ini, te->setup->readerSecName);
 	te->writer = gridWriterFactory_newWriterFromIni(
@@ -319,9 +284,10 @@ refineGrid_newFromIni(parse_ini_t ini)
     if(te->setup->addFields) {
 		te->gridIn2 = local_getGrid(te->setup->boxsizeInMpch,
 	                           te->setup->outputDim1D,
-	                           lastDimLimits,
 	                           "Input2",
-	                           te->setup->varName);
+	                           te->setup->varName,
+	                           dim1D_proto,
+	                           &te->distribIn2);
 	    te->reader2   = gridReaderFactory_newReaderFromIni(
 		    ini, te->setup->reader2SecName);
 	} else {
@@ -337,9 +303,7 @@ refineGrid_run(refineGrid_t te)
 {
 	double           timing;
 	gridStatistics_t stat;
-	gridRegularDistrib_t distrib, distrib1, distrib2;
 	gridRegularFFT_t fft1, fft2;
-	gridPointInt_t nProc;
         double   mean;
 	int              rank = 0, size = 1;
 #ifdef WITH_MPI
@@ -347,12 +311,8 @@ refineGrid_run(refineGrid_t te)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
 
-	nProc[0] = 1;
-	nProc[1] = 1;
-	nProc[2] = 0;
-
 	assert(te != NULL);
-
+	
 	stat   = gridStatistics_new();
 
 	timing = timer_start_text("  Filling input grid... ");
@@ -360,10 +320,8 @@ refineGrid_run(refineGrid_t te)
 	timing = timer_stop_text(timing, "took %.5fs\n");
 
 	timing = timer_start_text("  Calculating statistics on input grid... ");
-	distrib1 = gridRegularDistrib_new(te->gridIn, NULL);
 #ifdef WITH_MPI	
-	gridRegularDistrib_initMPI(distrib1, nProc, MPI_COMM_WORLD);
-	gridStatistics_calcGridRegularDistrib(stat, distrib1, 0);
+	gridStatistics_calcGridRegularDistrib(stat, te->distribIn, 0);
 #else
 	gridStatistics_calcGridRegular(stat, te->gridIn, 0);
 #endif
@@ -378,10 +336,8 @@ refineGrid_run(refineGrid_t te)
 		timing = timer_stop_text(timing, "took %.5fs\n");
 	
 		timing = timer_start_text("  Calculating statistics on second input grid... ");
-		distrib2 = gridRegularDistrib_new(te->gridIn2, NULL);
 #ifdef WITH_MPI	
-		gridRegularDistrib_initMPI(distrib2, nProc, MPI_COMM_WORLD);
-		gridStatistics_calcGridRegularDistrib(stat, distrib2, 0);
+		gridStatistics_calcGridRegularDistrib(stat, te->distribIn2, 0);
 #else
 		gridStatistics_calcGridRegular(stat, te->gridIn2, 0);
 #endif
@@ -391,7 +347,7 @@ refineGrid_run(refineGrid_t te)
 			
 		
 		timing = timer_start_text("  Filtering first grid in k-space... ");
-		fft1 = gridRegularFFT_new(te->gridIn,distrib1,0);
+		fft1 = gridRegularFFT_new(te->gridIn,te->distribIn,0);
 		gridRegularFFT_execute(fft1, GRIDREGULARFFT_FORWARD);
 		local_doFilter(fft1,CUT_SMALL,te->setup->inputDim1D);
 		gridRegularFFT_execute(fft1, GRIDREGULARFFT_BACKWARD);
@@ -400,11 +356,21 @@ refineGrid_run(refineGrid_t te)
 		timing = timer_stop_text(timing, "took %.5fs\n");
 		
 		timing = timer_start_text("  Filtering second grid in k-space... ");
-		fft2 = gridRegularFFT_new(te->gridIn2,distrib2,0);
+		fft2 = gridRegularFFT_new(te->gridIn2,te->distribIn2,0);
 		gridRegularFFT_execute(fft2, GRIDREGULARFFT_FORWARD);
 		local_doFilter(fft2,CUT_LARGE,te->setup->inputDim1D);
 		gridRegularFFT_execute(fft2, GRIDREGULARFFT_BACKWARD);
 		gridRegularFFT_del(&fft2);
+		timing = timer_stop_text(timing, "took %.5fs\n");
+	}
+	
+	if(te->setup->inputDim1D > te->setup->outputDim1D) {
+		timing = timer_start_text("  FFT correction before NGP interpolation... ");
+		fft1 = gridRegularFFT_new(te->gridIn,te->distribIn,0);
+		gridRegularFFT_execute(fft1, GRIDREGULARFFT_FORWARD);
+		local_doShiftFFT(fft1,te->setup->inputDim1D);
+		gridRegularFFT_execute(fft1, GRIDREGULARFFT_BACKWARD);
+		gridRegularFFT_del(&fft1);
 		timing = timer_stop_text(timing, "took %.5fs\n");
 	}
 
@@ -414,9 +380,7 @@ refineGrid_run(refineGrid_t te)
 
 	timing = timer_start_text("  Calculating statistics on output grid... ");
 #ifdef WITH_MPI 
-        distrib = gridRegularDistrib_new(te->gridOut, NULL);
-        gridRegularDistrib_initMPI(distrib, nProc, MPI_COMM_WORLD);
-        gridStatistics_calcGridRegularDistrib(stat, distrib, 0);
+        gridStatistics_calcGridRegularDistrib(stat, te->distribOut, 0);
 #else
 	gridStatistics_calcGridRegular(stat, te->gridOut, 0);
 #endif
@@ -431,7 +395,7 @@ refineGrid_run(refineGrid_t te)
 	timing = timer_stop_text(timing, "took %.5fs\n");
 
 	if(te->setup->doPk) {
-		gridRegularFFT_t fft = gridRegularFFT_new(te->gridOut,distrib,0);
+		gridRegularFFT_t fft = gridRegularFFT_new(te->gridOut,te->distribOut,0);
 		cosmoPk_t pk;
 		timing = timer_start_text("  Calculating P(k)...");
 		gridRegularFFT_execute(fft, GRIDREGULARFFT_FORWARD);
@@ -576,6 +540,60 @@ local_doFilter(gridRegularFFT_t fft, int cut_kind, uint32_t          dim1D)
 	}
 }
 
+
+static void
+local_doShiftFFT(gridRegularFFT_t fft, uint32_t          dim1D)
+{
+	double norm          = (gridRegularFFT_getNorm(fft));
+	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
+	fpvComplex_t      *data;
+
+	local_getGridStuff(fft, dim1D, &data, dimsGrid, dimsPatch,
+	                   idxLo, kMaxGrid);
+	                   
+	const uint32_t realGrid = dimsGrid[0]>dimsGrid[1] ? dimsGrid[0] : dimsGrid[1]; // because one of them is r2c dimension
+	
+#ifdef _OPENMP
+#  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, \
+	dimsGrid, data)
+#endif
+	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
+		int64_t kReal[3];
+		kReal[2] = k + idxLo[2];
+		WRAP_WAVENUM(kReal[2], kMaxGrid[2], dimsGrid[2]);
+		double kz = ((double)kReal[2])/dim1D;
+		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
+			kReal[1] = j + idxLo[1];
+			WRAP_WAVENUM(kReal[1], kMaxGrid[1], dimsGrid[1]);
+			double ky = ((double)kReal[1])/dim1D;
+			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
+				double   kCellSqr;
+				uint64_t idx;
+
+				kReal[0] = i + idxLo[0];
+				WRAP_WAVENUM(kReal[0], kMaxGrid[0], dimsGrid[0]);
+				double kx = ((double)kReal[0])/dim1D;
+
+				idx      = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCellSqr = ((double)(WAVE_SQR(kReal)));
+				
+
+				if ((kReal[0] == 0) && (kReal[1] == 0)
+				    && (kReal[2] == 0)) {
+					data[idx] = 0.0;
+				} else {
+					data[idx] *= (fpv_t)(norm);
+					data[idx] *= cos(M_PI*(kx+ky+kz))+I*sin(M_PI*(kx+ky+kz));
+					if(abs(kx)>0.25 || abs(ky)>0.25 || abs(kz)>0.25)
+							data[idx] = FPV_C(0.0);
+				}
+			}
+		}
+	}
+}
+
+
+
 static cosmoPk_t
 local_calcPk(gridRegularFFT_t gridFFT,
                       uint32_t         dim1D,
@@ -674,85 +692,46 @@ local_reducePk(double *pK, double *k, uint32_t *nums, uint32_t kMaxGrid)
 
 #endif
 
-static void
-local_getLastDimLimitsInput(uint32_t inputDim1D,
-                            uint32_t outputDim1D,
-                            uint32_t lastDimLimits[2])
-{
-	int tile     = 0;
-	int numTiles = 1;
-#ifdef WITH_MPI
-	MPI_Comm_size(MPI_COMM_WORLD, &numTiles);
-	MPI_Comm_rank(MPI_COMM_WORLD, &tile);
-#endif
-
-	if (inputDim1D <= outputDim1D) {
-		tile_calcIdxsELAE(inputDim1D, numTiles, tile,
-		                  lastDimLimits, lastDimLimits + 1);
-	} else {
-		assert(inputDim1D % outputDim1D == 0);
-		//int factor = inputDim1D / outputDim1D;
-		tile_calcIdxsELAE(outputDim1D, numTiles, tile,
-		                  lastDimLimits, lastDimLimits + 1);
-		lastDimLimits[0] = lastDimLimits[0] * inputDim1D / outputDim1D;
-		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * inputDim1D / outputDim1D) - 1;
-	}
-}
-
-static void
-local_getLastDimLimitsOutput(uint32_t inputDim1D,
-                             uint32_t outputDim1D,
-                             uint32_t lastDimLimits[2])
-{
-	int tile     = 0;
-	int numTiles = 1;
-#ifdef WITH_MPI
-	MPI_Comm_size(MPI_COMM_WORLD, &numTiles);
-	MPI_Comm_rank(MPI_COMM_WORLD, &tile);
-#endif
-
-	if (outputDim1D <= inputDim1D) {
-		tile_calcIdxsELAE(outputDim1D, numTiles, tile,
-		                  lastDimLimits, lastDimLimits + 1);
-	} else {
-		assert(outputDim1D % inputDim1D == 0);
-		//int factor = outputDim1D / inputDim1D;
-		tile_calcIdxsELAE(inputDim1D, numTiles, tile,
-						  lastDimLimits, lastDimLimits + 1);
-		lastDimLimits[0] = lastDimLimits[0] * outputDim1D / inputDim1D;
-		lastDimLimits[1]  = ((lastDimLimits[1] + 1) * outputDim1D / inputDim1D) - 1;
-	}
-}
-
 static gridRegular_t
 local_getGrid(double         boxsizeInMpch,
               uint32_t       dim1D,
-              const uint32_t lastDimLimits[2],
               const char     *name,
-              const char	 *varName)
+              const char	 *varName,
+              int            dim1D_proto,
+              gridRegularDistrib_t *distrib)
 {
-	assert(lastDimLimits[0] <= lastDimLimits[1]);
-	assert(lastDimLimits[1] < dim1D);
-
 	gridPointDbl_t    origin, extent;
 	gridPointUint32_t dims;
 	gridRegular_t     grid;
 	gridPatch_t       patch;
-	gridPointUint32_t idxLo;
-	gridPointUint32_t idxHi;
 	dataVar_t         var;
+	gridPointInt_t nProc;
+
+	nProc[0] = 1;
+	nProc[1] = 1;
+	nProc[2] = 0;
 
 	for (int i = 0; i < NDIM; i++) {
 		origin[i] = 0.0;
 		extent[i] = (double)(boxsizeInMpch);
 		dims[i]   = dim1D;
-		idxLo[i]  = (i < NDIM - 1) ? 0 : lastDimLimits[0];
-		idxHi[i]  = (i < NDIM - 1) ? dim1D - 1 : lastDimLimits[1];
 	}
 	grid  = gridRegular_new(name, origin, extent, dims);
-
-	patch = gridPatch_new(idxLo, idxHi);
+	
+	*distrib = gridRegularDistrib_new(grid, NULL);
+#ifdef WITH_MPI	
+	gridRegularDistrib_initMPI(*distrib, nProc, MPI_COMM_WORLD);
+#endif
+    int rank = gridRegularDistrib_getLocalRank(*distrib);
+    gridRegularDistrib_setFactorFromDim(*distrib, dim1D, dim1D_proto);
+    int a,b;
+    gridRegularDistrib_getFactor(*distrib, &a,&b);
+	patch = gridRegularDistrib_getPatchForRank(*distrib, rank);
 	gridRegular_attachPatch(grid, patch);
+	gridPointUint32_t idxLo, dimspatch;
+	gridPatch_getIdxLo(patch, idxLo);
+	gridPatch_getDims(patch, dimspatch);
+	
 
 	var = dataVar_new(varName, DATAVARTYPE_FPV, 1);
 #ifdef WITH_FFT_FFTW3
@@ -900,8 +879,6 @@ local_enforceConstraints(fpv_t             *dataOut,
                          const gridRegular_t gridIn)
 {
 	gridPointUint32_t dimsSV;
-	gridRegularDistrib_t distrib;
-	gridPointInt_t       procCoords;
 	uint64_t bufsize = dimsIn[0]*dimsIn[1];
 
 	fpv_t buffSendLo[bufsize];
