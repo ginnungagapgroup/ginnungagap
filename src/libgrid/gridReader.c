@@ -105,14 +105,14 @@ gridReader_getFileName(const gridReader_t reader)
 }
 
 extern void
-gridReaderHDF5_setDoPatch(gridReader_t reader, bool doPatch)
+gridReader_setDoPatch(gridReader_t reader, bool doPatch)
 {
 	assert(reader != NULL);
 	reader->doPatch = doPatch;
 }
 
 extern void
-gridReaderHDF5_setRtw(gridReader_t reader, int32_t *Lo, gridPointUint32_t d)
+gridReader_setRtw(gridReader_t reader, int32_t *Lo, gridPointUint32_t d)
 {
 	assert(reader != NULL);
 	for(int i=0;i<NDIM; i++) {
@@ -122,7 +122,7 @@ gridReaderHDF5_setRtw(gridReader_t reader, int32_t *Lo, gridPointUint32_t d)
 }
 
 extern void
-gridReaderHDF5_setDims(gridReader_t reader, int32_t dim1D)
+gridReader_setDims(gridReader_t reader, int32_t dim1D)
 {
 	assert(reader != NULL);
 	for(int i=0;i<NDIM; i++) {

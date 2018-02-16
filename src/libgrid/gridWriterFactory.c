@@ -138,7 +138,13 @@ gridWriterFactory_newFromIniGrafic(parse_ini_t ini, const char *sectionName)
 	} else {
 		double tmp;
 		float  xOff[3] = {0.0, 0.0, 0.0};
+		uint32_t	*patchLo = NULL;
 		getFromIni(&tmp, parse_ini_get_double, ini, "dx", sectionName);
+		if (parse_ini_get_int32list(ini, "patchLo", sectionName, 3,
+	                             (int32_t **)&patchLo)) {
+			for(int i=0;i<NDIM;i++)
+				xOff[i] = patchLo[i] * (float)tmp;
+		}
 		grafic_setDx(grafic, (float)tmp);
 		grafic_setXoff(grafic, xOff);
 		getFromIni(&tmp, parse_ini_get_double, ini, "astart", sectionName);

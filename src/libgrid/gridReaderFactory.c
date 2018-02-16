@@ -97,6 +97,12 @@ gridReaderFactory_newFromIniGrafic(parse_ini_t ini,
 	}
 
 	gridReader_setFileName((gridReader_t)reader, fn);
+	
+	tmp = parse_ini_get_bool(ini, "doPatch", sectionName,
+							 &doPatch);
+	if (tmp && doPatch) {
+		local_doPatch(ini, sectionName, reader);
+	}
 
 	return reader;
 }
@@ -154,6 +160,7 @@ gridReaderFactory_newFromIniHDF5(parse_ini_t ini,
 
 	return reader;
 }
+#endif
 
 static void
 local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader)
@@ -164,7 +171,7 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader)
 	
 	int32_t  patchLo[3];
 	gridPointUint32_t patchDims;
-	gridReaderHDF5_setDoPatch(reader, true);
+	gridReader_setDoPatch(reader, true);
 	
 	tmp = parse_ini_get_string(ini, "patchSection", sectionName,
 			&patchSection);
@@ -245,7 +252,7 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader)
 	int32_t  	dim1D;
 	if(!parse_ini_get_int32(ini, "dim1D", patchSection,
 						&dim1D))     dim1D = 10000000;
-	gridReaderHDF5_setDims(reader,dim1D);
+	gridReader_setDims(reader,dim1D);
 	
 	int rank = 0;
 #ifdef WITH_MPI
@@ -256,10 +263,10 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader)
 		printf("Patch Lo, cells: %i %i %i\n", patchLo[0], patchLo[1], patchLo[2]);
 		printf("Patch Dims, cells: %i %i %i\n\n", patchDims[0], patchDims[1], patchDims[2]);
 	}
-	gridReaderHDF5_setRtw(reader, patchLo, patchDims);
+	gridReader_setRtw(reader, patchLo, patchDims);
 }
 
-#endif
+
 
 /*--- Implementations of local functions --------------------------------*/
 static gridReader_t

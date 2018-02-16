@@ -141,6 +141,10 @@ gridWriterGrafic_deactivate(gridWriter_t writer)
 	}
 }
 
+#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+#define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
+
+
 extern void
 gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
                                 gridPatch_t    patch,
@@ -155,6 +159,7 @@ gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
 	gridPointUint32_t  dims;
 	gridPointUint32_t  idxLo;
 	graficFormat_t     format;
+	float 		xOff[3];
 
 	assert(w != NULL);
 	assert(w->base.type == GRIDIO_TYPE_GRAFIC);
@@ -172,9 +177,49 @@ gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
 	data          = gridPatch_getVarDataHandle(patch, 0);
 	numComponents = dataVar_getNumComponents(var);
 	format        = local_getGraficTypeFromGridType(var);
+	
+	grafic_getXoff(w->grafic, xOff);
+	
+	if(xOff[0]!=0.0 || xOff[1]!=0.0 || xOff[2]!=0) {
+		gridPointUint32_t rtwDims;
+		gridPointUint32_t idxHi;
+		gridPointUint32_t rtwLo, rtwHi;
+		gridPointUint32_t copyLo, copyHi;
+		gridPointUint32_t dataLo, dataHi, dataDims;
+		gridPointUint32_t graficLo, graficDims, graficHi;
+		dx = grafic_getDx(w->grafic);
+		grafic_getSize(w->grafic, rtwDims);
+		for(int k; k<NDIM; k++) {
+			rtwLo[k] = (uint32_t) xOff/dx;
+			graficLo[k] = MAX(0, idxLo[k] - rtwLo[k]);
+			dataLo[k] = MAX(0, rtwLo[k] - idxLo[k]);
+			copyLo[k] = MAX(idxLo[k], rtwLo[k]);
+			
+			idxHi[k] = idxLo[k] + dims[k] - 1; 
+			rtwHi[k] = rtwLo[k] + rtwDims[k] - 1;
+			graficHi[k] = MIN(rtwDims[k] - 1, idxHi[k] - rtwLo[k]);
+			dataHi[k] = MIN(dims[k] - 1, rtwHi[k] - idxLo[k]);
+			copyHi[k] = MIN(idxHi[k], rtwHi[k]);
+			
+			dataDims[k] = dataHi[k] - dataLo[k] + 1;
+			graficDims[k] = graficHi[k] - graficLo[k] + 1;
+		}
+		void *data_rtw = NULL;
+		data_rtw = gridPatch_getWindowedDataCopy(patch, 0, copyLo, copyHi, NULL); 
+		
+		grafic_writeWindowed(w->grafic, data_rtw, format, numComponents,
+	                     graficLo, graficDims);
+	    
+	    if (data_rtw != NULL) {
+			dataVar_freeMemory(var, data_rtw);
+		}
+	                     
+	} else {
 
-	grafic_writeWindowed(w->grafic, data, format, numComponents,
+		grafic_writeWindowed(w->grafic, data, format, numComponents,
 	                     idxLo, dims);
+	                     
+	}
 }
 
 extern void

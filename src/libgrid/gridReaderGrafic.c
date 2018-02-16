@@ -116,6 +116,19 @@ gridReaderGrafic_readIntoPatchForVar(gridReader_t reader,
 	dims[2]  = 1;
 #endif
 
+	if(reader->doPatch) {
+		float xoff[3];
+		float dx = grafic_getDx( ((gridReaderGrafic_t)reader)->grafic );
+		grafic_getXoff( ((gridReaderGrafic_t)reader)->grafic, xoff )
+		for(int i=0;i<NDIM;i++) {
+			idxLo[i] -= (int)xoff[i]/dx;
+			assert(idxLo[i]>=0);
+			// need to add:
+			//  * intersection of patches
+			//  * box boundary
+		}
+	}
+
 	grafic_readWindowed(((gridReaderGrafic_t)reader)->grafic, data,
 	                    typeAsGraficType, numComponents, idxLo, dims);
 }

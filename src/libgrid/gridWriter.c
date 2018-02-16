@@ -176,6 +176,24 @@ gridWriter_hasBeenActivated(const gridWriter_t writer)
 	return writer->hasBeenActivated;
 }
 
+extern void
+gridWriter_setDoPatch(gridWriter_t w, bool doPatch)
+{
+	assert(w != NULL);
+	w->doPatch = doPatch;
+}
+
+extern void
+gridWriter_setRtw(gridWriter_t w, int32_t* Lo, gridPointUint32_t d)
+{
+	assert(w != NULL);
+	for(int i=0;i<NDIM; i++) {
+		w->rtwLo[i] = Lo[i];
+		w->rtwDims[i] = d[i];
+	}
+}
+
+
 /*--- Implementations of protected functions ----------------------------*/
 extern void
 gridWriter_init(gridWriter_t      writer,
@@ -190,6 +208,7 @@ gridWriter_init(gridWriter_t      writer,
 	writer->hasBeenActivated      = false;
 	writer->overwriteFileIfExists = false;
 	writer->fileName              = NULL;
+	writer->doPatch				  = false;
 }
 
 extern void
