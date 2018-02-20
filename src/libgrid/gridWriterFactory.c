@@ -20,6 +20,7 @@
 #include "../libutil/diediedie.h"
 #include "gridIOCommon.h"
 #include "gridWriterGrafic.h"
+#include "gridWriterGrafic_adt.h"
 #ifdef WITH_SILO
 #  include "gridWriterSilo.h"
 #  include <silo.h>
@@ -79,7 +80,7 @@ local_getWriter(parse_ini_t ini, const char *secName, gridIO_type_t type);
 
 #ifdef WITH_HDF5
 static void
-local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer);
+local_doPatch(parse_ini_t ini, const char *sectionName, gridWriter_t writer);
 #endif
 
 /*--- Implementations of exported functions -----------------------------*/
@@ -137,16 +138,20 @@ gridWriterFactory_newFromIniGrafic(parse_ini_t ini, const char *sectionName)
 		grafic_setIseed(grafic, iseed);
 	} else {
 		double tmp;
+		double *dataXoff;
 		float  xOff[3] = {0.0, 0.0, 0.0};
-		uint32_t	*patchLo = NULL;
+		bool		doPatch = false;
 		getFromIni(&tmp, parse_ini_get_double, ini, "dx", sectionName);
-		if (parse_ini_get_int32list(ini, "patchLo", sectionName, 3,
-	                             (int32_t **)&patchLo)) {
-			for(int i=0;i<NDIM;i++)
-				xOff[i] = patchLo[i] * (float)tmp;
-		}
 		grafic_setDx(grafic, (float)tmp);
+		if (parse_ini_get_doublelist(ini, "xoff", sectionName, 3,
+	                             (double **)&dataXoff)) {
+			for(int i=0;i<NDIM;i++)
+				xOff[i] = (float)dataXoff[i];
+		}
 		grafic_setXoff(grafic, xOff);
+		if (parse_ini_get_bool(ini, "doPatch", sectionName,&doPatch)) {
+			local_doPatch(ini, sectionName, (gridWriter_t)writer);
+		}
 		getFromIni(&tmp, parse_ini_get_double, ini, "astart", sectionName);
 		grafic_setAstart(grafic, (float)tmp);
 		getFromIni(&tmp, parse_ini_get_double, ini, "omegam", sectionName);
@@ -202,7 +207,7 @@ gridWriterFactory_newFromIniHDF5(parse_ini_t ini, const char *sectionName)
 	tmp = parse_ini_get_bool(ini, "doPatch", sectionName,
 							 &doPatch);
 	if (tmp && doPatch) {
-		local_doPatch(ini, sectionName, writer);
+		local_doPatch(ini, sectionName, (gridWriter_t)writer);
 	}
 
 
@@ -210,7 +215,7 @@ gridWriterFactory_newFromIniHDF5(parse_ini_t ini, const char *sectionName)
 } /* gridWriterFactory_newFromIniHDF5 */
 
 static void
-local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer)
+local_doPatch(parse_ini_t ini, const char *sectionName, gridWriter_t writer)
 {
 	char*		patchSection;
 	char*		unit;
@@ -219,7 +224,8 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer)
 	
 	int32_t patchLo[3];
 	gridPointUint32_t patchDims;
-	gridWriterHDF5_setDoPatch(writer, true);
+	//gridWriterHDF5_setDoPatch(writer, true);
+	writer->doPatch = true;
 	
 	tmp = parse_ini_get_string(ini, "patchSection", sectionName,
 			&patchSection);
@@ -306,7 +312,12 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridWriterHDF5_t writer)
 		printf("Patch Dims, cells: %i %i %i\n\n", patchDims[0], patchDims[1], patchDims[2]);
 	}
 	
-	gridWriterHDF5_setRtw(writer, patchLo, patchDims);
+	//gridWriterHDF5_setRtw(writer, patchLo, patchDims);
+	
+	for(int i=0;i<NDIM;i++) {
+				writer->rtwLo[i] = patchLo[i];
+				writer->rtwDims[i] = patchDims[i];
+			}
 }
 #endif
 

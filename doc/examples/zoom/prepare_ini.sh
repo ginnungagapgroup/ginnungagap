@@ -2,7 +2,7 @@
 
 shopt -s extglob
 
-version=27.06.2017
+version=20.02.2018
 
 ###########################################
 
@@ -61,11 +61,11 @@ addFields = false
 doPk = false
 
 [inputReader]
-type = hdf5
+type = $outFieldFormat
 prefix = $velnext
 
 [outputWriter]
-type = hdf5
+type = $outFieldFormat
 prefix = $velPure
 overwriteFileIfExists = true
 writerSection = writeHDF
@@ -73,6 +73,7 @@ writerSection = writeHDF
 [writeHDF]
 doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
+$graficStuff
 "
 iniwriter_multi $1
 }
@@ -92,20 +93,21 @@ addFields = false
 doPk = false
 
 [inputReader]
-type = hdf5
+type = $outFieldFormat
 prefix = $velprev
 
 [outputWriter]
-type = hdf5
+type = $outFieldFormat
 prefix = "$velPrefix$mprev''_cut_velx"
 overwriteFileIfExists = true
-writerSection = writeHDF
+writerSection = write
 
-[writeHDF]
+[write]
 doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
 doPatch = true
 patchSection = Patch
+$graficStuff
 
 [Patch]
 unit = cells
@@ -169,12 +171,12 @@ addFields = true
 doPk = false
 
 [inputReader]
-type = hdf5
+type = $outFieldFormat
 prefix = $velLarge
 readerSection = readLarge
 
 [reader2]
-type = hdf5
+type = $outFieldFormat
 prefix = $velSmall
 readerSection = readSmall
 
@@ -245,7 +247,7 @@ doSmallScale = $doSmallScale
 cutoffScale = $cutoffScale
 
 [Output]
-type = hdf5
+type = $outFieldFormat
 path = ./
 # this is different for each level:
 prefix = $2
@@ -254,11 +256,11 @@ overwriteFileIfExists = true
 writerSection = OutputHDF5
 
 [OutputHDF5]
-suffix = .h5
 doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
 doPatch = $doPatchThis
 patchSection = Patch
+$graficStuff
 
 [Patch]
 unit = cells
@@ -600,8 +602,10 @@ velStart=$velPath$velPrefix$startMesh''_velx$velSuffix
 velLarge=$velPrefix$startMesh''_large_velx$velSuffix
 
 if [ $grafic == 'true' ]; then
-   doDelta=true
+   doDelta='true'
+   velSuffix=''
 fi
+xoff="0.0 0.0 0.0"
 
 minMesh=${meshArr[0]}
 maxMesh=${meshArr[${#meshArr[@]}-1]}
@@ -779,6 +783,22 @@ for m in ${meshes}; do
         refCutIni=ref_x_cut_$mprev.ini
         echo "$velCut : $velPrefix$mprev""_velx$velSuffix $refCutIni $refCutBat" >> Makefile
         rule "$submitCommand" ./$refCutBat
+        if [ $grafic == 'true' ]; then
+			outFieldFormat=grafic
+			dx=`echo $Box $m $modelHubble | awk '{print 1.*$1/$2/$3}'`
+			hubble=`echo $modelHubble | awk '{print $1*100.}'`
+			xoff=`echo $dx $xoff $patchLoCut | awk '{print $2+$5*$1, $3+$6*$1, $4+$7*$1}'`
+			ainit=`echo $zInit | awk '{print 1./($1+1.)}'`
+			graficStuff="isWhiteNoise = false
+size = $patchDimsCut
+xoff = $xoff
+dx = $dx
+astart = $ainit
+omegam = $modelOmegaMatter0
+omegav = $modelOmegaLambda0
+h0 = $hubble
+"
+		fi
         refineCreatorCut $refCutIni
         refineCreatorCutWN ref_wn_cut_$mprev.ini
         wnCut=$wnPrefix$mprev''_cut$wnSuffix
@@ -882,6 +902,23 @@ for m in ${meshes}; do
    # choose how we make the velocity fields
    
    cutoffScale=`echo $startMesh | awk '{print '$Box'/$1*1.1/3.14}'`
+
+     if [ $grafic == 'true' ]; then
+        outFieldFormat=grafic
+        dx=`echo $Box $m $modelHubble | awk '{print 1.*$1/$2/$3}'`
+        hubble=`echo $modelHubble | awk '{print $1*100.}'`
+        ainit=`echo $zInit | awk '{print 1./($1+1.)}'`
+        graficStuff="isWhiteNoise = false
+size = $actualMesh, $actualMesh, $actualMesh
+xoff = $xoff
+dx = $dx
+astart = $ainit
+omegam = $modelOmegaMatter0
+omegav = $modelOmegaLambda0
+h0 = $hubble
+"
+     fi
+
    
    if [ $m -eq $startMesh ]; then
      
@@ -911,20 +948,6 @@ for m in ${meshes}; do
      echo "$vel : $velSmall $velLarge $refIni" >> Makefile
      rule "$submitCommand" ./$refBat
 
-     if [ $m -eq $maxMesh -a $grafic == 'true' ]; then
-        outFieldFormat=grafic
-        dx=`echo $Box $m $modelHubble | awk '{print 1.*$1/$2/$3}'`
-        hubble=`echo $modelHubble | awk '{print $1*100.}'`
-        ainit=`echo $zInit | awk '{print 1./($1+1.)}'`
-        graficStuff="isWhiteNoise = false
-size = $m, $m, $m
-dx = $dx
-astart = $ainit
-omegam = $modelOmegaMatter0
-omegav = $modelOmegaLambda0
-h0 = $hubble
-"
-     fi
      
      refineCreatorAdd $refIni
      refBatCreator $refBat
@@ -978,13 +1001,17 @@ h0 = $hubble
    #fi
    
    if [ $doZoom == true -o $m -eq $minMesh ]; then
-    allFiles="$allFiles $gadgetFile"
+     if [ $grafic == false ]; then
+       allFiles="$allFiles $gadgetFile"
     
-    echo "$gadgetFile : $vel $genIni" >> Makefile
-    rule "$submitCommand" ./$genBat
+       echo "$gadgetFile : $vel $genIni" >> Makefile
+       rule "$submitCommand" ./$genBat
     
-    genicsCreator $genIni
-    genicsBatCreator $genBat
+       genicsCreator $genIni
+       genicsBatCreator $genBat
+     else
+       allFiles="$allFiles $vel"
+     fi
    fi
    
    wnprev=$wn
@@ -997,6 +1024,7 @@ h0 = $hubble
    
 done
 echo "gadget : first-rule $allFiles" >> Makefile
+echo "grafic : first-rule $allFiles" >> Makefile
 
 echo $firstRule >> Makefile
 

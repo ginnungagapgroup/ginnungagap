@@ -15,6 +15,7 @@
 /*--- Includes ----------------------------------------------------------*/
 #include "gridConfig.h"
 #include "gridWriterGrafic.h"
+#include "gridWriterGrafic_adt.h"
 #include <assert.h>
 #include <string.h>
 #ifdef WITH_MPI
@@ -178,34 +179,30 @@ gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
 	numComponents = dataVar_getNumComponents(var);
 	format        = local_getGraficTypeFromGridType(var);
 	
-	grafic_getXoff(w->grafic, xOff);
-	
-	if(xOff[0]!=0.0 || xOff[1]!=0.0 || xOff[2]!=0) {
-		gridPointUint32_t rtwDims;
+	if(writer->doPatch) {
 		gridPointUint32_t idxHi;
-		gridPointUint32_t rtwLo, rtwHi;
+		gridPointUint32_t rtwHi;
 		gridPointUint32_t copyLo, copyHi;
-		gridPointUint32_t dataLo, dataHi, dataDims;
+		//gridPointUint32_t dataLo, dataHi, dataDims;
 		gridPointUint32_t graficLo, graficDims, graficHi;
-		dx = grafic_getDx(w->grafic);
-		grafic_getSize(w->grafic, rtwDims);
 		for(int k; k<NDIM; k++) {
-			rtwLo[k] = (uint32_t) xOff/dx;
-			graficLo[k] = MAX(0, idxLo[k] - rtwLo[k]);
-			dataLo[k] = MAX(0, rtwLo[k] - idxLo[k]);
-			copyLo[k] = MAX(idxLo[k], rtwLo[k]);
+			graficLo[k] = MIN(0, idxLo[k] - writer->rtwLo[k]);
+			//dataLo[k] = MAX(0, writer->rtwLo[k] - idxLo[k]);
+			copyLo[k] = MAX(idxLo[k], writer->rtwLo[k]);
 			
 			idxHi[k] = idxLo[k] + dims[k] - 1; 
-			rtwHi[k] = rtwLo[k] + rtwDims[k] - 1;
-			graficHi[k] = MIN(rtwDims[k] - 1, idxHi[k] - rtwLo[k]);
-			dataHi[k] = MIN(dims[k] - 1, rtwHi[k] - idxLo[k]);
+			rtwHi[k] = writer->rtwLo[k] + writer->rtwDims[k] - 1;
+			graficHi[k] = MIN(writer->rtwDims[k] - 1, idxHi[k] - writer->rtwLo[k]);
+			//dataHi[k] = MIN(dims[k] - 1, rtwHi[k] - idxLo[k]);
 			copyHi[k] = MIN(idxHi[k], rtwHi[k]);
 			
-			dataDims[k] = dataHi[k] - dataLo[k] + 1;
+			//dataDims[k] = dataHi[k] - dataLo[k] + 1;
 			graficDims[k] = graficHi[k] - graficLo[k] + 1;
 		}
 		void *data_rtw = NULL;
 		data_rtw = gridPatch_getWindowedDataCopy(patch, 0, copyLo, copyHi, NULL); 
+		
+		//printf("lo, dims: %i %i %i, %i %i %i\n", graficLo[0],graficLo[1],graficLo[2],graficDims[0],graficDims[1],graficDims[2]);
 		
 		grafic_writeWindowed(w->grafic, data_rtw, format, numComponents,
 	                     graficLo, graficDims);

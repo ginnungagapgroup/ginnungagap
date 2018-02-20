@@ -201,7 +201,13 @@ gridWriterHDF5_setDoCompression(gridWriterHDF5_t w, bool doCompression);
 extern void
 gridWriterHDF5_setCompressionFilter(gridWriterHDF5_t w,
                                     const char       *filterName);
-                                    
+       
+       
+extern void
+gridWriterHDF5_setDoPatch(gridWriterHDF5_t w, bool doPatch);
+
+extern void
+gridWriterHDF5_setRtw(gridWriterHDF5_t w, int32_t* Lo, gridPointUint32_t d);                             
 
 /** @} */
 

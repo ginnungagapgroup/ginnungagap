@@ -21,9 +21,11 @@
 #include "gridIO.h"
 #include "gridIOCommon.h"
 #include "gridReaderGrafic.h"
+#include "gridReaderGrafic_adt.h"
 #include "gridReaderBov.h"
 #ifdef WITH_HDF5
 #  include "gridReaderHDF5.h"
+#  include "gridReaderHDF5_adt.h"
 #  include <string.h>
 #endif
 #ifdef WITH_MPI
@@ -54,7 +56,7 @@ local_newFromIniWrapper(parse_ini_t ini,
                         const char  *extended);
                         
 static void
-local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader);
+local_doPatch(parse_ini_t ini, const char *sectionName, gridReader_t reader);
 
 
 /*--- Implementations of exported functions -----------------------------*/
@@ -84,6 +86,7 @@ gridReaderFactory_newFromIniGrafic(parse_ini_t ini,
                                    filename_t  fn)
 {
 	gridReaderGrafic_t reader;
+	bool tmp, doPatch;
 
 	reader = gridReaderGrafic_new();
 
@@ -101,7 +104,7 @@ gridReaderFactory_newFromIniGrafic(parse_ini_t ini,
 	tmp = parse_ini_get_bool(ini, "doPatch", sectionName,
 							 &doPatch);
 	if (tmp && doPatch) {
-		local_doPatch(ini, sectionName, reader);
+		local_doPatch(ini, sectionName, &reader->base);
 	}
 
 	return reader;
@@ -155,7 +158,7 @@ gridReaderFactory_newFromIniHDF5(parse_ini_t ini,
 	tmp = parse_ini_get_bool(ini, "doPatch", sectionName,
 							 &doPatch);
 	if (tmp && doPatch) {
-		local_doPatch(ini, sectionName, reader);
+		local_doPatch(ini, sectionName, &reader->base);
 	}
 
 	return reader;
@@ -163,7 +166,7 @@ gridReaderFactory_newFromIniHDF5(parse_ini_t ini,
 #endif
 
 static void
-local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader)
+local_doPatch(parse_ini_t ini, const char *sectionName, gridReader_t reader)
 {
 	char*		patchSection;
 	char*		unit;

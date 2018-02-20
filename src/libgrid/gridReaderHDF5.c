@@ -139,8 +139,8 @@ extern void
 gridReaderHDF5_init(gridReaderHDF5_t reader)
 {
 	reader->file = H5I_INVALID_HID;
-	gridReaderHDF5_setDoPatch((gridReader_t)reader,false);
-	gridReaderHDF5_setDims((gridReader_t)reader, 100000000);
+	gridReader_setDoPatch((gridReader_t)reader,false);
+	gridReader_setDims((gridReader_t)reader, 100000000);
 }
 
 extern void

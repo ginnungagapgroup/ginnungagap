@@ -124,6 +124,12 @@ struct gridWriter_struct {
 	bool              overwriteFileIfExists;
 	/** @brief  Holds the file name object for the file. */
 	filename_t        fileName;
+	/** @brief	Gives region to write dims. */
+	gridPointUint32_t	 rtwDims;
+	/** @brief	Toggles region to write patch. */
+	bool		 doPatch;
+	/** @brief	Gives region to write idxLo. */
+	int32_t	 rtwLo[3];
 };
 
 

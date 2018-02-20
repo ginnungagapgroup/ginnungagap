@@ -593,7 +593,7 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridReader_t reader)
 	
 	
 	gridPointUint32_t patchLo, patchDims;
-	gridReaderHDF5_setDoPatch(reader, true);
+	gridReader_setDoPatch(reader, true);
 	
 	tmp = parse_ini_get_string(ini, "patchSection", sectionName,
 			&patchSection);
@@ -672,7 +672,7 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridReader_t reader)
 			diediedie(EXIT_FAILURE);
 	}
 	
-	gridReaderHDF5_setRtw(reader, patchLo, patchDims);
+	gridReader_setRtw(reader, patchLo, patchDims);
 }
 
 inline static void
