@@ -2,7 +2,7 @@
 
 shopt -s extglob
 
-version=20.02.2018
+version=21.02.2018
 
 ###########################################
 
@@ -785,7 +785,7 @@ for m in ${meshes}; do
         rule "$submitCommand" ./$refCutBat
         if [ $grafic == 'true' ]; then
 			outFieldFormat=grafic
-			dx=`echo $Box $m $modelHubble | awk '{print 1.*$1/$2/$3}'`
+			dx=`echo $Box $mprev $modelHubble | awk '{print 1.*$1/$2/$3}'`
 			hubble=`echo $modelHubble | awk '{print $1*100.}'`
 			xoff=`echo $dx $xoff $patchLoCut | awk '{print $2+$5*$1, $3+$6*$1, $4+$7*$1}'`
 			ainit=`echo $zInit | awk '{print 1./($1+1.)}'`

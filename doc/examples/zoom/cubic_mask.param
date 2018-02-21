@@ -1,0 +1,10 @@
+&maskparam
+ix = 100
+iy = 104
+iz = 104
+nx = 64
+ny = 64
+nz = 64
+minlev = 5
+maxlev = 8
+npad = 4/

@@ -5,6 +5,11 @@ template="
 ./refineGrid ref_z_$m.ini
 ./refineGrid ref_y_$m.ini
 "
+if [ $doDelta == 'true' ]; then
+    template="$template
+./refineGrid ref_d_$m.ini
+"
+fi
 batwriter $1
 }
 

@@ -2,7 +2,7 @@
 
 let coresPerNode=16
 let memPerCore=108000/$coresPerNode
-let OMPtasks=2
+let OMPtasks=1
 
 maxNodes=0
 
@@ -64,13 +64,13 @@ nodes=$(nodesFromCores $ncores)
 let ncores=nodes*coresPerNode
 template="
 export OMP_NUM_THREADS=$OMPtasks
-srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_x_$m.ini
-srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_z_$m.ini
-srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_y_$m.ini
+srun --kill-on-bad-exit --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_x_$m.ini
+srun --kill-on-bad-exit --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_z_$m.ini
+srun --kill-on-bad-exit --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_y_$m.ini
 "
 if [ $doDelta == 'true' ]; then
     template="$template
-srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_d_$m.ini
+srun --kill-on-bad-exit --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_d_$m.ini
 "
 fi
 batwriter $1
@@ -84,7 +84,7 @@ nodes=$(nodesFromCores $ncores)
 let ncores=nodes*coresPerNode
 template="
 export OMP_NUM_THREADS=$OMPtasks
-srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_wn_cut_$mprev.ini
+srun --kill-on-bad-exit --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./refineGrid ref_wn_cut_$mprev.ini
 "
 batwriter $1
 getMax
@@ -97,7 +97,7 @@ nodes=$(nodesFromCores $ncores)
 let ncores=nodes*coresPerNode
 template="
 export OMP_NUM_THREADS=$OMPtasks
-srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./realSpaceConstraints $rscIni
+srun --kill-on-bad-exit --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./realSpaceConstraints $rscIni
 "
 batwriter $1
 getMax
@@ -110,7 +110,7 @@ nodes=$(nodesFromCores $ncores)
 let ncores=nodes*coresPerNode
 template="
 export OMP_NUM_THREADS=$OMPtasks
-srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./ginnungagap $ggpIni
+srun --kill-on-bad-exit --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./ginnungagap $ggpIni
 "
 batwriter $1
 getMax
@@ -122,7 +122,7 @@ ncores=1
 nodes=1
 template="
 export OMP_NUM_THREADS=$OMPtasks
-srun --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./generateICs $genIni
+srun --kill-on-bad-exit --ntasks=$ncores --nodes=$nodes --cpus-per-task=$OMPtasks ./generateICs $genIni
 "
 batwriter $1
 getMax
