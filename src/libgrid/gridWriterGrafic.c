@@ -30,6 +30,8 @@
 #include "../libutil/xstring.h"
 #include "../libutil/diediedie.h"
 
+#include <stdio.h>
+#include <unistd.h>
 
 /*--- Implemention of main structure ------------------------------------*/
 #include "gridWriterGrafic_adt.h"
@@ -200,10 +202,14 @@ gridWriterGrafic_writeGridPatch(gridWriter_t   writer,
 			graficDims[k] = graficHi[k] - graficLo[k] + 1;
 		}
 		void *data_rtw = NULL;
+		//printf("lo, dims: %i %i %i, %i %i %i\n", graficLo[0],graficLo[1],graficLo[2],graficDims[0],graficDims[1],graficDims[2]);
+		//printf("ilo, dims: %i %i %i, %i %i %i\n", idxLo[0],idxLo[1],idxLo[2],dims[0],dims[1],dims[2]);
+		//printf("wlo, wdims: %i %i %i, %i %i %i\n", writer->rtwLo[0],writer->rtwLo[1],writer->rtwLo[2],writer->rtwDims[0],writer->rtwDims[1],writer->rtwDims[2]);
+		//printf("clo, hi: %i %i %i, %i %i %i\n", copyLo[0],copyLo[1],copyLo[2],copyHi[0],copyHi[1],copyHi[2]);
+		
 		data_rtw = gridPatch_getWindowedDataCopy(patch, 0, copyLo, copyHi, NULL); 
 		
 		//printf("lo, dims: %i %i %i, %i %i %i\n", graficLo[0],graficLo[1],graficLo[2],graficDims[0],graficDims[1],graficDims[2]);
-		
 		grafic_writeWindowed(w->grafic, data_rtw, format, numComponents,
 	                     graficLo, graficDims);
 	    

@@ -149,7 +149,10 @@ gridWriterFactory_newFromIniGrafic(parse_ini_t ini, const char *sectionName)
 				xOff[i] = (float)dataXoff[i];
 		}
 		grafic_setXoff(grafic, xOff);
-		if (parse_ini_get_bool(ini, "doPatch", sectionName,&doPatch)) {
+		bool btmp;
+		btmp = parse_ini_get_bool(ini, "doPatch", sectionName,
+							 &doPatch);
+		if (btmp && doPatch) {
 			local_doPatch(ini, sectionName, (gridWriter_t)writer);
 		}
 		getFromIni(&tmp, parse_ini_get_double, ini, "astart", sectionName);
@@ -213,6 +216,7 @@ gridWriterFactory_newFromIniHDF5(parse_ini_t ini, const char *sectionName)
 
 	return (gridWriter_t)writer;
 } /* gridWriterFactory_newFromIniHDF5 */
+#endif
 
 static void
 local_doPatch(parse_ini_t ini, const char *sectionName, gridWriter_t writer)
@@ -319,7 +323,7 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridWriter_t writer)
 				writer->rtwDims[i] = patchDims[i];
 			}
 }
-#endif
+
 
 #ifdef WITH_SILO
 extern gridWriter_t
