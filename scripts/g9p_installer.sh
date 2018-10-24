@@ -44,7 +44,7 @@ file_fftw=fftw-3.3.4.tar.gz
 
 fi
 
-folder_fftw="${file_fftw%.*}"
+folder_fftw="${file_fftw%.*.*}"
 if [ ! -d $folder_fftw ] && [ $fftw = true ]
 then
 tar -xzf $file_fftw
@@ -63,7 +63,7 @@ wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf
 file_hdf5=hdf5-1.8.20.tar.gz
 fi
 
-folder_hdf5="${file_hdf5%.*}"
+folder_hdf5="${file_hdf5%.*.*}"
 if [ ! -d $folder_hdf5 ] && [ $hdf5 = true ]
 then
 tar -xzf $file_hdf5
