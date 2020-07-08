@@ -22,6 +22,7 @@ all:
 	$(MAKE) -C makeMask all
 	$(MAKE) -C realSpaceConstraints all
 	$(MAKE) -C refineGrid all
+	$(MAKE) -C checkZero all
 	$(MAKE) -C fileTools all
 	@echo ""
 	@echo "+-------------------------------+"
@@ -40,6 +41,7 @@ clean:
 	$(MAKE) -C makeMask clean
 	$(MAKE) -C realSpaceConstraints clean
 	$(MAKE) -C refineGrid clean
+	$(MAKE) -C checkZero clean
 	$(MAKE) -C fileTools clean
 
 tests:
@@ -84,4 +86,6 @@ install:
 	$(MAKE) -C showFreqs install
 	$(MAKE) -C makeMask install
 	$(MAKE) -C realSpaceConstraints install
+	$(MAKE) -C checkZero install
+	$(MAKE) -C refineGrid install
 	$(MAKE) -C fileTools install
