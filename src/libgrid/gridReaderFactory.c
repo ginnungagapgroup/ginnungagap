@@ -244,7 +244,11 @@ local_doPatch(parse_ini_t ini, const char *sectionName, gridReaderHDF5_t reader)
 	
 	int32_t  	dim1D;
 	if(!parse_ini_get_int32(ini, "dim1D", patchSection,
-						&dim1D))     dim1D = 10000000;
+						&dim1D))     {
+		fprintf(stderr, "Please, specify dim1D in section %s.\n",
+			        patchSection);
+			diediedie(EXIT_FAILURE);
+	}
 	gridReaderHDF5_setDims(reader,dim1D);
 	
 	int rank = 0;

@@ -572,14 +572,14 @@ local_newFromIni_input(parse_ini_t   ini,
 	reader[2] = gridReaderFactory_newReaderFromIni(ini, name);
 	xfree(name);
 
-	tmp = parse_ini_get_bool(ini, "doPatch", secName,
+/*	tmp = parse_ini_get_bool(ini, "doPatch", secName,
 							 &doPatch);
 	if (tmp && doPatch) {
 		local_doPatch(ini, secName, reader[0]);
 		local_doPatch(ini, secName, reader[1]);
 		local_doPatch(ini, secName, reader[2]);
 	}
-
+*/
 	generateICs_setIn( genics,
 	                   generateICsIn_new(reader[0], reader[1], reader[2]) );
 }

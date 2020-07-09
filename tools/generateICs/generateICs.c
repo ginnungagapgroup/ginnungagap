@@ -370,7 +370,7 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file, uint64_t *startID)
 				local_computeNumPartsLevel(genics, genics->zoomlevel)); 
 	
 	for (uint32_t i = firstTile; i <= lastTile; i++) {
-		printf("cells in tile: %i\n", g9pMask_getNumCellsInTileForLevel(genics->mask,i,genics->zoomlevel));
+//		printf("cells in tile: %i\n", g9pMask_getNumCellsInTileForLevel(genics->mask,i,genics->zoomlevel));
 		core.numParticles = local_computeNumParts(genics, i);
 		if(core.numParticles > 0) {
 		core.pos          = partBunch_at(particles, 0, partsRead);

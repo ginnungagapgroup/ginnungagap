@@ -269,27 +269,15 @@ local_readIntoPatchForVar_old(gridReader_t reader,
 { \
 	doRead=true; \
 	for(int k=0; k<NDIM; k++) { \
-		if(reader->doPatch) { \
-			idxLoRead[k]=MAX(idxLoW[k], idxLoPatch[k]); \
-			idxLoReadRtw[k]=idxLoRead[k]-reader->rtwLo[k]; \
-			idxLoReadRtw[k] = idxLoReadRtw[k]<0 ? idxLoReadRtw[k]+period[k] : idxLoReadRtw[k]; \
-			idxLoReadRtw[k] = idxLoReadRtw[k]>=period[k] ? idxLoReadRtw[k]-period[k] : idxLoReadRtw[k]; \
-			idxHiRead[k]=MIN(idxLoPatch[k]+dimsPatch[k]-1, idxHiW[k]); \
-			if(idxHiRead[k]<idxLoRead[k]) doRead=false; \
-		} else { \
-			idxLoRead[k]=idxLoPatch[k]; \
-			idxLoReadRtw[k]=idxLoPatch[k]; \
-			idxHiRead[k]=idxLoRead[k]+dimsPatch[k]-1; \
-		} \
+        idxLoRead[k]=MAX(idxLoW[k], idxLoPatch[k]); \
+        idxHiRead[k]=MIN(idxLoPatch[k]+dimsPatch[k]-1, idxHiW[k]); \
+        if(idxHiRead[k]<idxLoRead[k]) doRead=false; \        
+        idxLoReadRtw[k]=idxLoRead[k]-reader->rtwLo[k]; \
+        idxLoReadRtw[k] = idxLoReadRtw[k]<0 ? idxLoReadRtw[k]+period[k] : idxLoReadRtw[k]; \
+        idxLoReadRtw[k] = idxLoReadRtw[k]>=period[k] ? idxLoReadRtw[k]-period[k] : idxLoReadRtw[k]; \
 		dimsRead[k]=idxHiRead[k]-idxLoRead[k]+1; \
 	} \
-	if (doRead) { \
-		if(!doRead) { \
-			for(int k=0; k<NDIM; k++) { \
-				dimsRead[k]=0; \
-				idxHiRead[k]=idxLoRead[k]+dimsRead[k]-1; \
-			} \
-		} \
+    if (doRead) { \
 		dataSet        = H5Dopen(((gridReaderHDF5_t)reader)->file, \
 								 dataVar_getName(var), H5P_DEFAULT); \
 		dataTypeFile   = H5Dget_type(dataSet); \
@@ -330,9 +318,9 @@ local_readIntoPatchForVar_doPatch(gridReader_t reader,
 	hid_t             dataSet;
 	hid_t             dataSpaceFile, dataTypeFile;
 	hid_t             dataSpacePatch, dataTypePatch;
-	gridPointUint32_t idxLoPatch, dimsPatch, idxLoRead, dimsRead, idxHiRead, idxLoReadRtw;
+	gridPointUint32_t idxLoPatch, dimsPatch, idxLoRead, dimsRead, idxHiRead;
 	gridPointUint32_t period, rtwHi;
-	int32_t 		  idxLo1[3], idxLo2[3], idxHi1[3], idxHi2[3], idxLoW[2], idxHiW[3];
+	int32_t 		  idxLo1[3], idxLo2[3], idxHi1[3], idxHi2[3], idxLoW[2], idxHiW[3], idxLoReadRtw[3];
 	dataVar_t         var   = gridPatch_getVarHandle(patch, idxOfVar);
 	void             *data;
 	bool              doRead;
@@ -359,7 +347,7 @@ local_readIntoPatchForVar_doPatch(gridReader_t reader,
 		idxHi2[k] = rtwHi[k]>=period[k] ? rtwHi[k]-period[k] : rtwHi[k];
 		if (idxHi2[k] == idxLo2[k]) idxHi2[k] -= 1;
 	}
-	
+    
 	idxLoW[0] = idxLo1[0];
 	idxLoW[1] = idxLo1[1];
 	idxLoW[2] = idxLo1[2];
