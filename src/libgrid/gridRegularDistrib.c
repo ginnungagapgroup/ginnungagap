@@ -351,7 +351,7 @@ gridRegularDistrib_setFactorFromDim(gridRegularDistrib_t distrib,
                                     int                  dim1D_current,
                                     int                  dim1D_proto)
 {
-	assert(dim1D_current > dim1D_proto);
+	assert(dim1D_current >= dim1D_proto);
 	int a = dim1D_current;
 	int b = dim1D_proto;
 	while(a && b) {
