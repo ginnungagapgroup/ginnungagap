@@ -332,7 +332,7 @@ local_readIntoPatchForVar_doPatch(gridReader_t reader,
 	hid_t             dataSpacePatch, dataTypePatch;
 	gridPointUint32_t idxLoPatch, dimsPatch, idxLoRead, dimsRead, idxHiRead, idxLoReadRtw;
 	gridPointUint32_t period, rtwHi;
-	int32_t 		  idxLo1[3], idxLo2[3], idxHi1[3], idxHi2[3], idxLoW[2], idxHiW[3];
+	int32_t 		  idxLo1[3], idxLo2[3], idxHi1[3], idxHi2[3], idxLoW[3], idxHiW[3];
 	dataVar_t         var   = gridPatch_getVarHandle(patch, idxOfVar);
 	void             *data;
 	bool              doRead;
