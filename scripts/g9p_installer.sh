@@ -94,7 +94,7 @@ echo
 echo === Downloading Ginnungagap ===
 echo
 
-git clone https://github.com/ginnungagapgroup/ginnungagap
+git clone -b grafic_rtw https://github.com/ginnungagapgroup/ginnungagap
 
 fi
 
