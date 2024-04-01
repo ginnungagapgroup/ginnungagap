@@ -881,10 +881,11 @@ local_enforceConstraints(fpv_t             *dataOut,
 	gridPointUint32_t dimsSV;
 	uint64_t bufsize = dimsIn[0]*dimsIn[1];
 
-	fpv_t buffSendLo[bufsize];
-	fpv_t buffSendHi[bufsize];
-	fpv_t buffLo[bufsize];
-	fpv_t buffHi[bufsize];
+	fpv_t *buffSendLo = malloc(sizeof(fpv_t) * bufsize);
+	fpv_t *buffSendHi = malloc(sizeof(fpv_t) * bufsize);
+	fpv_t *buffLo = malloc(sizeof(fpv_t) * bufsize);
+	fpv_t *buffHi = malloc(sizeof(fpv_t) * bufsize);
+	
 	for(uint64_t j = 0; j < dimsIn[1]; j++) {
 		for(uint64_t i = 0; i < dimsIn[0]; i++) {
 			uint64_t idx = i + j*dimsIn[0];
@@ -959,6 +960,11 @@ local_enforceConstraints(fpv_t             *dataOut,
 			}
 		}
 	}
+	
+	free(buffSendLo);
+	free(buffSendHi);
+	free(buffLo);
+	free(buffHi);
 } /* local_enforceConstraints */
 
 inline static void

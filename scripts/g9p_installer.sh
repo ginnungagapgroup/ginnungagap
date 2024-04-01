@@ -11,10 +11,17 @@ hdf5=true
 sprng=true
 g9p=true
 
-file_hdf5=`ls -1t | grep hdf5*gz | head -n 1`
-file_fftw=`ls -1t | grep fftw*gz | head -n 1`
+file_fftw=fftw-3.3.4.tar.gz
+folder_fftw="fftw-3.3.4"
+file_hdf5=hdf5-1.14.0.tar.gz
+folder_hdf5="hdf5-1.14.0"
 
-echo $file_fftw
+
+
+#file_hdf5=`ls -1t | grep hdf5*gz | head -n 1`
+#file_fftw=`ls -1t | grep fftw*gz | head -n 1`
+
+#echo $file_fftw
 
 if [ ! -f gsl-1.16.tar.gz ] && [ $gsl = true ]
 then
@@ -32,7 +39,7 @@ tar -xzf gsl-1.16.tar.gz
 fi
 
 
-if [ -z $file_fftw ] && [ $fftw = true ]
+if [ ! -f $file_fftw ] && [ $fftw = true ]
 then
 echo
 echo Trying to get http://www.fftw.org/fftw-3.3.4.tar.gz...
@@ -40,18 +47,16 @@ echo If it fails, please, download the latest version yourself!
 echo
 
 wget http://www.fftw.org/fftw-3.3.4.tar.gz
-file_fftw=fftw-3.3.4.tar.gz
 
 fi
 
-folder_fftw="${file_fftw%.*}"
 if [ ! -d $folder_fftw ] && [ $fftw = true ]
 then
 tar -xzf $file_fftw
 fi
 
 
-if [ -z $file_hdf5 ] && [ $hdf5 = true ]
+if [ ! -f $file_hdf5 ] && [ $hdf5 = true ]
 then
 echo
 echo Trying to get https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz...
@@ -59,11 +64,9 @@ echo If it fails, please, download the latest version yourself!
 echo
 
 
-wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz
-file_hdf5=hdf5-1.8.20.tar.gz
+wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.0/src/hdf5-1.14.0.tar.gz
 fi
 
-folder_hdf5="${file_hdf5%.*}"
 if [ ! -d $folder_hdf5 ] && [ $hdf5 = true ]
 then
 tar -xzf $file_hdf5
@@ -150,9 +153,12 @@ if [ $hdf5 = true ] ; then
 		    --disable-fortran \
 		    --disable-cxx \
 		    --with-pthread \
-		    --enable-production \
+		    --enable-build-mode=production \
 		    --disable-deprecated-symbols \
-		    --enable-parallel
+		    --enable-parallel \
+		    --with-default-api-version=v18 \
+		    --enable-unsupported \
+		    --enable-deprecated-symbols
 	make -j
 	make install
 
@@ -178,7 +184,7 @@ if [ $g9p = true ] ; then
 
 	cd ginnungagap
 
-	./configure --with-mpi \
+	LDFLAGS="-Wl,--allow-multiple-definition" ./configure --with-mpi \
 		    --with-openmp \
 		    --with-sprng \
 		    --with-sprng-prefix=$pth/sprng2.0 \

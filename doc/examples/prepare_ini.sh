@@ -2,7 +2,10 @@
 
 shopt -s extglob
 
-version=27.06.2017
+version=01.04.2024
+
+# this is needed to avoid , as decimal separator
+export LC_NUMERIC="en_US.UTF-8"
 
 ###########################################
 
@@ -61,11 +64,11 @@ addFields = false
 doPk = false
 
 [inputReader]
-type = hdf5
+type = $outFieldFormat
 prefix = $velnext
 
 [outputWriter]
-type = hdf5
+type = $outFieldFormat
 prefix = $velPure
 overwriteFileIfExists = true
 writerSection = writeHDF
@@ -73,6 +76,7 @@ writerSection = writeHDF
 [writeHDF]
 doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
+$graficStuff
 "
 iniwriter_multi $1
 }
@@ -92,20 +96,21 @@ addFields = false
 doPk = false
 
 [inputReader]
-type = hdf5
+type = $outFieldFormat
 prefix = $velprev
 
 [outputWriter]
-type = hdf5
+type = $outFieldFormat
 prefix = "$velPrefix$mprev''_cut_velx"
 overwriteFileIfExists = true
-writerSection = writeHDF
+writerSection = write
 
-[writeHDF]
+[write]
 doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
 doPatch = true
 patchSection = Patch
+$graficStuff
 
 [Patch]
 unit = cells
@@ -169,12 +174,12 @@ addFields = true
 doPk = false
 
 [inputReader]
-type = hdf5
+type = $outFieldFormat
 prefix = $velLarge
 readerSection = readLarge
 
 [reader2]
-type = hdf5
+type = $outFieldFormat
 prefix = $velSmall
 readerSection = readSmall
 
@@ -243,9 +248,10 @@ normalisationMode = sigma8
 doLargeScale = $doLargeScale
 doSmallScale = $doSmallScale
 cutoffScale = $cutoffScale
+writeDensityField = $doDelta
 
 [Output]
-type = hdf5
+type = $outFieldFormat
 path = ./
 # this is different for each level:
 prefix = $2
@@ -254,11 +260,11 @@ overwriteFileIfExists = true
 writerSection = OutputHDF5
 
 [OutputHDF5]
-suffix = .h5
 doChunking = $doChunking
 chunkSize = $chunk $chunk $chunk
 doPatch = $doPatchThis
 patchSection = Patch
+$graficStuff
 
 [Patch]
 unit = cells
@@ -339,6 +345,7 @@ normalisationMode = sigma8
 unit = cells
 patchLo = $patchLoGen
 patchDims = $patchDimsGen
+dim1D = $m
 
 [Cosmology]
 modelOmegaRad0 = $modelOmegaRad0
@@ -387,7 +394,7 @@ readerSection = Lare
 #min. level dim = 256 = 2^8
 #max. level dim = 8192 = 2^13
 #hence the max. level number is 13, if they are numbered from 2^0 = 1.
-numLevels = 21
+numLevels = 20
 minDim1D = $minDim1D
 factor = 2
 
@@ -407,9 +414,10 @@ patchSection = Patch
 type = hdf5
 # this is different for each level:
 prefix = $velPrefix$m
-
 qualifier = _velx
 suffix = .h5
+doPatch = $doPatchGen
+patchSection = Patch
 
 [GenicsInput_vely]
 type = hdf5
@@ -417,6 +425,8 @@ type = hdf5
 prefix = $velPrefix$m
 qualifier = _vely
 suffix = .h5
+doPatch = $doPatchGen
+patchSection = Patch
 
 [GenicsInput_velz]
 type = hdf5
@@ -424,6 +434,8 @@ type = hdf5
 prefix = $velPrefix$m
 qualifier = _velz
 suffix = .h5
+doPatch = $doPatchGen
+patchSection = Patch
 
 [GenicsOutput]
 #use > 1 if file size is > 4Gb.
@@ -472,6 +484,17 @@ function log2 {
     done
     echo $x
 }
+
+# just log2...
+function log2p {
+    local x=0
+    local inval=$1
+    for (( y=$inval-1 ; $y > 0; y >>= 1 )) ; do
+        let x=$x+1
+    done
+    echo $x
+}
+
 
 # compute minimal dimension for Hierarchy
 function getMinDim {
@@ -531,11 +554,22 @@ compute_mem ()
 
 compute_patch ()
 {
-   awk 'BEGIN {x1='$maskMesh'; y1='$maskMesh'; z1='$maskMesh'; x2=0; y2=0; z2=0}
-   {if($8<x1) x1=$8; if($8>x2) x2=$8
+   awk 'BEGIN {x1='$maskMesh'; y1='$maskMesh'; z1='$maskMesh'; x2=0; y2=0; z2=0
+        db='$maskMesh'/2
+        b='$maskMesh'
+        xb1='$maskMesh'; yb1='$maskMesh'; zb1='$maskMesh'; xb2=0; yb2=0; zb2=0}
+   {x=$8-db; y=$9-db; z=$10-db; if(x<0) x=x+b; if(y<0) y=y+b; if(z<0) z=z+b
+   if($8<x1) x1=$8; if($8>x2) x2=$8
    if($9<y1) y1=$9; if($9>y2) y2=$9
-   if($10<z1) z1=$10; if($10>z2) z2=$10}
+   if($10<z1) z1=$10; if($10>z2) z2=$10
+   if(x<xb1) xb1=x; if(x>xb2) xb2=x
+   if(y<yb1) yb1=y; if(y>yb2) yb2=y
+   if(z<zb1) zb1=z; if(z>zb2) zb2=z
+   }
    END {dx=x2-x1+1; dy=y2-y1+1; dz=z2-z1+1
+   if(dx=='$maskMesh') {dx=xb2-xb1+1; x1=xb1+db}
+   if(dy=='$maskMesh') {dy=yb2-yb1+1; y1=yb1+db}
+   if(dz=='$maskMesh') {dz=zb2-zb1+1; z1=zb1+db}
    if(dx>dy) d=dx; else d=dy
    if(d<dz) d=dz
    print "maskNCells=\"",NR,"\""
@@ -561,6 +595,7 @@ echo
 grafic=false
 doDelta=false
 sequentialIDs=true
+doMassBlock=false
 
 # read .ini into variables
 
@@ -600,8 +635,10 @@ velStart=$velPath$velPrefix$startMesh''_velx$velSuffix
 velLarge=$velPrefix$startMesh''_large_velx$velSuffix
 
 if [ $grafic == 'true' ]; then
-   doDelta=true
+   doDelta='true'
+   velSuffix=''
 fi
+xoff="0.0 0.0 0.0"
 
 minMesh=${meshArr[0]}
 maxMesh=${meshArr[${#meshArr[@]}-1]}
@@ -739,10 +776,12 @@ for m in ${meshes}; do
    if [ -n "$subboxes" ]; then
     subbox=${subArr[$i]}
     subfactor=`echo $subbox $Box|awk '{print int($2/$1)}'`
-    sub2power=$(log2 subfactor)
+    sub2power=$(log2p subfactor)
     subcheck=`echo $subfactor $sub2power|awk '{if($1==2^$2) print "true"; else print "false"}'`
     if [ $subcheck != 'true' ]; then
         echo "ERROR: box/subbox must be a power of 2."
+	echo subfactor: $subfactor
+	echo sub2power: $sub2power
         exit
     fi
     let actualMesh=m/subfactor
@@ -750,6 +789,7 @@ for m in ${meshes}; do
     let actualMaskSize=maskSize*m/maskMesh
     if [ $actualMaskSize -gt $actualMesh ]; then
         echo "ERROR: mask size > subbox for mesh $m"
+	echo $actualMaskSize ">" $actualMesh
         exit
     fi
     if [ $m -gt $maskMesh ]; then
@@ -779,6 +819,22 @@ for m in ${meshes}; do
         refCutIni=ref_x_cut_$mprev.ini
         echo "$velCut : $velPrefix$mprev""_velx$velSuffix $refCutIni $refCutBat" >> Makefile
         rule "$submitCommand" ./$refCutBat
+        if [ $grafic == 'true' ]; then
+			outFieldFormat=grafic
+			dx=`echo $Box $mprev $modelHubble | awk '{print 1.*$1/$2/$3}'`
+			hubble=`echo $modelHubble | awk '{print $1*100.}'`
+			xoff=`echo $dx $xoff $patchLoCut | awk '{print $2+$5*$1, $3+$6*$1, $4+$7*$1}'`
+			ainit=`echo $zInit | awk '{print 1./($1+1.)}'`
+			graficStuff="isWhiteNoise = false
+size = $patchDimsCut
+xoff = $xoff
+dx = $dx
+astart = $ainit
+omegam = $modelOmegaMatter0
+omegav = $modelOmegaLambda0
+h0 = $hubble
+"
+		fi
         refineCreatorCut $refCutIni
         refineCreatorCutWN ref_wn_cut_$mprev.ini
         wnCut=$wnPrefix$mprev''_cut$wnSuffix
@@ -882,6 +938,23 @@ for m in ${meshes}; do
    # choose how we make the velocity fields
    
    cutoffScale=`echo $startMesh | awk '{print '$Box'/$1*1.1/3.14}'`
+
+     if [ $grafic == 'true' ]; then
+        outFieldFormat=grafic
+        dx=`echo $Box $m $modelHubble | awk '{print 1.*$1/$2/$3}'`
+        hubble=`echo $modelHubble | awk '{print $1*100.}'`
+        ainit=`echo $zInit | awk '{print 1./($1+1.)}'`
+        graficStuff="isWhiteNoise = false
+size = $actualMesh $actualMesh $actualMesh
+xoff = $xoff
+dx = $dx
+astart = $ainit
+omegam = $modelOmegaMatter0
+omegav = $modelOmegaLambda0
+h0 = $hubble
+"
+     fi
+
    
    if [ $m -eq $startMesh ]; then
      
@@ -911,20 +984,6 @@ for m in ${meshes}; do
      echo "$vel : $velSmall $velLarge $refIni" >> Makefile
      rule "$submitCommand" ./$refBat
 
-     if [ $m -eq $maxMesh -a $grafic == 'true' ]; then
-        outFieldFormat=grafic
-        dx=`echo $Box $m $modelHubble | awk '{print 1.*$1/$2/$3}'`
-        hubble=`echo $modelHubble | awk '{print $1*100.}'`
-        ainit=`echo $zInit | awk '{print 1./($1+1.)}'`
-        graficStuff="isWhiteNoise = false
-size = $m, $m, $m
-dx = $dx
-astart = $ainit
-omegam = $modelOmegaMatter0
-omegav = $modelOmegaLambda0
-h0 = $hubble
-"
-     fi
      
      refineCreatorAdd $refIni
      refBatCreator $refBat
@@ -978,13 +1037,17 @@ h0 = $hubble
    #fi
    
    if [ $doZoom == true -o $m -eq $minMesh ]; then
-    allFiles="$allFiles $gadgetFile"
+     if [ $grafic == false ]; then
+       allFiles="$allFiles $gadgetFile"
     
-    echo "$gadgetFile : $vel $genIni" >> Makefile
-    rule "$submitCommand" ./$genBat
+       echo "$gadgetFile : $vel $genIni" >> Makefile
+       rule "$submitCommand" ./$genBat
     
-    genicsCreator $genIni
-    genicsBatCreator $genBat
+       genicsCreator $genIni
+       genicsBatCreator $genBat
+     else
+       allFiles="$allFiles $vel"
+     fi
    fi
    
    wnprev=$wn
@@ -997,6 +1060,7 @@ h0 = $hubble
    
 done
 echo "gadget : first-rule $allFiles" >> Makefile
+echo "grafic : first-rule $allFiles" >> Makefile
 
 echo $firstRule >> Makefile
 
@@ -1043,4 +1107,3 @@ echo "number of output files = ${gadgetNFiles[@]}"
 echo
 
 cat recommendations.txt
-

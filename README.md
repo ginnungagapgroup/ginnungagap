@@ -78,6 +78,8 @@ The simplest way to download and build them is to use the following installer sc
 
 [scripts/g9p_installer.sh](https://github.com/ginnungagapgroup/ginnungagap/blob/master/scripts/g9p_installer.sh)
 
+In the beginning of the script you may turn off compilation of some of the libraries.
+
 Otherwise, you can use it as an example of what build flags are required.
 
 It is usually *NOT* recommended to use a version of HDF5 provided by your system. After the installation you need to update your LD_LIBRARY_PATH with the path to the newely installed libraries.
@@ -104,7 +106,7 @@ This workflow becomes more complicated if you need more levels of zoom. Each too
 
 In order to avoid writing the `.ini` files for every operation manually it is suggested to ue a script called `prepare_ini.sh`. It takes only one 'master' `.ini` file as an input and produces all the required 'child' ini files from it, as well as prepares tasks and a Makefile that allows you to submit all the required tasks to your computer within one single command `make gadget`.
 
-In the `doc/examples/zoom` you can find two example ini files: `example_64.ini` for a single level simulation and `example_zoom.ini` for a multi scale one. To start a project for a zoom simulation, do the following:
+In the `doc/examples` you can find two example ini files: `example_64.ini` for a single level simulation and `example_zoom.ini` for a multi scale one. To start a project for a zoom simulation, do the following:
 
 1. Create a directory for non-zoom simulation, e.g. 'my_project_nozoom'.
 
