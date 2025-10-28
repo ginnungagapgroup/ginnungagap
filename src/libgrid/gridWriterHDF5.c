@@ -640,7 +640,7 @@ local_writeGridRtw(gridWriter_t  writer,
 	}
 	H5Sclose(gridSize);
 	
-	printf("done");
+	//printf("done");
 }
 
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2010, 2011, Steffen Knollmann, 2025 Sergey Pilipenko
+# Copyright (C) 2010, 2011, Steffen Knollmann, 2025, Sergey Pilipenko
 # Released under the terms of the GNU General Public License version 3.
 # This file is part of `ginnungagap'.
 
@@ -6,24 +6,17 @@ include ../../Makefile.config
 
 .PHONY: all clean tests tests-clean dist-clean
 
-progName = lareWrite lareShow
+progName = graficCoord
 
-sources = main.c \
-          $(progName).c \
-          realSpaceConstraintsSetup.c
-
-ifeq ($(WITH_MPI), "true")
-CC=$(MPICC) -g
-endif
+sources = $(progName).c
 
 include ../../Makefile.rules
 
 all:
-	$(FORTRAN) larewrite.f90 -o lareWrite
-	$(FORTRAN) lareshow_ascii.f90 -o lareShow
+	$(MAKE) $(progName)
 
 clean:
-	rm -f $(progName)
+	rm -f $(progName) $(sources:.c=.o)
 
 tests:
 	@echo "No tests yet"
@@ -33,7 +26,15 @@ tests-clean:
 
 dist-clean:
 	$(MAKE) clean
+	rm -f $(sources:.c=.d)
 
 install: $(progName)
 	mv -f $(progName) $(BINDIR)/
+
+$(progName): $(sources)
+	$(CC) $(LDFLAGS) $(CFLAGS) \
+	  -o $(progName) $(sources) -lm
+	
+
+-include $(sources:.c=.d)
 

@@ -204,6 +204,13 @@ local_degrade(fpv_t             *dataOut,
               gridPointUint32_t dimsIn);
 
 
+static void
+local_copy(fpv_t             *dataOut,
+		const fpv_t       *dataIn,
+		gridPointUint32_t dimsOut,
+		gridPointUint32_t dimsIn);
+
+
 /**
  * @brief  Will enforce constraints of a lowRes grid onto a highRes grid.
  *
@@ -544,7 +551,8 @@ local_fillOutputGrid(gridRegular_t       gridOut,
 	           && (dimsIn[2] > dimsOut[2])) {
 		local_degrade(dataOut, dataIn, dimsOut, dimsIn);
 	} else {
-		fprintf(stdout, "doing nothing");
+		//fprintf(stdout, "doing copy");
+		local_copy(dataOut, dataIn, dimsOut, dimsIn);
 	}
 }
 
@@ -587,6 +595,30 @@ local_fillPatchWithWhiteNoise(gridPatch_t patch, int seed)
 
 	rng_del(&rng);
 }
+
+static void
+local_copy(fpv_t             *dataOut,
+           const fpv_t       *dataIn,
+	   gridPointUint32_t dimsOut,
+           gridPointUint32_t dimsIn)
+{
+#if (NDIM > 2)
+#  ifdef WITH_OPENMP
+#    pragma omp parallel for
+#  endif
+	for (uint64_t k = 0; k < dimsOut[2]; k++)
+#endif
+	{
+		for (uint64_t j = 0; j < dimsOut[1]; j++) {
+			for (uint64_t i = 0; i < dimsOut[0]; i++) {
+				uint64_t    idxOut = i + (j + k * dimsOut[1]) * dimsOut[0];
+				uint64_t    idxIn = i + (j + k * dimsIn[1]) * dimsIn[0];
+				dataOut[idxOut] = dataIn[idxIn];
+			}
+		}
+	}
+}
+
 
 static void
 local_degrade(fpv_t             *dataOut,

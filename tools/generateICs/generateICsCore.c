@@ -52,8 +52,8 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 	gridPatch_getIdxLo(d->patch, idxLo);
 	gridPatch_getDims(d->patch, dims);
 
-	printf("   Patch idxLo: (%u,%u,%u)\n", idxLo[0], idxLo[1], idxLo[2]);
-	printf("   Patch dims:  (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
+	//printf("   Patch idxLo: (%u,%u,%u)\n", idxLo[0], idxLo[1], idxLo[2]);
+	//printf("   Patch dims:  (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
 
 	gridPointUint32_t p, q, pm;
 	uint64_t          i = 0;
@@ -144,15 +144,18 @@ generateICsCore_convertVel(generateICsCore_const_t d)
 extern void
 generateICsCode_dm2Gas(generateICsCore_const_t d,
                        const double            gasOffset,
+		       const double            DMOffset,
                        const uint64_t          npGasTotal)
 {
-	const double shift     = d->data->boxsizeInMpch / d->fullDims[0]
+	const double gas_shift     = d->data->boxsizeInMpch / d->fullDims[0]
 	                         * gasOffset;
+	const double DM_shift     = d->data->boxsizeInMpch / d->fullDims[0]
+		                 * DMOffset;
 	uint64_t     npGasOrDM = d->numParticles / 2;
 
-	printf("   Gas offset: %lf\n", shift);
-	printf("   Local gas particles: %lu\n", npGasOrDM);
-	printf("   Total gas particles: %lu\n", npGasTotal);
+//	printf("   Gas offset: %lf\n", shift);
+//	printf("   Local gas particles: %lu\n", npGasOrDM);
+//	printf("   Total gas particles: %lu\n", npGasTotal);
 
 	memcpy(d->pos + 3 * npGasOrDM, d->pos, sizeof(fpv_t) * 3 * npGasOrDM);
 	memcpy(d->vel + 3 * npGasOrDM, d->vel, sizeof(fpv_t) * 3 * npGasOrDM);
@@ -168,13 +171,23 @@ generateICsCode_dm2Gas(generateICsCore_const_t d,
 #  pragma omp parallel for
 #endif
 	for (uint64_t i = 0; i < npGasOrDM; i++) {
-		d->pos[i * 3]     += shift;
-		d->pos[i * 3 + 1] += shift;
-		d->pos[i * 3 + 2] += shift;
+		d->pos[i * 3]     += gas_shift;
+		d->pos[i * 3 + 1] += gas_shift;
+		d->pos[i * 3 + 2] += gas_shift;
 	}
+
 #ifdef _OPENMP
 #  pragma omp parallel for
 #endif
+	 for (uint64_t i = npGasOrDM; i < 2*npGasOrDM; i++) {
+	         d->pos[i * 3]     += DM_shift;
+	         d->pos[i * 3 + 1] += DM_shift;
+	         d->pos[i * 3 + 2] += DM_shift;
+									        }
+#ifdef _OPENMP
+#  pragma omp parallel for
+#endif
+
 	for (uint64_t i = npGasOrDM; i < d->numParticles; i++) {
 		if (d->mode->useLongIDs) {
 			( (uint64_t *)(d->id) )[i] += npGasTotal;

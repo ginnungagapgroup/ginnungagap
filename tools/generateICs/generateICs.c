@@ -221,7 +221,7 @@ generateICs_run(generateICs_t genics)
               {NDO=1;}
           }
 
-        printf(" * Comienzo a producir files desde  %i a %i\n", N1, N2);
+        //printf(" * Comienzo a producir files desde  %i a %i\n", N1, N2);
 
         if ( NDO == 0 ) 
           {
@@ -317,8 +317,8 @@ local_setupCore(generateICsCore_t   core,
 	core->fullDims[1] = core->fullDims[0];
 	core->fullDims[2] = core->fullDims[0];
 
-	printf("   fullDims = (%u, %u, %u)\n", core->fullDims[0],
-	       core->fullDims[1], core->fullDims[2]);
+	//printf("   fullDims = (%u, %u, %u)\n", core->fullDims[0],
+	//       core->fullDims[1], core->fullDims[2]);
 }
 
 static partBunch_t
@@ -366,8 +366,13 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file, uint64_t *startID)
 	                                                genics->mode);
 	local_setupCore(&core, genics);
 	
-	printf("np in level: %i\n",
-				local_computeNumPartsLevel(genics, genics->zoomlevel)); 
+	//printf("np in level: %i\n",
+	//			local_computeNumPartsLevel(genics, genics->zoomlevel)); 
+	
+	const double omegaBaryon0 = cosmoModel_getOmegaBaryon0(genics->data->model);
+	const double omegaMatter0 = cosmoModel_getOmegaMatter0(genics->data->model);
+	const double Delta_gas = -0.25*(omegaMatter0 - omegaBaryon0)/omegaMatter0;
+	const double Delta_DM = 0.25*omegaBaryon0/omegaMatter0;
 	
 	for (uint32_t i = firstTile; i <= lastTile; i++) {
 //		printf("cells in tile: %i\n", g9pMask_getNumCellsInTileForLevel(genics->mask,i,genics->zoomlevel));
@@ -400,7 +405,7 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file, uint64_t *startID)
 		generateICsCore_toParticles(&core);
 		
 		*startID = core.startID;
-		printf("StartID: %i\n",*startID);
+		//printf("StartID: %i\n",*startID);
 
 		//fpv_t             *velx2P = gridPatch_getVarDataHandle(core.patch, 0);
 		//printf(" %i \n\n", velx2P);
@@ -409,10 +414,10 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file, uint64_t *startID)
 		partsRead += core.numParticles;
 	    }
 	}
-	printf("   Particles read: %lu\n", partsRead);
+	//printf("   Particles read: %lu\n", partsRead);
 	//printf("pos: %f", core.pos[1]);
 	if (genics->mode->doGas && (genics->typeForLevel)[genics->zoomlevel-g9pMask_getMinLevel(genics->mask)]==1) {
-		printf("   Making gas particles\n");
+		//printf("   Making gas particles\n");
 		uint64_t npGasTotal = local_computeNumPartsLevel(genics, genics->zoomlevel);
 		//npGasTotal = core.fullDims[0];
 		//npGasTotal *= core.fullDims[1];
@@ -421,7 +426,7 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file, uint64_t *startID)
 		core.pos          = partBunch_at(particles, 0, 0);
 		core.vel          = partBunch_at(particles, 1, 0);
 		core.id           = partBunch_at(particles, 2, 0);
-		generateICsCode_dm2Gas(&core, 0.25, npGasTotal);
+		generateICsCode_dm2Gas(&core, Delta_gas, Delta_DM, npGasTotal);
 	}
 	
 	if (genics->mode->autoCenter) {
@@ -503,6 +508,8 @@ local_writeGadgetFile(generateICs_t     genics,
 	if (genics->mode->kpc) {
 		gadgetHeader_setBoxsize(myHeader, gadgetHeader_getBoxsize(myHeader)*1000);
 	}
+	
+	gadgetHeader_setUseLongIDs(myHeader, genics->mode->useLongIDs);
 
 	// set global header for zoom:
 	uint32_t idx;
@@ -521,7 +528,7 @@ local_writeGadgetFile(generateICs_t     genics,
 		//npFull = POW_NDIM(g9pMask_getDim1DLevel(genics->mask,level));
 		//massArr[idx] = generateICsOut_boxMass(genics->data) / npFull;
 	}
-	printf("\n mass: %lf\n",generateICsOut_boxMass(genics->data));
+	//printf("\n mass: %lf\n",generateICsOut_boxMass(genics->data));
 	
 	if(nlevfortype[arrIdx]>1 || genics->mode->doMassBlock) {
 		gadgetTOC_addEntryByType(genics->out->toc, GADGETBLOCK_MASS);
@@ -575,7 +582,8 @@ local_writeGadgetFile(generateICs_t     genics,
 		
 		
 		if(nlevfortype[arrIdx]>1 || genics->mode->doMassBlock) {
-			fpv_t masses[np];
+			fpv_t *masses;
+			masses = xmalloc(sizeof(fpv_t)*np);
 			npFull = POW_NDIM((uint64_t)g9pMask_getDim1DLevel(genics->mask,genics->zoomlevel));
 			fpv_t mass1 = generateICsOut_boxMass(genics->data) / npFull;
 			for(int i=0; i<np; i++) {
@@ -585,6 +593,7 @@ local_writeGadgetFile(generateICs_t     genics,
 			gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_MASS,
 		                               0, np, stai);
 		    stai_del(&stai);
+		    xfree(masses);
 		}
 		
 		if(genics->mode->doGas && arrIdx==1) {

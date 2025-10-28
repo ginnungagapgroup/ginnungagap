@@ -239,6 +239,9 @@ ifeq ($(TOOLCHAIN), "gnu")
   ifndef CC
     CC = gcc
   endif
+  ifndef FORTRAN
+    FORTRAN = gfortran
+  endif
   ifeq ($(WITH_OPENMP), "true")
     CC += -fopenmp
     ifeq ($(WITH_MPI), "true")
@@ -273,6 +276,9 @@ endif
 ifeq ($(TOOLCHAIN), "intel")
   ifndef CC
     CC = icc
+  endif
+  ifndef FORTRAN
+    FORTRAN = ifort
   endif
   ifeq ($(WITH_OPENMP), "true")
     CC += -openmp

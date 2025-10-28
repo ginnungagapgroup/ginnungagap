@@ -24,6 +24,8 @@ all:
 	$(MAKE) -C refineGrid all
 	$(MAKE) -C checkZero all
 	$(MAKE) -C fileTools all
+	$(MAKE) -C zoomTools all
+	$(MAKE) -C graficCoords all
 	@echo ""
 	@echo "+-------------------------------+"
 	@echo "|   Done with the tools         |"
@@ -43,6 +45,8 @@ clean:
 	$(MAKE) -C refineGrid clean
 	$(MAKE) -C checkZero clean
 	$(MAKE) -C fileTools clean
+	$(MAKE) -C zoomTools clean
+	$(MAKE) -C graficCoords clean
 
 tests:
 	$(MAKE) -C estimateMemReq tests
@@ -89,3 +93,5 @@ install:
 	$(MAKE) -C checkZero install
 	$(MAKE) -C refineGrid install
 	$(MAKE) -C fileTools install
+	$(MAKE) -C zoomTools install
+	$(MAKE) -C graficCoords install

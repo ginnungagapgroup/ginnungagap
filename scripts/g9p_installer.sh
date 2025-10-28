@@ -59,7 +59,7 @@ fi
 if [ ! -f $file_hdf5 ] && [ $hdf5 = true ]
 then
 echo
-echo Trying to get https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz...
+echo Trying to get https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.20/src/hdf5-1.14.20.tar.gz...
 echo If it fails, please, download the latest version yourself!
 echo
 
@@ -193,6 +193,7 @@ if [ $g9p = true ] ; then
 		    --with-hdf5-prefix=$pth \
 		    --with-gsl-prefix=$pth
 	make -j 4 all
+	make install
 	cd ..
 fi
 

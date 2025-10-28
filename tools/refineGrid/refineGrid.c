@@ -784,7 +784,7 @@ local_fillOutputGrid(gridRegular_t       gridOut,
 	    && (dimsIn[2] < dimsOut[2])) {
 		local_enforceConstraints(dataOut, dataIn, dimsOut, dimsIn, gridIn);
 	} else {
-		fprintf(stdout, " (Interpolation: doing NGP)\n");
+		//fprintf(stdout, " (Interpolation: doing NGP)\n");
 		local_dataCopy(dataOut, dataIn, dimsOut, dimsIn, gridInDims,gridOutDims);
 	}
 	

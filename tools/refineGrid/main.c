@@ -118,7 +118,7 @@ local_finalMessage(void)
 		xfree(localIniFileName);
 #ifdef WITH_MPI
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	//MPI_Finalize();
+	MPI_Finalize();
 #endif
 	if (rank == 0) {
 #ifdef XMEM_TRACK_MEM

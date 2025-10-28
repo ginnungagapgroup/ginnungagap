@@ -78,11 +78,20 @@ The simplest way to download and build them is to use the following installer sc
 
 [scripts/g9p_installer.sh](https://github.com/ginnungagapgroup/ginnungagap/blob/master/scripts/g9p_installer.sh)
 
-In the beginning of the script you may turn off compilation of some of the libraries.
+Use the options at the beginning of the script to turn off compilation of some of the libraries:
+```
+gsl=true
+fftw=true
+hdf5=true
+sprng=true
+g9p=true
+```
 
-Otherwise, you can use it as an example of what build flags are required.
+Also one can use it as an example of what build flags are required.
 
 It is usually *NOT* recommended to use a version of HDF5 provided by your system. After the installation you need to update your LD_LIBRARY_PATH with the path to the newely installed libraries.
+
+After installation, all the Ginnungagap binaries can be found in `ginnungagap/bin/`. All the other libraries compiled by the installer script are at `libs/`.
 
 Example
 =======
@@ -104,9 +113,9 @@ For a three-level zoom-in simulation with scales of 256^3, 512^3 and 1024^3, the
 
 This workflow becomes more complicated if you need more levels of zoom. Each tool is controlled by a separate `.ini` file with parameters, such as the input/output filenames, grid sizes, etc.
 
-In order to avoid writing the `.ini` files for every operation manually it is suggested to ue a script called `prepare_ini.sh`. It takes only one 'master' `.ini` file as an input and produces all the required 'child' ini files from it, as well as prepares tasks and a Makefile that allows you to submit all the required tasks to your computer within one single command `make gadget`.
+In order to avoid writing the `.ini` files for every operation manually it is suggested to ue a script called `prepare_ini.sh` (`ginnungagap/doc/examples/prepare_ini.sh`). It takes only one 'master' `.ini` file as an input and produces all the required 'child' ini files from it, as well as prepares tasks and a Makefile that allows you to submit all the required tasks to your computer within one single command `make gadget`.
 
-In the `doc/examples` you can find two example ini files: `example_64.ini` for a single level simulation and `example_zoom.ini` for a multi scale one. To start a project for a zoom simulation, do the following:
+In the `doc/examples` you can find two example ini files: `example_64.ini` for a single level 64^3 simulation and `example_zoom.ini` for a multi scale one (resolutions 32^3, 64^3, 128^3 and 256^3). To start a project for a zoom simulation, do the following:
 
 1. Create a directory for non-zoom simulation, e.g. 'my_project_nozoom'.
 
@@ -236,6 +245,7 @@ The script `prepare_ini.sh` creates a bunch of .ini files for all the tools of G
 
 * The number of seeds must be not less than the number of meshes, even if some of the meshes will not be created by the random numbers (e.g. by downgrading).
 * The chunk size must not be much larger than the size of the part of the grid belonging to a single MPI task. But too small chunks will result in slow operation.
+* Parallel HDF5 has a limitation that a single MPI task cannot write blocks more than 4GB, so the larger is the mesh, the more MPI tasks are needed. It can be increased above the number of physical cores with the OpenMPI option `--use-hwthread-cpus`.
 
 Changing resolution for a non-zoom run
 ======================================
@@ -670,7 +680,7 @@ prefix = GADGET
 LareWrite
 ---------
 
-The tools reads file `LareWrite.tbl` for the input.
+This tool reads file `LareWrite.tbl` for the input.
 
 ```
 sphere.txt ; input of zoom region coordinates in AHF _halo file format
