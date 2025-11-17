@@ -5,6 +5,8 @@ Table of contents
 1. [Installing Ginnungagap](#installing-ginnungagap)
 1. [Basic usage](#basic-usage)
 1. [Advanced usage](#advanced-usage)
+     1. [Grids, tools and files](#grids-tools-and-files)
+     1. [Options of ginnungagap tool](#options-of-ginnungagap-tool)
 
 Introduciton
 ============
@@ -18,7 +20,7 @@ Ginnungagap is a code to prepare cosmological initial conditions (ICs). Its main
 * Output in GADGET-2 and GRAFIC formats (currently zoom-in ICs are only in GADGET-2 format).
 * Modular structure: code is a collection of separate tools.
 
-The more detailed explanation of concepts behind Ginnungagap and some test results can be found in the paper [g9p paper](https://axive.org/).
+The more detailed explanation of concepts behind Ginnungagap and some test results can be found in the paper [g9p paper](http://arxiv.org/abs/2511.10353).
 
 Installing Ginnungagap
 ======================
@@ -103,6 +105,68 @@ You also may notice that all the commands are placed not directly in the Makefil
 
 Advanced usage
 ==============
+
+Grids, tools and files
+----------------------
+
+Let's start again by considering the single resolution ICs. The way in which Ginnungagap creates ICs can be represented by the following diagram:
+```
+WN -----------> VFs -------------> GADGET/GRAFIC files
+   convolution      Zel'dovich
+   with             approximation
+   P(k)
+```
+where WN stands for the White Noise -- a grid of Gaussian random numbers with zero mean and unit variance. VFs are velocity fields -- the same grid filled with three velocity components. The creation of new random WN and conversion of WN into VFs is done with the help of `ginnungagap` tool. Both WN and VFs are stored in files, by default, in HDF5 format (otherwise can be stored in GRAFIC format). ICs files in GADGET-2 format (format type 1, without block names) can be created with the `generateICs`, and ICs in GRAFIC format are made by `graficCoord`. In both cases, the Zel'dovich approximation (ZA) is applied to produce particle coordinates from velocity fields.
+
+The resolution increase requires an existing WN (called WN1 below) and is done in the following way:
+
+```
+WN1 ---------------> VF1
+ |     convolution     \
+ |                      \
+ | constraints           \interpolation
+ |                        \
+ V                         \
+WN2 ---------------> VF2s --+----> VF2 --> GADGET/GRAFIC files 
+       convolution        addition     ZA
+    and remove low k   
+```
+
+* WN2 is a higher resolution white noise obtained by the tools `realSpaceConstraints` by allpying constraints described in the Paper. 1D resolution of WN2 can differ from that of WN1 by either a factor of 2, or 3/2.
+* VF2s is the velocity field obtained from WN2 by a usual convolution with P(k) followed by cutting away large scale Fourier modes. VF2s are obtained with `ginnungagap` tool.
+* large scale Fourier modes from VF1 are interpolated on VF2s's grid and summed with VF2s which gives the final high resolution velocity fiels, VF2. This is done with `refineGrid` tool.
+* If the 1D resolution is to be increased by more than a factor of 2, this cannot be done at once, but need to be split into steps of increasing the resolution by 2 or 1.5 times.
+
+Reducing the resolution is done in a more simple way, by just dropping some particle velocities.
+```
+WN1 -----------> VF1 -----------------> VF2 --> GADGET/GRAFIC files
+    convolution      NGP interpolation      ZA
+```
+
+Zoomed ICs with two levels:
+
+```
+WN1 ---------------> VF1--------------------> GADGET.1
+ |     convolution     \      ZA + mask
+ |                      \
+ | optional cut          \ optional cut
+ |                        \
+ | constraints             \ interpolation
+ V                          \
+WN2 ---------------> VF2s ---+----> VF2 ----> GADGET.2
+       convolution        addition     ZA +
+    and remove low k                   mask
+```
+* Optionally, one can cut a sub-box from the main simulation box surrounding the zoom region. The sub-box side has to be smaller than the main box by a power of two!
+
+
+
+Options of ginnungagap tool
+---------------------------
+
+To be continued...
+
+
 
 
 End note
