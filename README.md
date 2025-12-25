@@ -46,7 +46,7 @@ sprng=true
 g9p=true
 ```
 
-Also one can use it as an example of what build flags are required.
+Also one can use it as an example of what build flags are required. The recommended versions of the required libraries are: FFTW 3.3.4, GSL 1.16, SPRNG 2.0b, HFD5 1.14.0. Other versions of these libraries have not been tested, besides HDF5 1.8.20 which also works.
 
 It is usually *NOT* recommended to use a version of HDF5 provided by your system, since Ginnungagap uses a custom set of compile flags. 
 

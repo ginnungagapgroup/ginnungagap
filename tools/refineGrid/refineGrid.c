@@ -491,7 +491,7 @@ local_doFilter(gridRegularFFT_t fft, int cut_kind, uint32_t          dim1D)
 	                   
 	const uint32_t realGrid = dimsGrid[0]>dimsGrid[1] ? dimsGrid[0] : dimsGrid[1]; // because one of them is r2c dimension
 	
-	double rsSqr = (4.0/dim1D)*(4.0/dim1D);
+	double rsSqr = (2.0/dim1D)*(2.0/dim1D);
 
 	//printf("%i %i\n",);
 

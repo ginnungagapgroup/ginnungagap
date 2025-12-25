@@ -549,6 +549,7 @@ local_writeGadgetFile(generateICs_t     genics,
 	
 	gadgetHeader_getMassArr(myHeader, massArr);
 	gadgetHeader_setNp(myHeader, npLocal);
+	if(sizeof(fpv_t)==8) gadgetHeader_setFlagDoublePrecision(myHeader, true);
 	gadgetTOC_calcSizes(genics->out->toc, npLocal, massArr, false,
 	                    genics->mode->useLongIDs);
 	gadgetTOC_calcOffset(genics->out->toc);
