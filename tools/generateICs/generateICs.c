@@ -599,7 +599,7 @@ local_writeGadgetFile(generateICs_t     genics,
 		
 		if(genics->mode->doGas && arrIdx==1) {
 			uint64_t npl = npLocal[0];
-			fpv_t energies[npl];
+			fpv_t *energies = xmalloc(sizeof(fpv_t) * npl);
 			for(int i=0;i<npl;i++) {
 				energies[i]=0;
 			}
@@ -607,6 +607,7 @@ local_writeGadgetFile(generateICs_t     genics,
 			gadget_writeBlockToCurrentFile(genics->out->gadget, GADGETBLOCK_U___,
 		                               0, npl, stai);
 		    stai_del(&stai);
+		    xfree(energies);
 		}
 	}
 	gadget_close(genics->out->gadget);

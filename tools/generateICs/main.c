@@ -43,6 +43,8 @@ static char *local_iniFileName = NULL;
 /** @brief  Stores the section name from which to parse the setup. */
 static char *local_sectionName = NULL;
 
+static int local_rank = 0;
+
 /** @brief  Stores the position of the various elements in the cmdline. */
 struct local_cmdlinePos {
 	/** @brief  The position for #local_iniFileName. */
@@ -103,6 +105,7 @@ local_initEnvironment(int *argc, char ***argv)
 
 #ifdef WITH_MPI
 	MPI_Init(argc, argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &local_rank);
 #endif
 	cmdline = local_cmdlineSetup();
 	cmdline_parse(cmdline, *argc, *argv);
@@ -137,12 +140,14 @@ local_finalMessage(void)
 		xfree(local_iniFileName);
 	if (local_sectionName != NULL)
 		xfree(local_sectionName);
+	if (local_rank == 0) {
 #ifdef XMEM_TRACK_MEM
-	printf("\n");
-	xmem_info(stdout);
-	printf("\n");
+		printf("\n");
+		xmem_info(stdout);
+		printf("\n");
 #endif
-	printf("\nVertu sæl/sæll...\n");
+		printf("\nVertu sæl/sæll...\n");
+	}
 }
 
 static void

@@ -897,7 +897,7 @@ local_enforceConstraints(fpv_t             *dataOut,
 	}
 
 #ifdef WITH_MPI
-    int tile     = 0;
+	int tile     = 0;
 	int numTiles = 1;
 	MPI_Status status;
 	MPI_Comm_size(MPI_COMM_WORLD, &numTiles);
@@ -905,19 +905,15 @@ local_enforceConstraints(fpv_t             *dataOut,
 	if(numTiles>1) {
 		int tile_lo = WRAP(tile-1,numTiles);
 		int tile_hi = WRAP(tile+1,numTiles);
-		if(tile%2 == 0) {
-			MPI_Send(&(buffSendLo[0]), bufsize, MPI_FLOAT, tile_hi, 1, MPI_COMM_WORLD);
-			MPI_Send(&(buffSendHi[0]), bufsize, MPI_FLOAT, tile_lo, 2, MPI_COMM_WORLD);
-			MPI_Recv(&(buffLo[0]), bufsize, MPI_FLOAT, tile_lo, 3, MPI_COMM_WORLD, &status);
-			MPI_Recv(&(buffHi[0]), bufsize, MPI_FLOAT, tile_hi, 4, MPI_COMM_WORLD, &status);
-		} else {
-			MPI_Recv(&(buffLo[0]), bufsize, MPI_FLOAT, tile_lo, 1, MPI_COMM_WORLD, &status);
-			MPI_Recv(&(buffHi[0]), bufsize, MPI_FLOAT, tile_hi, 2, MPI_COMM_WORLD, &status);
-			MPI_Send(&(buffSendLo[0]), bufsize, MPI_FLOAT, tile_hi, 3, MPI_COMM_WORLD);
-			MPI_Send(&(buffSendHi[0]), bufsize, MPI_FLOAT, tile_lo, 4, MPI_COMM_WORLD);
-		}
+		/* Send last z-slice up, receive last z-slice from below (all ranks post simultaneously) */
+		MPI_Sendrecv(&(buffSendLo[0]), bufsize, MYMPI_FPV, tile_hi, 10,
+		             &(buffLo[0]),     bufsize, MYMPI_FPV, tile_lo, 10,
+		             MPI_COMM_WORLD, &status);
+		/* Send first z-slice down, receive first z-slice from above */
+		MPI_Sendrecv(&(buffSendHi[0]), bufsize, MYMPI_FPV, tile_lo, 11,
+		             &(buffHi[0]),     bufsize, MYMPI_FPV, tile_hi, 11,
+		             MPI_COMM_WORLD, &status);
 	}
-	
 #endif
 
 	for (int i = 0; i < NDIM; i++) {
