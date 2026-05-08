@@ -5,6 +5,7 @@
 1. [Basic usage](#basic-usage)
 1. [Advanced usage](#advanced-usage)
    1. [Grids, tools and files](#grids-tools-and-files)
+   1. [Hierarchy and tiles](#hierarchy-and-tiles)
    1. [ini file options](#ini-file-options)
       1. [Common building blocks](#common-building-blocks)
       1. [ginnungagap](#ginnungagap)
@@ -159,6 +160,19 @@ WN2 ---------------> VF2s ---+----> VF2 ----> GADGET.2
 ```
 * Optionally, one can cut a sub-box from the main simulation box surrounding the zoom region. The sub-box side has to be smaller than the main box by a power of two!
 
+## Hierarchy and tiles
+
+When creating a zoomed initial conditions, the way to tell Ginnungagap (and, especially, `generateICs` tool) which resolution range the ICs will cover, is to use grid Hierarchy. The 1D grid size is represented as:
+
+```
+dim1D = minDim1D * factor ^ level
+```
+So for simulations with dim1D ~ 2^N one sets `minDim1D = 1`, `factor = 2` and then `level = N`. This level number is used to tell the code, e.g. which GADGET particle type to use for particular zoom level, or how many files to output for each level.
+The level can be any number from 0 to `numLevels-1`. For a particular zoom ICs the minimal (`minLevel`) and maximal (`maxLevel`) levels are also provided. The mask, i.e. the Lagrangion region of the highest resolution particles, is provided on some level in between the minimal and the maximal ones.
+
+There is also a parameter which controlls the memory usage, called `tileLevel`. The grid is divided into tiles and their number in 1D is given by `minDim1D * factor ^ tileLevel`. In `generateICs`, each MPI task works with a single tile at a time, so there is no need to load the whole grid to memory.
+`tileLevel` must be lower than `minLevel`. Optimal for speed and memory usage `tileLevel` is in the middle netween 0 and `minLevel`. But tiles are also used when multiple GADGET files are written. 
+Each file is written from its own set of tiles, so there is no way to write particles from one tile into several files. Sometimes this requires the user to increase the `tileLevel` in order to have many GADGET files.
 
 
 ## ini file options
@@ -241,12 +255,12 @@ produce velocity fields.  Invocation: `ginnungagap <inifile>`.
 | `boxsizeInMpch` | yes | Box side length in Mpc/h |
 | `zInit` | yes | Initial redshift |
 | `gridName` | yes | Internal label for the grid (arbitrary string) |
-| `normalisationMode` | yes | How to normalise the power spectrum: `sigma8` (match σ₈ of the full-box P(k)), `sigma8Box` (match σ₈ computed in the box), or `none` |
+| `normalisationMode` | yes | How to normalise the power spectrum: `sigma8` (match σ₈ of the P(k)), `sigma8Box` (match σ₈ computed in the box), or `none` (use P(k) amplitude) |
 | `writeDensityField` | no (true) | Also write the density contrast field δ |
-| `doLargeScale` | no (false) | Keep only large-scale Fourier modes (k < 1/`cutoffScale`) |
-| `doSmallScale` | no (false) | Keep only small-scale Fourier modes (k > 1/`cutoffScale`); used when computing the high-resolution small-scale contribution in zoom ICs |
-| `cutoffScale` | if doLargeScale or doSmallScale | Scale-space cutoff in Mpc/h |
-| `do2LPTCorrections` | no (false) | Apply 2LPT velocity corrections (experimental) |
+| `doLargeScale` | no (false) | Keep only large-scale Fourier modes (k < 1/`cutoffScale`) (not used, hardcoded to `refineGrid`) |
+| `doSmallScale` | no (false) | Keep only small-scale Fourier modes (k > 1/`cutoffScale`) (not used, hardcoded to `refineGrid`) |
+| `cutoffScale` | if doLargeScale or doSmallScale | Cutoff in Mpc/h (not used, hardcoded to `refineGrid`) |
+| `do2LPTCorrections` | no (false) | Apply 2LPT velocity corrections (not implemented yet) |
 | `namePkWN` | no | Output file for the white-noise P(k) (default: `Pk.wn.dat`) |
 | `namePkDeltak` | no | Output file for the density-field P(k) (default: `Pk.deltak.dat`) |
 | `namePkInput` | no | Output file for the input model P(k) (default: `Pk.input.dat`) |
@@ -264,7 +278,7 @@ produce velocity fields.  Invocation: `ginnungagap <inifile>`.
 |-----|----------|-------------|
 | `type` | yes | `hdf5` or `grafic` |
 | `path` | no | Output directory (default: current directory) |
-| `prefix` | yes | Output filename prefix |
+| `prefix` | yes | Output filename prefix (code will add `_velx`, `_vely`, `_velz`) |
 | `overwriteFileIfExists` | no (false) | Overwrite existing files |
 | `writerSection` | no | Name of a format-specific sub-section (HDF5 or GRAFIC writer block above) |
 
@@ -285,15 +299,7 @@ produce velocity fields.  Invocation: `ginnungagap <inifile>`.
 | `type` | yes | `hdf5` or `grafic` |
 | `prefix` | yes | Input file prefix |
 
-**[WhiteNoiseWriter]** (or whatever `writerSection` names in [WhiteNoise]) — WN output writer
-
-| Key | Required | Description |
-|-----|----------|-------------|
-| `type` | yes | `hdf5` |
-| `path` | no | Output directory |
-| `prefix` | yes | Output file prefix |
-| `doChunking` | no | HDF5 chunking |
-| `chunkSize` | if chunking | Three integers |
+**[WhiteNoiseWriter]** (or whatever `writerSection` names in [WhiteNoise]) — WN output writer (see Common building blocks above)
 
 **[rng]** — random number generator (used when `useFile = false`)
 
@@ -328,17 +334,17 @@ applying the Zel'dovich approximation.  Invocation: `generateICs <inifile>`.
 | `outputSection` | no (`GenicsOutput`) | Name of the GADGET output section |
 | `hierarchySection` | no (`Hierarchy`) | Name of the level hierarchy section |
 | `maskSection` | no (`Mask`) | Name of the mask section |
-| `zoomLevel` | yes | Level number of the zoom resolution being written (computed by `prepare_ini.sh`) |
+| `zoomLevel` | yes | Level number of the zoom resolution being written |
 | `typeForLevel<N>` | yes, per level | GADGET particle type to use for level N (e.g. `typeForLevel8 = 1`) |
 | `doGas` | no (false) | Duplicate DM particles as gas particles (type 0) |
 | `doLongIDs` | no (false) | Use 64-bit particle IDs; needed for more than ~4 × 10⁹ particles or large zoom grids with `sequentialIDs = false` |
 | `sequentialIDs` | no (true) | Assign sequential IDs; if false, IDs are derived from the Lagrangian grid position |
-| `doMassBlock` | no (false) | Write an explicit per-particle mass block; required automatically when multiple zoom levels share the same GADGET particle type |
-| `autoCenter` | no (false) | Shift all particles so that the zoom region is centred in the box |
+| `doMassBlock` | no (false) | Write an explicit per-particle mass block; used automatically when multiple zoom levels share the same GADGET particle type |
+| `autoCenter` | no (false) | Shift all particles so that the zoom region is centred in the box by its Lagrangian coordinates |
 | `useKpc` | no (false) | Write positions in kpc/h instead of the default kpc |
 | `shift` | no (0 0 0) | Additional translation applied to all particle coordinates, in Mpc/h |
 
-**[Ginnungagap]** (name given by `ginnungagapSection`) — box and redshift info
+**[Ginnungagap]** (name given by `ginnungagapSection`) — box and redshift info. Usually this section is a copy of that in the .ini file of `ginnungagap` tool.
 
 | Key | Required | Description |
 |-----|----------|-------------|
@@ -391,7 +397,7 @@ applying the Zel'dovich approximation.  Invocation: `generateICs <inifile>`.
 
 | Key | Required | Description |
 |-----|----------|-------------|
-| `maskLevel` | yes | Level number of the mask (matches the lowest zoom resolution) |
+| `maskLevel` | yes | Level number of the mask for the zoom region |
 | `minLevel` | yes | Minimum level number used in this run |
 | `maxLevel` | yes | Maximum level number used in this run |
 | `tileLevel` | yes | Level used for tiling particles (computed by `prepare_ini.sh`) |
@@ -445,7 +451,7 @@ For each zoom level the script `prepare_ini.sh` generates three ini files
 | `overwriteFileIfExists` | no (false) | Overwrite existing output file |
 | `writerSection` | no | Name of a format-specific sub-section (HDF5 writer block) |
 
-**[writeHDF]** (or whatever `writerSection` names) — HDF5 writer options (see Common building blocks)
+**[writeHDF]** (or whatever `writerSection` names) — HDF5 of Grafic writer options (see Common building blocks)
 
 ---
 
@@ -455,7 +461,7 @@ Interpolates a coarser velocity field onto a finer grid and optionally adds
 it to a fine-scale field, or simply downsamples a field to a lower resolution.
 Invocation: `refineGrid <inifile>`.  `prepare_ini.sh` generates a separate ini
 file for each velocity component (`ref_x_*.ini`, `ref_y_*.ini`, `ref_z_*.ini`)
-and for the density field when GRAFIC output is requested.
+and for the density field when requested.
 
 **[Setup]** — main section
 
