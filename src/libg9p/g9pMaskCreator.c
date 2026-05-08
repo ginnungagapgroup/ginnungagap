@@ -108,9 +108,6 @@ g9pMaskCreator_fromCells(g9pMask_t               mask,
 	gridRegular_getDims(grid, gridDims);
 
 	const uint32_t totalNumTiles = g9pMask_getTotalNumTiles(mask);
-#ifdef WITH_OPENMP
-#  pragma omp parallel for
-#endif
 	for (uint32_t i = 0; i < totalNumTiles; i++) {
 		gridPatch_t patch = gridRegular_getPatchHandle(grid, i);
 		local_initPatchData(patch, g9pMask_getMinLevel(mask));
@@ -149,7 +146,9 @@ local_tagCellsInPatch(gridPatch_t             patch,
 	int8_t       extent  = g9pMaskShapelet_getExtent(sl);
 	int8_t       slDim1D = g9pMaskShapelet_getDim1D(sl);
 	const int8_t *slData = g9pMaskShapelet_getData(sl);
-
+#ifdef WITH_OPENMP
+#  pragma omp parallel for
+#endif
 	for (uint64_t i = 0; i < numCells; i++) {
 		gridPointInt64_t dist;
 		(void)gridPatch_calcDistanceVector(patch, cells[i], dimsGrid, dist);
