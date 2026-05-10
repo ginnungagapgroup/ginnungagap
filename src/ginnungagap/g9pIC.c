@@ -523,9 +523,12 @@ g9pIC_calc2LPTSourceFromDelta(gridRegularFFT_t gridFFT, uint32_t dim1D)
 	xfree(hess_b);
 	xfree(delta_copy);
 
-	/* Each BACKWARD multiplied by N^3; two per product term give N^6 total. */
-	const fpv_t corr = (fpv_t)(gridRegularFFT_getNorm(gridFFT)
-	                            * gridRegularFFT_getNorm(gridFFT));
+	/* BACKWARD(δ̂_GGP × H) gives the physical real-space field directly
+	   (no extra N³ factor), because δ̂_GGP is normalised so that its own
+	   BACKWARD returns the physical field.  The only factor needed before
+	   the final FORWARD FFT is 1/N³, to put S^(2) in the same k-space
+	   convention as δ̂_GGP. */
+	const fpv_t corr = (fpv_t)gridRegularFFT_getNorm(gridFFT);
 #ifdef _OPENMP
 #  pragma omp parallel for shared(source2, corr)
 #endif
