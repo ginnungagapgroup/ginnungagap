@@ -124,6 +124,14 @@ gridRegularFFT_getGridFFTed(const gridRegularFFT_t fft)
 	return fft->gridFFTed;
 }
 
+extern gridRegular_t
+gridRegularFFT_getGrid(const gridRegularFFT_t fft)
+{
+	assert(fft != NULL);
+
+	return fft->grid;
+}
+
 extern double
 gridRegularFFT_getNorm(const gridRegularFFT_t fft)
 {

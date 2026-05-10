@@ -65,6 +65,8 @@ struct generateICs_IniData_struct {
 	bool   sequentialIDs;
 	/** @brief  Stores key @c doMassBlock. */
 	bool   doMassBlock;
+	/** @brief  Stores key @c do2LPT. */
+	bool   do2LPT;
 	/** @brief  Stores key @c ginnungagapSection. */
 	char   *g9pSection;
 	/** @brief  Stores key @c inputSection. */
@@ -200,6 +202,13 @@ inline static void
 local_iniDataNewFromIni_doMassBlock(generateICs_iniData_t iniData,
                                   parse_ini_t           ini,
                                   const char            *secName);
+
+/** @copydoc local_iniDataNewFromIni_boxsize() */
+inline static void
+local_iniDataNewFromIni_do2LPT(generateICs_iniData_t iniData,
+                               parse_ini_t           ini,
+                               const char            *secName);
+
 /**
  * @brief  Helper function for generateICsFactory_newFromIni() dealing with
  *         the input.
@@ -211,13 +220,16 @@ local_iniDataNewFromIni_doMassBlock(generateICs_iniData_t iniData,
  *                    input details.
  * @param[in,out]  genics
  *                    The object to work with.
+ * @param[in]      do2LPT
+ *                    Whether to read 2LPT velocity sections.
  *
  * @return  Returns nothing.
  */
 inline static void
 local_newFromIni_input(parse_ini_t   ini,
                        const char    *secName,
-                       generateICs_t genics);
+                       generateICs_t genics,
+                       bool          do2LPT);
 
 
 /**
@@ -272,7 +284,8 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	model = cosmoModel_newFromIni(ini, iniData->cosmologySection);
 	data  = generateICsData_new(iniData->boxsizeInMpch,
 	                            cosmo_z2a(iniData->zInit),
-	                            model);
+	                            model,
+	                            iniData->do2LPT);
 	generateICs_setData(genics, data);
 
 	g9pHierarchy_t hierarchy;
@@ -290,7 +303,7 @@ generateICsFactory_newFromIni(parse_ini_t ini, const char *sectionName)
 	minlev = g9pMask_getMinLevel(mask);
 	maxlev = g9pMask_getMaxLevel(mask);
 
-	local_newFromIni_input(ini, iniData->inputSection, genics);
+	local_newFromIni_input(ini, iniData->inputSection, genics, iniData->do2LPT);
 	local_newFromIni_output(ini, iniData->outputSection, genics,minlev,maxlev);
 
 	local_iniDataDel(&iniData);
@@ -343,6 +356,7 @@ local_iniDataNewFromIni(parse_ini_t ini, const char *sectionName)
 	local_iniDataNewFromIni_kpc(iniData, ini, sectionName);
 	local_iniDataNewFromIni_sequentialIDs(iniData, ini, sectionName);
 	local_iniDataNewFromIni_doMassBlock(iniData, ini, sectionName);
+	local_iniDataNewFromIni_do2LPT(iniData, ini, sectionName);
 	local_iniDataNewFromIni_section(iniData, ini, sectionName);
 
 	local_iniDataNewFromIni_boxsize(iniData, ini, iniData->g9pSection);
@@ -361,6 +375,7 @@ local_iniDataInit(generateICs_iniData_t iniData)
 	iniData->doLongIDs        = false;
 	iniData->sequentialIDs    = true;
 	iniData->doMassBlock      = false;
+	iniData->do2LPT           = false;
 	iniData->g9pSection       = NULL;
 	iniData->inputSection     = NULL;
 	iniData->outputSection    = NULL;
@@ -511,6 +526,21 @@ local_iniDataNewFromIni_kpc(generateICs_iniData_t iniData,
 }
 
 inline static void
+local_iniDataNewFromIni_do2LPT(generateICs_iniData_t iniData,
+                               parse_ini_t           ini,
+                               const char            *secName)
+{
+	assert(iniData != NULL);
+	assert(ini != NULL);
+	assert(secName != NULL);
+
+	if ( !parse_ini_get_bool( ini, "do2LPT", secName,
+	                          &(iniData->do2LPT) ) ) {
+		iniData->do2LPT = false;
+	}
+}
+
+inline static void
 local_iniDataNewFromIni_section(generateICs_iniData_t iniData,
                                 parse_ini_t           ini,
                                 const char            *secName)
@@ -554,11 +584,11 @@ local_iniDataNewFromIni_section(generateICs_iniData_t iniData,
 inline static void
 local_newFromIni_input(parse_ini_t   ini,
                        const char    *secName,
-                       generateICs_t genics)
+                       generateICs_t genics,
+                       bool          do2LPT)
 {
 	char         *name;
-	gridReader_t reader[3];
-	bool		 tmp, doPatch;
+	gridReader_t reader[3], reader2[3];
 
 	getFromIni(&name, parse_ini_get_string, ini, "velxSection", secName);
 	reader[0] = gridReaderFactory_newReaderFromIni(ini, name);
@@ -572,16 +602,25 @@ local_newFromIni_input(parse_ini_t   ini,
 	reader[2] = gridReaderFactory_newReaderFromIni(ini, name);
 	xfree(name);
 
-/*	tmp = parse_ini_get_bool(ini, "doPatch", secName,
-							 &doPatch);
-	if (tmp && doPatch) {
-		local_doPatch(ini, secName, reader[0]);
-		local_doPatch(ini, secName, reader[1]);
-		local_doPatch(ini, secName, reader[2]);
+	if (do2LPT) {
+		getFromIni(&name, parse_ini_get_string, ini, "velx2Section", secName);
+		reader2[0] = gridReaderFactory_newReaderFromIni(ini, name);
+		xfree(name);
+
+		getFromIni(&name, parse_ini_get_string, ini, "vely2Section", secName);
+		reader2[1] = gridReaderFactory_newReaderFromIni(ini, name);
+		xfree(name);
+
+		getFromIni(&name, parse_ini_get_string, ini, "velz2Section", secName);
+		reader2[2] = gridReaderFactory_newReaderFromIni(ini, name);
+		xfree(name);
+	} else {
+		reader2[0] = reader2[1] = reader2[2] = NULL;
 	}
-*/
+
 	generateICs_setIn( genics,
-	                   generateICsIn_new(reader[0], reader[1], reader[2]) );
+	                   generateICsIn_new(reader[0],  reader[1],  reader[2],
+	                                     reader2[0], reader2[1], reader2[2]) );
 }
 
 void

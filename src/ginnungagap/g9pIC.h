@@ -44,7 +44,13 @@ typedef enum {
 	/** @brief  Do the y-component of the small scale velocity. */
 	G9PIC_MODE_SVY,
 	/** @brief  Do the z-component of the small scale velocity. */
-	G9PIC_MODE_SVZ
+	G9PIC_MODE_SVZ,
+	/** @brief  Do the x-component of the 2LPT velocity correction. */
+	G9PIC_MODE_VX2LPT,
+	/** @brief  Do the y-component of the 2LPT velocity correction. */
+	G9PIC_MODE_VY2LPT,
+	/** @brief  Do the z-component of the 2LPT velocity correction. */
+	G9PIC_MODE_VZ2LPT
 } g9pICMode_t;
 
 
@@ -165,6 +171,31 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
                        double           aInit,
                        double 			cutoffScale,
                        g9pICMode_t      mode);
+
+
+/**
+ * @brief  Computes the 2LPT source field S^(2)(k) from delta(k) in-place.
+ *
+ * Replaces the grid content (which must hold delta(k) on entry) with the
+ * Fourier-space 2LPT source
+ * @f[
+ *    S^{(2)} = \sum_{i<j} \left[ \phi_{,ii}^{(1)} \phi_{,jj}^{(1)}
+ *              - \left(\phi_{,ij}^{(1)}\right)^2 \right]
+ * @f]
+ * which is the sum of 2x2 principal minors of the Hessian of the 1LPT
+ * potential.  Internally allocates and frees four temporary buffers (each
+ * the size of one complex patch); no allocation persists after the call.
+ *
+ * @param[in,out]  gridFFT
+ *                    Grid in Fourier space holding delta(k) on entry and
+ *                    S^(2)(k) on exit.  Passing @c NULL is undefined.
+ * @param[in]      dim1D
+ *                    The 1D dimension of the grid.
+ *
+ * @return  Returns nothing.
+ */
+extern void
+g9pIC_calc2LPTSourceFromDelta(gridRegularFFT_t gridFFT, uint32_t dim1D);
 
 
 /**

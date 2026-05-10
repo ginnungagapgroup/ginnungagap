@@ -17,6 +17,7 @@
 
 /*--- Includes ----------------------------------------------------------*/
 #include "generateICsConfig.h"
+#include <stdbool.h>
 #include "../../src/libcosmo/cosmoModel.h"
 
 
@@ -34,6 +35,9 @@ struct generateICsData_struct {
 	const double       vFact;
 	const double       adot;
 	const double       growthVel;
+	// 2LPT
+	const bool         do2LPT;
+	const double       vFact2;
 	// Free to set
 	double             posFactor;
 	double             velFactor;
@@ -44,7 +48,8 @@ struct generateICsData_struct {
 extern generateICsData_t
 generateICsData_new(double       boxsizeInMpch,
                     double       aInit,
-                    cosmoModel_t model);
+                    cosmoModel_t model,
+                    bool         do2LPT);
 
 extern void
 generateICsData_del(generateICsData_t *data);

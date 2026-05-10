@@ -391,13 +391,20 @@ local_doFile(generateICs_t genics, g9pICMap_t map, int file, uint64_t *startID)
 		(void)gridPatch_attachVar(core.patch, genics->in->varVelx);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVely);
 		(void)gridPatch_attachVar(core.patch, genics->in->varVelz);
-
-//		fpv_t             *velxP = gridPatch_getVarDataHandle(core.patch, 0);
-	//	printf("\n %i \n", i);
+		if (genics->data->do2LPT) {
+			(void)gridPatch_attachVar(core.patch, genics->in->varVelx2);
+			(void)gridPatch_attachVar(core.patch, genics->in->varVely2);
+			(void)gridPatch_attachVar(core.patch, genics->in->varVelz2);
+		}
 
 		gridReader_readIntoPatchForVar(genics->in->velx, core.patch, 0);
 		gridReader_readIntoPatchForVar(genics->in->vely, core.patch, 1);
 		gridReader_readIntoPatchForVar(genics->in->velz, core.patch, 2);
+		if (genics->data->do2LPT) {
+			gridReader_readIntoPatchForVar(genics->in->velx2, core.patch, 3);
+			gridReader_readIntoPatchForVar(genics->in->vely2, core.patch, 4);
+			gridReader_readIntoPatchForVar(genics->in->velz2, core.patch, 5);
+		}
 		
 		//fpv_t             *velx1P = gridPatch_getVarDataHandle(core.patch, 0);
 		//printf(" %i \n", velx1P);

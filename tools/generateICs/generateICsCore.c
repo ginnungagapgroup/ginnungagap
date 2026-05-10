@@ -41,19 +41,23 @@ extern void
 generateICsCore_initPosID(generateICsCore_const_t d)
 {
 	gridPointUint32_t dims, idxLo;
-	fpv_t             *velxP = gridPatch_getVarDataHandle(d->patch, 0);
-	fpv_t             *velyP = gridPatch_getVarDataHandle(d->patch, 1);
-	fpv_t             *velzP = gridPatch_getVarDataHandle(d->patch, 2);
-	const double      dx     = d->data->boxsizeInMpch / d->fullDims[0];
+	fpv_t             *velxP  = gridPatch_getVarDataHandle(d->patch, 0);
+	fpv_t             *velyP  = gridPatch_getVarDataHandle(d->patch, 1);
+	fpv_t             *velzP  = gridPatch_getVarDataHandle(d->patch, 2);
+	fpv_t             *velx2P = d->data->do2LPT
+	                            ? gridPatch_getVarDataHandle(d->patch, 3) : NULL;
+	fpv_t             *vely2P = d->data->do2LPT
+	                            ? gridPatch_getVarDataHandle(d->patch, 4) : NULL;
+	fpv_t             *velz2P = d->data->do2LPT
+	                            ? gridPatch_getVarDataHandle(d->patch, 5) : NULL;
+	const double      dx      = d->data->boxsizeInMpch / d->fullDims[0];
+	const fpv_t       dv2     = (fpv_t)(d->data->vFact2 - d->data->vFact);
 	bool			  flg;
 	gridPointUint32_t maxDims3;
 	maxDims3[0]=d->maxDims; maxDims3[1]=d->maxDims; maxDims3[2]=d->maxDims;
 
 	gridPatch_getIdxLo(d->patch, idxLo);
 	gridPatch_getDims(d->patch, dims);
-
-	//printf("   Patch idxLo: (%u,%u,%u)\n", idxLo[0], idxLo[1], idxLo[2]);
-	//printf("   Patch dims:  (%u,%u,%u)\n", dims[0], dims[1], dims[2]);
 
 	gridPointUint32_t p, q, pm;
 	uint64_t          i = 0;
@@ -66,25 +70,34 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 					q[j]=((p[j]-idxLo[j])*(d->maskDim1D))/(d->partDim1D);
 				}
 				idxM = q[0] + (q[1] + q[2]*patchMaskDim)*patchMaskDim;
-				
+
 				if(d->maskdata == NULL) flg = true;
 				else flg = (d->level == d->maskdata[idxM]);
-				
+
 				if(flg) {
-					//printf(" %i/%i ",i,idxM);
 					d->vel[i * 3]     = velxP[iin];
 					d->vel[i * 3 + 1] = velyP[iin];
 					d->vel[i * 3 + 2] = velzP[iin];
 					d->pos[i * 3]     = (fpv_t)( (p[0] + .5) * dx );
 					d->pos[i * 3 + 1] = (fpv_t)( (p[1] + .5) * dx );
 					d->pos[i * 3 + 2] = (fpv_t)( (p[2] + .5) * dx );
+					/* 2LPT: add (vFact2-vFact)*vel2 to pos so that after
+					   vel2pos the total displacement is vFact*vel1+vFact2*vel2.
+					   Also accumulate vel2 into vel for the total velocity. */
+					if (d->data->do2LPT) {
+						d->pos[i * 3]     += dv2 * velx2P[iin];
+						d->pos[i * 3 + 1] += dv2 * vely2P[iin];
+						d->pos[i * 3 + 2] += dv2 * velz2P[iin];
+						d->vel[i * 3]     += velx2P[iin];
+						d->vel[i * 3 + 1] += vely2P[iin];
+						d->vel[i * 3 + 2] += velz2P[iin];
+					}
 					for(int k=0;k<3;k++) {
 						pm[k] = p[k]*((d->maxDims)/(d->partDim1D));
 					}
 					if (d->mode->useLongIDs) {
 						( (uint64_t *)(d->id) )[i] = lIdx_fromCoord3d(pm,
 						                                              maxDims3);
-						//printf("%lu\n",( (uint64_t *)(d->id))[i]);
 					} else {
 						if (d->mode->sequentialIDs) {
 							( (uint32_t *)(d->id) )[i] = d->startID + i;
@@ -100,8 +113,7 @@ generateICsCore_initPosID(generateICsCore_const_t d)
 		}
 	}
 	d->startID += i;
-	//printf(" %i/%i ",i,idxM);
-} // generateICsCore_vel2pos
+} // generateICsCore_initPosID
 
 extern void
 generateICsCore_vel2pos(generateICsCore_const_t d)

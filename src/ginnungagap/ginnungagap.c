@@ -22,6 +22,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <assert.h>
 #include <inttypes.h>
 #ifdef WITH_MPI
@@ -585,4 +586,54 @@ local_doRenames(dataVar_t var, gridWriter_t writer, const char *newName)
 static void
 local_do2LPTCorrections(ginnungagap_t g9p)
 {
-}
+	double        timing;
+	gridRegular_t gridK;
+	gridPatch_t   patchK;
+	uint64_t      numElemK;
+	fpvComplex_t  *s2k_save, *kdata;
+
+	g9pWN_reset(g9p->whiteNoise);
+	local_doWhiteNoise(g9p, false);
+	local_doDeltaK(g9p);
+
+	timing = timer_start_text("  Generating 2LPT source S^(2)(k)... ");
+	g9pIC_calc2LPTSourceFromDelta(g9p->gridFFT, g9p->setup->dim1D);
+	timing = timer_stop_text(timing, "took %.5fs\n");
+
+	/* Save S^(2)(k) so it can be restored for each velocity component. */
+	gridK    = gridRegularFFT_getGridFFTed(g9p->gridFFT);
+	patchK   = gridRegular_getPatchHandle(gridK, 0);
+	numElemK = (uint64_t)gridPatch_getNumCells(patchK);
+	s2k_save = xmalloc(sizeof(fpvComplex_t) * numElemK);
+	kdata    = (fpvComplex_t *)gridPatch_getVarDataHandle(patchK, 0);
+	memcpy(s2k_save, kdata, sizeof(fpvComplex_t) * numElemK);
+
+	local_doVelocities(g9p, G9PIC_MODE_VX2LPT);
+	local_doStatistics(g9p, 0);
+	if (g9p->rank == 0)
+		printf("\n");
+	/* After BACKWARD: S_0. Restore S^(2)(k) for next component.
+	   gridRegularDistrib_transpose replaces the patch object, so patchK
+	   must be re-fetched after each FORWARD. */
+	gridRegularFFT_execute(g9p->gridFFT, GRIDREGULARFFT_FORWARD);
+	patchK = gridRegular_getPatchHandle(gridK, 0);
+	kdata  = (fpvComplex_t *)gridPatch_getVarDataHandle(patchK, 0);
+	memcpy(kdata, s2k_save, sizeof(fpvComplex_t) * numElemK);
+
+	local_doVelocities(g9p, G9PIC_MODE_VY2LPT);
+	local_doStatistics(g9p, 0);
+	if (g9p->rank == 0)
+		printf("\n");
+	/* After BACKWARD: S_0. Restore S^(2)(k) for next component. */
+	gridRegularFFT_execute(g9p->gridFFT, GRIDREGULARFFT_FORWARD);
+	patchK = gridRegular_getPatchHandle(gridK, 0);
+	kdata  = (fpvComplex_t *)gridPatch_getVarDataHandle(patchK, 0);
+	memcpy(kdata, s2k_save, sizeof(fpvComplex_t) * numElemK);
+
+	local_doVelocities(g9p, G9PIC_MODE_VZ2LPT);
+	local_doStatistics(g9p, 0);
+	if (g9p->rank == 0)
+		printf("\n");
+
+	xfree(s2k_save);
+} /* local_do2LPTCorrections */

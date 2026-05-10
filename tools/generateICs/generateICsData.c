@@ -17,6 +17,7 @@
 #include "generateICsData.h"
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 #include "../../src/libutil/xmem.h"
 
 
@@ -30,14 +31,24 @@
 extern generateICsData_t
 generateICsData_new(double       boxsizeInMpch,
                     double       aInit,
-                    cosmoModel_t model)
+                    cosmoModel_t model,
+                    bool         do2LPT)
 {
 	double            err;
 	double            adot      = cosmoModel_calcADot(model, aInit);
 	double            growthVel = cosmoModel_calcDlnGrowthDlna(model, aInit,
 	                                                           &err);
 	double            vFact     = 1.  / ( (adot) * 100. * (growthVel) );
+	double            vFact2    = 0.0;
 	generateICsData_t data;
+
+	if (do2LPT) {
+		double growthVel2 = cosmoModel_calcDlnGrowthDlna2lpt(model, aInit,
+		                                                     &err);
+		double omegaM     = cosmoModel_calcOmegaMatter(model, aInit);
+		double D2ratio    = -(3. / 7.) * pow(omegaM, -1. / 143.);
+		vFact2 = 1. / (adot * 100. * growthVel2 * D2ratio);
+	}
 
 	data = xmalloc( sizeof(struct generateICsData_struct) );
 
@@ -48,6 +59,8 @@ generateICsData_new(double       boxsizeInMpch,
 		    .vFact         = vFact,
 		    .adot          = adot,
 		    .growthVel     = growthVel,
+		    .do2LPT        = do2LPT,
+		    .vFact2        = vFact2,
 		    .posFactor     = 1.0,
 		    .velFactor     = 1.0 };
 

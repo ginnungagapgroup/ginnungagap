@@ -61,6 +61,15 @@ static const char *local_modeSVyStr = "small_vely";
 /** @brief  The name for the mode corresponding to small scale vz. */
 static const char *local_modeSVzStr = "small_velz";
 
+/** @brief  The name for the mode corresponding to the 2LPT vx correction. */
+static const char *local_modeVx2LPTStr = "velx_2lpt";
+
+/** @brief  The name for the mode corresponding to the 2LPT vy correction. */
+static const char *local_modeVy2LPTStr = "vely_2lpt";
+
+/** @brief  The name for the mode corresponding to the 2LPT vz correction. */
+static const char *local_modeVz2LPTStr = "velz_2lpt";
+
 
 /*--- Prototypes of local functions -------------------------------------*/
 
@@ -185,6 +194,28 @@ local_calcVelFromDeltaCutoff(const int               direction,
                              const double            cutoffScale,
                              fpvComplex_t *restrict  data);
 
+static fpvComplex_t *
+local_getKDataPtr(gridRegularFFT_t gridFFT);
+
+static void
+local_applyHessKernel(fpvComplex_t *restrict  data,
+                      const gridPointUint32_t  dimsPatch,
+                      const gridPointUint32_t  idxLo,
+                      const gridPointUint32_t  kMaxGrid,
+                      const gridPointUint32_t  dimsGrid,
+                      int                      d1,
+                      int                      d2);
+
+static void
+local_calc2LPTSource(const uint64_t   numElem,
+                     const uint64_t   numElemReal,
+                     fpvComplex_t     *delta_copy,
+                     fpv_t            *hess_a,
+                     fpv_t            *hess_b,
+                     fpv_t            *source2,
+                     gridRegularFFT_t gridFFT,
+                     uint32_t         dim1D);
+
 /*--- Implementations of exported functios ------------------------------*/
 extern void
 g9pIC_calcDeltaFromWN(gridRegularFFT_t gridFFT,
@@ -263,20 +294,33 @@ g9pIC_calcVelFromDelta(gridRegularFFT_t gridFFT,
 	                   kMaxGrid);
 	grid          = gridRegularFFT_getGridFFTed(gridFFT);
 	wavenumToFreq = 2. * M_PI / (boxsizeInMpch);
-	norm          = local_getDisplacementToVelocityFactor(model, aInit);
+
+	switch(mode) {
+		case G9PIC_MODE_VX2LPT:
+		case G9PIC_MODE_VY2LPT:
+		case G9PIC_MODE_VZ2LPT:
+			norm = local_getDisplacementToVelocityFactor2lpt(model, aInit);
+			break;
+		default:
+			norm = local_getDisplacementToVelocityFactor(model, aInit);
+			break;
+	}
 
 	switch(mode) {
 		case G9PIC_MODE_VX:
+		case G9PIC_MODE_VX2LPT:
 			local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 0),
 		                             idxLo, dimsPatch, kMaxGrid,
 		                             dimsGrid, norm, wavenumToFreq, data);
 			break;
 		case G9PIC_MODE_VY:
+		case G9PIC_MODE_VY2LPT:
 			local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 1),
 		                             idxLo, dimsPatch, kMaxGrid,
 		                             dimsGrid, norm, wavenumToFreq, data);
 			break;
 		case G9PIC_MODE_VZ:
+		case G9PIC_MODE_VZ2LPT:
 			local_calcVelFromDeltaActual(gridRegular_getCurrentDim(grid, 2),
 		                             idxLo, dimsPatch, kMaxGrid,
 		                             dimsGrid, norm, wavenumToFreq, data);
@@ -445,6 +489,58 @@ g9pIC_calcPkFromDelta(gridRegularFFT_t gridFFT,
 	return pk;
 } /* ginnungagapIC_calcPowerSpectrum */
 
+extern void
+g9pIC_calc2LPTSourceFromDelta(gridRegularFFT_t gridFFT, uint32_t dim1D)
+{
+	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
+	fpvComplex_t      *data;
+	gridRegular_t     gridReal;
+	gridPatch_t       patchReal;
+	gridPointUint32_t rdimsPatch;
+
+	assert(gridFFT != NULL);
+
+	local_getGridStuff(gridFFT, dim1D, &data, dimsGrid, dimsPatch, idxLo, kMaxGrid);
+	const uint64_t numElem = (uint64_t)dimsPatch[0] * dimsPatch[1] * dimsPatch[2];
+
+	gridReal  = gridRegularFFT_getGrid(gridFFT);
+	patchReal = gridRegular_getPatchHandle(gridReal, 0);
+	gridPatch_getDims(patchReal, rdimsPatch);
+	const uint64_t numElemReal = (uint64_t)rdimsPatch[0]
+	                             * rdimsPatch[1] * rdimsPatch[2];
+
+	fpvComplex_t *delta_copy = xmalloc(sizeof(fpvComplex_t) * numElem);
+	fpv_t        *hess_a     = xmalloc(sizeof(fpv_t) * numElemReal);
+	fpv_t        *hess_b     = xmalloc(sizeof(fpv_t) * numElemReal);
+	fpv_t        *source2    = xmalloc(sizeof(fpv_t) * numElemReal);
+
+	memcpy(delta_copy, data, sizeof(fpvComplex_t) * numElem);
+
+	local_calc2LPTSource(numElem, numElemReal, delta_copy,
+	                     hess_a, hess_b, source2, gridFFT, dim1D);
+
+	xfree(hess_a);
+	xfree(hess_b);
+	xfree(delta_copy);
+
+	/* Each BACKWARD multiplied by N^3; two per product term give N^6 total. */
+	const fpv_t corr = (fpv_t)(gridRegularFFT_getNorm(gridFFT)
+	                            * gridRegularFFT_getNorm(gridFFT));
+#ifdef _OPENMP
+#  pragma omp parallel for shared(source2, corr)
+#endif
+	for (uint64_t i = 0; i < numElemReal; i++)
+		source2[i] *= corr;
+
+	/* After the last BACKWARD in local_calc2LPTSource, fft->patch holds real
+	   data (phi,12(x)).  Overwrite it with S^(2)(x) and transform forward. */
+	fpv_t *real_buf = (fpv_t *)gridPatch_getVarDataHandle(patchReal, 0);
+	memcpy(real_buf, source2, sizeof(fpv_t) * numElemReal);
+	xfree(source2);
+
+	gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_FORWARD);
+} /* g9pIC_calc2LPTSourceFromDelta */
+
 extern const char *
 g9pIC_getModeStr(g9pICMode_t mode)
 {
@@ -477,6 +573,15 @@ g9pIC_getModeStr(g9pICMode_t mode)
 			break;
 		case G9PIC_MODE_SVZ:
 			s = local_modeSVzStr;
+			break;
+		case G9PIC_MODE_VX2LPT:
+			s = local_modeVx2LPTStr;
+			break;
+		case G9PIC_MODE_VY2LPT:
+			s = local_modeVy2LPTStr;
+			break;
+		case G9PIC_MODE_VZ2LPT:
+			s = local_modeVz2LPTStr;
 			break;
 		default:
 			diediedie(EXIT_FAILURE);
@@ -555,8 +660,10 @@ local_getDisplacementToVelocityFactor2lpt(cosmoModel_t model, double aInit)
 	double adot       = cosmoModel_calcADot(model, aInit);
 	double growthVel2 = cosmoModel_calcDlnGrowthDlna2lpt(model, aInit,
 	                                                     &error);
+	double omegaM     = cosmoModel_calcOmegaMatter(model, aInit);
+	double D2ratio    = -(3. / 7.) * pow(omegaM, -1. / 143.);
 
-	return adot * 100. * growthVel2;
+	return adot * 100. * growthVel2 * D2ratio;
 }
 
 #define WRAP_WAVENUM(k, kmax, dims) \
@@ -692,6 +799,136 @@ local_calcVelFromDeltaCutoff(const int               direction,
 		}
 	}
 } /* local_calcVelFromDeltaCutoff */
+
+static fpvComplex_t *
+local_getKDataPtr(gridRegularFFT_t gridFFT)
+{
+	gridRegular_t grid  = gridRegularFFT_getGridFFTed(gridFFT);
+	gridPatch_t   patch = gridRegular_getPatchHandle(grid, 0);
+	return (fpvComplex_t *)gridPatch_getVarDataHandle(patch, 0);
+}
+
+static void
+local_applyHessKernel(fpvComplex_t *restrict  data,
+                      const gridPointUint32_t  dimsPatch,
+                      const gridPointUint32_t  idxLo,
+                      const gridPointUint32_t  kMaxGrid,
+                      const gridPointUint32_t  dimsGrid,
+                      int                      d1,
+                      int                      d2)
+{
+#ifdef _OPENMP
+#  pragma omp parallel for shared(dimsPatch, idxLo, kMaxGrid, dimsGrid, data, d1, d2)
+#endif
+	for (uint64_t k = 0; k < dimsPatch[2]; k++) {
+		int64_t k2 = k + idxLo[2];
+		k2 = (k2 > kMaxGrid[2]) ? k2 - dimsGrid[2] : k2;
+		for (uint64_t j = 0; j < dimsPatch[1]; j++) {
+			int64_t k1 = j + idxLo[1];
+			k1 = (k1 > kMaxGrid[1]) ? k1 - dimsGrid[1] : k1;
+			for (uint64_t i = 0; i < dimsPatch[0]; i++) {
+				int64_t  k0, kd1, kd2;
+				double   kCellSqr;
+				uint64_t idx;
+				k0       = i + idxLo[0];
+				k0       = (k0 > kMaxGrid[0]) ? k0 - dimsGrid[0] : k0;
+				kd1      = (d1 == 0) ? k1 : (d1 == 1) ? k2 : k0;
+				kd2      = (d2 == 0) ? k1 : (d2 == 1) ? k2 : k0;
+				idx      = i + (j + k * dimsPatch[1]) * dimsPatch[0];
+				kCellSqr = (double)(k0 * k0 + k1 * k1 + k2 * k2);
+				data[idx] = ((k0 == 0) && (k1 == 0) && (k2 == 0))
+				            ? FPV_C(0.0)
+				            : data[idx] * (fpv_t)(-kd1 * kd2 / kCellSqr);
+			}
+		}
+	}
+} /* local_applyHessKernel */
+
+static void
+local_calc2LPTSource(const uint64_t   numElem,
+                     const uint64_t   numElemReal,
+                     fpvComplex_t     *delta_copy,
+                     fpv_t            *hess_a,
+                     fpv_t            *hess_b,
+                     fpv_t            *source2,
+                     gridRegularFFT_t gridFFT,
+                     uint32_t         dim1D)
+{
+	gridPointUint32_t dimsGrid, dimsPatch, idxLo, kMaxGrid;
+	fpvComplex_t *kdata;
+	fpv_t        *rdata;
+
+	local_getGridStuff(gridFFT, dim1D, &kdata, dimsGrid, dimsPatch, idxLo, kMaxGrid);
+	memset(source2, 0, sizeof(fpv_t) * numElemReal);
+
+	/* phi,00 -> save to hess_a */
+	memcpy(kdata, delta_copy, sizeof(fpvComplex_t) * numElem);
+	local_applyHessKernel(kdata, dimsPatch, idxLo, kMaxGrid, dimsGrid, 0, 0);
+	rdata = (fpv_t *)gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_BACKWARD);
+	memcpy(hess_a, rdata, sizeof(fpv_t) * numElemReal);
+	gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_FORWARD);
+
+	/* phi,11 -> source2 += hess_a * phi,11; save to hess_b */
+	kdata = local_getKDataPtr(gridFFT);
+	memcpy(kdata, delta_copy, sizeof(fpvComplex_t) * numElem);
+	local_applyHessKernel(kdata, dimsPatch, idxLo, kMaxGrid, dimsGrid, 1, 1);
+	rdata = (fpv_t *)gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_BACKWARD);
+#ifdef _OPENMP
+#  pragma omp parallel for shared(source2, hess_a, hess_b, rdata)
+#endif
+	for (uint64_t i = 0; i < numElemReal; i++) {
+		source2[i] += hess_a[i] * rdata[i];
+		hess_b[i]   = rdata[i];
+	}
+	gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_FORWARD);
+
+	/* phi,22 -> source2 += (hess_a + hess_b) * phi,22 */
+	kdata = local_getKDataPtr(gridFFT);
+	memcpy(kdata, delta_copy, sizeof(fpvComplex_t) * numElem);
+	local_applyHessKernel(kdata, dimsPatch, idxLo, kMaxGrid, dimsGrid, 2, 2);
+	rdata = (fpv_t *)gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_BACKWARD);
+#ifdef _OPENMP
+#  pragma omp parallel for shared(source2, hess_a, hess_b, rdata)
+#endif
+	for (uint64_t i = 0; i < numElemReal; i++)
+		source2[i] += (hess_a[i] + hess_b[i]) * rdata[i];
+	gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_FORWARD);
+
+	/* phi,01 -> source2 -= phi,01^2 */
+	kdata = local_getKDataPtr(gridFFT);
+	memcpy(kdata, delta_copy, sizeof(fpvComplex_t) * numElem);
+	local_applyHessKernel(kdata, dimsPatch, idxLo, kMaxGrid, dimsGrid, 0, 1);
+	rdata = (fpv_t *)gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_BACKWARD);
+#ifdef _OPENMP
+#  pragma omp parallel for shared(source2, rdata)
+#endif
+	for (uint64_t i = 0; i < numElemReal; i++)
+		source2[i] -= rdata[i] * rdata[i];
+	gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_FORWARD);
+
+	/* phi,02 -> source2 -= phi,02^2 */
+	kdata = local_getKDataPtr(gridFFT);
+	memcpy(kdata, delta_copy, sizeof(fpvComplex_t) * numElem);
+	local_applyHessKernel(kdata, dimsPatch, idxLo, kMaxGrid, dimsGrid, 0, 2);
+	rdata = (fpv_t *)gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_BACKWARD);
+#ifdef _OPENMP
+#  pragma omp parallel for shared(source2, rdata)
+#endif
+	for (uint64_t i = 0; i < numElemReal; i++)
+		source2[i] -= rdata[i] * rdata[i];
+	gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_FORWARD);
+
+	/* phi,12 -> source2 -= phi,12^2; no restoring FORWARD (last step) */
+	kdata = local_getKDataPtr(gridFFT);
+	memcpy(kdata, delta_copy, sizeof(fpvComplex_t) * numElem);
+	local_applyHessKernel(kdata, dimsPatch, idxLo, kMaxGrid, dimsGrid, 1, 2);
+	rdata = (fpv_t *)gridRegularFFT_execute(gridFFT, GRIDREGULARFFT_BACKWARD);
+#ifdef _OPENMP
+#  pragma omp parallel for shared(source2, rdata)
+#endif
+	for (uint64_t i = 0; i < numElemReal; i++)
+		source2[i] -= rdata[i] * rdata[i];
+} /* local_calc2LPTSource */
 
 #undef WRAP_WAVENUM
 #undef WAVE_SQR
