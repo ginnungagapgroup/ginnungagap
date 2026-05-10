@@ -153,6 +153,7 @@ ginnungagap_init(ginnungagap_t g9p)
 	             g9p->pk,
 	             g9p->model,
 	             g9p->setup->normalisationMode,
+	             g9p->setup->do2LPTCorrections,
 	             g9p->setup->namePkInput,
 	             g9p->setup->namePkInputZ0,
 	             g9p->setup->namePkInputZinit);

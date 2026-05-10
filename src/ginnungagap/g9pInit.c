@@ -69,7 +69,8 @@ static inline void
 local_calcSigmaBox(localFreqs_t k,
                    cosmoPk_t    pk,
                    int          rank,
-                   double       maxSigmaExpected);
+                   double       maxSigmaExpected,
+                   bool         do2LPT);
 
 
 /**
@@ -101,6 +102,7 @@ g9pInit_init(double         boxsizeInMpch,
              cosmoPk_t      pk,
              cosmoModel_t   model,
              g9pNorm_mode_t normalisationMode,
+             bool           do2LPT,
              const char     *namePkInput,
              const char     *namePkInputZ0,
              const char     *namePkInputZinit)
@@ -124,7 +126,7 @@ g9pInit_init(double         boxsizeInMpch,
 	cosmoPk_dumpToFile(pk, namePkInputZ0, 10);
 	local_shiftPkToAInit(model, pk, cosmo_z2a(zInit), rank);
 	cosmoPk_dumpToFile(pk, namePkInputZinit, 10);
-	local_calcSigmaBox(&k, pk, rank, local_calcMaxSigmaExpected(dim1D));
+	local_calcSigmaBox(&k, pk, rank, local_calcMaxSigmaExpected(dim1D), do2LPT);
 }
 
 /*--- Implementations of local functions --------------------------------*/
@@ -224,25 +226,38 @@ static inline void
 local_calcSigmaBox(localFreqs_t k,
                    cosmoPk_t    pk,
                    int          rank,
-                   double       maxSigmaExpected)
+                   double       maxSigmaExpected,
+                   bool         do2LPT)
 {
-	double        sigmaBox, error;
+	double        sigmaBox, error, product;
 	static double one = 1.0;
 
 	sigmaBox = cosmoPk_calcMomentFiltered(pk, 0, &cosmoFunc_const, &one,
 	                                      k->minBox, k->maxBox, &error);
 	sigmaBox = sqrt(sigmaBox);
+	product  = maxSigmaExpected * sigmaBox;
 
 	if (rank == 0) {
 		printf("\n  maxSigmaExpected:  %f", maxSigmaExpected);
 		printf("\n  sigmaBox        :  %f", sigmaBox);
-		if (isless(maxSigmaExpected * sigmaBox, 1.)) {
+		if (isless(product, 1.)) {
 			printf("\n    maxSigmaExpected * sigmaBox  = %f < 1, good.\n",
-			       maxSigmaExpected * sigmaBox);
+			       product);
+		} else if (do2LPT && isless(product, 2.)) {
+			fprintf(stderr,
+			        "\nWARNING: maxSigmaExpected * sigmaBox = %f >= 1.\n"
+			        "  ZA would fail here, but 2LPT corrections are enabled"
+			        " and the value is below the hard limit of 2.0.\n"
+			        "  Proceeding; verify that your initial redshift is"
+			        " appropriate for the accuracy you need.\n",
+			        product);
 		} else {
 			fprintf(stderr,
-			        "\nERROR: maxSigmaExpected * sigmaBox = %f >= 1.\n",
-			        maxSigmaExpected * sigmaBox);
+			        "\nERROR: maxSigmaExpected * sigmaBox = %f >= %s.\n"
+			        "  Initial redshift is too low%s.\n",
+			        product,
+			        do2LPT ? "2.0 (hard limit for 2LPT)" : "1.0",
+			        do2LPT ? " even for 2LPT" : " for Zel'dovich approximation");
 			diediedie(EXIT_FAILURE);
 		}
 	}

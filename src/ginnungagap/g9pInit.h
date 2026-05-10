@@ -31,6 +31,7 @@ g9pInit_init(double         boxsizeInMpch,
              cosmoPk_t      pk,
              cosmoModel_t   model,
              g9pNorm_mode_t normalisationMode,
+             bool           do2LPT,
              const char     *namePkInput,
              const char     *namePkInputZ0,
              const char     *namePkInputZinit);
