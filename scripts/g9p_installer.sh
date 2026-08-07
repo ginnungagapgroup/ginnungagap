@@ -29,7 +29,7 @@ echo
 echo === Downloading GSL ===
 echo
 
-wget http://mirrors.ustc.edu.cn/gnu/gsl/gsl-1.16.tar.gz
+wget https://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz
 
 fi
 
@@ -74,21 +74,6 @@ fi
 
 
 
-if [ ! -f sprng2.0b.tar.gz ] && [ $sprng = true ]
-then
-echo
-echo === Downloading SPRNG ===
-echo
-
-wget http://www.sprng.org/Version2.0/sprng2.0b.tar.gz
-
-fi
-
-
-if [ ! -d sprng2.0 ] && [ $sprng = true ]
-then
-tar -xzf sprng2.0b.tar.gz
-fi
 
 
 if [ ! -d ginnungagap ] && [ $g9p = true ]
@@ -101,6 +86,29 @@ git clone https://github.com/ginnungagapgroup/ginnungagap
 
 fi
 
+#if [ ! -f sprng2.0b.tar.gz ] && [ $sprng = true ]
+#then
+#echo
+#echo === Downloading SPRNG ===
+#echo
+
+#wget http://www.sprng.org/Version2.0/sprng2.0b.tar.gz # no longer available since may 2026
+
+if [ ! -f sprng2.0b_patched.tar.gz ] && [ $sprng = true ]
+then
+echo
+echo === Copying sprng2.0b patched version ===
+echo
+
+cp ginnungagap/scripts/sprng2.0b_patched.tar.gz .
+
+fi
+
+
+if [ ! -d sprng2.0 ] && [ $sprng = true ]
+then
+tar -xzf sprng2.0b_patched.tar.gz
+fi
 
 
 
@@ -171,7 +179,7 @@ if [ $sprng = true ] ; then
 	echo
 
 	cd sprng2.0
-	patch -p1 -i ../ginnungagap/doc/devel/patches/sprng2.0.fixMemoryLeak.patch
+#	patch -p1 -i ../ginnungagap/doc/devel/patches/sprng2.0.fixMemoryLeak.patch
 	make src
 
 	cd ..
