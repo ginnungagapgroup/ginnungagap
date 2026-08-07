@@ -12,6 +12,7 @@
       1. [generateICs](#generateics)
       1. [realSpaceConstraints](#realspaceconstraints)
       1. [refineGrid](#refinegrid)
+1. [Tests](#tests)
 1. [End note](#end-note)
 
 # Introduction
@@ -118,6 +119,8 @@ WN -----------> VFs -------------> GADGET/GRAFIC files
    P(k)
 ```
 where WN stands for the White Noise -- a grid of Gaussian random numbers with zero mean and unit variance. VFs are velocity fields -- the same grid filled with three velocity components. The creation of new random WN and conversion of WN into VFs is done with the help of `ginnungagap` tool. Both WN and VFs are stored in files, by default, in HDF5 format (otherwise can be stored in GRAFIC format). ICs files in GADGET-2 format (format type 1, without block names) can be created with the `generateICs`, and ICs in GRAFIC format are made by `graficCoord`. In both cases, the Zel'dovich approximation (ZA) is applied to produce particle coordinates from velocity fields.
+
+Optionally, second-order Lagrangian perturbation theory (2LPT) corrections can be applied instead of the plain ZA. When `do2LPTCorrections = true` is set in the `ginnungagap` ini file, the tool additionally computes the second-order source term S^(2)(k) from the density field and writes a second set of velocity fields, `*_velx_2lpt.h5`, `*_vely_2lpt.h5` and `*_velz_2lpt.h5`, alongside the usual first-order VFs. `generateICs` picks these up when `do2LPT = true` is set in its ini file together with the corresponding `velx2Section`/`vely2Section`/`velz2Section` entries pointing at readers for these files, and combines the first- and second-order fields into the final particle displacements and velocities. Since 2LPT explicitly corrects for the leading non-linear term, the initial redshift can be chosen lower than what plain ZA would require (roughly half as large in terms of the linear growth factor) for the same box and resolution.
 
 The resolution increase requires an existing WN (called WN1 below) and is done in the following way:
 
@@ -260,7 +263,7 @@ produce velocity fields.  Invocation: `ginnungagap <inifile>`.
 | `doLargeScale` | no (false) | Keep only large-scale Fourier modes (k < 1/`cutoffScale`) (not used, hardcoded to `refineGrid`) |
 | `doSmallScale` | no (false) | Keep only small-scale Fourier modes (k > 1/`cutoffScale`) (not used, hardcoded to `refineGrid`) |
 | `cutoffScale` | if doLargeScale or doSmallScale | Cutoff in Mpc/h (not used, hardcoded to `refineGrid`) |
-| `do2LPTCorrections` | no (false) | Apply 2LPT velocity corrections (not implemented yet) |
+| `do2LPTCorrections` | no (false) | Compute 2LPT source S^(2)(k) and write a second set of velocity fields (`*_velx_2lpt.h5`, `*_vely_2lpt.h5`, `*_velz_2lpt.h5`) for use by `generateICs` |
 | `namePkWN` | no | Output file for the white-noise P(k) (default: `Pk.wn.dat`) |
 | `namePkDeltak` | no | Output file for the density-field P(k) (default: `Pk.deltak.dat`) |
 | `namePkInput` | no | Output file for the input model P(k) (default: `Pk.input.dat`) |
@@ -340,6 +343,7 @@ applying the Zel'dovich approximation.  Invocation: `generateICs <inifile>`.
 | `doLongIDs` | no (false) | Use 64-bit particle IDs; needed for more than ~4 × 10⁹ particles or large zoom grids with `sequentialIDs = false` |
 | `sequentialIDs` | no (true) | Assign sequential IDs; if false, IDs are derived from the Lagrangian grid position |
 | `doMassBlock` | no (false) | Write an explicit per-particle mass block; used automatically when multiple zoom levels share the same GADGET particle type |
+| `do2LPT` | no (false) | Apply 2LPT displacement/velocity corrections on top of the Zel'dovich approximation; requires `ginnungagap` to have been run with `do2LPTCorrections = true` and the `velx2Section`/`vely2Section`/`velz2Section` keys to be set in the input section |
 | `autoCenter` | no (false) | Shift all particles so that the zoom region is centred in the box by its Lagrangian coordinates |
 | `useKpc` | no (false) | Write positions in kpc/h instead of the default kpc |
 | `shift` | no (0 0 0) | Additional translation applied to all particle coordinates, in Mpc/h |
@@ -363,6 +367,9 @@ applying the Zel'dovich approximation.  Invocation: `generateICs <inifile>`.
 | `velxSection` | yes | Name of the section for the x-velocity reader |
 | `velySection` | yes | Name of the section for the y-velocity reader |
 | `velzSection` | yes | Name of the section for the z-velocity reader |
+| `velx2Section` | if `do2LPT` | Name of the section for the 2LPT x-velocity reader (`*_velx_2lpt.h5`) |
+| `vely2Section` | if `do2LPT` | Name of the section for the 2LPT y-velocity reader (`*_vely_2lpt.h5`) |
+| `velz2Section` | if `do2LPT` | Name of the section for the 2LPT z-velocity reader (`*_velz_2lpt.h5`) |
 
 **[GenicsInput_velx/vely/velz]** — individual velocity readers (HDF5)
 
@@ -505,6 +512,18 @@ Same keys as [inputReader].
 
 
 
+
+# Tests
+
+This section collects results of tests of new features introduced after the publication of the [g9p paper](http://arxiv.org/abs/2511.10353).
+
+## Zel'dovich vs 2LPT: halo mass function
+
+To check the 2LPT corrections described above, two ICs were generated for the same 100 Mpc/h box with 512^3 particles and identical white noise: one initialised at z=99 using the plain Zel'dovich approximation, and the other at z=31 using 2LPT. Both were evolved to z=0 with GADGET-2, haloes were identified with the Rockstar halo finder, and the resulting M200c mass functions were compared at z=6, z=1.45 and z=0:
+
+![Halo mass function: Zel'dovich vs 2LPT](doc/massfunc_plot.png)
+
+Despite the 2LPT run starting much later (z=31 vs z=99 for Zel'dovich), the two mass functions agree closely at all three compared redshifts (z=6, z=1.45, z=0) across the full mass range. This confirms that 2LPT corrections allow a simulation to be started at a substantially lower initial redshift than the Zel'dovich approximation while producing equivalent structure growth, reducing the number of timesteps needed to reach z=0.
 
 # End note
 
